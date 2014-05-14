@@ -1,0 +1,4 @@
+[rsync]
+remote = archiva.wikimedia.org::archiva/git-fat
+options = --copy-links --verbose
+
