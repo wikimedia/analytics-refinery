@@ -1,0 +1,58 @@
+#!/usr/bin/env python
+"""sequence-file
+Wrapper for refinery-tools that work with SequenceFiles in Hadoop.
+
+Usage:
+  sequence-file [options] store <file>
+  sequence-file [options] dump  <file>
+  sequence-file [options] info  <file>
+  sequence-file --help
+
+Options:
+  -h, --help        Show this help message and exit
+  -j, --jar=<jar>   Path to refinery-tools.jar [default: {0}]
+
+Examples:
+  # Read stdin into HDFS as a Snappy compressed SequenceFile.
+  sequence-file store /hdfs/path/to/file/MyFile.sequencefile < /local/path/to/file/MyFile.txt
+
+  # Dump a SequenceFile in HDFS to stdout:
+  sequence-file dump /hdfs/path/to/file/MyFile.sequencefile > MyFile.txt
+
+  # Get info about a file in HDFS (type of compression, etc.).
+  sequence-file info /hdfs/path/to/file/MyFile.sequencefile
+
+"""
+
+from docopt import docopt
+import os
+import sys
+
+if __name__ == '__main__':
+    # --jar default should be in ../artifacts/ directory
+    jar_default = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
+        'artifacts',
+        'refinery-tools.jar'
+    )
+
+    # parse arguments
+    arguments = docopt(__doc__.format(jar_default))
+
+    refinery_tools_class = None
+    if arguments['store']:
+        refinery_tools_class = 'org.wikimedia.analytics.refinery.tools.Store'
+    elif arguments['dump']:
+        refinery_tools_class = 'org.wikimedia.analytics.refinery.tools.Dump'
+    elif arguments['info']:
+        refinery_tools_class = 'org.wikimedia.analytics.refinery.tools.Info'
+    else:
+        sys.exit("Bad action specified.  Must specify one of 'store', 'dump', or 'info'.")
+
+    command = 'hadoop jar {0} {1} {2}'.format(
+        arguments['--jar'],
+        refinery_tools_class, arguments['<file>']
+    )
+
+    print(command)
+    sys.exit(os.system(command))
