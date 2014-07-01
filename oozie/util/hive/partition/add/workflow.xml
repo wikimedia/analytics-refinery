@@ -1,0 +1,75 @@
+<workflow-app xmlns="uri:oozie:workflow:0.4"
+    name="hive_add_partition-${table}_${webrequest_source}-wf">
+
+    <parameters>
+        <property>
+            <name>hive_script</name>
+            <!-- This is relative to the containing directory of this file. -->
+            <value>add_partition.sql</value>
+            <description>Hive script to run.</description>
+        </property>
+        <property>
+            <name>queueName</name>
+            <value>adhoc</value>
+        </property>
+
+        <!-- Required properties -->
+        <property><name>nameNode</name></property>
+        <property><name>jobTracker</name></property>
+
+        <property>
+            <name>hive_site_xml</name>
+            <description>hive-site.xml file path in HDFS</description>
+        </property>
+        <property>
+            <name>serde_jar</name>
+            <description>Path in HDFS for SerDe .jar to use.</description>
+        </property>
+        <property>
+            <name>database</name>
+            <description>Hive database to use.</description>
+        </property>
+        <property>
+            <name>table</name>
+            <description>Hive table to partition.</description>
+        </property>
+        <property>
+            <name>partition_spec</name>
+            <description>Full partition spec to pass to Hive script.  E.g. 'year=2014, month=04,...'</description>
+        </property>
+        <property>
+            <name>location</name>
+            <description>HDFS path(s) naming the input dataset.</description>
+        </property>
+    </parameters>
+
+    <start to="add_partition"/>
+
+    <action name="add_partition">
+        <hive xmlns="uri:oozie:hive-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <job-xml>${hive_site_xml}</job-xml>
+            <configuration>
+                <property>
+                    <name>mapreduce.job.queuename</name>
+                    <value>${queueName}</value>
+                </property>
+            </configuration>
+
+            <script>${hive_script}</script>
+            <param>database=${database}</param>
+            <param>table=${table}</param>
+            <param>serde_jar=${serde_jar}</param>
+            <param>location=${location}</param>
+            <param>partition_spec=${partition_spec}</param>
+        </hive>
+        <ok to="end"/>
+        <error to="kill"/>
+    </action>
+
+    <kill name="kill">
+        <message>Action failed, error message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+    </kill>
+    <end name="end"/>
+</workflow-app>

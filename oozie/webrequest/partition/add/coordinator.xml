@@ -1,0 +1,98 @@
+<coordinator-app xmlns="uri:oozie:coordinator:0.4"
+    name="hive_add_partition-${table}_${webrequest_source}-coord"
+    frequency="${coord:hours(1)}"
+    start="${startTime}"
+    end="${stopTime}"
+    timezone="Universal">
+
+    <parameters>
+        <property>
+            <name>queueName</name>
+            <value>standard</value>
+        </property>
+
+        <!-- Required properties. -->
+        <property><name>nameNode</name></property>
+        <property><name>jobTracker</name></property>
+        <property><name>workflowFile</name></property>
+        <property><name>startTime</name></property>
+        <property><name>stopTime</name></property>
+        <property><name>dataDirectory</name></property>
+
+        <property><name>hive_site_xml</name></property>
+        <property><name>serde_jar</name></property>
+        <property><name>database</name></property>
+        <property><name>table</name></property>
+        <property><name>webrequest_source</name></property>
+    </parameters>
+
+    <controls>
+        <!--
+        Altering hive partitions is cheap.  If there is an
+        occasion where we have to add a bunch all at once,
+        do it!
+        -->
+        <concurrency>168</concurrency>
+    </controls>
+
+    <datasets>
+        <!--
+        Include the given datasetsFile file.  This should
+        define the "webrequest" dataset for this coordinator.
+        -->
+        <include>${datasetsFile}</include>
+    </datasets>
+
+    <input-events>
+        <data-in name="input" dataset="webrequest">
+            <instance>${coord:current(0)}</instance>
+        </data-in>
+        <!--
+        Having a data-in defined for current(1) will
+        keep the workflow from running until the next
+        hour's directory is created.
+         -->
+        <data-in name="ready_indicator" dataset="webrequest">
+            <instance>${coord:current(1)}</instance>
+        </data-in>
+    </input-events>
+
+    <action>
+        <workflow>
+            <app-path>${workflowFile}</app-path>
+            <configuration>
+
+                <!-- Pass these properties through to the workflow -->
+                <property><name>nameNode</name><value>${nameNode}</value></property>
+                <property><name>jobTracker</name><value>${jobTracker}</value></property>
+                <property><name>queueName</name><value>${queueName}</value></property>
+
+                <property>
+                    <name>hive_site_xml</name>
+                    <value>${hive_site_xml}</value>
+                </property>
+                <property>
+                    <name>serde_jar</name>
+                    <value>${serde_jar}</value>
+                </property>
+                <property>
+                    <name>database</name>
+                    <value>${database}</value>
+                </property>
+                <property>
+                    <name>table</name>
+                    <value>${table}</value>
+                </property>
+                <property>
+                    <name>partition_spec</name>
+                    <value>webrequest_source='${webrequest_source}',${coord:formatTime(coord:dateOffset(coord:nominalTime(), 0, 'HOUR'), "'year='yyyy,'month='MM,'day='dd,'hour='HH")}</value>
+                </property>
+                <property>
+                    <name>location</name>
+                    <value>${coord:dataIn('input')}</value>
+                </property>
+
+            </configuration>
+        </workflow>
+    </action>
+</coordinator-app>

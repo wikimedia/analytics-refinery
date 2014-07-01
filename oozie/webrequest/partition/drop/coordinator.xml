@@ -1,0 +1,102 @@
+<coordinator-app xmlns="uri:oozie:coordinator:0.4"
+    name="hive_drop_partition-${table}_${webrequest_source}-coord"
+    frequency="${coord:hours(1)}"
+    start="${startTime}"
+    end="${stopTime}"
+    timezone="Universal">
+
+    <parameters>
+        <property>
+            <name>queueName</name>
+            <value>adhoc</value>
+        </property>
+
+        <!-- Required properties. -->
+        <property><name>nameNode</name></property>
+        <property><name>jobTracker</name></property>
+        <property><name>workflowFile</name></property>
+        <property><name>startTime</name></property>
+        <property><name>stopTime</name></property>
+        <property><name>dataDirectory</name></property>
+
+        <property><name>hive_site_xml</name></property>
+        <property><name>serde_jar</name></property>
+        <property><name>database</name></property>
+        <property><name>table</name></property>
+        <property><name>webrequest_source</name></property>
+    </parameters>
+
+    <controls>
+        <!--
+        Altering hive partitions is cheap.  If there is an
+        occasion where we have to add a bunch all at once,
+        do it!
+        -->
+        <concurrency>168</concurrency>
+    </controls>
+
+    <datasets>
+        <!--
+        Include the given datasetsFile file.  This should
+        define the "webrequest" dataset for this coordinator.
+        -->
+        <include>${datasetsFile}</include>
+    </datasets>
+
+    <input-events>
+        <data-in name="toDelete" dataset="webrequest">
+            <!--
+            The partition_spec to delete is inferred from the current
+            instance - 1440 hours.  This amounts to 60 days ago.
+            Please make sure ${startTime} is set to 1440 hours beyond
+            your dataset's actual initial instance.  (It won't hurt
+            to incorrectly set ${startTime}, you'll just end up with
+            a lot of failed jobs until there is actually data old
+            enough to delete.)
+            -->
+            <instance>${coord:current(0)}</instance>
+        </data-in>
+    </input-events>
+
+    <action>
+        <workflow>
+            <app-path>${workflowFile}</app-path>
+            <configuration>
+
+                <!-- Pass these properties through to the workflow -->
+                <property><name>nameNode</name><value>${nameNode}</value></property>
+                <property><name>jobTracker</name><value>${jobTracker}</value></property>
+                <property><name>queueName</name><value>${queueName}</value></property>
+
+                <property>
+                    <name>hive_site_xml</name>
+                    <value>${hive_site_xml}</value>
+                </property>
+                <property>
+                    <name>serde_jar</name>
+                    <value>${serde_jar}</value>
+                </property>
+                <property>
+                    <name>database</name>
+                    <value>${database}</value>
+                </property>
+                <property>
+                    <name>table</name>
+                    <value>${table}</value>
+                </property>
+                <property>
+                    <name>partition_spec</name>
+                    <!--
+                    -1440 hours is 60 days ago.  Delete the partition that is 60 days old.
+                    -->
+                    <value>webrequest_source='${webrequest_source}',${coord:formatTime(coord:dateOffset(coord:nominalTime(), -1440, 'HOUR'), "'year='yyyy,'month='MM,'day='dd,'hour='HH")}</value>
+                </property>
+                <property>
+                    <name>location</name>
+                    <value>${coord:dataIn('toDelete')}</value>
+                </property>
+
+            </configuration>
+        </workflow>
+    </action>
+</coordinator-app>

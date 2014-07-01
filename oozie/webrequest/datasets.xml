@@ -1,0 +1,19 @@
+<!--
+Defines a reusable dataset for raw webrequest data.
+Use this dataset in your coordinator.xml files by setting:
+
+  ${startTime}      - the initial instance of your data.
+                      Example: 2014-04-01T00:00Z
+  ${dataDirectory}  - Path to directory where data is time bucketed.
+                      Example: /wmf/data/external/webrequest/webrequest_mobile/hourly
+-->
+
+<datasets>
+<dataset name="webrequest"
+        frequency="${coord:hours(1)}"
+        initial-instance="${startTime}"
+        timezone="Universal">
+    <uri-template>${dataDirectory}/${YEAR}/${MONTH}/${DAY}/${HOUR}</uri-template>
+    <done-flag></done-flag>
+ </dataset>
+</datasets>
