@@ -1,0 +1,279 @@
+#!/bin/bash
+set -e
+#
+# Used Hungarian notation:
+#
+#   _ABS      - absolute path
+#   _RELB     - path, relative to $REFINERY_BASE_HDFSDIR_ABS
+#
+#   _FILE     - file in plain file system
+#   _DIR      - directory in plain file system
+#   _HDFSDIR  - directory in HDFS
+#   _HDFSFILE - file in HDFS
+#
+
+REFINERY_BASE_HDFSDIR_ABS="hdfs:///wmf/refinery"
+
+
+
+#---------------------------------------------------------------------
+# Change to root directory of refinery
+cd "$(dirname "$0" )/.."
+
+DRY_RUN=yes
+VERBOSE=no
+CURRENT_TARGET_HDFSDIR_RELB="current"
+SKIP_UPDATING_CURRENT=no
+
+print_help() {
+    cat <<EOF
+$0
+===================================
+
+Deploys the current state of the refinery checkout to the cluster.
+
+The current refinery checkout's files get deployed underneath
+'$REFINERY_BASE_HDFSDIR_ABS' into a separate directory that describes
+the current checkout's state, and additionally into a 'current'
+directory.
+
+Options:
+  --no-dry-run   - Do not dry-run, but really deploy to cluster.
+  --skip-current - Skips updating '$CURRENT_TARGET_HDFSDIR_RELB' on the cluster.
+  --base         - Absolute hdfs path to use a base for deployment
+                     (Default: '$REFINERY_BASE_HDFSDIR_ABS')
+  --verbose      - Turn on verbose output.
+EOF
+}
+
+echo_timestamp() {
+    local TIMESTAMP="$1"
+    if [ -z "$TIMESTAMP" ]
+    then
+        TIMESTAMP="now"
+    fi
+    date -d "$TIMESTAMP" --utc --iso-8601=seconds | \
+        sed -e 's/+0000$/Z/' # date does not compact UTC to 'Z', so we do it.
+}
+
+error () {
+    echo "$(echo_timestamp)" "Error:" "$@" >&2
+    exit 1
+}
+
+log() {
+    echo "$(echo_timestamp)" "$@"
+}
+
+finalize() {
+    log pass "(Used parameters:" "$@" ")"
+}
+
+verbose_log() {
+    if [ "$VERBOSE" = "yes" ]
+    then
+        log "$@"
+    fi
+}
+
+status() {
+    verbose_log
+    verbose_log "*" "$@" "..."
+}
+
+run_hdfs() {
+    local SKIP_RUNNING_COMMAND="$DRY_RUN"
+    if [ "$1" = "--run-also-for-dry-run" ]
+    then
+        shift
+        SKIP_RUNNING_COMMAND="no"
+    fi
+    local CMD=( hdfs "$@" )
+    if [ "$DRY_RUN" = "no" ]
+    then
+        verbose_log "${CMD[@]}"
+    else
+        log "Dry run:" "${CMD[@]}"
+    fi
+    if [ "$SKIP_RUNNING_COMMAND" = "no" ]
+    then
+        "${CMD[@]}"
+    fi
+}
+
+bring_tmp_hdfs_dir_into_place() {
+    local TMP_HDFSDIR_ABS="$1"
+    local FINAL_HDFSDIR_ABS="$2"
+
+    local SWAP_HDFSDIR_ABS="$FINAL_HDFSDIR_ABS.swap"
+
+    local CLEANUP_SWAP=no
+    if run_hdfs --run-also-for-dry-run dfs -stat "$FINAL_HDFSDIR_ABS" &>/dev/null
+    then
+        run_hdfs dfs -mv "$FINAL_HDFSDIR_ABS" "$SWAP_HDFSDIR_ABS"
+        CLEANUP_SWAP=yes
+    fi
+    run_hdfs dfs -mv "$TMP_HDFSDIR_ABS" "$FINAL_HDFSDIR_ABS"
+    if [ "$CLEANUP_SWAP" = "yes" ]
+    then
+        run_hdfs dfs -rm -r -f "$SWAP_HDFSDIR_ABS"
+    fi
+}
+
+alert_dry_run() {
+    if [ "$DRY_RUN" != "no" ]
+    then
+        log "======================================================"
+        log "Running in 'dry-run' mode!"
+        log "Not actually deploying. (See '--no-dry-run' parameter)"
+        log "======================================================"
+    fi
+}
+
+guard_against_uninitialized_git_fat() {
+    # To guard against uninitialized git-fat, we could be walking the
+    # git configuration. But that would not guard against
+    # repositories, where git-fat gets set up after pulling. Hence,
+    # this approach would not help for us.
+    #
+    # So we instead check for all files <5KB whether or not they
+    # contain a git-fat signature. If there are any such files,
+    # git-fat has not been properly initialized, and we better abort
+    # to avoid pushing faulty artifacts to the cluster.
+    local UNINITIALIZED_GIT_FAT_FILES=$(
+        find artifacts -type f -size -5k -print0 | \
+            xargs -0 --no-run-if-empty grep -l -e '^#$#.*git-fat' )
+    if [ ! -z "$UNINITIALIZED_GIT_FAT_FILES" ]
+    then
+        error "It seems git-fat has not properly been set up!
+
+Some files (see below) are still showing a git-fat signature.
+Please see the README.md in the root of this repository on how to set
+up git-fat.
+
+Affected files:
+$UNINITIALIZED_GIT_FAT_FILES
+"
+    fi
+}
+
+describe_deployment() {
+    local TARGET_HDFSFILE_ABS="$1"
+    shift
+
+    # Describe current deployment
+    run_hdfs dfs -put <( cat <<EOF
+deployment.version=$GIT_DESCRIPTION
+deployment.timestamp=$TIMESTAMP
+deployment.user=$(whoami)
+deployment.host=$(hostname --fqdn)
+deployment.workingDirectory=$(pwd)
+deployment.parameters=$@
+EOF
+    ) "$TARGET_HDFSFILE_ABS"
+}
+
+parse_parameters() {
+    while [ $# -gt 0 ]
+    do
+        local PARAM="$1"
+        case "$PARAM" in
+            "--help" )
+                print_help
+                exit 0
+                ;;
+            "--no-dry-run" )
+                DRY_RUN=no
+                ;;
+            "--skip-current" )
+                SKIP_UPDATING_CURRENT=yes
+                ;;
+            "--base" )
+                [[ $# -gt 1 ]] || error "Missing option for '$PARAM'"
+                REFINERY_BASE_HDFSDIR_ABS="$2"
+                [[ "${REFINERY_BASE_HDFSDIR_ABS:0:7}" = "hdfs://" ]] || \
+                    error "Deployment target '$REFINERY_BASE_HDFSDIR_ABS'
+needs to be an absolute hdfs path, but does not start in 'hdfs://'"
+                shift
+                ;;
+            "--verbose" )
+                VERBOSE=yes
+                ;;
+            * )
+                error "Unknown parameter '$PARAM'"
+                ;;
+        esac
+        shift
+    done
+}
+
+parse_parameters "$@"
+
+alert_dry_run
+
+guard_against_uninitialized_git_fat
+
+GIT_DESCRIPTION="$(git describe $GIT_EXTRA_OPTION --always --dirty 2>/dev/null || true)"
+[[ ! -z "$GIT_DESCRIPTION" ]] || error "Cannot describe current version"
+TIMESTAMP="$(echo_timestamp)"
+# For the git description, we need to guard
+#  * against ':' in timestamp, as HDFS chokes on colons, and
+#  * against '/' in branch names, as we want to deploy to directly to
+#      a directory underneath the base directory.
+GIT_DESCRIPTION="${TIMESTAMP//:/.}--${GIT_DESCRIPTION////_}"
+
+verbose_log "Current git description: '$GIT_DESCRIPTION'"
+
+#---------------------------------------------------------------------
+status "Preparing HDFS"
+run_hdfs dfs -mkdir -p "$REFINERY_BASE_HDFSDIR_ABS"
+
+
+
+#---------------------------------------------------------------------
+status "Copying local checkout to versioned directory in HDFS"
+VERSIONED_TARGET_HDFSDIR_ABS="$REFINERY_BASE_HDFSDIR_ABS/$GIT_DESCRIPTION"
+
+# Since there is no real atomic replacing of files, we copy to a
+# temporary directory and finally put it in place.
+VERSIONED_TMP_TARGET_HDFSDIR_ABS="$VERSIONED_TARGET_HDFSDIR_ABS.tmp"
+
+# Making sure target exists (else put will complain) and is empty, by
+# unlinking, and recreating it.
+run_hdfs dfs -rm -r -f "$VERSIONED_TMP_TARGET_HDFSDIR_ABS"
+run_hdfs dfs -mkdir "$VERSIONED_TMP_TARGET_HDFSDIR_ABS"
+
+# Note that we only copy *, and not dot-files, hence excluding '.git'.
+run_hdfs dfs -put -f * "$VERSIONED_TMP_TARGET_HDFSDIR_ABS"
+
+describe_deployment "$VERSIONED_TMP_TARGET_HDFSDIR_ABS/.deployment" "$@"
+
+# Bringing the temporary directory into place
+bring_tmp_hdfs_dir_into_place \
+    "$VERSIONED_TMP_TARGET_HDFSDIR_ABS" \
+    "$VERSIONED_TARGET_HDFSDIR_ABS"
+
+
+
+#---------------------------------------------------------------------
+status "Setting up '$CURRENT_TARGET_HDFSDIR_RELB' version on cluster"
+if [ "$SKIP_UPDATING_CURRENT" = "no" ]
+then
+    CURRENT_TARGET_HDFSDIR_ABS="$REFINERY_BASE_HDFSDIR_ABS/$CURRENT_TARGET_HDFSDIR_RELB"
+
+    # Since there is no real atomic replacing of files, we copy to a
+    # temporary directory and finally put it in place.
+    CURRENT_TMP_TARGET_HDFSDIR_ABS="$CURRENT_TARGET_HDFSDIR_ABS.tmp"
+
+    # Copying main files
+    run_hdfs dfs -cp "$VERSIONED_TARGET_HDFSDIR_ABS" "$CURRENT_TMP_TARGET_HDFSDIR_ABS"
+
+    # Bringing the temporary directory into place
+    bring_tmp_hdfs_dir_into_place \
+        "$CURRENT_TMP_TARGET_HDFSDIR_ABS" \
+        "$CURRENT_TARGET_HDFSDIR_ABS"
+else
+    verbose_log "(Skipped per user request)"
+fi
+
+finalize "$@"
