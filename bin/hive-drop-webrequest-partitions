@@ -29,7 +29,6 @@ Options:
     -t --table=<table>                  Name of webrequest table.  [default: webrequest]
     -o --hive-options=<options>         Any valid Hive CLI options you want to pass to Hive commands.
                                         Example: '--auxpath /path/to/hive-serdes-1.0-SNAPSHOT.jar'
-                                        [default: --auxpath /usr/lib/hcatalog/share/hcatalog/hcatalog-core-0.5.0-cdh4.3.1.jar]
     -v --verbose                        Turn on verbose debug logging.
     -n --dry-run                        Don't actually drop any partitions, just output the Hive queries to drop partitions.
 """
