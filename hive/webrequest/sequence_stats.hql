@@ -37,7 +37,7 @@
 --
 --
 -- Usage:
---   hive --auxpath /usr/lib/hcatalog/share/hcatalog/hcatalog-core-0.5.0-cdh4.3.1.jar \
+--   hive \
 --     -f sequence_stats.hql                              \
 --     -d source_table=wmf.webrequest                     \
 --     -d destination_table=wmf.webrequest_sequence_stats \
