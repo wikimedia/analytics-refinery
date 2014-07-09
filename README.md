@@ -10,7 +10,17 @@ analytics cluster.
 1. Install git-fat from https://github.com/jedbrown/git-fat on your
    system.
 
-2. Clone the repository.
+2. Make sure the ```docopt``` and ```dateutil``` Python packages are
+   available on your system.
+
+   On Ubuntu systems, you can achiev this by running
+
+   ```
+   sudo apt-get install python-docopt
+   sudo apt-get install python-dateutil
+   ```
+
+3. Clone the repository.
 
    You can find the commands to clone the repository at [WMF's gerrit](https://gerrit.wikimedia.org/r/#/admin/projects/analytics/refinery).
 
@@ -20,19 +30,19 @@ analytics cluster.
    git clone https://gerrit.wikimedia.org/r/analytics/refinery
    ```
 
-3. change to the cloned repository by running
+4. change to the cloned repository by running
 
    ```
    cd refinery
    ```
 
-4. Initialize git-fat by running
+5. Initialize git-fat by running
 
    ```
    git fat init
    ```
 
-5. Pull existing artifacts into the repository by running
+6. Pull existing artifacts into the repository by running
 
    ```
    git fat pull
@@ -40,4 +50,15 @@ analytics cluster.
 
    (Depending on you internet connection, this step may take some time.)
 
-6. Done.
+7. Add the ```refinery/python``` directory to your ```PYTHONPATH```.
+
+   To add it only in the running shell, you can use
+
+   ```
+   export PYTHONPATH=/path/to/analytics/refinery/python
+   ```
+
+   Please refer to your operating system's documentation on how to do
+   this globally.
+
+8. Done.
