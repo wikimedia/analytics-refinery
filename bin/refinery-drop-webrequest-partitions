@@ -20,7 +20,7 @@
 Automatically drops old Hive partitions from the webrequest table
 and deletes the hourly time bucketed directory from HDFS.
 
-Usage: hive-drop-webrequest-partitions [options]
+Usage: refinery-drop-webrequest-partitions [options]
 
 Options:
     -h --help                           Show this help message and exit.
