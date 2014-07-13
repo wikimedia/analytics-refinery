@@ -7,6 +7,9 @@
    * Do not use extensions for the used language (so no trailing
      ```.sh```, and no trailing ```.py```)
 
+   * At least for programs that “act on” refinery, filenames should
+     start in ```refinery-```.
+
 * For files outside of ```bin```:
   * Use ```_``` as separator for filenames (like
     ```my_nice_file.txt```).
