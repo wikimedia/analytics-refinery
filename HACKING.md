@@ -15,6 +15,6 @@
     trailing ```.properties```)
 
 * We do not like camelCase in variable names. Only use them in Java
-  code, where they are somewhat standard.
+  code, where they are somewhat standard, and in Python class names.
 
 * Filenames for files in HiveQL should end in ```.hql```.
