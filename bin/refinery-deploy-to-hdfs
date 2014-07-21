@@ -167,7 +167,7 @@ deployment.version=$GIT_DESCRIPTION
 deployment.timestamp=$TIMESTAMP
 deployment.user=$(whoami)
 deployment.host=$(hostname --fqdn)
-deployment.workingDirectory=$(pwd)
+deployment.working_directory=$(pwd)
 deployment.parameters=$@
 EOF
     ) "$TARGET_HDFSFILE_ABS"

@@ -6,5 +6,5 @@ or data in HDFS.
 hive-site.xml is a symlink to /etc/hive/conf/hive-site.xml.  If you
 run ```hdfs dfs -put``` for the whole oozie/ directory, hive-site.xml
 will be put as the full text of the original file in HDFS.
-This file is referenced from various files relative to an ```${oozieDirectory}```
+This file is referenced from various files relative to an ```${oozie_directory}```
 property.

@@ -1,23 +1,23 @@
 <coordinator-app xmlns="uri:oozie:coordinator:0.4"
     name="hive_add_partition-${table}_${webrequest_source}-coord"
     frequency="${coord:hours(1)}"
-    start="${startTime}"
-    end="${stopTime}"
+    start="${start_time}"
+    end="${stop_time}"
     timezone="Universal">
 
     <parameters>
         <property>
-            <name>queueName</name>
+            <name>queue_name</name>
             <value>standard</value>
         </property>
 
         <!-- Required properties. -->
-        <property><name>nameNode</name></property>
-        <property><name>jobTracker</name></property>
-        <property><name>workflowFile</name></property>
-        <property><name>startTime</name></property>
-        <property><name>stopTime</name></property>
-        <property><name>dataDirectory</name></property>
+        <property><name>name_node</name></property>
+        <property><name>job_tracker</name></property>
+        <property><name>workflow_file</name></property>
+        <property><name>start_time</name></property>
+        <property><name>stop_time</name></property>
+        <property><name>data_directory</name></property>
 
         <property><name>hive_site_xml</name></property>
         <property><name>database</name></property>
@@ -36,10 +36,10 @@
 
     <datasets>
         <!--
-        Include the given datasetsFile file.  This should
+        Include the given datasets_file file.  This should
         define the "webrequest" dataset for this coordinator.
         -->
-        <include>${datasetsFile}</include>
+        <include>${datasets_file}</include>
     </datasets>
 
     <input-events>
@@ -58,13 +58,13 @@
 
     <action>
         <workflow>
-            <app-path>${workflowFile}</app-path>
+            <app-path>${workflow_file}</app-path>
             <configuration>
 
                 <!-- Pass these properties through to the workflow -->
-                <property><name>nameNode</name><value>${nameNode}</value></property>
-                <property><name>jobTracker</name><value>${jobTracker}</value></property>
-                <property><name>queueName</name><value>${queueName}</value></property>
+                <property><name>name_node</name><value>${name_node}</value></property>
+                <property><name>job_tracker</name><value>${job_tracker}</value></property>
+                <property><name>queue_name</name><value>${queue_name}</value></property>
 
                 <property>
                     <name>hive_site_xml</name>

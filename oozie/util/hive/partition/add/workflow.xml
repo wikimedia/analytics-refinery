@@ -9,13 +9,13 @@
             <description>Hive script to run.</description>
         </property>
         <property>
-            <name>queueName</name>
+            <name>queue_name</name>
             <value>adhoc</value>
         </property>
 
         <!-- Required properties -->
-        <property><name>nameNode</name></property>
-        <property><name>jobTracker</name></property>
+        <property><name>name_node</name></property>
+        <property><name>job_tracker</name></property>
 
         <property>
             <name>hive_site_xml</name>
@@ -43,13 +43,13 @@
 
     <action name="add_partition">
         <hive xmlns="uri:oozie:hive-action:0.2">
-            <job-tracker>${jobTracker}</job-tracker>
-            <name-node>${nameNode}</name-node>
+            <job-tracker>${job_tracker}</job-tracker>
+            <name-node>${name_node}</name-node>
             <job-xml>${hive_site_xml}</job-xml>
             <configuration>
                 <property>
                     <name>mapreduce.job.queuename</name>
-                    <value>${queueName}</value>
+                    <value>${queue_name}</value>
                 </property>
             </configuration>
 
