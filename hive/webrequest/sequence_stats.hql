@@ -39,7 +39,7 @@
 -- Usage:
 --   hive \
 --     -f sequence_stats.hql                              \
---     -d source_table=wmf.webrequest                     \
+--     -d source_table=wmf_raw.webrequest                 \
 --     -d destination_table=wmf.webrequest_sequence_stats \
 --     -d year=2014                                       \
 --     -d month=05                                        \
