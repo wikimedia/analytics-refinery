@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
 Defines a reusable dataset for raw webrequest data.
 Use this dataset in your coordinator.xml files by setting:
