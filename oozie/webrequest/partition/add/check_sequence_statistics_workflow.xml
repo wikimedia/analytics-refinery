@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow-app xmlns="uri:oozie:workflow:0.4"
+    name="check_sequence_statistics-wf">
+
+    <parameters>
+        <property>
+            <name>queue_name</name>
+            <value>adhoc</value>
+        </property>
+
+        <!-- Required properties -->
+        <property><name>name_node</name></property>
+        <property><name>job_tracker</name></property>
+
+        <property>
+            <name>hive_site_xml</name>
+            <description>hive-site.xml file path in HDFS</description>
+        </property>
+        <property>
+            <name>webrequest_source</name>
+            <description>The partition's webrequest_source</description>
+        </property>
+        <property>
+            <name>year</name>
+            <description>The partition's year</description>
+        </property>
+        <property>
+            <name>month</name>
+            <description>The partition's month</description>
+        </property>
+        <property>
+            <name>day</name>
+            <description>The partition's day</description>
+        </property>
+        <property>
+            <name>hour</name>
+            <description>The partition's hour</description>
+        </property>
+        <property>
+            <name>statistics_table</name>
+            <description>
+                Hive table to write partition statistics to.
+            </description>
+        </property>
+        <property>
+            <name>faulty_hosts_directory</name>
+            <description>
+                Base directory in HDFS where information about
+                obviously faulty hosts will get collected.
+            </description>
+        </property>
+    </parameters>
+
+    <start to="extract_faulty_hosts"/>
+
+    <action name="extract_faulty_hosts">
+        <hive xmlns="uri:oozie:hive-action:0.3">
+            <job-tracker>${job_tracker}</job-tracker>
+            <name-node>${name_node}</name-node>
+            <job-xml>${hive_site_xml}</job-xml>
+            <configuration>
+                <property>
+                    <name>mapreduce.job.queuename</name>
+                    <value>${queue_name}</value>
+                </property>
+            </configuration>
+
+            <script>extract_faulty_hosts.hql</script>
+
+            <param>table=${statistics_table}</param>
+            <param>target=${faulty_hosts_directory}</param>
+            <param>webrequest_source=${webrequest_source}</param>
+            <param>year=${year}</param>
+            <param>month=${month}</param>
+            <param>day=${day}</param>
+            <param>hour=${hour}</param>
+        </hive>
+        <ok to="check_faulty_hosts"/>
+        <error to="kill"/>
+    </action>
+
+    <decision name="check_faulty_hosts">
+        <switch>
+            <case to="end">
+                ${fs:fileSize(concat(faulty_hosts_directory, "/000000_0")) eq 0}
+            </case>
+            <default to="kill_faulty_hosts"/>
+        </switch>
+    </decision>
+
+    <kill name="kill_faulty_hosts">
+        <message>Faulty hosts file (${faulty_hosts_directory}/000000_0) is not empty. So either there are faulty hosts, or computation failed.</message>
+    </kill>
+
+    <kill name="kill">
+        <message>Action failed, error message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+    </kill>
+    <end name="end"/>
+</workflow-app>

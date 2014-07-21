@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow-app xmlns="uri:oozie:workflow:0.4"
+    name="hive_add_partition-${table}_${webrequest_source}-wf">
+
+    <parameters>
+        <property>
+            <name>queue_name</name>
+            <value>adhoc</value>
+        </property>
+
+        <!-- Required properties -->
+        <property><name>name_node</name></property>
+        <property><name>job_tracker</name></property>
+
+        <property>
+            <name>add_partition_workflow_file</name>
+            <description>Workflow definition for adding a partition</description>
+        </property>
+        <property>
+            <name>hive_site_xml</name>
+            <description>hive-site.xml file path in HDFS</description>
+        </property>
+        <property>
+            <name>table</name>
+            <description>Hive table to partition.</description>
+        </property>
+        <property>
+            <name>webrequest_source</name>
+            <description>The partition's webrequest_source</description>
+        </property>
+        <property>
+            <name>year</name>
+            <description>The partition's year</description>
+        </property>
+        <property>
+            <name>month</name>
+            <description>The partition's month</description>
+        </property>
+        <property>
+            <name>day</name>
+            <description>The partition's day</description>
+        </property>
+        <property>
+            <name>hour</name>
+            <description>The partition's hour</description>
+        </property>
+        <property>
+            <name>location</name>
+            <description>HDFS path(s) naming the input dataset.</description>
+        </property>
+        <property>
+            <name>statistics_table</name>
+            <description>
+                Hive table to write partition statistics to.
+            </description>
+        </property>
+        <property>
+            <name>faulty_hosts_directory</name>
+            <description>
+                Base directory in HDFS where information about
+                obviously faulty hosts will get collected.
+            </description>
+        </property>
+    </parameters>
+
+    <start to="add_partition"/>
+
+    <action name="add_partition">
+        <sub-workflow>
+            <app-path>${add_partition_workflow_file}</app-path>
+            <propagate-configuration/>
+            <configuration>
+                <property>
+                    <name>partition_spec</name>
+                    <value>webrequest_source='${webrequest_source}',year=${year},month=${month},day=${day},hour=${hour}</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="compute_sequence_statistics"/>
+        <error to="kill"/>
+    </action>
+
+    <action name="compute_sequence_statistics">
+        <hive xmlns="uri:oozie:hive-action:0.3">
+            <job-tracker>${job_tracker}</job-tracker>
+            <name-node>${name_node}</name-node>
+            <job-xml>${hive_site_xml}</job-xml>
+            <configuration>
+                <property>
+                    <name>mapreduce.job.queuename</name>
+                    <value>${queue_name}</value>
+                </property>
+            </configuration>
+
+            <script>compute_sequence_statistics.hql</script>
+
+            <param>source_table=${table}</param>
+            <param>destination_table=${statistics_table}</param>
+            <param>year=${year}</param>
+            <param>month=${month}</param>
+            <param>day=${day}</param>
+            <param>hour=${hour}</param>
+            <param>webrequest_source=${webrequest_source}</param>
+        </hive>
+        <ok to="check_sequence_statistics"/>
+        <error to="kill"/>
+    </action>
+
+    <!-- We put checking sequence statistics into a separate workflow,
+        as that allows to build the full path for the "faulty hosts"
+        directory (including source, year, ...) as element value, and
+        thereby allows to evade building it in EL via a nested concat
+        construct to use it in <case />, which would not be readable
+        at all. -->
+    <action name="check_sequence_statistics">
+        <sub-workflow>
+            <app-path>${replaceAll(wf:appPath(), "/[^/]*$", "")}/check_sequence_statistics_workflow.xml</app-path>
+            <propagate-configuration/>
+            <configuration>
+                <property>
+                    <name>faulty_hosts_directory</name>
+                    <value>${faulty_hosts_directory}/${webrequest_source}/${year}/${month}/${day}/${hour}</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="mark_dataset_done"/>
+        <error to="kill"/>
+    </action>
+
+    <action name="mark_dataset_done">
+        <fs>
+            <touchz path="${location}/_SUCCESS" />
+        </fs>
+        <ok to="end"/>
+        <error to="kill"/>
+    </action>
+
+    <kill name="kill">
+        <message>Action failed, error message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+    </kill>
+    <end name="end"/>
+</workflow-app>
