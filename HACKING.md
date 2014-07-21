@@ -21,3 +21,25 @@
   code, where they are somewhat standard, and in Python class names.
 
 * Filenames for files in HiveQL should end in ```.hql```.
+
+* When referencing tables, reference them using ```database.table```
+  wherever possible.
+
+* For Hadoop jobs, use the “adhoc” queue per default, and make sure
+  that it can be overridden to submit the job to queues with less
+  limitations.
+
+* For Oozie jobs, set ```oozie.use.system.libpath```, and
+  ```oozie.action.external.stats.write``` to ```true``` in the
+  corresponding properties files. (This setting will get added as
+  default at some point, but until then, we rely on it being set in
+  the properties files)
+
+* When needing to reference hdfs, try using ```hdfs:///```. Where this
+  does not work, try using ```hdfs://analytics-hadoop/```, then
+  ```hdfs://analytics1010.eqiad.wmnet/``` and finally
+  ```hdfs://analytics1010.eqiad.wmnet:8020/```.
+
+* Use 4 spaces to indent files.
+
+* There is no rule on vertical alignment.
