@@ -23,12 +23,8 @@
             <description>hive-site.xml file path in HDFS</description>
         </property>
         <property>
-            <name>database</name>
-            <description>Hive database to use.</description>
-        </property>
-        <property>
             <name>table</name>
-            <description>Hive table to partition.</description>
+            <description>Fully qualified name of Hive table to partition.</description>
         </property>
         <property>
             <name>partition_spec</name>
@@ -55,8 +51,8 @@
             </configuration>
 
             <script>${hive_script}</script>
-            <param>database=${database}</param>
-            <param>table=${table}</param>
+            <param>database=${replaceAll(table, "\\..*", "")}</param>
+            <param>table=${replaceAll(table, "^.*\\.", "")}</param>
             <param>location=${location}</param>
             <param>partition_spec=${partition_spec}</param>
         </hive>

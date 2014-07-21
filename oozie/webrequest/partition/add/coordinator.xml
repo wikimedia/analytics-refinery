@@ -21,7 +21,6 @@
         <property><name>data_directory</name></property>
 
         <property><name>hive_site_xml</name></property>
-        <property><name>database</name></property>
         <property><name>table</name></property>
         <property><name>webrequest_source</name></property>
     </parameters>
@@ -70,10 +69,6 @@
                 <property>
                     <name>hive_site_xml</name>
                     <value>${hive_site_xml}</value>
-                </property>
-                <property>
-                    <name>database</name>
-                    <value>${database}</value>
                 </property>
                 <property>
                     <name>table</name>
