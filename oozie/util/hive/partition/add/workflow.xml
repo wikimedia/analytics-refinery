@@ -6,7 +6,7 @@
         <property>
             <name>hive_script</name>
             <!-- This is relative to the containing directory of this file. -->
-            <value>add_partition.sql</value>
+            <value>add_partition.hql</value>
             <description>Hive script to run.</description>
         </property>
         <property>
