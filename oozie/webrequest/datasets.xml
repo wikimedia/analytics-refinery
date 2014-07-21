@@ -5,7 +5,7 @@ Use this dataset in your coordinator.xml files by setting:
   ${startTime}      - the initial instance of your data.
                       Example: 2014-04-01T00:00Z
   ${dataDirectory}  - Path to directory where data is time bucketed.
-                      Example: /wmf/data/external/webrequest/webrequest_mobile/hourly
+                      Example: /wmf/data/raw/webrequest/webrequest_mobile/hourly
 -->
 
 <datasets>
