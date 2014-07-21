@@ -80,7 +80,7 @@
                 </property>
                 <property>
                     <name>partition_spec</name>
-                    <value>webrequest_source='${webrequest_source}',${coord:formatTime(coord:dateOffset(coord:nominalTime(), 0, 'HOUR'), "'year='yyyy,'month='MM,'day='dd,'hour='HH")}</value>
+                    <value>webrequest_source='${webrequest_source}',${coord:formatTime(coord:dateOffset(coord:nominalTime(), 0, 'HOUR'), "'year='y,'month='M,'day='d,'hour='H")}</value>
                 </property>
                 <property>
                     <name>location</name>
