@@ -1,5 +1,5 @@
 <workflow-app xmlns="uri:oozie:workflow:0.4"
-    name="hive_add_partition-${table}_${webrequest_source}-wf">
+    name="hive_add_partition-${table}-wf">
 
     <parameters>
         <property>
