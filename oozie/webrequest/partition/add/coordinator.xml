@@ -20,7 +20,6 @@
         <property><name>dataDirectory</name></property>
 
         <property><name>hive_site_xml</name></property>
-        <property><name>serde_jar</name></property>
         <property><name>database</name></property>
         <property><name>table</name></property>
         <property><name>webrequest_source</name></property>
@@ -70,10 +69,6 @@
                 <property>
                     <name>hive_site_xml</name>
                     <value>${hive_site_xml}</value>
-                </property>
-                <property>
-                    <name>serde_jar</name>
-                    <value>${serde_jar}</value>
                 </property>
                 <property>
                     <name>database</name>

@@ -1,4 +1,3 @@
-ADD JAR ${serde_jar};
 USE ${database};
 ALTER TABLE ${table}
   ADD IF NOT EXISTS

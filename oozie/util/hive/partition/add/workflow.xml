@@ -22,10 +22,6 @@
             <description>hive-site.xml file path in HDFS</description>
         </property>
         <property>
-            <name>serde_jar</name>
-            <description>Path in HDFS for SerDe .jar to use.</description>
-        </property>
-        <property>
             <name>database</name>
             <description>Hive database to use.</description>
         </property>
@@ -60,7 +56,6 @@
             <script>${hive_script}</script>
             <param>database=${database}</param>
             <param>table=${table}</param>
-            <param>serde_jar=${serde_jar}</param>
             <param>location=${location}</param>
             <param>partition_spec=${partition_spec}</param>
         </hive>
