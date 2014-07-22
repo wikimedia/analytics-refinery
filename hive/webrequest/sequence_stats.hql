@@ -24,19 +24,16 @@
 --     -f sequence_stats.hql                              \
 --     -d source_table=wmf_raw.webrequest                 \
 --     -d destination_table=wmf.webrequest_sequence_stats \
+--     -d webrequest_source=bits                          \
 --     -d year=2014                                       \
 --     -d month=5                                         \
 --     -d day=12                                          \
 --     -d hour=1
 
-INSERT INTO TABLE ${destination_table}
+INSERT OVERWRITE TABLE ${destination_table}
+  PARTITION(webrequest_source='${webrequest_source}',year=${year},month=${month},day=${day},hour=${hour})
   SELECT
     hostname,
-    webrequest_source,
-    year,
-    month,
-    day,
-    hour,
     MIN(sequence)                                                  AS sequence_min,
     MAX(sequence)                                                  AS sequence_max,
     COUNT(*)                                                       AS count_actual,
@@ -48,6 +45,7 @@ INSERT INTO TABLE ${destination_table}
   FROM
     ${source_table}
   WHERE
+    webrequest_source='${webrequest_source}' AND
     year=${year} AND month=${month} AND day=${day} AND hour=${hour}
   GROUP BY
     hostname, webrequest_source, year, month, day, hour;
