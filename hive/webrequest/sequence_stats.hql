@@ -25,9 +25,9 @@
 --     -d source_table=wmf_raw.webrequest                 \
 --     -d destination_table=wmf.webrequest_sequence_stats \
 --     -d year=2014                                       \
---     -d month=05                                        \
+--     -d month=5                                         \
 --     -d day=12                                          \
---     -d hour=01
+--     -d hour=1
 
 INSERT INTO TABLE ${destination_table}
   SELECT
