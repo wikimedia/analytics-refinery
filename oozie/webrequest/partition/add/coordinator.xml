@@ -9,7 +9,7 @@
     <parameters>
         <property>
             <name>queue_name</name>
-            <value>standard</value>
+            <value>adhoc</value>
         </property>
 
         <!-- Required properties. -->
