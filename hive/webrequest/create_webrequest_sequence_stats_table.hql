@@ -1,5 +1,12 @@
--- Create table statement for sequence number statistics for the raw
+-- Creates table statement for sequence number statistics for the raw
 -- webrequest table.
+--
+-- Parameters:
+--     <none>
+--
+-- Usage
+--     hive -f create_webrequest_sequence_stats_table.hql \
+--         --database wmf_raw
 --
 
 CREATE TABLE `webrequest_sequence_stats`(

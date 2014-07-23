@@ -6,21 +6,21 @@
 -- empty.
 --
 -- Parameters:
---   table             -- Fully qualified table name containing the
---                        statistics to analyize.
---   target            -- Path in HDFS where to write the file with
---                        obviously faulty hosts in. If this path
---                        exists, it will get overwritten.
---   webrequest_source -- webrequest_source for the partition to
---                        extractfaulty hosts for.
---   year              -- year for the partition to extract faulty
---                        hosts for.
---   month             -- month for the partition to extract faulty
---                        hosts for.
---   day               -- day for the partition to extract faulty
---                        hosts for.
---   hour              -- hour for the partition to extract faulty
---                        hosts for.
+--     table             -- Fully qualified table name containing the
+--                          statistics to analyize.
+--     target            -- Path in HDFS where to write the file with
+--                          obviously faulty hosts in. If this path
+--                          exists, it will get overwritten.
+--     webrequest_source -- webrequest_source for the partition to
+--                          extractfaulty hosts for.
+--     year              -- year for the partition to extract faulty
+--                          hosts for.
+--     month             -- month for the partition to extract faulty
+--                          hosts for.
+--     day               -- day for the partition to extract faulty
+--                          hosts for.
+--     hour              -- hour for the partition to extract faulty
+--                          hosts for.
 --
 -- Usage:
 --     hive -f extract_faulty_hosts.hql \

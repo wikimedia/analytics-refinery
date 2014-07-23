@@ -1,4 +1,4 @@
--- Create table statement for raw webrequest table.
+-- Creates table statement for raw webrequest table.
 --
 -- NOTE:  When choosing partition field types,
 -- one should take into consideration Hive's
@@ -7,6 +7,13 @@
 -- https://wikitech.wikimedia.org/wiki/File:Hive_partition_formats.png
 -- and
 -- http://bots.wmflabs.org/~wm-bot/logs/%23wikimedia-analytics/20140721.txt
+--
+-- Parameters:
+--     <none>
+--
+-- Usage
+--     hive -f create_webrequest_table.hql \
+--         --database wmf_raw
 --
 
 CREATE EXTERNAL TABLE IF NOT EXISTS `webrequest` (
