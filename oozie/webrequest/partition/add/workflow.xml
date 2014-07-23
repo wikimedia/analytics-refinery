@@ -76,11 +76,11 @@
                 </property>
             </configuration>
         </sub-workflow>
-        <ok to="compute_sequence_statistics"/>
+        <ok to="generate_sequence_statistics"/>
         <error to="kill"/>
     </action>
 
-    <action name="compute_sequence_statistics">
+    <action name="generate_sequence_statistics">
         <hive xmlns="uri:oozie:hive-action:0.3">
             <job-tracker>${job_tracker}</job-tracker>
             <name-node>${name_node}</name-node>
@@ -92,7 +92,7 @@
                 </property>
             </configuration>
 
-            <script>compute_sequence_statistics.hql</script>
+            <script>generate_sequence_statistics.hql</script>
 
             <param>source_table=${table}</param>
             <param>destination_table=${statistics_table}</param>
