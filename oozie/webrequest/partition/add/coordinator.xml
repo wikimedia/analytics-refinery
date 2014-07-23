@@ -56,6 +56,17 @@
         even-though the concurrency is low.
         -->
         <concurrency>2</concurrency>
+
+
+        <!--
+        Since we expect only one incarnation per hourly dataset, the
+        default throttle of 12 is way to high, and there is not need
+        to keep that many materialized jobs around.
+
+        By resorting to 2, we keep the hdfs checks on the datasets
+        low, while still being able to easily feed the concurrency.
+        -->
+        <throttle>2</throttle>
     </controls>
 
     <datasets>
