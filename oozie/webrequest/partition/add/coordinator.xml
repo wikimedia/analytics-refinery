@@ -30,6 +30,19 @@
 
     <controls>
         <!--
+        If everything goes smoothly, we need a timeout of at least 1
+        hour, due to the waiting on a subsequent dataset. Hence, the
+        cluster's default timeout of 2 hours (our cluster does not use
+        the Oozie default) gets in the way as soon as there are minor
+        transient hiccups. Hence, we use a slightly higher timeout on
+        purpose. This timeout helps us to bridge smaller transient
+        issues automatically.
+
+        (timeout is measured in minutes)
+        -->
+        <timeout>300</timeout>
+
+        <!--
         Computing sequence stats is not too cheap, so we limit
         concurrency.
 
