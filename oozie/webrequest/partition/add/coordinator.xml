@@ -30,11 +30,19 @@
 
     <controls>
         <!--
-        Altering hive partitions is cheap.  If there is an
-        occasion where we have to add a bunch all at once,
-        do it!
+        Computing sequence stats is not too cheap, so we limit
+        concurrency.
+
+        Note, that this is per coordinator. So if we run this
+        coordinator for say 4 webrequest_sources (see bundle.xml :-)),
+        we effectively compute sequence statistics for up to 8
+        datasets in parallel.
+
+        Also note, that back-filling is not limited by the
+        coordinator's frequency, so back-filling works nicely
+        even-though the concurrency is low.
         -->
-        <concurrency>168</concurrency>
+        <concurrency>2</concurrency>
     </controls>
 
     <datasets>
