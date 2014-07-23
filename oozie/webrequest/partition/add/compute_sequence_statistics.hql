@@ -16,19 +16,35 @@
 --   - If count_duplicate is > 0, there are that many duplicates.
 --   - If count_duplicate is < 0, something is broken :-)
 --
--- ${destination_table} should have schema described in
---     hive/webrequest/create_webrequest_sequence_stats_table.hql
+-- Parameters:
+--     source_table      -- Fully qualified table name to compute the
+--                          statistics for.
+--     destination_table -- Fully qualified table name to stopre the
+--                          computed statistics in. This table should
+--                          have schema described in [1].
+--     webrequest_source -- webrequest_source of partition to compute
+--                          statistics for.
+--     year              -- year of partition to compute statistics
+--                          for.
+--     month             -- month of partition to compute statistics
+--                          for.
+--     day               -- day of partition to compute statistics
+--                          for.
+--     hour              -- hour of partition to compute statistics
+--                          for.
+--
+-- [1] hive/webrequest/create_webrequest_sequence_stats_table.hql
 --
 -- Usage:
---   hive \
---     -f sequence_stats.hql                              \
---     -d source_table=wmf_raw.webrequest                 \
---     -d destination_table=wmf.webrequest_sequence_stats \
---     -d webrequest_source=bits                          \
---     -d year=2014                                       \
---     -d month=5                                         \
---     -d day=12                                          \
---     -d hour=1
+--     hive -f sequence_stats.hql                                 \
+--         -d source_table=wmf_raw.webrequest                     \
+--         -d destination_table=wmf_raw.webrequest_sequence_stats \
+--         -d webrequest_source=bits                              \
+--         -d year=2014                                           \
+--         -d month=5                                             \
+--         -d day=12                                              \
+--         -d hour=1
+--
 
 INSERT OVERWRITE TABLE ${destination_table}
   PARTITION(webrequest_source='${webrequest_source}',year=${year},month=${month},day=${day},hour=${hour})

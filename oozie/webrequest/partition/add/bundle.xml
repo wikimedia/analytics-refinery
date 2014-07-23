@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bundle-app xmlns="uri:oozie:bundle:0.2"
+    name="hive_add_partition-${table}-bundle">
+
+    <parameters>
+        <property>
+            <name>queue_name</name>
+            <value>adhoc</value>
+        </property>
+
+        <!-- Required properties. -->
+        <property><name>coordinator_file</name></property>
+        <property><name>name_node</name></property>
+        <property><name>job_tracker</name></property>
+        <property><name>workflow_file</name></property>
+        <property><name>start_time</name></property>
+        <property><name>stop_time</name></property>
+        <property><name>data_directory</name></property>
+
+        <property><name>hive_site_xml</name></property>
+        <property><name>add_partition_workflow_file</name></property>
+        <property><name>table</name></property>
+        <property><name>statistics_table</name></property>
+        <property><name>faulty_hosts_directory</name></property>
+    </parameters>
+
+    <coordinator name='add_partition_bits'>
+        <app-path>${coordinator_file}</app-path>
+        <configuration>
+            <property>
+                <name>webrequest_source</name>
+                <value>bits</value>
+            </property>
+        </configuration>
+    </coordinator>
+
+    <coordinator name='add_partition_mobile'>
+        <app-path>${coordinator_file}</app-path>
+        <configuration>
+            <property>
+                <name>webrequest_source</name>
+                <value>mobile</value>
+            </property>
+        </configuration>
+    </coordinator>
+
+    <coordinator name='add_partition_text'>
+        <app-path>${coordinator_file}</app-path>
+        <configuration>
+            <property>
+                <name>webrequest_source</name>
+                <value>text</value>
+            </property>
+        </configuration>
+    </coordinator>
+
+    <coordinator name='add_partition_upload'>
+        <app-path>${coordinator_file}</app-path>
+        <configuration>
+            <property>
+                <name>webrequest_source</name>
+                <value>upload</value>
+            </property>
+        </configuration>
+    </coordinator>
+
+</bundle-app>

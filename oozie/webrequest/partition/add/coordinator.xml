@@ -21,8 +21,11 @@
         <property><name>data_directory</name></property>
 
         <property><name>hive_site_xml</name></property>
+        <property><name>add_partition_workflow_file</name></property>
         <property><name>table</name></property>
+        <property><name>statistics_table</name></property>
         <property><name>webrequest_source</name></property>
+        <property><name>faulty_hosts_directory</name></property>
     </parameters>
 
     <controls>
@@ -67,6 +70,10 @@
                 <property><name>queue_name</name><value>${queue_name}</value></property>
 
                 <property>
+                    <name>add_partition_workflow_file</name>
+                    <value>${add_partition_workflow_file}</value>
+                </property>
+                <property>
                     <name>hive_site_xml</name>
                     <value>${hive_site_xml}</value>
                 </property>
@@ -75,12 +82,32 @@
                     <value>${table}</value>
                 </property>
                 <property>
-                    <name>partition_spec</name>
-                    <value>webrequest_source='${webrequest_source}',${coord:formatTime(coord:nominalTime(), "'year='y,'month='M,'day='d,'hour='H")}</value>
+                    <name>year</name>
+                    <value>${coord:formatTime(coord:nominalTime(), "y")}</value>
+                </property>
+                <property>
+                    <name>month</name>
+                    <value>${coord:formatTime(coord:nominalTime(), "M")}</value>
+                </property>
+                <property>
+                    <name>day</name>
+                    <value>${coord:formatTime(coord:nominalTime(), "d")}</value>
+                </property>
+                <property>
+                    <name>hour</name>
+                    <value>${coord:formatTime(coord:nominalTime(), "H")}</value>
                 </property>
                 <property>
                     <name>location</name>
                     <value>${coord:dataIn('input')}</value>
+                </property>
+                <property>
+                    <name>statistics_table</name>
+                    <value>${statistics_table}</value>
+                </property>
+                <property>
+                    <name>faulty_hosts_directory</name>
+                    <value>${faulty_hosts_directory}</value>
                 </property>
 
             </configuration>
