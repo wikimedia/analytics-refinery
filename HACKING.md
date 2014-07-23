@@ -43,3 +43,5 @@
 * Use 4 spaces to indent files.
 
 * There is no rule on vertical alignment.
+
+* In HiveQL, we prefer ```!=``` over ```<>```.

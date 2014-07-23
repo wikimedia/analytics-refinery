@@ -46,11 +46,11 @@ SET hive.insert.into.multilevel.dirs=true;
 INSERT OVERWRITE DIRECTORY '${target}'
     SELECT * FROM ${table} WHERE
         (
-                count_duplicate <> 0      -- Host has duplicates
+                count_duplicate != 0      -- Host has duplicates
             OR
-                count_different <> 0      -- Host has duplicates or holes
+                count_different != 0      -- Host has duplicates or holes
             OR
-                count_null_sequence <> 0  -- Host has NULL sequence numbers
+                count_null_sequence != 0  -- Host has NULL sequence numbers
         ) AND
         webrequest_source='${webrequest_source}' AND
         year=${year} AND month=${month} AND day=${day} AND hour=${hour}
