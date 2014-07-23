@@ -45,3 +45,19 @@
 * There is no rule on vertical alignment.
 
 * In HiveQL, we prefer ```!=``` over ```<>```.
+
+* In XML, put the beginning and ending tag on separate lines for
+  multi-lined element values. So use
+
+
+      <tag>
+        foo
+        bar
+      </tag>
+
+  instead of
+
+      <tag>foo
+      bar</tag>
+
+  .
