@@ -8,31 +8,32 @@
 -- and
 -- http://bots.wmflabs.org/~wm-bot/logs/%23wikimedia-analytics/20140721.txt
 --
+
 CREATE EXTERNAL TABLE IF NOT EXISTS `webrequest` (
-    `hostname`          string,
-    `sequence`          bigint,
-    `dt`                string,
-    `time_firstbyte`    float,
-    `ip`                string,
-    `cache_status`      string,
-    `http_status`       string,
-    `response_size`     int,
-    `http_method`       string,
-    `uri_host`          string,
-    `uri_path`          string,
-    `uri_query`         string,
-    `content_type`      string,
-    `referer`           string,
-    `x_forwarded_for`   string,
-    `user_agent`        string,
-    `accept_language`   string,
-    `x_analytics`       string)
+    `hostname`          string  COMMENT 'Source node hostname',
+    `sequence`          bigint  COMMENT 'Per host sequence number',
+    `dt`                string  COMMENT 'Timestame at cache in ISO 8601',
+    `time_firstbyte`    float   COMMENT 'Time to first byte',
+    `ip`                string  COMMENT 'IP of packet at cache',
+    `cache_status`      string  COMMENT 'Cache status',
+    `http_status`       string  COMMENT 'HTTP status of response',
+    `response_size`     int     COMMENT 'Response size',
+    `http_method`       string  COMMENT 'HTTP method of request',
+    `uri_host`          string  COMMENT 'Host of request',
+    `uri_path`          string  COMMENT 'Path of request',
+    `uri_query`         string  COMMENT 'Query of request',
+    `content_type`      string  COMMENT 'Content-Type header of response',
+    `referer`           string  COMMENT 'Referer header of request',
+    `x_forwarded_for`   string  COMMENT 'X-Forwarded-For header of request',
+    `user_agent`        string  COMMENT 'User-Agent header of request',
+    `accept_language`   string  COMMENT 'Accept-Language header of request',
+    `x_analytics`       string  COMMENT 'X-Analytics header of response')
 PARTITIONED BY (
-    `webrequest_source` string,
-    `year`              int,
-    `month`             int,
-    `day`               int,
-    `hour`              int)
+    `webrequest_source` string  COMMENT 'Source cluster',
+    `year`              int     COMMENT 'Unpadded year of request',
+    `month`             int     COMMENT 'Unpadded month of request',
+    `day`               int     COMMENT 'Unpadded day of request',
+    `hour`              int     COMMENT 'Unpadded hour of request')
 ROW FORMAT SERDE
     'org.apache.hcatalog.data.JsonSerDe'
 -- We only care about the INPUTFORMAT, not the OUTPUTFORMAT. But
