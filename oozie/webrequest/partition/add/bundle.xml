@@ -24,7 +24,7 @@
         <property><name>faulty_hosts_directory</name></property>
     </parameters>
 
-    <coordinator name='add_partition_bits'>
+    <coordinator name='hive_add_partition-webrequest-bits'>
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property>
@@ -34,7 +34,7 @@
         </configuration>
     </coordinator>
 
-    <coordinator name='add_partition_mobile'>
+    <coordinator name='hive_add_partition-webrequest-mobile'>
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property>
@@ -44,7 +44,7 @@
         </configuration>
     </coordinator>
 
-    <coordinator name='add_partition_text'>
+    <coordinator name='hive_add_partition-webrequest-text'>
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property>
@@ -54,7 +54,7 @@
         </configuration>
     </coordinator>
 
-    <coordinator name='add_partition_upload'>
+    <coordinator name='hive_add_partition-webrequest-upload'>
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property>
