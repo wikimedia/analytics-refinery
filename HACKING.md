@@ -37,8 +37,8 @@
 
 * When needing to reference hdfs, try using ```hdfs:///```. Where this
   does not work, try using ```hdfs://analytics-hadoop/```, then
-  ```hdfs://analytics1010.eqiad.wmnet/``` and finally
-  ```hdfs://analytics1010.eqiad.wmnet:8020/```.
+  ```hdfs://namenode.analytics.eqiad.wmnet/``` and finally
+  ```hdfs://namenode.analytics.eqiad.wmnet:8020/```.
 
 * Use 4 spaces to indent files.
 
