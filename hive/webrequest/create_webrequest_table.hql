@@ -24,7 +24,7 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `webrequest` (
     `ip`                string  COMMENT 'IP of packet at cache',
     `cache_status`      string  COMMENT 'Cache status',
     `http_status`       string  COMMENT 'HTTP status of response',
-    `response_size`     int     COMMENT 'Response size',
+    `response_size`     bigint  COMMENT 'Response size',
     `http_method`       string  COMMENT 'HTTP method of request',
     `uri_host`          string  COMMENT 'Host of request',
     `uri_path`          string  COMMENT 'Path of request',
