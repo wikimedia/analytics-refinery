@@ -82,12 +82,14 @@
             <instance>${coord:current(0)}</instance>
         </data-in>
         <!--
-        Having a data-in defined for current(1) will
-        keep the workflow from running until the next
-        hour's directory is created.
+        In order to prevent the job from running too early, we wait
+        for the dataset that is 2 hours in the future (1 hour is too
+        little, as the directory for the dataset 1 hour in the future
+        might get created /before/ writing for the current dataset
+        finishes).
          -->
         <data-in name="ready_indicator" dataset="webrequest">
-            <instance>${coord:current(1)}</instance>
+            <instance>${coord:current(2)}</instance>
         </data-in>
     </input-events>
 
