@@ -44,7 +44,28 @@ SET hive.insert.into.multilevel.dirs=true;
 
 
 INSERT OVERWRITE DIRECTORY '${target}'
-    SELECT * FROM ${table} WHERE
+-- Since "ROW FORMAT DELIMITED DELIMITED FIELDS TERMINATED BY '	'" only
+-- works for exports to local directories (see HIVE-5672), we have to
+-- prepare the lines by hand through concatenation :-(
+    SELECT CONCAT_WS(
+       "	",
+       hostname,
+       CAST(sequence_min        AS string),
+       CAST(sequence_max        AS string),
+       CAST(count_actual        AS string),
+       CAST(count_expected      AS string),
+       CAST(count_different     AS string),
+       CAST(count_duplicate     AS string),
+       CAST(count_null_sequence AS string),
+       cast(percent_different   AS string),
+       webrequest_source,
+       CAST(year                AS string),
+       CAST(month               AS string),
+       CAST(day                 AS string),
+       CAST(hour                AS string)
+    ) line
+    FROM ${table}
+    WHERE
         (
                 count_duplicate != 0      -- Host has duplicates
             OR
