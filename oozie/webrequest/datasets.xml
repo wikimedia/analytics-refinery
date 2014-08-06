@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-Defines a reusable dataset for raw webrequest data.
+Defines reusable datasets for raw webrequest data.
 Use this dataset in your coordinator.xml files by setting:
 
     ${start_time}     - the initial instance of your data.
@@ -10,6 +10,12 @@ Use this dataset in your coordinator.xml files by setting:
 -->
 
 <datasets>
+    <!--
+    The webrequest_unchecked dataset should be used for cases
+    where you do not care if the sequence stats have been
+    checked.  This will simply include any imported hourly
+    data directories that exist.
+    -->
     <dataset name="webrequest_unchecked"
              frequency="${coord:hours(1)}"
              initial-instance="${start_time}"
@@ -18,6 +24,14 @@ Use this dataset in your coordinator.xml files by setting:
         <done-flag></done-flag>
     </dataset>
 
+    <!--
+    The webrequest dataset should be used if you want to be
+    sure that you are only working with hourly imports for which
+    sequence stats have been checked.  These directories have an
+    empty _SUCCESS flag created in them once they have been checked
+    and it has been determined that the expected number of requests
+    equals the actual number of entires for this hour.
+    -->
     <dataset name="webrequest"
              frequency="${coord:hours(1)}"
              initial-instance="${start_time}"
