@@ -35,4 +35,5 @@ ease of the developers when trying to have a look at the data. The
 table is not meant for researchers.
 
 Icinga monitoring for the ```_SUCCESS``` marker is not part of this
-setup and can be found at {{Citation needed}}.
+setup and can be found as a separate bundle, coordinator and workflow
+at oozie/webrequest/partition/monitor_done_flag

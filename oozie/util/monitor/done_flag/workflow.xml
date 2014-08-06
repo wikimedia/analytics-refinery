@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow-app xmlns="uri:oozie:workflow:0.4"
+    name="monitor_done_flag-${icinga_service_description}-${location}-wf">
+
+    <parameters>
+        <property>
+            <name>queue_name</name>
+            <value>adhoc</value>
+        </property>
+
+        <!-- Required properties -->
+        <property><name>name_node</name></property>
+        <property><name>job_tracker</name></property>
+
+        <property>
+            <name>icinga_service_description</name>
+            <description>
+                The description of the icinga service to send a passive
+                check to. This should match a monitor_service's description in
+                the operations/puppet repository somewhere.
+            </description>
+        </property>
+
+        <property>
+            <name>location</name>
+            <description>
+                The path to the dataset instance that this workflow
+                is checking.  This is used for the icinga service
+                description text.
+            </description>
+        </property>
+
+    </parameters>
+
+    <start to="send_ok_to_icinga"/>
+
+    <action name="send_ok_to_icinga">
+        <shell xmlns="uri:oozie:shell-action:0.1">
+            <job-tracker>${job_tracker}</job-tracker>
+                <name-node>${name_node}</name-node>
+                <configuration>
+                    <property>
+                        <name>mapred.job.queue.name</name>
+                        <value>${queue_name}</value>
+                    </property>
+                </configuration>
+                <exec>send_ok_to_icinga.sh</exec>
+                <argument>${icinga_service_description}</argument>
+                <argument>${location}</argument>
+                <file>send_ok_to_icinga.sh#send_ok_to_icinga.sh</file>
+        </shell>
+
+        <ok to="end"/>
+        <error to="kill"/>
+    </action>
+
+    <kill name="kill">
+        <message>Action failed, error message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+    </kill>
+
+    <end name="end"/>
+</workflow-app>
