@@ -10,11 +10,19 @@ Use this dataset in your coordinator.xml files by setting:
 -->
 
 <datasets>
-    <dataset name="webrequest"
+    <dataset name="webrequest_unchecked"
              frequency="${coord:hours(1)}"
              initial-instance="${start_time}"
              timezone="Universal">
         <uri-template>${data_directory}/${YEAR}/${MONTH}/${DAY}/${HOUR}</uri-template>
         <done-flag></done-flag>
+    </dataset>
+
+    <dataset name="webrequest"
+             frequency="${coord:hours(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${data_directory}/${YEAR}/${MONTH}/${DAY}/${HOUR}</uri-template>
+        <done-flag>_SUCCESS</done-flag>
     </dataset>
 </datasets>

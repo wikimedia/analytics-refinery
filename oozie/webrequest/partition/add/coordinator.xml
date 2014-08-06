@@ -78,7 +78,7 @@
     </datasets>
 
     <input-events>
-        <data-in name="input" dataset="webrequest">
+        <data-in name="input" dataset="webrequest_unchecked">
             <instance>${coord:current(0)}</instance>
         </data-in>
         <!--
@@ -88,7 +88,7 @@
         might get created /before/ writing for the current dataset
         finishes).
          -->
-        <data-in name="ready_indicator" dataset="webrequest">
+        <data-in name="ready_indicator" dataset="webrequest_unchecked">
             <instance>${coord:current(2)}</instance>
         </data-in>
     </input-events>
