@@ -443,3 +443,7 @@ class HdfsUtils(object):
 
         return sh(['hdfs', 'dfs', '-rm', '-R'] + paths)
 
+    @staticmethod
+    def validate_path(path):
+        return path.startswith('/') or path.startswith('hdfs://')
+

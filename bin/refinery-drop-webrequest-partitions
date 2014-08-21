@@ -27,6 +27,8 @@ Options:
     -d --older-than-days=<days>         Drop data older than this number of days.  [default: 60]
     -D --database=<dbname>              Hive database name.  [default: default]
     -t --table=<table>                  Name of webrequest table.  [default: webrequest]
+    -l --location=<location>            Base HDFS location path of the webrequest table.  If not
+                                        specified, this will be inferred from the table schema metadata.
     -o --hive-options=<options>         Any valid Hive CLI options you want to pass to Hive commands.
                                         Example: '--auxpath /path/to/hive-serdes-1.0-SNAPSHOT.jar'
     -v --verbose                        Turn on verbose debug logging.
@@ -39,6 +41,7 @@ from   docopt   import docopt
 import logging
 import re
 import os
+import sys
 from refinery.util import HiveUtils, HdfsUtils
 
 # from pprint import pprint as pp
@@ -48,12 +51,13 @@ if __name__ == '__main__':
     # parse arguments
     arguments = docopt(__doc__)
     # pp(arguments)
-    days          = int(arguments['--older-than-days'])
-    database      = arguments['--database']
-    table         = arguments['--table']
-    hive_options  = arguments['--hive-options']
-    verbose       = arguments['--verbose']
-    dry_run       = arguments['--dry-run']
+    days           = int(arguments['--older-than-days'])
+    database       = arguments['--database']
+    table          = arguments['--table']
+    table_location = arguments['--location']
+    hive_options   = arguments['--hive-options']
+    verbose        = arguments['--verbose']
+    dry_run        = arguments['--dry-run']
 
     log_level = logging.INFO
     if verbose:
@@ -83,7 +87,15 @@ if __name__ == '__main__':
     hive = HiveUtils(database, hive_options)
 
     # The base location of this webrequest table in HDFS.
-    table_location = hive.table_location(table)
+    # If it was not provided via the CLI, then attempt to
+    # infer if from the table metadata.
+    if table_location == None:
+        table_location = hive.table_location(table)
+
+    if not HdfsUtils.validate_path(table_location):
+        logging.error('{0} table location \'{1}\' is not a valid HDFS path.  Path must start with \'/\' or \'hdfs://\'.  Aborting.'
+            .format(table, table_location))
+        sys.exit(1)
 
     # This glob will be used to list out all partition paths in HDFS.
     partition_glob = os.path.join(table_location, '*', 'hourly', '*', '*', '*', '*')
