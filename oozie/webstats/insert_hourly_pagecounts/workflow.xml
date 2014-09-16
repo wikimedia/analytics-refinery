@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow-app xmlns="uri:oozie:workflow:0.4"
+    name="webstats_insert_hourly_pagecounts-${destination_table}-${year}-${month}-${day}-${hour}-wf">
+
+    <parameters>
+        <property>
+            <name>queue_name</name>
+            <value>adhoc</value>
+        </property>
+
+        <!-- Required properties -->
+        <property><name>name_node</name></property>
+        <property><name>job_tracker</name></property>
+
+        <property>
+            <name>hive_site_xml</name>
+            <description>hive-site.xml file path in HDFS</description>
+        </property>
+        <property>
+            <name>source_table</name>
+            <description>
+                Hive table to read webrequests from.
+            </description>
+        </property>
+        <property>
+            <name>destination_table</name>
+            <description>
+                Hive table to write pagecounts to.
+            </description>
+        </property>
+        <property>
+            <name>year</name>
+            <description>The partition's year</description>
+        </property>
+        <property>
+            <name>month</name>
+            <description>The partition's month</description>
+        </property>
+        <property>
+            <name>day</name>
+            <description>The partition's day</description>
+        </property>
+        <property>
+            <name>hour</name>
+            <description>The partition's hour</description>
+        </property>
+        <property>
+            <name>mark_directory_done_workflow_file</name>
+            <description>Workflow for marking a directory done</description>
+        </property>
+        <property>
+            <name>destination_dataset_directory</name>
+            <description>Directory to generate the done flag in</description>
+        </property>
+    </parameters>
+
+    <start to="insert_hourly_pagecounts"/>
+
+    <action name="insert_hourly_pagecounts">
+        <hive xmlns="uri:oozie:hive-action:0.3">
+            <job-tracker>${job_tracker}</job-tracker>
+            <name-node>${name_node}</name-node>
+            <job-xml>${hive_site_xml}</job-xml>
+            <configuration>
+                <property>
+                    <name>mapreduce.job.queuename</name>
+                    <value>${queue_name}</value>
+                </property>
+            </configuration>
+
+            <script>insert_hourly_pagecounts.hql</script>
+
+            <param>source_table=${source_table}</param>
+            <param>destination_table=${destination_table}</param>
+            <param>year=${year}</param>
+            <param>month=${month}</param>
+            <param>day=${day}</param>
+            <param>hour=${hour}</param>
+        </hive>
+        <ok to="mark_dataset_done"/>
+        <error to="kill"/>
+    </action>
+
+    <action name="mark_dataset_done">
+        <sub-workflow>
+            <app-path>${mark_directory_done_workflow_file}</app-path>
+            <configuration>
+                <property>
+                    <name>directory</name>
+                    <value>${destination_dataset_directory}</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="end"/>
+        <error to="kill"/>
+    </action>
+
+    <kill name="kill">
+        <message>Action failed, error message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+    </kill>
+    <end name="end"/>
+</workflow-app>
