@@ -18,7 +18,7 @@
         <property><name>workflow_file</name></property>
         <property><name>start_time</name></property>
         <property><name>stop_time</name></property>
-        <property><name>data_directory</name></property>
+        <property><name>webrequest_data_directory</name></property>
 
         <property><name>hive_site_xml</name></property>
         <property><name>add_partition_workflow_file</name></property>
@@ -78,7 +78,7 @@
     </datasets>
 
     <input-events>
-        <data-in name="input" dataset="webrequest_unchecked">
+        <data-in name="input" dataset="webrequest_${webrequest_source}_unchecked">
             <instance>${coord:current(0)}</instance>
         </data-in>
         <!--
@@ -88,7 +88,7 @@
         might get created /before/ writing for the current dataset
         finishes).
          -->
-        <data-in name="ready_indicator" dataset="webrequest_unchecked">
+        <data-in name="ready_indicator" dataset="webrequest_${webrequest_source}_unchecked">
             <instance>${coord:current(2)}</instance>
         </data-in>
     </input-events>

@@ -18,7 +18,7 @@
         <property><name>workflow_file</name></property>
         <property><name>start_time</name></property>
         <property><name>stop_time</name></property>
-        <property><name>data_directory</name></property>
+        <property><name>webrequest_data_directory</name></property>
 
         <property><name>webrequest_source</name></property>
     </parameters>
@@ -48,7 +48,7 @@
     </datasets>
 
     <input-events>
-        <data-in name="input" dataset="webrequest">
+        <data-in name="input" dataset="webrequest_${webrequest_source}">
             <instance>${coord:current(0)}</instance>
         </data-in>
     </input-events>

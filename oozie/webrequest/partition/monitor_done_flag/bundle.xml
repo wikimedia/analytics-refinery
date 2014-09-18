@@ -15,7 +15,7 @@
         <property><name>workflow_file</name></property>
         <property><name>start_time</name></property>
         <property><name>stop_time</name></property>
-        <property><name>data_directory</name></property>
+        <property><name>webrequest_data_directory</name></property>
     </parameters>
 
     <coordinator name='monitor_done_flag-webrequest-bits'>
