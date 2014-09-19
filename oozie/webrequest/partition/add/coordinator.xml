@@ -26,6 +26,7 @@
         <property><name>statistics_table</name></property>
         <property><name>webrequest_source</name></property>
         <property><name>faulty_hosts_directory</name></property>
+        <property><name>mark_directory_done_workflow_file</name></property>
     </parameters>
 
     <controls>

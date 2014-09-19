@@ -61,6 +61,10 @@
                 obviously faulty hosts will get collected.
             </description>
         </property>
+        <property>
+            <name>mark_directory_done_workflow_file</name>
+            <description>Workflow for marking a directory done</description>
+        </property>
     </parameters>
 
     <start to="add_partition"/>
@@ -128,9 +132,15 @@
     </action>
 
     <action name="mark_dataset_done">
-        <fs>
-            <touchz path="${location}/_SUCCESS" />
-        </fs>
+        <sub-workflow>
+            <app-path>${mark_directory_done_workflow_file}</app-path>
+            <configuration>
+                <property>
+                    <name>directory</name>
+                    <value>${location}</value>
+                </property>
+            </configuration>
+        </sub-workflow>
         <ok to="end"/>
         <error to="kill"/>
     </action>
