@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bundle-app xmlns="uri:oozie:bundle:0.2"
+    name="webstats_generate_hourly_files-bundle">
+
+    <parameters>
+        <property>
+            <name>queue_name</name>
+            <value>adhoc</value>
+        </property>
+
+        <!-- Required properties. -->
+        <property><name>coordinator_file</name></property>
+        <property><name>job_tracker</name></property>
+        <property><name>start_time</name></property>
+        <property><name>stop_time</name></property>
+        <property><name>webstats_datasets_file</name></property>
+        <property><name>webstats_data_directory</name></property>
+        <property><name>hive_site_xml</name></property>
+        <property><name>workflow_file</name></property>
+        <property><name>webstats_table</name></property>
+        <property><name>mark_directory_done_workflow_file</name></property>
+        <property><name>temporary_directory</name></property>
+        <property><name>webstats_archive_directory</name></property>
+        <property><name>archive_job_output_workflow_file</name></property>
+    </parameters>
+
+    <coordinator name="webstats_generate_hourly_files-pagecounts">
+        <app-path>${coordinator_file}</app-path>
+        <configuration>
+            <property>
+                <name>aspect_name</name>
+                <value>pagecounts</value>
+            </property>
+            <property>
+                <name>aspect_compression_ending</name>
+                <value>.gz</value>
+            </property>
+        </configuration>
+    </coordinator>
+
+    <coordinator name="webstats_generate_hourly_files-projectcounts">
+        <app-path>${coordinator_file}</app-path>
+        <configuration>
+            <property>
+                <name>aspect_name</name>
+                <value>projectcounts</value>
+            </property>
+            <property>
+                <name>aspect_compression_ending</name>
+                <value>EMPTY</value>
+            </property>
+        </configuration>
+    </coordinator>
+
+</bundle-app>

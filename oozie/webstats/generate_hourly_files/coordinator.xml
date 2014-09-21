@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coordinator-app xmlns="uri:oozie:coordinator:0.4"
+    name="webstats_generate_hourly_files-${aspect_name}-coord"
+    frequency="${coord:hours(1)}"
+    start="${start_time}"
+    end="${stop_time}"
+    timezone="Universal">
+
+    <parameters>
+        <property>
+            <name>queue_name</name>
+            <value>adhoc</value>
+        </property>
+
+        <!-- Required properties. -->
+        <property><name>name_node</name></property>
+        <property><name>job_tracker</name></property>
+        <property><name>start_time</name></property>
+        <property><name>stop_time</name></property>
+        <property><name>webstats_datasets_file</name></property>
+        <property><name>webstats_data_directory</name></property>
+        <property><name>hive_site_xml</name></property>
+        <property><name>workflow_file</name></property>
+        <property><name>webstats_table</name></property>
+        <property><name>mark_directory_done_workflow_file</name></property>
+        <property><name>temporary_directory</name></property>
+        <property><name>webstats_archive_directory</name></property>
+        <property><name>archive_job_output_workflow_file</name></property>
+        <property><name>aspect_name</name></property>
+        <property><name>aspect_compression_ending</name></property>
+    </parameters>
+
+    <controls>
+        <!--
+        By having materialized jobs not timeout, we ease backfilling incidents
+        after recoverable hiccups on the dataset producers.
+        -->
+        <timeout>-1</timeout>
+
+        <!--
+        By limiting concurrency of 2, we limit draining too much cluster
+        resources, but still can backfill fast, as jobs are expected to complete
+        fast (<10 minutes).
+        -->
+        <concurrency>2</concurrency>
+
+        <!--
+        In order to keep backfilling after an incident simple, we only start
+        throttling materialization after 4 days.
+        Due to the low concurrency, and low discrepancy between progressing
+        time, and expected availability of datasets, we should typically have
+        far less materialized jobs.
+        -->
+        <throttle>${24*4}</throttle>
+    </controls>
+
+    <datasets>
+        <include>${webstats_datasets_file}</include>
+    </datasets>
+
+    <input-events>
+        <data-in name="webstats" dataset="webstats_pagecounts">
+            <instance>${coord:current(0)}</instance>
+        </data-in>
+    </input-events>
+
+    <action>
+        <workflow>
+            <app-path>${workflow_file}</app-path>
+            <configuration>
+
+                <!-- Pass these properties through to the workflow -->
+                <property><name>name_node</name><value>${name_node}</value></property>
+                <property><name>job_tracker</name><value>${job_tracker}</value></property>
+                <property><name>queue_name</name><value>${queue_name}</value></property>
+
+                <property>
+                    <name>hive_site_xml</name>
+                    <value>${hive_site_xml}</value>
+                </property>
+                <property>
+                    <name>webstats_table</name>
+                    <value>${webstats_table}</value>
+                </property>
+                <property>
+                    <name>year</name>
+                    <value>${coord:formatTime(coord:nominalTime(), "y")}</value>
+                </property>
+                <property>
+                    <name>month</name>
+                    <value>${coord:formatTime(coord:nominalTime(), "M")}</value>
+                </property>
+                <property>
+                    <name>day</name>
+                    <value>${coord:formatTime(coord:nominalTime(), "d")}</value>
+                </property>
+                <property>
+                    <name>hour</name>
+                    <value>${coord:formatTime(coord:nominalTime(), "H")}</value>
+                </property>
+                <property>
+                    <name>year_plus_1_hour</name>
+                    <value>${coord:formatTime(coord:dateOffset(coord:nominalTime(), 1, "HOUR"), "yyyy")}</value>
+                </property>
+                <property>
+                    <name>month_plus_1_hour</name>
+                    <value>${coord:formatTime(coord:dateOffset(coord:nominalTime(), 1, "HOUR"), "MM")}</value>
+                </property>
+                <property>
+                    <name>day_plus_1_hour</name>
+                    <value>${coord:formatTime(coord:dateOffset(coord:nominalTime(), 1, "HOUR"), "dd")}</value>
+                </property>
+                <property>
+                    <name>hour_plus_1_hour</name>
+                    <value>${coord:formatTime(coord:dateOffset(coord:nominalTime(), 1, "HOUR"), "HH")}</value>
+                </property>
+                <property>
+                    <name>mark_directory_done_workflow_file</name>
+                    <value>${mark_directory_done_workflow_file}</value>
+                </property>
+                <property>
+                    <name>temporary_directory</name>
+                    <value>${temporary_directory}</value>
+                </property>
+                <property>
+                    <name>webstats_archive_directory</name>
+                    <value>${webstats_archive_directory}</value>
+                </property>
+                <property>
+                    <name>archive_job_output_workflow_file</name>
+                    <value>${archive_job_output_workflow_file}</value>
+                </property>
+                <property>
+                    <name>aspect_name</name>
+                    <value>${aspect_name}</value>
+                </property>
+                <property>
+                    <name>aspect_compression_ending</name>
+                    <value>${aspect_compression_ending}</value>
+                </property>
+            </configuration>
+        </workflow>
+    </action>
+</coordinator-app>

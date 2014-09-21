@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow-app xmlns="uri:oozie:workflow:0.4"
+    name="webstats_generate_hourly_files-${aspect_name}-${year}-${month}-${day}-${hour}-wf">
+
+    <parameters>
+        <property>
+            <name>queue_name</name>
+            <value>adhoc</value>
+        </property>
+
+        <!-- Required properties -->
+        <property><name>name_node</name></property>
+        <property><name>job_tracker</name></property>
+
+        <property>
+            <name>hive_site_xml</name>
+            <description>hive-site.xml file path in HDFS</description>
+        </property>
+        <property>
+            <name>webstats_table</name>
+            <description>
+                Hive table to read webstats data from.
+            </description>
+        </property>
+        <property>
+            <name>year</name>
+            <description>The partition's year</description>
+        </property>
+        <property>
+            <name>month</name>
+            <description>The partition's month</description>
+        </property>
+        <property>
+            <name>day</name>
+            <description>The partition's day</description>
+        </property>
+        <property>
+            <name>hour</name>
+            <description>The partition's hour</description>
+        </property>
+        <property>
+            <name>year_plus_1_hour</name>
+            <description>The partition's year + 1 hour</description>
+        </property>
+        <property>
+            <name>month</name>
+            <description>The partition's year + 1 hour</description>
+        </property>
+        <property>
+            <name>day_plus_1_hour</name>
+            <description>The partition's day + 1 hour</description>
+        </property>
+        <property>
+            <name>hour_plus_1_hour</name>
+            <description>The partition's hour + 1 hour</description>
+        </property>
+        <property>
+            <name>mark_directory_done_workflow_file</name>
+            <description>Workflow for marking a directory done</description>
+        </property>
+        <property>
+            <name>temporary_directory</name>
+            <description>A directory in HDFS for temporary files</description>
+        </property>
+        <property>
+            <name>webstats_archive_directory</name>
+            <value>Directory for archive of webstats files</value>
+        </property>
+        <property>
+            <name>archive_job_output_workflow_file</name>
+            <value>Workflow to move a data file to the archive</value>
+        </property>
+        <property>
+            <name>aspect_name</name>
+            <value>Aspect to cover. Either "pagecounts" or "projectcounts".</value>
+        </property>
+        <property>
+            <name>aspect_compression_ending</name>
+            <value>The filename ending for this aspect's file. Either ".gz" or "".</value>
+        </property>
+    </parameters>
+
+    <start to="extract_data_into_single_file"/>
+
+    <action name="extract_data_into_single_file">
+        <hive xmlns="uri:oozie:hive-action:0.3">
+            <job-tracker>${job_tracker}</job-tracker>
+            <name-node>${name_node}</name-node>
+            <job-xml>${hive_site_xml}</job-xml>
+            <configuration>
+                <property>
+                    <name>mapreduce.job.queuename</name>
+                    <value>${queue_name}</value>
+                </property>
+            </configuration>
+
+            <script>generate_hourly_${aspect_name}_file.hql</script>
+
+            <param>source_table=${webstats_table}</param>
+            <param>destination_directory=${temporary_directory}/${wf:id()}-${aspect_name}</param>
+            <param>year=${year}</param>
+            <param>month=${month}</param>
+            <param>day=${day}</param>
+            <param>hour=${hour}</param>
+        </hive>
+        <ok to="mark_dataset_done"/>
+        <error to="kill"/>
+    </action>
+
+    <action name="mark_dataset_done">
+        <sub-workflow>
+            <app-path>${mark_directory_done_workflow_file}</app-path>
+            <configuration>
+                <property>
+                    <name>directory</name>
+                    <value>${temporary_directory}/${wf:id()}-${aspect_name}</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="move_data_to_archive"/>
+        <error to="kill"/>
+    </action>
+
+    <action name="move_data_to_archive">
+        <sub-workflow>
+            <app-path>${archive_job_output_workflow_file}</app-path>
+            <configuration>
+                <property>
+                    <name>source_directory</name>
+                    <value>${temporary_directory}/${wf:id()}-${aspect_name}</value>
+                </property>
+                <property>
+                    <name>expected_filename_ending</name>
+                    <value>${aspect_compression_ending}</value>
+                </property>
+                <property>
+                    <name>archive_file</name>
+                    <!--
+                    webstatscollector used the end of the collection period as
+                    timestamp in the filename. To not break scripts of people,
+                    we also name files that way.
+                    -->
+                    <value>${webstats_archive_directory}/${year_plus_1_hour}/${year_plus_1_hour}-${month_plus_1_hour}/${aspect_name}-${year_plus_1_hour}${month_plus_1_hour}${day_plus_1_hour}-${hour_plus_1_hour}0000${aspect_compression_ending eq 'EMPTY' ? '' : aspect_compression_ending}</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="end"/>
+        <error to="kill"/>
+    </action>
+
+    <kill name="kill">
+        <message>Action failed, error message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+    </kill>
+    <end name="end"/>
+</workflow-app>

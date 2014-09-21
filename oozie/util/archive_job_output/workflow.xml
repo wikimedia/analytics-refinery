@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow-app xmlns="uri:oozie:workflow:0.4"
+    name="archive_job_output-${source_directory}-wf">
+
+    <parameters>
+        <property>
+            <name>queue_name</name>
+            <value>adhoc</value>
+        </property>
+        <property>
+            <name>done_file</name>
+            <value>_SUCCESS</value>
+            <description>
+                The name of the file to flag a directory as “done”.
+            </description>
+        </property>
+        <property>
+            <name>expected_filename_ending</name>
+            <value>.gz</value>
+            <description>
+                The expected filename ending of the data file.
+                Either "EMPTY" (for no ending), ".gz", or ".snappy"
+            </description>
+        </property>
+
+        <!-- Required properties -->
+        <property>
+            <name>source_directory</name>
+            <description>
+                Directory in hdfs that contains the data that should
+                get archived.
+
+                This directory will get removed upon success.
+            </description>
+        </property>
+        <property>
+            <name>archive_file</name>
+            <description>
+                File name where the source_directory's data should get
+                archived to.
+            </description>
+        </property>
+    </parameters>
+
+    <start to="check_file_existence"/>
+
+    <decision name="check_file_existence">
+        <switch>
+            <case to="source_directory_does_not_exist">
+                ${not fs:exists(source_directory)}
+            </case>
+            <case to="source_directory_is_not_a_directory">
+                ${not fs:isDir(source_directory)}
+            </case>
+            <case to="source_directory_is_not_done">
+                ${not fs:exists(concat(concat(source_directory,'/'),done_file))}
+            </case>
+
+            <case to="source_directory_does_not_contain_expected_file">
+                ${not fs:exists(concat(concat(source_directory,'/000000_0'),expected_filename_ending eq 'EMPTY' ? '' : expected_filename_ending))}
+            </case>
+
+            <!--
+            Here, we know that the required files are in place.
+
+            But maybe there are additional unwarranted files for example from
+            the job having two reducers.
+            The rest of this decision node tries to make sure that there are no
+            such files around, by some “fs:” checks. This is not super_robust,
+            as Oozie cannot express “this file only contaions those two
+            files”. However, the alternative would be a shell-action that parses
+            the output of “hdfs dfs -ls”. While that might better detect weird
+            outliers, we deem the output of “hdfs dfs -ls” to be more
+            fragile. Hence, we do not use a shell action, and check against some
+            tell-tale files directly from Oozie.
+
+            Thereby, we do not need to parse output from external commands, we
+            can easier give descriptive error messages, and we spare another
+            application.
+
+
+            (Checking the three variants (“”, “.gz”, “.snappy”) per basename
+            could be put in a sub-workflow. However, with only three variants,
+            the sub-workflow invocation is longer, than spelling the checks
+            out.)
+            -->
+
+            <case to="source_directory_contains_000000_0">
+                ${expected_filename_ending ne 'EMPTY' and fs:exists(concat(source_directory,'/000000_0'))}
+            </case>
+            <case to="source_directory_contains_000000_0_gz">
+                ${expected_filename_ending ne '.gz' and fs:exists(concat(source_directory,'/000000_0.gz'))}
+            </case>
+            <case to="source_directory_contains_000000_0_snappy">
+                ${expected_filename_ending ne '.snappy' and fs:exists(concat(source_directory,'/000000_0.snappy'))}
+            </case>
+
+            <case to="source_directory_contains_000000_1">
+                ${fs:exists(concat(source_directory,'/000000_1'))}
+            </case>
+            <case to="source_directory_contains_000000_1_gz">
+                ${fs:exists(concat(source_directory,'/000000_1.gz'))}
+            </case>
+            <case to="source_directory_contains_000000_1_snappy">
+                ${fs:exists(concat(source_directory,'/000000_1.snappy'))}
+            </case>
+
+            <case to="source_directory_contains_000001_0">
+                ${fs:exists(concat(source_directory,'/000001_0'))}
+            </case>
+            <case to="source_directory_contains_000001_0_gz">
+                ${fs:exists(concat(source_directory,'/000001_0.gz'))}
+            </case>
+            <case to="source_directory_contains_000001_0_snappy">
+                ${fs:exists(concat(source_directory,'/000001_0.snappy'))}
+            </case>
+
+            <case to="source_directory_contains_000000_0_copy">
+                ${fs:exists(concat(source_directory,'/000000_0_copy'))}
+            </case>
+            <case to="source_directory_contains_000000_0_copy_gz">
+                ${fs:exists(concat(source_directory,'/000000_0_copy.gz'))}
+            </case>
+            <case to="source_directory_contains_000000_0_copy_snappy">
+                ${fs:exists(concat(source_directory,'/000000_0_copy.snappy'))}
+            </case>
+
+            <case to="source_directory_contains_000000_0_copy_1">
+                ${fs:exists(concat(source_directory,'/000000_0_copy_1'))}
+            </case>
+            <case to="source_directory_contains_000000_0_copy_1_gz">
+                ${fs:exists(concat(source_directory,'/000000_0_copy_1.gz'))}
+            </case>
+            <case to="source_directory_contains_000000_0_copy_1_snappy">
+                ${fs:exists(concat(source_directory,'/000000_0_copy_1.snappy'))}
+            </case>
+
+            <default to="hdfs_actions"/>
+        </switch>
+    </decision>
+
+    <action name="hdfs_actions">
+        <fs>
+            <configuration>
+                <property>
+                    <name>mapreduce.job.queuename</name>
+                    <value>${queue_name}</value>
+                </property>
+            </configuration>
+            <delete path="${archive_file}"/>
+            <mkdir path="${replaceAll(archive_file, '/[^/]*$', '')}"/>
+            <move
+                source="${concat(concat(source_directory,'/000000_0'),expected_filename_ending eq 'EMPTY' ? '' : expected_filename_ending)}"
+                target="${archive_file}"/>
+            <delete path="${source_directory}"/>
+        </fs>
+        <ok to="end"/>
+        <error to="kill"/>
+    </action>
+
+    <kill name="source_directory_does_not_exist">
+        <message>The job output directory ${source_directory} does not exist</message>
+    </kill>
+    <kill name="source_directory_is_not_a_directory">
+        <message>The given source_directory ${source_directory} is not a directory</message>
+    </kill>
+    <kill name="source_directory_is_not_done">
+        <message>The job output directory ${source_directory} lacks the ${done_file} marker</message>
+    </kill>
+
+    <kill name="source_directory_does_not_contain_expected_file">
+        <message>The job output directory ${source_directory} lacks the output file 000000_0${expected_filename_ending eq 'EMPTY' ? '' : expected_filename_ending}</message>
+    </kill>
+
+    <kill name="source_directory_contains_000000_0">
+        <message>In addition to the main output file, the directory ${source_directory} also contains the file 000000_0</message>
+    </kill>
+    <kill name="source_directory_contains_000000_0_gz">
+        <message>In addition to the main output file, the directory ${source_directory} also contains the file 000000_0.gz</message>
+    </kill>
+    <kill name="source_directory_contains_000000_0_snappy">
+        <message>In addition to the main output file, the directory ${source_directory} also contains the file 000000_0.snappy</message>
+    </kill>
+
+    <kill name="source_directory_contains_000000_1">
+        <message>In addition to the main output file, the directory ${source_directory} also contains the file 000000_1</message>
+    </kill>
+    <kill name="source_directory_contains_000000_1_gz">
+        <message>In addition to the main output file, the directory ${source_directory} also contains the file 000000_1.gz</message>
+    </kill>
+    <kill name="source_directory_contains_000000_1_snappy">
+        <message>In addition to the main output file, the directory ${source_directory} also contains the file 000000_1.snappy</message>
+    </kill>
+
+    <kill name="source_directory_contains_000001_0">
+        <message>In addition to the main output file, the directory ${source_directory} also contains the file 000001_0</message>
+    </kill>
+    <kill name="source_directory_contains_000001_0_gz">
+        <message>In addition to the main output file, the directory ${source_directory} also contains the file 000001_0.gz</message>
+    </kill>
+    <kill name="source_directory_contains_000001_0_snappy">
+        <message>In addition to the main output file, the directory ${source_directory} also contains the file 000001_0.snappy</message>
+    </kill>
+
+    <kill name="source_directory_contains_000000_0_copy">
+        <message>In addition to the main output file, the directory ${source_directory} also contains the file 000000_0_copy</message>
+    </kill>
+    <kill name="source_directory_contains_000000_0_copy_gz">
+        <message>In addition to the main output file, the directory ${source_directory} also contains the file 000000_0_copy.gz</message>
+    </kill>
+    <kill name="source_directory_contains_000000_0_copy_snappy">
+        <message>In addition to the main output file, the directory ${source_directory} also contains the file 000000_0_copy.snappy</message>
+    </kill>
+
+    <kill name="source_directory_contains_000000_0_copy_1">
+        <message>In addition to the main output file, the directory ${source_directory} also contains the file 000000_0_copy_1</message>
+    </kill>
+    <kill name="source_directory_contains_000000_0_copy_1_gz">
+        <message>In addition to the main output file, the directory ${source_directory} also contains the file 000000_0_copy_1.gz</message>
+    </kill>
+    <kill name="source_directory_contains_000000_0_copy_1_snappy">
+        <message>In addition to the main output file, the directory ${source_directory} also contains the file 000000_0_copy_1.snappy</message>
+    </kill>
+    <kill name="kill">
+        <message>error message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+    </kill>
+    <end name="end"/>
+</workflow-app>
