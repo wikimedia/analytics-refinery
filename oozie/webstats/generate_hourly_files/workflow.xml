@@ -64,19 +64,19 @@
         </property>
         <property>
             <name>webstats_archive_directory</name>
-            <value>Directory for archive of webstats files</value>
+            <description>Directory for archive of webstats files</description>
         </property>
         <property>
             <name>archive_job_output_workflow_file</name>
-            <value>Workflow to move a data file to the archive</value>
+            <description>Workflow to move a data file to the archive</description>
         </property>
         <property>
             <name>aspect_name</name>
-            <value>Aspect to cover. Either "pagecounts" or "projectcounts".</value>
+            <description>Aspect to cover. Either "pagecounts" or "projectcounts".</description>
         </property>
         <property>
             <name>aspect_compression_ending</name>
-            <value>The filename ending for this aspect's file. Either ".gz" or "".</value>
+            <description>The filename ending for this aspect's file. Either ".gz" or "".</description>
         </property>
     </parameters>
 
