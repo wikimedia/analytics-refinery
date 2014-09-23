@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <workflow-app xmlns="uri:oozie:workflow:0.4"
-    name="mark-directory-done-wf-${directory}">
+    name="mark-directory-done-${directory}-wf">
 
     <parameters>
         <property>

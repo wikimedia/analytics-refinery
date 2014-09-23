@@ -61,3 +61,6 @@
       bar</tag>
 
   .
+
+* For Oozie jobs, have the name end in ```-wf``` for workflows,
+  ```-coord``` for coordinators, and ```-bundle``` for bundles.
