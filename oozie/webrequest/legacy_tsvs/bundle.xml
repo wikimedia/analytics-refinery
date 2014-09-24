@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bundle-app xmlns="uri:oozie:bundle:0.2"
+    name="webrequest_legacy_tsvs-bundle">
+
+    <parameters>
+        <property>
+            <name>queue_name</name>
+            <value>adhoc</value>
+        </property>
+
+        <!-- Required properties. -->
+        <property><name>coordinator_file</name></property>
+        <property><name>name_node</name></property>
+        <property><name>job_tracker</name></property>
+        <property><name>start_time</name></property>
+        <property><name>stop_time</name></property>
+        <property><name>webrequest_datasets_file</name></property>
+        <property><name>webrequest_data_directory</name></property>
+        <property><name>hive_site_xml</name></property>
+        <property><name>workflow_file</name></property>
+        <property><name>webrequest_table</name></property>
+        <property><name>mark_directory_done_workflow_file</name></property>
+        <property><name>temporary_directory</name></property>
+        <property><name>webrequest_archive_directory</name></property>
+        <property><name>archive_job_output_workflow_file</name></property>
+    </parameters>
+
+    <coordinator name="webrequest_legacy_tsvs-sampled-1000">
+        <app-path>${coordinator_file}</app-path>
+        <configuration>
+            <property>
+                <name>aspect_name</name>
+                <value>sampled-1000</value>
+            </property>
+            <property>
+                <name>aspect_tsv_archive_directory</name>
+                <value>${webrequest_archive_directory}/sampled</value>
+            </property>
+            <property>
+                <name>hour_offset</name>
+                <value>2</value>
+            </property>
+        </configuration>
+    </coordinator>
+
+    <coordinator name="webrequest_legacy_tsvs-mobile-sampled-100">
+        <app-path>${coordinator_file}</app-path>
+        <configuration>
+            <property>
+                <name>aspect_name</name>
+                <value>mobile-sampled-100</value>
+            </property>
+            <property>
+                <name>aspect_tsv_archive_directory</name>
+                <value>${webrequest_archive_directory}/mobile</value>
+            </property>
+            <property>
+                <name>hour_offset</name>
+                <value>4</value>
+            </property>
+        </configuration>
+    </coordinator>
+
+    <coordinator name="webrequest_legacy_tsvs-zero">
+        <app-path>${coordinator_file}</app-path>
+        <configuration>
+            <property>
+                <name>aspect_name</name>
+                <value>zero</value>
+            </property>
+            <property>
+                <name>aspect_tsv_archive_directory</name>
+                <value>${webrequest_archive_directory}/zero</value>
+            </property>
+            <property>
+                <name>hour_offset</name>
+                <value>6</value>
+            </property>
+        </configuration>
+    </coordinator>
+</bundle-app>
