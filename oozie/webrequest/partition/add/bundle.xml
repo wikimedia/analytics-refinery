@@ -22,6 +22,7 @@
         <property><name>table</name></property>
         <property><name>statistics_table</name></property>
         <property><name>faulty_hosts_directory</name></property>
+        <property><name>mark_directory_done_workflow_file</name></property>
     </parameters>
 
     <coordinator name='hive_add_partition-webrequest-bits'>
