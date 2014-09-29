@@ -64,4 +64,6 @@ WHERE
         -- for those.
     AND next_sequence != sequence + 1 -- This condition drops the rows
         -- for which the next sequence number is as expected.
+ORDER BY hostname, missing_start
+LIMIT 10000000
 ;
