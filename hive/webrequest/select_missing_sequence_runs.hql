@@ -24,7 +24,6 @@
 --
 -- Usage:
 --     hive -f select_missing_sequence_runs.hql   \
---         -d table_name=wmf_raw.webrequest       \
 --         -d webrequest_source=bits              \
 --         -d year=2014                           \
 --         -d month=7                             \
