@@ -37,14 +37,20 @@ SELECT
     hostname,
     sequence + 1 AS missing_start,
     next_sequence - 1 AS missing_end,
-    next_sequence - sequence - 1 AS missing_count
+    next_sequence - sequence - 1 AS missing_count,
+    dt dt_before_missing,
+    next_dt dt_after_missing
 FROM (
     SELECT
         hostname,
         sequence,
+        dt,
         LEAD(sequence) OVER (
             PARTITION BY hostname ORDER BY sequence ASC
-        ) AS next_sequence
+        ) AS next_sequence,
+        LEAD(dt) OVER (
+            PARTITION BY hostname ORDER BY sequence ASC
+        ) AS next_dt
     FROM wmf_raw.webrequest
     WHERE webrequest_source = '${webrequest_source}'
         AND year=${year}
