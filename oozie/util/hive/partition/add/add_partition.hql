@@ -18,7 +18,7 @@
 --     hive -f add_partition.hql \
 --         -d database=wmf_raw \
 --         -d table=webrequest \
---         -d partition=year=2014,month=5,day=12,hour=1 \
+--         -d partition_spec=year=2014,month=5,day=12,hour=1 \
 --         -d location=hdfs:///path/to/data
 --
 
