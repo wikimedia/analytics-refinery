@@ -73,6 +73,8 @@ INSERT OVERWRITE TABLE ${destination_table}
                 ${hiveconf:whitelisted_mediawiki_projects}
             )
         )
+        AND page_title != 'undefined'
+        AND page_title != 'Undefined'
     GROUP BY language_and_site, project_suffix, page_title
     ORDER BY qualifier, page_title
     LIMIT 100000000;
