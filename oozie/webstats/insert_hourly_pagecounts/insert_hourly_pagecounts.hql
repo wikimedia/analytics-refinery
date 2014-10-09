@@ -63,6 +63,7 @@ INSERT OVERWRITE TABLE ${destination_table}
                     ) OR x_forwarded_for != '-'
                 )
             AND SUBSTR(uri_path, 1, 31) != '/wiki/Special:CentralAutoLogin/'
+            AND http_status NOT IN ( '301', '302', '303' )
     ) prepared
     WHERE
         language_and_site != ''
