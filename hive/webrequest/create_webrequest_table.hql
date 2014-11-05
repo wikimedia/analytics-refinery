@@ -34,7 +34,8 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `webrequest` (
     `x_forwarded_for`   string  COMMENT 'X-Forwarded-For header of request',
     `user_agent`        string  COMMENT 'User-Agent header of request',
     `accept_language`   string  COMMENT 'Accept-Language header of request',
-    `x_analytics`       string  COMMENT 'X-Analytics header of response')
+    `x_analytics`       string  COMMENT 'X-Analytics header of response',
+    `range`             string  COMMENT 'Range header of response')
 PARTITIONED BY (
     `webrequest_source` string  COMMENT 'Source cluster',
     `year`              int     COMMENT 'Unpadded year of request',
