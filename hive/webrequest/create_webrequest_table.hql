@@ -20,7 +20,7 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `webrequest` (
     `hostname`          string  COMMENT 'Source node hostname',
     `sequence`          bigint  COMMENT 'Per host sequence number',
     `dt`                string  COMMENT 'Timestame at cache in ISO 8601',
-    `time_firstbyte`    float   COMMENT 'Time to first byte',
+    `time_firstbyte`    double  COMMENT 'Time to first byte',
     `ip`                string  COMMENT 'IP of packet at cache',
     `cache_status`      string  COMMENT 'Cache status',
     `http_status`       string  COMMENT 'HTTP status of response',
