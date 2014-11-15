@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow-app xmlns="uri:oozie:workflow:0.4"
+    name="mediacounts_archive-${year}-${month}-${day}-wf">
+
+    <parameters>
+        <property>
+            <name>queue_name</name>
+            <value>default</value>
+        </property>
+        <property>
+            <name>extra_filter</name>
+            <value>none</value>
+            <description>
+                Additional filter to apply when selecting data from the
+                mediacounts table.
+                To have no extra_filter, use the default of 'none'.
+            </description>
+        </property>
+        <property>
+            <name>compression_ending</name>
+            <value>.bz2</value>
+            <description>The filename ending for archive file.</description>
+        </property>
+        <property>
+            <name>format_version</name>
+            <value>0</value>
+            <description>
+                Version number for the output format. Increase this number, if
+                you change the output format or meaning of the columns.
+            </description>
+        </property>
+
+        <!-- Required properties -->
+        <property><name>name_node</name></property>
+        <property><name>job_tracker</name></property>
+
+        <property>
+            <name>hive_site_xml</name>
+            <description>hive-site.xml file path in HDFS</description>
+        </property>
+        <property>
+            <name>mediacounts_table</name>
+            <description>
+                Hive table to read mediacounts data from.
+            </description>
+        </property>
+        <property>
+            <name>year</name>
+            <description>The partition's year</description>
+        </property>
+        <property>
+            <name>month</name>
+            <description>The partition's month</description>
+        </property>
+        <property>
+            <name>day</name>
+            <description>The partition's day</description>
+        </property>
+        <property>
+            <name>mark_directory_done_workflow_file</name>
+            <description>Workflow for marking a directory done</description>
+        </property>
+        <property>
+            <name>temporary_directory</name>
+            <description>A directory in HDFS for temporary files</description>
+        </property>
+        <property>
+            <name>mediacounts_daily_archive_directory</name>
+            <description>Directory to archive the workflow output to</description>
+        </property>
+        <property>
+            <name>archive_job_output_workflow_file</name>
+            <description>Workflow to move a data file to the archive</description>
+        </property>
+    </parameters>
+
+    <start to="extract_data_into_single_file"/>
+
+    <action name="extract_data_into_single_file">
+        <hive xmlns="uri:oozie:hive-action:0.3">
+            <job-tracker>${job_tracker}</job-tracker>
+            <name-node>${name_node}</name-node>
+            <job-xml>${hive_site_xml}</job-xml>
+            <configuration>
+                <property>
+                    <name>mapreduce.job.queuename</name>
+                    <value>${queue_name}</value>
+                </property>
+            </configuration>
+
+            <script>archive_mediacounts.hql</script>
+
+            <param>source_table=${mediacounts_table}</param>
+            <param>destination_directory=${temporary_directory}/mediacounts-${year}-${month}-${day}-${wf:id()}</param>
+            <param>year=${year}</param>
+            <param>month=${month}</param>
+            <param>day=${day}</param>
+        </hive>
+        <ok to="mark_dataset_done"/>
+        <error to="kill"/>
+    </action>
+
+    <action name="mark_dataset_done">
+        <sub-workflow>
+            <app-path>${mark_directory_done_workflow_file}</app-path>
+            <configuration>
+                <property>
+                    <name>directory</name>
+                    <value>${temporary_directory}/mediacounts-${year}-${month}-${day}-${wf:id()}</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="move_data_to_archive"/>
+        <error to="kill"/>
+    </action>
+
+    <action name="move_data_to_archive">
+        <sub-workflow>
+            <app-path>${archive_job_output_workflow_file}</app-path>
+            <configuration>
+                <property>
+                    <name>job_tracker</name>
+                    <value>${job_tracker}</value>
+                </property>
+                <property>
+                    <name>name_node</name>
+                    <value>${name_node}</value>
+                </property>
+                <property>
+                    <name>queue_name</name>
+                    <value>${queue_name}</value>
+                </property>
+                <property>
+                    <name>source_directory</name>
+                    <value>${temporary_directory}/mediacounts-${year}-${month}-${day}-${wf:id()}</value>
+                </property>
+                <property>
+                    <name>expected_filename_ending</name>
+                    <value>${compression_ending}</value>
+                </property>
+                <property>
+                    <name>archive_file</name>
+                    <value>${mediacounts_daily_archive_directory}/${year}/mediacounts.${year}-${month}-${day}.v${format_version lt 10 ? "0" : ""}${format_version}.tsv${compression_ending eq 'EMPTY' ? '' : compression_ending}</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="end"/>
+        <error to="kill"/>
+    </action>
+
+    <kill name="kill">
+        <message>Action failed, error message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+    </kill>
+    <end name="end"/>
+</workflow-app>

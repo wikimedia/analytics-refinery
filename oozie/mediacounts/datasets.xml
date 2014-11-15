@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Defines reusable datasets for mediacounts.
+Use this dataset in your coordinator.xml files by setting:
+
+    ${start_time}     - the initial instance of your data.
+                        Example: 2014-04-01T00:00Z
+    ${mediacounts_data_directory}
+                      - Path to directory where data is time bucketed.
+                        Example: /wmf/data/wmf/mediacounts
+-->
+
+<datasets>
+    <dataset name="mediacounts_hourly"
+             frequency="${coord:hours(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <!--
+        To unpad MONTH, DAY, and HOUR, we force coercion to a number by
+        adding 0.
+
+        Note that we do not use “${...}” but “${"$"}{...}", as dataset files are
+        passed to EL twice in cascade, and in the first EL level, ${MONTH}
+        evaluates to the string “${MONTH}”. Hence, we escape the dollar sign in
+        “${....}" to “${"$"}{...}”. At the first EL level, “${"$"}” gets turned
+        into a dollar sign, and “{...}”  is just passed along. Hence, we arrive
+        at “${...}” as input for the second EL level. There, the variables hold
+        their expected values, and we can start unpadding them.
+        -->
+        <uri-template>${mediacounts_data_directory}/year=${YEAR}/month=${"$"}{MONTH + 0}/day=${"$"}{DAY + 0}/hour=${"$"}{HOUR + 0}</uri-template>
+        <done-flag>_SUCCESS</done-flag>
+    </dataset>
+</datasets>
