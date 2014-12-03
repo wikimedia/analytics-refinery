@@ -52,8 +52,13 @@ INSERT OVERWRITE TABLE ${destination_table}
             AND SUBSTR(uri_path, 1, 6) = '/wiki/'
             AND (
                     (
-                        SUBSTR(ip, 1, 9) != '10.128.0.'
-                        AND SUBSTR(ip, 1, 11) NOT IN (
+                        SUBSTR(ip, 1, 8) NOT IN (
+                            '10.20.0.',
+                            '10.64.0.'
+                        ) AND SUBSTR(ip, 1, 9) NOT IN (
+                            '10.128.0.',
+                            '10.64.32.'
+                        ) AND SUBSTR(ip, 1, 11) NOT IN (
                             '208.80.152.',
                             '208.80.153.',
                             '208.80.154.',
