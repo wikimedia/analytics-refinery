@@ -5,6 +5,7 @@ set -e
 #
 #   _ABS      - absolute path
 #   _RELB     - path, relative to $REFINERY_BASE_HDFSDIR_ABS
+#   _RELR     - path, relative to root of the refinery repository
 #
 #   _FILE     - file in plain file system
 #   _DIR      - directory in plain file system
@@ -24,6 +25,8 @@ DRY_RUN=yes
 VERBOSE=no
 CURRENT_TARGET_HDFSDIR_RELB="current"
 SKIP_UPDATING_CURRENT=no
+
+OOZIES_HIVE_CONFIG_FILE_RELR="oozie/util/hive/hive-site.xml"
 
 print_help() {
     cat <<EOF
@@ -157,6 +160,21 @@ $UNINITIALIZED_GIT_FAT_FILES
     fi
 }
 
+guard_against_obviously_fishy_hive_config_for_oozie() {
+    if [ ! -e "$OOZIES_HIVE_CONFIG_FILE_RELR" ]
+    then
+        # If we cannot find Oozie's hive config, we bail out. This way, we de
+        # detect if the file gets moved around at some point.
+        error "Could not find oozie's hive config at '$OOZIES_HIVE_CONFIG_FILE_RELR'"
+    fi
+
+    if grep -q -i 'password' "$OOZIES_HIVE_CONFIG_FILE_RELR"
+    then
+        error "Oozie's hive config at '$OOZIES_HIVE_CONFIG_FILE_RELR' matches \
+password. Aborting to avoid accidentally deploying passwords."
+    fi
+}
+
 describe_deployment() {
     local TARGET_HDFSFILE_ABS="$1"
     shift
@@ -212,6 +230,7 @@ parse_parameters "$@"
 alert_dry_run
 
 guard_against_uninitialized_git_fat
+guard_against_obviously_fishy_hive_config_for_oozie
 
 GIT_DESCRIPTION="$(git describe $GIT_EXTRA_OPTION --always --dirty 2>/dev/null || true)"
 [[ ! -z "$GIT_DESCRIPTION" ]] || error "Cannot describe current version"
