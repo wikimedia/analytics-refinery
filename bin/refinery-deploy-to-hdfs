@@ -168,6 +168,16 @@ guard_against_obviously_fishy_hive_config_for_oozie() {
         error "Could not find oozie's hive config at '$OOZIES_HIVE_CONFIG_FILE_RELR'"
     fi
 
+    # Since Oozie's hive config is typically a link to /etc/hive/... it might be
+    # that the below test for passwords fails because the config file is not
+    # readable. To provide a better error message for this case, we single it
+    # out.
+    if [ ! -r "$OOZIES_HIVE_CONFIG_FILE_RELR" ]
+    then
+        error "Oozie's hive config at '$OOZIES_HIVE_CONFIG_FILE_RELR' is not \
+readable"
+    fi
+
     if grep -q -i 'password' "$OOZIES_HIVE_CONFIG_FILE_RELR"
     then
         error "Oozie's hive config at '$OOZIES_HIVE_CONFIG_FILE_RELR' matches \
