@@ -86,17 +86,26 @@ status() {
 
 run_hdfs() {
     local SKIP_RUNNING_COMMAND="$DRY_RUN"
+    local LOG_INVOCATION="yes"
+    if [ "$1" = "--without-log" ]
+    then
+        shift
+        LOG_INVOCATION="no"
+    fi
     if [ "$1" = "--run-also-for-dry-run" ]
     then
         shift
         SKIP_RUNNING_COMMAND="no"
     fi
     local CMD=( hdfs "$@" )
-    if [ "$DRY_RUN" = "no" ]
+    if [ "$LOG_INVOCATION" = "yes" ]
     then
-        verbose_log "${CMD[@]}"
-    else
-        log "Dry run:" "${CMD[@]}"
+        if [ "$DRY_RUN" = "no" ]
+        then
+            verbose_log "${CMD[@]}"
+        else
+            log "Dry run:" "${CMD[@]}"
+        fi
     fi
     if [ "$SKIP_RUNNING_COMMAND" = "no" ]
     then
@@ -183,6 +192,23 @@ readable"
         error "Oozie's hive config at '$OOZIES_HIVE_CONFIG_FILE_RELR' matches \
 password. Aborting to avoid accidentally deploying passwords."
     fi
+}
+
+monkey_patch_oozies_hive_config() {
+    local TARGET_HDFSFILE_ABS="$1"
+    shift
+
+    # We strip out references to
+    #   file:///srv/deployment/
+    # as they won't be around on all worker nodes. Currently, this
+    # addresses removing refinery-hive.jar from the plain filesystem
+    # location. When not removing it, Oozie's Hive jobs would try to
+    # pick it up, and consequently fail on the worker node, as they do
+    # not have that jar.
+    run_hdfs dfs -put -f <( \
+        run_hdfs --without-log dfs -cat "$TARGET_HDFSFILE_ABS" \
+        | sed -e 's@\(\(>\)\|,\)file:///srv/deployment/[^<,]*\([<,]\)@\2\3@'
+    ) "$TARGET_HDFSFILE_ABS"
 }
 
 describe_deployment() {
@@ -274,6 +300,8 @@ run_hdfs dfs -mkdir "$VERSIONED_TMP_TARGET_HDFSDIR_ABS"
 
 # Note that we only copy *, and not dot-files, hence excluding '.git'.
 run_hdfs dfs -put -f * "$VERSIONED_TMP_TARGET_HDFSDIR_ABS"
+
+monkey_patch_oozies_hive_config "$VERSIONED_TMP_TARGET_HDFSDIR_ABS/$OOZIES_HIVE_CONFIG_FILE_RELR"
 
 describe_deployment "$VERSIONED_TMP_TARGET_HDFSDIR_ABS/.deployment" "$@"
 
