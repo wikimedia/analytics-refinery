@@ -356,8 +356,12 @@ class HiveUtils(object):
         if isinstance(regex, basestring):
             regex = re.compile(regex)
 
-        return dateutil_parse(regex.search(path).group(1))
-
+        match = regex.search(path)
+        if match:
+            return dateutil_parse(match.group(1))
+        else:
+            logger.debug('No path matching {0} was found in {1}.'.format(regex.pattern, path))
+            return None
 
     def query(self, query, check_return_code=True, use_tempfile=False):
         """

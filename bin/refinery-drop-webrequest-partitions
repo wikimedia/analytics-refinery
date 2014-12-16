@@ -119,12 +119,21 @@ if __name__ == '__main__':
     # Loop through all the partition directory paths for this table
     # and check if any of them are old enough for deletion.
     for partition_path in HdfsUtils.ls(partition_glob, include_children=False):
-        partition_datetime = hive.partition_datetime_from_path(
-            partition_path,
-            webrequest_date_regex
-        )
-        if partition_datetime < old_partition_datetime_threshold:
+        try:
+            partition_datetime = hive.partition_datetime_from_path(
+                partition_path,
+                webrequest_date_regex
+            )
+        except ValueError:
+            logging.error(
+                'hive.partition_datetime_from_path could not parse date found in {0} using pattern {1}. Skipping.'
+                .format(partition_path, webrequest_date_regex.pattern)
+            )
+            continue
+
+        if partition_datetime and partition_datetime < old_partition_datetime_threshold:
             partition_paths_to_delete.append(partition_path)
+
 
     # Drop any old Hive partitions
     if partition_specs_to_drop:
