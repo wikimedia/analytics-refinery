@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow-app xmlns="uri:oozie:workflow:0.4"
+    name="refine-${source_table}->${destination_table}-${webrequest_source},${year},${month},${day},${hour}-wf">
+
+    <parameters>
+        <property>
+            <name>queue_name</name>
+            <value>default</value>
+        </property>
+
+        <!-- Required properties -->
+        <property><name>name_node</name></property>
+        <property><name>job_tracker</name></property>
+
+        <property>
+            <name>hive_script</name>
+            <!-- This is relative to the containing directory of this file. -->
+            <value>refine_webrequest.hql</value>
+            <description>Hive script to run.</description>
+        </property>
+
+        <property>
+            <name>hive_site_xml</name>
+            <description>hive-site.xml file path in HDFS</description>
+        </property>
+        <property>
+            <name>artifacts_directory</name>
+            <description>Path in HDFS to artifacts.  refinery-hive.jar should be here.</description>
+        </property>
+        <property>
+            <name>source_table</name>
+            <description>Hive table to refine</description>
+        </property>
+        <property>
+            <name>destination_table</name>
+            <description>The destinaton table to store refined data in.</description>
+        </property>
+        <property>
+            <name>webrequest_source</name>
+            <description>The partition's webrequest_source</description>
+        </property>
+        <property>
+            <name>year</name>
+            <description>The partition's year</description>
+        </property>
+        <property>
+            <name>month</name>
+            <description>The partition's month</description>
+        </property>
+        <property>
+            <name>day</name>
+            <description>The partition's day</description>
+        </property>
+        <property>
+            <name>hour</name>
+            <description>The partition's hour</description>
+        </property>
+    </parameters>
+
+    <start to="refine"/>
+
+    <action name="refine">
+        <hive xmlns="uri:oozie:hive-action:0.2">
+            <job-tracker>${job_tracker}</job-tracker>
+            <name-node>${name_node}</name-node>
+            <job-xml>${hive_site_xml}</job-xml>
+            <configuration>
+                <property>
+                    <name>mapreduce.job.queuename</name>
+                    <value>${queue_name}</value>
+                </property>
+                <property>
+                    <name>hive.exec.scratchdir</name>
+                    <value>/tmp/hive-${user}</value>
+                </property>
+            </configuration>
+
+            <script>${hive_script}</script>
+            <param>artifacts_directory=${artifacts_directory}</param>
+            <param>source_table=${source_table}</param>
+            <param>destination_table=${destination_table}</param>
+            <param>webrequest_source=${webrequest_source}</param>
+            <param>year=${year}</param>
+            <param>month=${month}</param>
+            <param>day=${day}</param>
+            <param>hour=${hour}</param>
+        </hive>
+
+        <ok to="end"/>
+        <error to="kill"/>
+    </action>
+
+    <kill name="kill">
+        <message>Webrequest refine action failed, error message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+    </kill>
+    <end name="end"/>
+</workflow-app>

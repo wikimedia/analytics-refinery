@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coordinator-app xmlns="uri:oozie:coordinator:0.4"
+    name="refine-${source_table}->${destination_table}-${webrequest_source}-coord"
+    frequency="${coord:hours(1)}"
+    start="${start_time}"
+    end="${stop_time}"
+    timezone="Universal">
+
+    <parameters>
+        <property>
+            <name>queue_name</name>
+            <value>default</value>
+        </property>
+
+        <!-- Required properties. -->
+        <property><name>name_node</name></property>
+        <property><name>job_tracker</name></property>
+        <property><name>workflow_file</name></property>
+        <property><name>start_time</name></property>
+        <property><name>stop_time</name></property>
+        <property><name>webrequest_data_directory</name></property>
+
+        <property><name>datasets_file</name></property>
+        <property><name>hive_site_xml</name></property>
+        <property><name>artifacts_directory</name></property>
+        <property><name>source_table</name></property>
+        <property><name>destination_table</name></property>
+        <property><name>webrequest_source</name></property>
+    </parameters>
+
+    <controls>
+        <!--
+        Refining is not too cheap, so we limit
+        concurrency.
+
+        Note, that this is per coordinator. So if we run this
+        coordinator for say 4 webrequest_sources (see bundle.xml :-)),
+        we effectively compute sequence statistics for up to 8
+        datasets in parallel.
+
+        Also note, that back-filling is not limited by the
+        coordinator's frequency, so back-filling works nicely
+        even-though the concurrency is low.
+        -->
+        <concurrency>2</concurrency>
+
+
+        <!--
+        Since we expect only one incarnation per hourly dataset, the
+        default throttle of 12 is way to high, and there is not need
+        to keep that many materialized jobs around.
+
+        By resorting to 2, we keep the hdfs checks on the datasets
+        low, while still being able to easily feed the concurrency.
+        -->
+        <throttle>2</throttle>
+    </controls>
+
+    <datasets>
+        <!--
+        Include the given datasets_file file.  This should
+        define the "webrequest" dataset for this coordinator.
+        -->
+        <include>${datasets_file}</include>
+    </datasets>
+
+    <input-events>
+        <data-in name="input" dataset="webrequest_${webrequest_source}">
+            <instance>${coord:current(0)}</instance>
+        </data-in>
+    </input-events>
+
+    <action>
+        <workflow>
+            <app-path>${workflow_file}</app-path>
+            <configuration>
+
+                <!-- Pass these properties through to the workflow -->
+                <property><name>name_node</name><value>${name_node}</value></property>
+                <property><name>job_tracker</name><value>${job_tracker}</value></property>
+                <property><name>queue_name</name><value>${queue_name}</value></property>
+
+                <property>
+                    <name>hive_site_xml</name>
+                    <value>${hive_site_xml}</value>
+                </property>
+                <property>
+                    <name>artifacts_directory</name>
+                    <value>${artifacts_directory}</value>
+                </property>
+                <property>
+                    <name>source_table</name>
+                    <value>${source_table}</value>
+                </property>
+                <property>
+                    <name>destination_table</name>
+                    <value>${destination_table}</value>
+                </property>
+                <property>
+                    <name>webrequest_source</name>
+                    <value>${webrequest_source}</value>
+                </property>
+                <property>
+                    <name>year</name>
+                    <value>${coord:formatTime(coord:nominalTime(), "y")}</value>
+                </property>
+                <property>
+                    <name>month</name>
+                    <value>${coord:formatTime(coord:nominalTime(), "M")}</value>
+                </property>
+                <property>
+                    <name>day</name>
+                    <value>${coord:formatTime(coord:nominalTime(), "d")}</value>
+                </property>
+                <property>
+                    <name>hour</name>
+                    <value>${coord:formatTime(coord:nominalTime(), "H")}</value>
+                </property>
+
+            </configuration>
+        </workflow>
+    </action>
+</coordinator-app>

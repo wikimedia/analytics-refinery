@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bundle-app xmlns="uri:oozie:bundle:0.2"
+    name="refine-${source_table}->${destination_table}-bundle">
+
+    <parameters>
+        <property>
+            <name>queue_name</name>
+            <value>default</value>
+        </property>
+
+        <!-- Required properties. -->
+        <property><name>coordinator_file</name></property>
+        <property><name>name_node</name></property>
+        <property><name>job_tracker</name></property>
+        <property><name>workflow_file</name></property>
+        <property><name>start_time</name></property>
+        <property><name>stop_time</name></property>
+        <property><name>webrequest_data_directory</name></property>
+
+        <property><name>hive_site_xml</name></property>
+        <property><name>artifacts_directory</name></property>
+        <property><name>source_table</name></property>
+        <property><name>destination_table</name></property>
+    </parameters>
+
+    <!--
+    For now, don't refine bits or upload.
+
+    <coordinator name='refine-webrequest-bits'>
+        <app-path>${coordinator_file}</app-path>
+        <configuration>
+            <property>
+                <name>webrequest_source</name>
+                <value>bits</value>
+            </property>
+        </configuration>
+    </coordinator>
+    -->
+
+    <coordinator name='refine-webrequest-mobile'>
+        <app-path>${coordinator_file}</app-path>
+        <configuration>
+            <property>
+                <name>webrequest_source</name>
+                <value>mobile</value>
+            </property>
+        </configuration>
+    </coordinator>
+
+    <coordinator name='refine-webrequest-text'>
+        <app-path>${coordinator_file}</app-path>
+        <configuration>
+            <property>
+                <name>webrequest_source</name>
+                <value>text</value>
+            </property>
+        </configuration>
+    </coordinator>
+
+    <!--
+    <coordinator name='refine-webrequest-upload'>
+        <app-path>${coordinator_file}</app-path>
+        <configuration>
+            <property>
+                <name>webrequest_source</name>
+                <value>upload</value>
+            </property>
+        </configuration>
+    </coordinator>
+    -->
+</bundle-app>
