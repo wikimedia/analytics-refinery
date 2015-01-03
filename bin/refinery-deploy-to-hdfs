@@ -25,6 +25,7 @@ DRY_RUN=yes
 VERBOSE=no
 CURRENT_TARGET_HDFSDIR_RELB="current"
 SKIP_UPDATING_CURRENT=no
+SKIP_OOZIES_HIVE_CONFIG_CHECK=no
 
 OOZIES_HIVE_CONFIG_FILE_RELR="oozie/util/hive/hive-site.xml"
 
@@ -42,6 +43,8 @@ directory.
 
 Options:
   --no-dry-run   - Do not dry-run, but really deploy to cluster.
+  --skip-oozie-hive-config-check
+                 - Skip sanity-check of Oozie's hive config.
   --skip-current - Skips updating '$CURRENT_TARGET_HDFSDIR_RELB' on the cluster.
   --base         - Absolute hdfs path to use a base for deployment
                      (Default: '$REFINERY_BASE_HDFSDIR_ABS')
@@ -170,6 +173,11 @@ $UNINITIALIZED_GIT_FAT_FILES
 }
 
 guard_against_obviously_fishy_hive_config_for_oozie() {
+    if [ "$SKIP_OOZIES_HIVE_CONFIG_CHECK" = "yes" ]
+    then
+        return
+    fi
+
     if [ ! -e "$OOZIES_HIVE_CONFIG_FILE_RELR" ]
     then
         # If we cannot find Oozie's hive config, we bail out. This way, we de
@@ -238,6 +246,9 @@ parse_parameters() {
                 ;;
             "--no-dry-run" )
                 DRY_RUN=no
+                ;;
+            "--skip-oozie-hive-config-check" )
+                SKIP_OOZIES_HIVE_CONFIG_CHECK=yes
                 ;;
             "--skip-current" )
                 SKIP_UPDATING_CURRENT=yes
