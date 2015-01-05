@@ -1,4 +1,4 @@
--- Creates table for hourly webstats output
+-- Creates table for hourly pagecounts-all-sites output
 --
 -- NOTE:  When choosing partition field types,
 -- one should take into consideration Hive's
@@ -27,11 +27,11 @@
 --     <none>
 --
 -- Usage
---     hive -f create_webstats_table.hql \
+--     hive -f create_pagecounts_all_sites_table.hql \
 --         --database wmf
 --
 
-CREATE TABLE IF NOT EXISTS `webstats` (
+CREATE TABLE IF NOT EXISTS `pagecounts_all_sites` (
     `qualifier`           string COMMENT 'Language/site/project identifier',
     `page_title`          string COMMENT 'Title of the article',
     `count_views`         bigint COMMENT 'Summed up pageviews',
@@ -42,5 +42,5 @@ PARTITIONED BY (
     `day`                 int    COMMENT 'Unpadded day of request',
     `hour`                int    COMMENT 'Unpadded hour of request')
 STORED AS TEXTFILE
-LOCATION '/wmf/data/wmf/webstats'
+LOCATION '/wmf/data/wmf/pagecounts-all-sites'
 ;

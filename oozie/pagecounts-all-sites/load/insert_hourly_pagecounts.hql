@@ -7,7 +7,7 @@ SET whitelisted_mediawiki_projects = 'commons', 'meta', 'incubator', 'species', 
 -- Usage:
 --     hive -f insert_hourly_pagecounts.hql \
 --         -d source_table=wmf_raw.webrequest \
---         -d destination_table=wmf.webstats \
+--         -d destination_table=wmf.pagecounts_all_sites \
 --         -d year=2014 \
 --         -d month=9 \
 --         -d day=15 \

@@ -15,12 +15,12 @@ SET hive.exec.compress.output=false;
 --
 --
 -- Usage:
---     hive -f archive_projectcounts.hql  \
---         -d destination_directory=/tmp/foo         \
---         -d source_table=wmf.webstats              \
---         -d year=2014                              \
---         -d month=4                                \
---         -d day=1                                  \
+--     hive -f archive_projectcounts.hql            \
+--         -d destination_directory=/tmp/foo        \
+--         -d source_table=wmf.pagecounts_all_sites \
+--         -d year=2014                             \
+--         -d month=4                               \
+--         -d day=1                                 \
 --         -d hour=0
 --
 

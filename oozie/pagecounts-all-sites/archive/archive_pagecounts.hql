@@ -16,12 +16,12 @@ SET mapreduce.output.fileoutputformat.compress.codec=org.apache.hadoop.io.compre
 --
 --
 -- Usage:
---     hive -f archive_pagecounts.hql  \
---         -d destination_directory=/tmp/foo      \
---         -d source_table=wmf.webstats           \
---         -d year=2014                           \
---         -d month=4                             \
---         -d day=1                               \
+--     hive -f archive_pagecounts.hql               \
+--         -d destination_directory=/tmp/foo        \
+--         -d source_table=wmf.pagecounts_all_sites \
+--         -d year=2014                             \
+--         -d month=4                               \
+--         -d day=1                                 \
 --         -d hour=0
 --
 
