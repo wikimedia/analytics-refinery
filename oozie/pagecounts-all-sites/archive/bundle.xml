@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <bundle-app xmlns="uri:oozie:bundle:0.2"
-    name="webstats_generate_hourly_files-bundle">
+    name="pagecounts_all_sites_archive-bundle">
 
     <parameters>
         <property>
@@ -13,18 +13,18 @@
         <property><name>job_tracker</name></property>
         <property><name>start_time</name></property>
         <property><name>stop_time</name></property>
-        <property><name>webstats_datasets_file</name></property>
-        <property><name>webstats_data_directory</name></property>
+        <property><name>pagecounts_all_sites_datasets_file</name></property>
+        <property><name>pagecounts_all_sites_data_directory</name></property>
         <property><name>hive_site_xml</name></property>
         <property><name>workflow_file</name></property>
-        <property><name>webstats_table</name></property>
+        <property><name>pagecounts_all_sites_table</name></property>
         <property><name>mark_directory_done_workflow_file</name></property>
         <property><name>temporary_directory</name></property>
-        <property><name>webstats_archive_directory</name></property>
+        <property><name>pagecounts_all_sites_archive_directory</name></property>
         <property><name>archive_job_output_workflow_file</name></property>
     </parameters>
 
-    <coordinator name="webstats_generate_hourly_files-pagecounts">
+    <coordinator name="pagecounts_all_sites_archive-pagecounts">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property>
@@ -38,7 +38,7 @@
         </configuration>
     </coordinator>
 
-    <coordinator name="webstats_generate_hourly_files-projectcounts">
+    <coordinator name="pagecounts_all_sites_archive-projectcounts">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property>

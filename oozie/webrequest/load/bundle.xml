@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <bundle-app xmlns="uri:oozie:bundle:0.2"
-    name="hive_add_partition-${table}-bundle">
+    name="hive_webrequest_load-${table}-bundle">
 
     <parameters>
         <property>
@@ -25,7 +25,7 @@
         <property><name>mark_directory_done_workflow_file</name></property>
     </parameters>
 
-    <coordinator name='hive_add_partition-webrequest-bits'>
+    <coordinator name='hive_webrequest_load-webrequest-bits'>
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property>
@@ -35,7 +35,7 @@
         </configuration>
     </coordinator>
 
-    <coordinator name='hive_add_partition-webrequest-mobile'>
+    <coordinator name='hive_webrequest_load-webrequest-mobile'>
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property>
@@ -45,7 +45,7 @@
         </configuration>
     </coordinator>
 
-    <coordinator name='hive_add_partition-webrequest-text'>
+    <coordinator name='hive_webrequest_load-webrequest-text'>
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property>
@@ -55,7 +55,7 @@
         </configuration>
     </coordinator>
 
-    <coordinator name='hive_add_partition-webrequest-upload'>
+    <coordinator name='hive_webrequest_load-webrequest-upload'>
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property>

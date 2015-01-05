@@ -1,12 +1,13 @@
 SET hive.exec.compress.output=false;
 --^ To work around HIVE-3296, we have SETs before any comments
 
--- Generates an hourly webstats projectcounts file into HDFS
+-- Generates an hourly pagecounts-all-sites projectcounts file into HDFS
 --
 -- Parameters:
 --     destination_directory -- Directory in HDFS where to store the generated
 --                          data in
---     source_table      -- table containing hourly aggregated webstats data
+--     source_table      -- table containing hourly aggregated
+--                          pagecounts-all-sites data
 --     year              -- year of the to-be-generated hour
 --     month             -- month of the to-be-generated hour
 --     day               -- day of the to-be-generated hour
@@ -14,7 +15,7 @@ SET hive.exec.compress.output=false;
 --
 --
 -- Usage:
---     hive -f generate_hourly_projectcounts_file.hql  \
+--     hive -f archive_projectcounts.hql  \
 --         -d destination_directory=/tmp/foo         \
 --         -d source_table=wmf.webstats              \
 --         -d year=2014                              \

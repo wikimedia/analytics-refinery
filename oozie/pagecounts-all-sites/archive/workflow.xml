@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <workflow-app xmlns="uri:oozie:workflow:0.4"
-    name="webstats_generate_hourly_files-${aspect_name}-${year}-${month}-${day}-${hour}-wf">
+    name="pagecounts_all_sites_archive-${aspect_name}-${year}-${month}-${day}-${hour}-wf">
 
     <parameters>
         <property>
@@ -17,9 +17,9 @@
             <description>hive-site.xml file path in HDFS</description>
         </property>
         <property>
-            <name>webstats_table</name>
+            <name>pagecounts_all_sites_table</name>
             <description>
-                Hive table to read webstats data from.
+                Hive table to read pagecounts-all-sites data from.
             </description>
         </property>
         <property>
@@ -63,8 +63,8 @@
             <description>A directory in HDFS for temporary files</description>
         </property>
         <property>
-            <name>webstats_archive_directory</name>
-            <description>Directory for archive of webstats files</description>
+            <name>pagecounts_all_sites_archive_directory</name>
+            <description>Directory for archive of pagecounts-all-sites files</description>
         </property>
         <property>
             <name>archive_job_output_workflow_file</name>
@@ -94,9 +94,9 @@
                 </property>
             </configuration>
 
-            <script>generate_hourly_${aspect_name}_file.hql</script>
+            <script>archive_${aspect_name}.hql</script>
 
-            <param>source_table=${webstats_table}</param>
+            <param>source_table=${pagecounts_all_sites_table}</param>
             <param>destination_directory=${temporary_directory}/${wf:id()}-${aspect_name}</param>
             <param>year=${year}</param>
             <param>month=${month}</param>
@@ -140,7 +140,7 @@
                     timestamp in the filename. To not break scripts of people,
                     we also name files that way.
                     -->
-                    <value>${webstats_archive_directory}/${year_plus_1_hour}/${year_plus_1_hour}-${month_plus_1_hour}/${aspect_name}-${year_plus_1_hour}${month_plus_1_hour}${day_plus_1_hour}-${hour_plus_1_hour}0000${aspect_compression_ending eq 'EMPTY' ? '' : aspect_compression_ending}</value>
+                    <value>${pagecounts_all_sites_archive_directory}/${year_plus_1_hour}/${year_plus_1_hour}-${month_plus_1_hour}/${aspect_name}-${year_plus_1_hour}${month_plus_1_hour}${day_plus_1_hour}-${hour_plus_1_hour}0000${aspect_compression_ending eq 'EMPTY' ? '' : aspect_compression_ending}</value>
                 </property>
             </configuration>
         </sub-workflow>

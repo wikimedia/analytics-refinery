@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <coordinator-app xmlns="uri:oozie:coordinator:0.4"
-    name="webstats_generate_hourly_files-${aspect_name}-coord"
+    name="pagecounts_all_sites_load-${pagecounts_all_sites_table}-coord"
     frequency="${coord:hours(1)}"
     start="${start_time}"
     end="${stop_time}"
@@ -17,17 +17,16 @@
         <property><name>job_tracker</name></property>
         <property><name>start_time</name></property>
         <property><name>stop_time</name></property>
-        <property><name>webstats_datasets_file</name></property>
-        <property><name>webstats_data_directory</name></property>
+        <property><name>webrequest_datasets_file</name></property>
+        <property><name>webrequest_data_directory</name></property>
+        <property><name>pagecounts_all_sites_datasets_file</name></property>
+        <property><name>pagecounts_all_sites_data_directory</name></property>
+
         <property><name>hive_site_xml</name></property>
         <property><name>workflow_file</name></property>
-        <property><name>webstats_table</name></property>
+        <property><name>webrequest_table</name></property>
+        <property><name>pagecounts_all_sites_table</name></property>
         <property><name>mark_directory_done_workflow_file</name></property>
-        <property><name>temporary_directory</name></property>
-        <property><name>webstats_archive_directory</name></property>
-        <property><name>archive_job_output_workflow_file</name></property>
-        <property><name>aspect_name</name></property>
-        <property><name>aspect_compression_ending</name></property>
     </parameters>
 
     <controls>
@@ -55,14 +54,24 @@
     </controls>
 
     <datasets>
-        <include>${webstats_datasets_file}</include>
+        <include>${webrequest_datasets_file}</include>
+        <include>${pagecounts_all_sites_datasets_file}</include>
     </datasets>
 
     <input-events>
-        <data-in name="webstats" dataset="webstats_pagecounts">
+        <data-in name="input_text" dataset="webrequest_text">
+            <instance>${coord:current(0)}</instance>
+        </data-in>
+        <data-in name="input_mobile" dataset="webrequest_mobile">
             <instance>${coord:current(0)}</instance>
         </data-in>
     </input-events>
+
+    <output-events>
+        <data-out name="pagecounts_all_sites" dataset="pagecounts_all_sites_hourly">
+            <instance>${coord:current(0)}</instance>
+        </data-out>
+    </output-events>
 
     <action>
         <workflow>
@@ -79,8 +88,12 @@
                     <value>${hive_site_xml}</value>
                 </property>
                 <property>
-                    <name>webstats_table</name>
-                    <value>${webstats_table}</value>
+                    <name>source_table</name>
+                    <value>${webrequest_table}</value>
+                </property>
+                <property>
+                    <name>destination_table</name>
+                    <value>${pagecounts_all_sites_table}</value>
                 </property>
                 <property>
                     <name>year</name>
@@ -99,44 +112,8 @@
                     <value>${coord:formatTime(coord:nominalTime(), "H")}</value>
                 </property>
                 <property>
-                    <name>year_plus_1_hour</name>
-                    <value>${coord:formatTime(coord:dateOffset(coord:nominalTime(), 1, "HOUR"), "yyyy")}</value>
-                </property>
-                <property>
-                    <name>month_plus_1_hour</name>
-                    <value>${coord:formatTime(coord:dateOffset(coord:nominalTime(), 1, "HOUR"), "MM")}</value>
-                </property>
-                <property>
-                    <name>day_plus_1_hour</name>
-                    <value>${coord:formatTime(coord:dateOffset(coord:nominalTime(), 1, "HOUR"), "dd")}</value>
-                </property>
-                <property>
-                    <name>hour_plus_1_hour</name>
-                    <value>${coord:formatTime(coord:dateOffset(coord:nominalTime(), 1, "HOUR"), "HH")}</value>
-                </property>
-                <property>
-                    <name>mark_directory_done_workflow_file</name>
-                    <value>${mark_directory_done_workflow_file}</value>
-                </property>
-                <property>
-                    <name>temporary_directory</name>
-                    <value>${temporary_directory}</value>
-                </property>
-                <property>
-                    <name>webstats_archive_directory</name>
-                    <value>${webstats_archive_directory}</value>
-                </property>
-                <property>
-                    <name>archive_job_output_workflow_file</name>
-                    <value>${archive_job_output_workflow_file}</value>
-                </property>
-                <property>
-                    <name>aspect_name</name>
-                    <value>${aspect_name}</value>
-                </property>
-                <property>
-                    <name>aspect_compression_ending</name>
-                    <value>${aspect_compression_ending}</value>
+                    <name>destination_dataset_directory</name>
+                    <value>${coord:dataOut('pagecounts_all_sites')}</value>
                 </property>
             </configuration>
         </workflow>
