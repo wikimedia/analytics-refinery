@@ -37,10 +37,10 @@ CREATE TABLE IF NOT EXISTS `webstats` (
     `count_views`         bigint COMMENT 'Summed up pageviews',
     `total_response_size` bigint COMMENT 'Summed up response sizes')
 PARTITIONED BY (
-    `year`                int     COMMENT 'Unpadded year of request',
-    `month`               int     COMMENT 'Unpadded month of request',
-    `day`                 int     COMMENT 'Unpadded day of request',
-    `hour`                int     COMMENT 'Unpadded hour of request')
+    `year`                int    COMMENT 'Unpadded year of request',
+    `month`               int    COMMENT 'Unpadded month of request',
+    `day`                 int    COMMENT 'Unpadded day of request',
+    `hour`                int    COMMENT 'Unpadded hour of request')
 STORED AS TEXTFILE
 LOCATION '/wmf/data/wmf/webstats'
 ;
