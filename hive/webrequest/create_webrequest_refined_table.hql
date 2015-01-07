@@ -51,4 +51,5 @@ STORED AS
         'parquet.hive.DeprecatedParquetInputFormat'
     OUTPUTFORMAT
         'parquet.hive.DeprecatedParquetOutputFormat'
+LOCATION '/wmf/data/wmf/webrequest'
 ;
