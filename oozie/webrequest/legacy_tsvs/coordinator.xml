@@ -12,6 +12,38 @@
             <value>adhoc</value>
         </property>
 
+        <property>
+            <name>needs_webrequest_bits</name>
+            <value>yes</value>
+            <description>
+                If set to “yes”, depends on the webrequest bits partitions
+            </description>
+        </property>
+
+        <property>
+            <name>needs_webrequest_mobile</name>
+            <value>yes</value>
+            <description>
+                If set to “yes”, depends on the webrequest mobile partitions
+            </description>
+        </property>
+
+        <property>
+            <name>needs_webrequest_text</name>
+            <value>yes</value>
+            <description>
+                If set to “yes”, depends on the webrequest text partitions
+            </description>
+        </property>
+
+        <property>
+            <name>needs_webrequest_upload</name>
+            <value>yes</value>
+            <description>
+                If set to “yes”, depends on the webrequest upload partitions
+            </description>
+        </property>
+
         <!-- Required properties. -->
         <property><name>name_node</name></property>
         <property><name>job_tracker</name></property>
@@ -59,22 +91,41 @@
     </datasets>
 
     <input-events>
-        <data-in name="webrequest_bits" dataset="webrequest_bits">
+        <!--
+        We want to allow to selectively depend on the four available
+        webrequest_sources. However, oozie does not allow to wrap
+        <data-in /> in “if”s.
+
+        Creating a separate coordinator for each combination of needed
+        webrequest_sources (like one coordinator.xml that depends on
+        mobile+text+upload (for sampled-1000), and another
+        coordinator.xml that only depends on mobile (for
+        mobile-sampled-100)), is tedious an unmaintainable.
+
+        Hence, we cheat by abusing the *_unchecked datasets.
+        These datasets get produced reliably; and if a tsv does not
+        depend on a given webrequest_source, we simply monkey-patch
+        the webrequest_source dependency to the *_unchecked
+        dataset. That way, coordinators do not block on faulty
+        partitions of unneeded webrequest_sources. And we only need a
+        single coordinator.
+        -->
+        <data-in name="webrequest_bits" dataset="webrequest_bits${needs_webrequest_bits eq 'yes' ? '' : '_unchecked'}">
             <start-instance>${coord:current(0)}</start-instance>
             <end-instance>${coord:current(23)}</end-instance>
         </data-in>
 
-        <data-in name="webrequest_mobile" dataset="webrequest_mobile">
+        <data-in name="webrequest_mobile" dataset="webrequest_mobile${needs_webrequest_mobile eq 'yes' ? '' : '_unchecked'}">
             <start-instance>${coord:current(0)}</start-instance>
             <end-instance>${coord:current(23)}</end-instance>
         </data-in>
 
-        <data-in name="webrequest_text" dataset="webrequest_text">
+        <data-in name="webrequest_text" dataset="webrequest_text${needs_webrequest_text eq 'yes' ? '' : '_unchecked'}">
             <start-instance>${coord:current(0)}</start-instance>
             <end-instance>${coord:current(23)}</end-instance>
         </data-in>
 
-        <data-in name="webrequest_upload" dataset="webrequest_upload">
+        <data-in name="webrequest_upload" dataset="webrequest_upload${needs_webrequest_upload eq 'yes' ? '' : '_unchecked'}">
             <start-instance>${coord:current(0)}</start-instance>
             <end-instance>${coord:current(23)}</end-instance>
         </data-in>
