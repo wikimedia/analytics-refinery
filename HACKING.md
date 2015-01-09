@@ -64,3 +64,5 @@
 
 * For Oozie jobs, have the name end in ```-wf``` for workflows,
   ```-coord``` for coordinators, and ```-bundle``` for bundles.
+
+* If you add Oozie jobs, update the ```diagrams/oozie-overview.dia```.
