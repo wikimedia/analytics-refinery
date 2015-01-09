@@ -40,10 +40,6 @@
                 <name>hour_offset</name>
                 <value>2</value>
             </property>
-            <property>
-                <name>needs_webrequest_bits</name>
-                <value>no</value>
-            </property>
         </configuration>
     </coordinator>
 
@@ -61,10 +57,6 @@
             <property>
                 <name>hour_offset</name>
                 <value>4</value>
-            </property>
-            <property>
-                <name>needs_webrequest_bits</name>
-                <value>no</value>
             </property>
             <property>
                 <name>needs_webrequest_text</name>
@@ -91,10 +83,6 @@
             <property>
                 <name>hour_offset</name>
                 <value>6</value>
-            </property>
-            <property>
-                <name>needs_webrequest_bits</name>
-                <value>no</value>
             </property>
             <property>
                 <name>needs_webrequest_text</name>

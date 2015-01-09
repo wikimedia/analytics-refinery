@@ -13,14 +13,6 @@
         </property>
 
         <property>
-            <name>needs_webrequest_bits</name>
-            <value>yes</value>
-            <description>
-                If set to “yes”, depends on the webrequest bits partitions
-            </description>
-        </property>
-
-        <property>
             <name>needs_webrequest_mobile</name>
             <value>yes</value>
             <description>
@@ -110,11 +102,6 @@
         partitions of unneeded webrequest_sources. And we only need a
         single coordinator.
         -->
-        <data-in name="webrequest_bits" dataset="webrequest_bits${needs_webrequest_bits eq 'yes' ? '' : '_unchecked'}">
-            <start-instance>${coord:current(0)}</start-instance>
-            <end-instance>${coord:current(23)}</end-instance>
-        </data-in>
-
         <data-in name="webrequest_mobile" dataset="webrequest_mobile${needs_webrequest_mobile eq 'yes' ? '' : '_unchecked'}">
             <start-instance>${coord:current(0)}</start-instance>
             <end-instance>${coord:current(23)}</end-instance>
@@ -134,7 +121,7 @@
         The following dataset is not required as input to the
         workflow, but only helps to delay running it.
         -->
-        <data-in name="delay" dataset="webrequest_bits_unchecked">
+        <data-in name="delay" dataset="webrequest_text_unchecked">
             <instance>${coord:current(24+hour_offset)}</instance>
         </data-in>
     </input-events>
