@@ -94,4 +94,26 @@
             </property>
         </configuration>
     </coordinator>
+
+    <coordinator name="webrequest_legacy_tsvs-api-usage">
+        <app-path>${coordinator_file}</app-path>
+        <configuration>
+            <property>
+                <name>aspect_name</name>
+                <value>api-usage</value>
+            </property>
+            <property>
+                <name>aspect_tsv_archive_directory</name>
+                <value>${webrequest_archive_directory}/api</value>
+            </property>
+            <property>
+                <name>hour_offset</name>
+                <value>14</value>
+            </property>
+            <property>
+                <name>needs_webrequest_upload</name>
+                <value>no</value>
+            </property>
+        </configuration>
+    </coordinator>
 </bundle-app>
