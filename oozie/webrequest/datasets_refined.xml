@@ -31,7 +31,7 @@ Use this dataset in your coordinator.xml files by setting:
              frequency="${coord:hours(1)}"
              initial-instance="${start_time}"
              timezone="Universal">
-        <uri-template>${webrequest_refined_data_directory}/webrequest_source=upload/year=${YEAR}/month=${MONTH}/day=${DAY}/hour=${HOUR}</uri-template>
+        <uri-template>${webrequest_refined_data_directory}/webrequest_source=text/year=${YEAR}/month=${MONTH}/day=${DAY}/hour=${HOUR}</uri-template>
     </dataset>
 
 </datasets>
