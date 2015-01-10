@@ -116,4 +116,22 @@
             </property>
         </configuration>
     </coordinator>
+
+    <coordinator name="webrequest_legacy_tsvs-glam_nara">
+        <app-path>${coordinator_file}</app-path>
+        <configuration>
+            <property>
+                <name>aspect_name</name>
+                <value>glam_nara</value>
+            </property>
+            <property>
+                <name>aspect_tsv_archive_directory</name>
+                <value>${webrequest_archive_directory}/glam_nara</value>
+            </property>
+            <property>
+                <name>hour_offset</name>
+                <value>16</value>
+            </property>
+        </configuration>
+    </coordinator>
 </bundle-app>
