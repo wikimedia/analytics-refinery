@@ -43,6 +43,16 @@
     </coordinator>
     -->
 
+    <coordinator name='refine-webrequest_misc'>
+        <app-path>${coordinator_file}</app-path>
+        <configuration>
+            <property>
+                <name>webrequest_source</name>
+                <value>misc</value>
+            </property>
+        </configuration>
+    </coordinator>
+
     <coordinator name='refine-webrequest_mobile'>
         <app-path>${coordinator_file}</app-path>
         <configuration>

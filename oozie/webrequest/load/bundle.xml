@@ -36,6 +36,16 @@
         </configuration>
     </coordinator>
 
+    <coordinator name='hive_webrequest_load-webrequest_misc'>
+        <app-path>${coordinator_file}</app-path>
+        <configuration>
+            <property>
+                <name>webrequest_source</name>
+                <value>misc</value>
+            </property>
+        </configuration>
+    </coordinator>
+
     <coordinator name='hive_webrequest_raw_load-webrequest_mobile'>
         <app-path>${coordinator_file}</app-path>
         <configuration>
