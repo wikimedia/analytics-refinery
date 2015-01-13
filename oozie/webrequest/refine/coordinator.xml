@@ -16,10 +16,15 @@
         <property><name>name_node</name></property>
         <property><name>job_tracker</name></property>
         <property><name>workflow_file</name></property>
+        <property><name>mark_directory_done_workflow_file</name></property>
+
         <property><name>start_time</name></property>
         <property><name>stop_time</name></property>
+
         <property><name>webrequest_raw_data_directory</name></property>
         <property><name>datasets_raw_file</name></property>
+        <property><name>webrequest_data_directory</name></property>
+        <property><name>datasets_file</name></property>
 
         <property><name>hive_site_xml</name></property>
         <property><name>artifacts_directory</name></property>
@@ -58,17 +63,26 @@
 
     <datasets>
         <!--
-        Include the given datasets_file file.  This should
-        define the "webrequest" dataset for this coordinator.
+        Include both raw and refined datasets files.
+        $datasets_raw_file will be used as the input events,
+        and $datasets_file will be used to determine output
+        location in which to add a done-flag.
         -->
         <include>${datasets_raw_file}</include>
+        <include>${datasets_file}</include>
     </datasets>
 
     <input-events>
-        <data-in name="input" dataset="webrequest_${webrequest_source}_raw">
+        <data-in name="raw_input" dataset="webrequest_${webrequest_source}_raw">
             <instance>${coord:current(0)}</instance>
         </data-in>
     </input-events>
+
+    <output-events>
+        <data-out name="refined_output" dataset="webrequest_${webrequest_source}">
+            <instance>${coord:current(0)}</instance>
+        </data-out>
+    </output-events>
 
     <action>
         <workflow>
@@ -116,7 +130,14 @@
                     <name>hour</name>
                     <value>${coord:formatTime(coord:nominalTime(), "H")}</value>
                 </property>
-
+                <property>
+                    <name>mark_directory_done_workflow_file</name>
+                    <value>${mark_directory_done_workflow_file}</value>
+                </property>
+                <property>
+                    <name>destination_dataset_directory</name>
+                    <value>${coord:dataOut('refined_output')}</value>
+                </property>
             </configuration>
         </workflow>
     </action>

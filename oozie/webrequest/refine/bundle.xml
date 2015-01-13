@@ -13,10 +13,15 @@
         <property><name>name_node</name></property>
         <property><name>job_tracker</name></property>
         <property><name>workflow_file</name></property>
+        <property><name>mark_directory_done_workflow_file</name></property>
+
         <property><name>start_time</name></property>
         <property><name>stop_time</name></property>
+
         <property><name>webrequest_raw_data_directory</name></property>
         <property><name>datasets_raw_file</name></property>
+        <property><name>webrequest_data_directory</name></property>
+        <property><name>datasets_file</name></property>
 
         <property><name>hive_site_xml</name></property>
         <property><name>artifacts_directory</name></property>
