@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <workflow-app xmlns="uri:oozie:workflow:0.4"
-    name="check_sequence_statistics-webrequest-${webrequest_source},${year},${month},${day},${hour}-wf">
+    name="check_sequence_statistics-webrequest_raw-${webrequest_source},${year},${month},${day},${hour}-wf">
 
     <parameters>
         <property>

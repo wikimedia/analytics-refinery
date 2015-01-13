@@ -18,8 +18,8 @@
 -- Usage:
 --     hive -f refine_webrequest.hql                              \
 --         -d source_table=wmf_raw.webrequest                     \
---         -d destination_table=wmf_raw.webrequest_sequence_stats \
---         -d webrequest_source=bits                              \
+--         -d destination_table=wmf.webrequest                    \
+--         -d webrequest_source=text                              \
 --         -d year=2014                                           \
 --         -d month=12                                            \
 --         -d day=30                                              \

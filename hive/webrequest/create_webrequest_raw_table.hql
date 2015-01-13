@@ -1,4 +1,4 @@
--- Creates table statement for refined webrequest table.
+-- Creates table statement for raw webrequest table.
 --
 -- NOTE:  When choosing partition field types,
 -- one should take into consideration Hive's
@@ -12,16 +12,11 @@
 --     <none>
 --
 -- Usage
---     hive -f create_webrequest_table.hql --database wmf
+--     hive -f create_webrequest_raw_table.hql \
+--         --database wmf_raw
 --
--- NOTE: This table uses the parquet.hive.DeprecatedParquet*Formats to read
--- and write Parquet data.  Once we upgrade to hive 0.13, we will be able to
--- use the simpler and more up to date 'STORED AS PARQUET' to store data in
--- Parquet format.
---  https://issues.apache.org/jira/browse/HIVE-5783
---  http://blog.cloudera.com/blog/2014/02/native-parquet-support-comes-to-apache-hive/
 
-CREATE EXTERNAL TABLE IF NOT EXISTS `webrequest`(
+CREATE EXTERNAL TABLE IF NOT EXISTS `webrequest` (
     `hostname`          string  COMMENT 'Source node hostname',
     `sequence`          bigint  COMMENT 'Per host sequence number',
     `dt`                string  COMMENT 'Timestame at cache in ISO 8601',
@@ -40,23 +35,20 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `webrequest`(
     `user_agent`        string  COMMENT 'User-Agent header of request',
     `accept_language`   string  COMMENT 'Accept-Language header of request',
     `x_analytics`       string  COMMENT 'X-Analytics header of response',
-    `range`             string  COMMENT 'Range header of response',
-    `is_pageview`       boolean COMMENT 'Indicates if this record was marked as a pageview during refinement'
-)
+    `range`             string  COMMENT 'Range header of response')
 PARTITIONED BY (
     `webrequest_source` string  COMMENT 'Source cluster',
     `year`              int     COMMENT 'Unpadded year of request',
     `month`             int     COMMENT 'Unpadded month of request',
     `day`               int     COMMENT 'Unpadded day of request',
-    `hour`              int     COMMENT 'Unpadded hour of request'
-)
-CLUSTERED BY(hostname, sequence) INTO 64 BUCKETS
+    `hour`              int     COMMENT 'Unpadded hour of request')
 ROW FORMAT SERDE
-    'parquet.hive.serde.ParquetHiveSerDe'
-STORED AS
-    INPUTFORMAT
-        'parquet.hive.DeprecatedParquetInputFormat'
-    OUTPUTFORMAT
-        'parquet.hive.DeprecatedParquetOutputFormat'
-LOCATION '/wmf/data/wmf/webrequest'
+    'org.apache.hcatalog.data.JsonSerDe'
+-- We only care about the INPUTFORMAT, not the OUTPUTFORMAT. But
+-- Hive's syntax does not allow to specify one without the
+-- other. Hence, we give both and use a default for the OUTPUTFORMAT.
+STORED AS INPUTFORMAT
+    'org.apache.hadoop.mapred.SequenceFileInputFormat'
+OUTPUTFORMAT
+    'org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat'
 ;

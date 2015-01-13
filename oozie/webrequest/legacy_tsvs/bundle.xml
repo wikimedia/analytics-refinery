@@ -5,7 +5,7 @@
     <parameters>
         <property>
             <name>queue_name</name>
-            <value>adhoc</value>
+            <value>default</value>
         </property>
 
         <!-- Required properties. -->
@@ -16,6 +16,7 @@
         <property><name>stop_time</name></property>
         <property><name>webrequest_datasets_file</name></property>
         <property><name>webrequest_data_directory</name></property>
+
         <property><name>hive_site_xml</name></property>
         <property><name>workflow_file</name></property>
         <property><name>webrequest_table</name></property>

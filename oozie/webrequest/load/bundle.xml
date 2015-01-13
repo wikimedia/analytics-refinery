@@ -15,7 +15,8 @@
         <property><name>workflow_file</name></property>
         <property><name>start_time</name></property>
         <property><name>stop_time</name></property>
-        <property><name>webrequest_data_directory</name></property>
+        <property><name>datasets_raw_file</name></property>
+        <property><name>webrequest_raw_data_directory</name></property>
 
         <property><name>hive_site_xml</name></property>
         <property><name>add_partition_workflow_file</name></property>
@@ -25,7 +26,7 @@
         <property><name>mark_directory_done_workflow_file</name></property>
     </parameters>
 
-    <coordinator name='hive_webrequest_load-webrequest-bits'>
+    <coordinator name='hive_webrequest_raw_load-webrequest_bits'>
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property>
@@ -35,7 +36,7 @@
         </configuration>
     </coordinator>
 
-    <coordinator name='hive_webrequest_load-webrequest-mobile'>
+    <coordinator name='hive_webrequest_raw_load-webrequest_mobile'>
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property>
@@ -45,7 +46,7 @@
         </configuration>
     </coordinator>
 
-    <coordinator name='hive_webrequest_load-webrequest-text'>
+    <coordinator name='hive_webrequest_raw_load-webrequest_text'>
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property>
@@ -55,7 +56,7 @@
         </configuration>
     </coordinator>
 
-    <coordinator name='hive_webrequest_load-webrequest-upload'>
+    <coordinator name='hive_webrequest_raw_load-webrequest_upload'>
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property>

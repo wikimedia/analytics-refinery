@@ -15,7 +15,8 @@
         <property><name>workflow_file</name></property>
         <property><name>start_time</name></property>
         <property><name>stop_time</name></property>
-        <property><name>webrequest_data_directory</name></property>
+        <property><name>webrequest_raw_data_directory</name></property>
+        <property><name>datasets_raw_file</name></property>
 
         <property><name>hive_site_xml</name></property>
         <property><name>artifacts_directory</name></property>
@@ -26,7 +27,7 @@
     <!--
     For now, don't refine bits or upload.
 
-    <coordinator name='refine-webrequest-bits'>
+    <coordinator name='refine-webrequest_bits'>
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property>
@@ -37,7 +38,7 @@
     </coordinator>
     -->
 
-    <coordinator name='refine-webrequest-mobile'>
+    <coordinator name='refine-webrequest_mobile'>
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property>
@@ -47,7 +48,7 @@
         </configuration>
     </coordinator>
 
-    <coordinator name='refine-webrequest-text'>
+    <coordinator name='refine-webrequest_text'>
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property>
@@ -58,7 +59,7 @@
     </coordinator>
 
     <!--
-    <coordinator name='refine-webrequest-upload'>
+    <coordinator name='refine-webrequest_upload'>
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property>

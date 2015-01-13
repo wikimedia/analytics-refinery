@@ -18,9 +18,9 @@
         <property><name>workflow_file</name></property>
         <property><name>start_time</name></property>
         <property><name>stop_time</name></property>
-        <property><name>webrequest_data_directory</name></property>
+        <property><name>webrequest_raw_data_directory</name></property>
+        <property><name>datasets_raw_file</name></property>
 
-        <property><name>datasets_file</name></property>
         <property><name>hive_site_xml</name></property>
         <property><name>artifacts_directory</name></property>
         <property><name>source_table</name></property>
@@ -61,11 +61,11 @@
         Include the given datasets_file file.  This should
         define the "webrequest" dataset for this coordinator.
         -->
-        <include>${datasets_file}</include>
+        <include>${datasets_raw_file}</include>
     </datasets>
 
     <input-events>
-        <data-in name="input" dataset="webrequest_${webrequest_source}">
+        <data-in name="input" dataset="webrequest_${webrequest_source}_raw">
             <instance>${coord:current(0)}</instance>
         </data-in>
     </input-events>
