@@ -23,6 +23,12 @@
 --   +--------------+---------------------------+--------------+
 --                                     (For 2014-09-15T12:xx:xx)
 --
+-- Actually, the table should be external. But when it got created,
+-- hive.insert.into.external.tables was still set to false. Hence, we have been
+-- forced to having it internal back then, as otherwise we could not insert into
+-- that table from within Hive. Now that Hive allows to insert into external
+-- tables, this table can be turned into an external table.
+--
 -- Parameters:
 --     <none>
 --
