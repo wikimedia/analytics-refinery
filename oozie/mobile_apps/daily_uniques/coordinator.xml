@@ -1,6 +1,6 @@
 <coordinator-app xmlns="uri:oozie:coordinator:0.4"
     name="mobile_apps_daily_uniques-coord"
-    frequency="60"
+    frequency="${coord:days(1)}"
     start="${start_time}"
     end="${stop_time}"
     timezone="Universal">
