@@ -9,6 +9,9 @@ $0 [ OPTIONS ] [ HOURS_TO_GO_BACK ]
 dumps the status of the raw webrequest partitions for the last few hours.
 
 Options:
+  --hdfs-mount MOUNT_POINT
+                  -- Assume that HDFS is mounted at MOUNT_POINT (needs
+                     to be an absolute path) instead of /mnt/hdfs .
   --quiet         -- Only produce output, if there are faulty partitions
 
 HOURS_TO_GO_BACK  -- number of hours to go back in time. (Default: 51)
@@ -21,9 +24,6 @@ HOUR_OFFSET_MAX=51
 HOUR_OFFSET_MIN=3
 
 HDFS_MOUNT_DIR_ABS=/mnt/hdfs
-
-WEBREQUEST_DATA_DIR_ABS="$HDFS_MOUNT_DIR_ABS/wmf/data/raw/webrequest"
-WEBREQUEST_STATISTICS_DIR_ABS="$HDFS_MOUNT_DIR_ABS/wmf/data/raw/webrequests_faulty_hosts"
 
 HAS_FAULTY=
 QUIET=
@@ -43,6 +43,11 @@ do
             print_help
             exit 1
             ;;
+        "--hdfs-mount" )
+            [[ $# -gt 0 ]] || error "$PARAM expects a further parameter"
+            HDFS_MOUNT_DIR_ABS="$1"
+            shift
+            ;;
         "--quiet" )
             QUIET=yes
             ;;
@@ -56,6 +61,9 @@ do
             ;;
     esac
 done
+
+WEBREQUEST_DATA_DIR_ABS="$HDFS_MOUNT_DIR_ABS/wmf/data/raw/webrequest"
+WEBREQUEST_STATISTICS_DIR_ABS="$HDFS_MOUNT_DIR_ABS/wmf/data/raw/webrequests_faulty_hosts"
 
 log_no_lf() {
     if [ -n "$QUIET" ]
