@@ -1,0 +1,81 @@
+#!/bin/bash
+
+set -e
+
+if [ "$1" = "--help" -o "$1" = "-h" -o "$1" = "-?" ]
+then
+    cat <<EOF
+$0 [ HOURS_TO_GO_BACK ]
+
+dumps the status of the raw webrequest partitions for the last few hours.
+
+Parameters:
+  HOURS_TO_GO_BACK  -- number of hours to go back in time. (Default: 51)
+EOF
+    exit 1
+fi
+
+HOUR_OFFSET_MAX="${1:-51}"
+HOUR_OFFSET_MIN=3
+
+HDFS_MOUNT_DIR_ABS=/mnt/hdfs
+
+WEBREQUEST_DATA_DIR_ABS="$HDFS_MOUNT_DIR_ABS/wmf/data/raw/webrequest"
+WEBREQUEST_STATISTICS_DIR_ABS="$HDFS_MOUNT_DIR_ABS/wmf/data/raw/webrequests_faulty_hosts"
+
+hline() {
+    echo "  +------------------+--------+--------+--------+--------+"
+}
+
+echo_partition_status() {
+    local DATE_HDFS_PADDED="$1"
+    local SOURCE="$2"
+    local STATUS="X"
+
+    local DATE_HDFS_UNPADDED="${DATE_HDFS_PADDED///0//}"
+
+    STATISTICS_FILE_ABS="$WEBREQUEST_STATISTICS_DIR_ABS/$SOURCE/$DATE_HDFS_UNPADDED/000000_0"
+    if [ -e "$STATISTICS_FILE_ABS" -a ! -s "$STATISTICS_FILE_ABS" ]
+    then
+        STATUS="."
+    else
+        if [ -e "$WEBREQUEST_DATA_DIR_ABS/webrequest_$SOURCE/hourly/$DATE_HDFS_PADDED/_SUCCESS" ]
+        then
+            STATUS="M"
+        else
+            STATUS="X"
+        fi
+    fi
+    echo -n "$STATUS"
+}
+
+hline
+echo "  | Date             |  bits  | mobile |  text  | upload |"
+hline
+
+for HOURS_OFFSET in $(seq $HOUR_OFFSET_MAX -1 $HOUR_OFFSET_MIN )
+do
+    DATE="$(date --utc -d "$HOURS_OFFSET hours-ago" +'%Y-%m-%dT%H/1H')"
+    DATE_HDFS_PADDED="$(date --utc -d "$HOURS_OFFSET hours ago" +'%Y/%m/%d/%H')"
+    echo -n "  | $DATE |"
+    for SOURCE in bits mobile text upload
+    do
+        echo -n "    "
+        echo_partition_status "$DATE_HDFS_PADDED" "$SOURCE"
+        echo -n "   |"
+    done
+    echo
+done
+
+hline
+
+cat <<EOF
+
+Statuses:
+
+  . --> Partition is ok
+  M --> Partition manually marked ok
+  X --> Partition is not ok (duplicates, missing, or nulls)
+
+
+EOF
