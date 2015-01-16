@@ -2,20 +2,22 @@
 
 set -e
 
-if [ "$1" = "--help" -o "$1" = "-h" -o "$1" = "-?" ]
-then
+print_help() {
     cat <<EOF
-$0 [ HOURS_TO_GO_BACK ]
+$0 [ OPTIONS ] [ HOURS_TO_GO_BACK ]
 
 dumps the status of the raw webrequest partitions for the last few hours.
 
-Parameters:
-  HOURS_TO_GO_BACK  -- number of hours to go back in time. (Default: 51)
-EOF
-    exit 1
-fi
+Options:
+  --quiet         -- Only produce output, if there are faulty partitions
 
-HOUR_OFFSET_MAX="${1:-51}"
+HOURS_TO_GO_BACK  -- number of hours to go back in time. (Default: 51)
+
+EOF
+}
+
+
+HOUR_OFFSET_MAX=51
 HOUR_OFFSET_MIN=3
 
 HDFS_MOUNT_DIR_ABS=/mnt/hdfs
@@ -23,11 +25,62 @@ HDFS_MOUNT_DIR_ABS=/mnt/hdfs
 WEBREQUEST_DATA_DIR_ABS="$HDFS_MOUNT_DIR_ABS/wmf/data/raw/webrequest"
 WEBREQUEST_STATISTICS_DIR_ABS="$HDFS_MOUNT_DIR_ABS/wmf/data/raw/webrequests_faulty_hosts"
 
-hline() {
-    echo "  +------------------+--------+--------+--------+--------+"
+HAS_FAULTY=
+QUIET=
+QUIET_BUFFER=
+
+error() {
+    echo "Error" "$@" >&2
+    exit 1
 }
 
-echo_partition_status() {
+while [ $# -gt 0 ]
+do
+    PARAM="$1"
+    shift
+    case "$PARAM" in
+        "--help" | "-h" | "-?" )
+            print_help
+            exit 1
+            ;;
+        "--quiet" )
+            QUIET=yes
+            ;;
+        * )
+            if [ $# -eq 0 ]
+            then
+                HOUR_OFFSET_MAX="$PARAM"
+            else
+                error "Too many parameters given"
+            fi
+            ;;
+    esac
+done
+
+log_no_lf() {
+    if [ -n "$QUIET" ]
+    then
+        QUIET_BUFFER="$QUIET_BUFFER$@"
+        if [ -n "$HAS_FAULTY" ]
+        then
+            echo -n "$QUIET_BUFFER"
+            QUIET_BUFFER=
+        fi
+    else
+        echo -n "$@"
+    fi
+}
+
+log() {
+    log_no_lf "$@
+"
+}
+
+hline() {
+    log "  +------------------+--------+--------+--------+--------+"
+}
+
+log_partition_status() {
     local DATE_HDFS_PADDED="$1"
     local SOURCE="$2"
     local STATUS="X"
@@ -44,32 +97,33 @@ echo_partition_status() {
             STATUS="M"
         else
             STATUS="X"
+            HAS_FAULTY=yes
         fi
     fi
-    echo -n "$STATUS"
+    log_no_lf "$STATUS"
 }
 
 hline
-echo "  | Date             |  bits  | mobile |  text  | upload |"
+log "  | Date             |  bits  | mobile |  text  | upload |"
 hline
 
 for HOURS_OFFSET in $(seq $HOUR_OFFSET_MAX -1 $HOUR_OFFSET_MIN )
 do
     DATE="$(date --utc -d "$HOURS_OFFSET hours-ago" +'%Y-%m-%dT%H/1H')"
     DATE_HDFS_PADDED="$(date --utc -d "$HOURS_OFFSET hours ago" +'%Y/%m/%d/%H')"
-    echo -n "  | $DATE |"
+    log_no_lf "  | $DATE |"
     for SOURCE in bits mobile text upload
     do
-        echo -n "    "
-        echo_partition_status "$DATE_HDFS_PADDED" "$SOURCE"
-        echo -n "   |"
+        log_no_lf "    "
+        log_partition_status "$DATE_HDFS_PADDED" "$SOURCE"
+        log_no_lf "   |"
     done
-    echo
+    log
 done
 
 hline
 
-cat <<EOF
+log "
 
 Statuses:
 
@@ -78,4 +132,4 @@ Statuses:
   X --> Partition is not ok (duplicates, missing, or nulls)
 
 
-EOF
+"
