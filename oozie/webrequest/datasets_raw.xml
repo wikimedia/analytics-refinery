@@ -45,6 +45,42 @@ Use this dataset in your coordinator.xml files by setting:
     </dataset>
 
     <!--
+    The webrequest_*_raw_partitioned datasets should be used for cases where you do
+    not care if the sequence stats have been checked, but you still rely on the
+    Hive partition's existence.  This data has not been checked at all, which means
+    there may be significant data loss or duplicate data here.
+    -->
+    <dataset name="webrequest_bits_raw_partitioned"
+             frequency="${coord:hours(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${webrequest_raw_data_directory}/webrequest_bits/hourly/${YEAR}/${MONTH}/${DAY}/${HOUR}</uri-template>
+        <done-flag>_PARTITIONED</done-flag>
+    </dataset>
+    <dataset name="webrequest_mobile_raw_partitioned"
+             frequency="${coord:hours(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${webrequest_raw_data_directory}/webrequest_mobile/hourly/${YEAR}/${MONTH}/${DAY}/${HOUR}</uri-template>
+        <done-flag>_PARTITIONED</done-flag>
+    </dataset>
+    <dataset name="webrequest_text_raw_partitioned"
+             frequency="${coord:hours(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${webrequest_raw_data_directory}/webrequest_text/hourly/${YEAR}/${MONTH}/${DAY}/${HOUR}</uri-template>
+        <done-flag>_PARTITIONED</done-flag>
+    </dataset>
+    <dataset name="webrequest_upload_raw_partitioned"
+             frequency="${coord:hours(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${webrequest_raw_data_directory}/webrequest_upload/hourly/${YEAR}/${MONTH}/${DAY}/${HOUR}</uri-template>
+        <done-flag>_PARTITIONED</done-flag>
+    </dataset>
+
+
+    <!--
     The webrequest_*_raw datasets should be used if you want to be
     sure that you are only working with hourly imports for which
     sequence stats have been checked.  These directories have an

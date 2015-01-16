@@ -81,6 +81,10 @@
 
     <decision name="check_faulty_hosts">
         <switch>
+            <!-- TODO: Add a case for faulty hosts with minimal loss that marks
+            a dataset with a done-flag indicating that even though there is some
+            loss, it is minimal, and users could proceed with processing.
+             -->
             <case to="end">
                 ${fs:fileSize(concat(faulty_hosts_directory, "/000000_0")) eq 0}
             </case>

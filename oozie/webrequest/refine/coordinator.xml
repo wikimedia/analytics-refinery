@@ -73,7 +73,15 @@
     </datasets>
 
     <input-events>
-        <data-in name="raw_input" dataset="webrequest_${webrequest_source}_raw">
+        <!--
+        For now, since we definitly want the refined data to exist, even if
+        there is some faulty data (e.g. missing or duplicate), we rely on the
+        *_partioned datasets.  This means that data in the refined webrequest
+        table may be missing some data.  Be warned!  Check the
+        wmf_raw.webrequest_sequence_stats table if you are unsure of the
+        quality of this data.
+        -->
+        <data-in name="raw_input" dataset="webrequest_${webrequest_source}_raw_partitioned">
             <instance>${coord:current(0)}</instance>
         </data-in>
     </input-events>

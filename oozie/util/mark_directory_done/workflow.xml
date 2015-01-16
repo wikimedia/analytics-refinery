@@ -33,7 +33,7 @@
     </action>
 
     <kill name="kill">
-        <message>Action failed, error message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+        <message>mark_directory_done action failed, error message[${wf:errorMessage(wf:lastErrorNode())}]</message>
     </kill>
     <end name="end"/>
 </workflow-app>

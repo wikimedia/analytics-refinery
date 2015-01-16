@@ -80,6 +80,29 @@
                 </property>
             </configuration>
         </sub-workflow>
+        <ok to="mark_add_partition_done"/>
+        <error to="kill"/>
+    </action>
+
+    <!--
+    This adds an empty _PARTITIONED done-flag file into
+    The directory for which we just added a Hive partition.
+    The webrequest_*_raw_partitioned dataset uses this.
+    -->
+    <action name="mark_add_partition_done">
+        <sub-workflow>
+            <app-path>${mark_directory_done_workflow_file}</app-path>
+            <configuration>
+                <property>
+                    <name>directory</name>
+                    <value>${location}</value>
+                </property>
+                <property>
+                    <name>done_file</name>
+                    <value>_PARTITIONED</value>
+                </property>
+            </configuration>
+        </sub-workflow>
         <ok to="generate_sequence_statistics"/>
         <error to="kill"/>
     </action>
