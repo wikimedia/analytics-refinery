@@ -1,14 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <workflow-app xmlns="uri:oozie:workflow:0.4"
-    name="pagecounts_all_sites_archive-${aspect_name}-${year}-${month}-${day}-${hour}-wf">
+    name="pagecounts_all_sites_archive-${dataset_name}-${aspect_name}-${year}-${month}-${day}-${hour}-wf">
 
     <parameters>
         <property>
             <name>queue_name</name>
             <value>default</value>
         </property>
+        <property>
+            <name>extra_filter</name>
+            <value>0=0</value> <!-- sadly enough, 'true' does not work here-->
+            <description>
+                Additional filter to apply when selecting data from the
+                pagecounts-all-site table.
+            </description>
+        </property>
 
         <!-- Required properties -->
+        <property><name>dataset_name</name></property>
         <property><name>name_node</name></property>
         <property><name>job_tracker</name></property>
 
@@ -63,8 +72,8 @@
             <description>A directory in HDFS for temporary files</description>
         </property>
         <property>
-            <name>pagecounts_all_sites_archive_directory</name>
-            <description>Directory for archive of pagecounts-all-sites files</description>
+            <name>output_directory</name>
+            <description>Directory to archive the workflow output to</description>
         </property>
         <property>
             <name>archive_job_output_workflow_file</name>
@@ -102,6 +111,7 @@
             <param>month=${month}</param>
             <param>day=${day}</param>
             <param>hour=${hour}</param>
+            <param>extra_filter= AND ${extra_filter}</param>
         </hive>
         <ok to="mark_dataset_done"/>
         <error to="kill"/>
@@ -152,7 +162,7 @@
                     timestamp in the filename. To not break scripts of people,
                     we also name files that way.
                     -->
-                    <value>${pagecounts_all_sites_archive_directory}/${year_plus_1_hour}/${year_plus_1_hour}-${month_plus_1_hour}/${aspect_name}-${year_plus_1_hour}${month_plus_1_hour}${day_plus_1_hour}-${hour_plus_1_hour}0000${aspect_compression_ending eq 'EMPTY' ? '' : aspect_compression_ending}</value>
+                    <value>${output_directory}/${year_plus_1_hour}/${year_plus_1_hour}-${month_plus_1_hour}/${aspect_name}-${year_plus_1_hour}${month_plus_1_hour}${day_plus_1_hour}-${hour_plus_1_hour}0000${aspect_compression_ending eq 'EMPTY' ? '' : aspect_compression_ending}</value>
                 </property>
             </configuration>
         </sub-workflow>

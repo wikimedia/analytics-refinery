@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <coordinator-app xmlns="uri:oozie:coordinator:0.4"
-    name="pagecounts_all_sites_archive-${aspect_name}-coord"
+    name="pagecounts_all_sites_archive-${dataset_name}-${aspect_name}-coord"
     frequency="${coord:hours(1)}"
     start="${start_time}"
     end="${stop_time}"
@@ -11,8 +11,13 @@
             <name>queue_name</name>
             <value>default</value>
         </property>
+        <property>
+            <name>extra_filter</name>
+            <value></value>
+        </property>
 
         <!-- Required properties. -->
+        <property><name>dataset_name</name></property>
         <property><name>name_node</name></property>
         <property><name>job_tracker</name></property>
         <property><name>start_time</name></property>
@@ -24,7 +29,7 @@
         <property><name>pagecounts_all_sites_table</name></property>
         <property><name>mark_directory_done_workflow_file</name></property>
         <property><name>temporary_directory</name></property>
-        <property><name>pagecounts_all_sites_archive_directory</name></property>
+        <property><name>output_directory</name></property>
         <property><name>archive_job_output_workflow_file</name></property>
         <property><name>aspect_name</name></property>
         <property><name>aspect_compression_ending</name></property>
@@ -70,6 +75,7 @@
             <configuration>
 
                 <!-- Pass these properties through to the workflow -->
+                <property><name>dataset_name</name><value>${dataset_name}</value></property>
                 <property><name>name_node</name><value>${name_node}</value></property>
                 <property><name>job_tracker</name><value>${job_tracker}</value></property>
                 <property><name>queue_name</name><value>${queue_name}</value></property>
@@ -123,8 +129,8 @@
                     <value>${temporary_directory}</value>
                 </property>
                 <property>
-                    <name>pagecounts_all_sites_archive_directory</name>
-                    <value>${pagecounts_all_sites_archive_directory}</value>
+                    <name>output_directory</name>
+                    <value>${output_directory}</value>
                 </property>
                 <property>
                     <name>archive_job_output_workflow_file</name>
@@ -137,6 +143,10 @@
                 <property>
                     <name>aspect_compression_ending</name>
                     <value>${aspect_compression_ending}</value>
+                </property>
+                <property>
+                    <name>extra_filter</name>
+                    <value>${extra_filter}</value>
                 </property>
             </configuration>
         </workflow>

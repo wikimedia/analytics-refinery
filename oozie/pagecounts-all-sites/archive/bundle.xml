@@ -21,12 +21,17 @@
         <property><name>mark_directory_done_workflow_file</name></property>
         <property><name>temporary_directory</name></property>
         <property><name>pagecounts_all_sites_archive_directory</name></property>
+        <property><name>pagecounts_raw_archive_directory</name></property>
         <property><name>archive_job_output_workflow_file</name></property>
     </parameters>
 
-    <coordinator name="pagecounts_all_sites_archive-pagecounts">
+    <coordinator name="pagecounts_all_sites_archive-pagecounts_all_sites-pagecounts">
         <app-path>${coordinator_file}</app-path>
         <configuration>
+            <property>
+                <name>dataset_name</name>
+                <value>pagecounts-all-sites</value>
+            </property>
             <property>
                 <name>aspect_name</name>
                 <value>pagecounts</value>
@@ -35,12 +40,20 @@
                 <name>aspect_compression_ending</name>
                 <value>.gz</value>
             </property>
+            <property>
+                <name>output_directory</name>
+                <value>${pagecounts_all_sites_archive_directory}</value>
+            </property>
         </configuration>
     </coordinator>
 
-    <coordinator name="pagecounts_all_sites_archive-projectcounts">
+    <coordinator name="pagecounts_all_sites_archive-pagecounts_all_sites-projectcounts">
         <app-path>${coordinator_file}</app-path>
         <configuration>
+            <property>
+                <name>dataset_name</name>
+                <value>pagecounts-all-sites</value>
+            </property>
             <property>
                 <name>aspect_name</name>
                 <value>projectcounts</value>
@@ -48,6 +61,62 @@
             <property>
                 <name>aspect_compression_ending</name>
                 <value>EMPTY</value>
+            </property>
+            <property>
+                <name>output_directory</name>
+                <value>${pagecounts_all_sites_archive_directory}</value>
+            </property>
+        </configuration>
+    </coordinator>
+
+    <coordinator name="pagecounts_all_sites_archive-pagecounts_raw-pagecounts">
+        <app-path>${coordinator_file}</app-path>
+        <configuration>
+            <property>
+                <name>dataset_name</name>
+                <value>pagecounts-raw</value>
+            </property>
+            <property>
+                <name>aspect_name</name>
+                <value>pagecounts</value>
+            </property>
+            <property>
+                <name>aspect_compression_ending</name>
+                <value>.gz</value>
+            </property>
+            <property>
+                <name>output_directory</name>
+                <value>${pagecounts_raw_archive_directory}</value>
+            </property>
+            <property>
+                <name>extra_filter</name>
+                <value>${pagecounts_raw_extra_filter}</value>
+            </property>
+        </configuration>
+    </coordinator>
+
+    <coordinator name="pagecounts_all_sites_archive-pagecounts_raw-projectcounts">
+        <app-path>${coordinator_file}</app-path>
+        <configuration>
+            <property>
+                <name>dataset_name</name>
+                <value>pagecounts-raw</value>
+            </property>
+            <property>
+                <name>aspect_name</name>
+                <value>projectcounts</value>
+            </property>
+            <property>
+                <name>aspect_compression_ending</name>
+                <value>EMPTY</value>
+            </property>
+            <property>
+                <name>output_directory</name>
+                <value>${pagecounts_raw_archive_directory}</value>
+            </property>
+            <property>
+                <name>extra_filter</name>
+                <value>${pagecounts_raw_extra_filter}</value>
             </property>
         </configuration>
     </coordinator>

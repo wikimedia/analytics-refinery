@@ -12,6 +12,11 @@ SET hive.exec.compress.output=false;
 --     month             -- month of the to-be-generated hour
 --     day               -- day of the to-be-generated hour
 --     hour              -- hour of the to-be-generated-hour
+--     extra_filter      -- additional condition by which to filter the
+--                          selected rows. This parameter allows to filter
+--                          pagecount-all-sites results further down (e.g.: it
+--                          gets used to generate pagecounts-raw by stripping
+--                          unneeded rows from pagecounts-all-sites results)
 --
 --
 -- Usage:
@@ -39,6 +44,7 @@ INSERT OVERWRITE DIRECTORY "${destination_directory}"
         AND month=${month}
         AND day=${day}
         AND hour=${hour}
+        ${extra_filter}
     GROUP BY qualifier
     ORDER BY line
     LIMIT 100000;
