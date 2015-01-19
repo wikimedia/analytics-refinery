@@ -1,6 +1,6 @@
 <coordinator-app xmlns="uri:oozie:coordinator:0.4"
     name="mobile_apps_daily_uniques-coord"
-    frequency="${coord:days(1)}"
+    frequency="60"
     start="${start_time}"
     end="${stop_time}"
     timezone="Universal">
@@ -48,12 +48,12 @@
             datasets is a processed dataset from the raw data.
         -->
         <data-in name="mobile" dataset="webrequest_mobile">
-            <start-instance>${coord:current(-23)}</start-instance>
-            <end-instance>${coord:current(0)}</end-instance>
+            <start-instance>${coord:current(0)}</start-instance>
+            <end-instance>${coord:current(23)}</end-instance>
         </data-in>
         <data-in name="text" dataset="webrequest_text">
-            <start-instance>${coord:current(-23)}</start-instance>
-            <end-instance>${coord:current(0)}</end-instance>
+            <start-instance>${coord:current(0)}</start-instance>
+            <end-instance>${coord:current(23)}</end-instance>
         </data-in>
     </input-events>
 
@@ -88,7 +88,10 @@
                   <name>day</name>
                   <value>${coord:formatTime(coord:nominalTime(), "d")}</value>
               </property>
-
+              <property>
+                  <name>archive_file_name</name>
+                  <value>${coord:formatTime(coord:nominalTime(), "YYYY-MM-DD")}</value>
+              </property>
               <property>
                   <name>temporary_directory</name>
                   <value>${temporary_directory}</value>

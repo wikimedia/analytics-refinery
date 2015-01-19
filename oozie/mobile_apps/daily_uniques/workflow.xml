@@ -28,6 +28,10 @@
             <description>The partition's day</description>
         </property>
         <property>
+            <name>archive_file_name</name>
+            <description>The file name, zero padded like: 2015-01-01 </description>
+        </property>
+        <property>
             <name>temporary_directory</name>
             <value>${temporary_directory}</value>
         </property>
@@ -101,7 +105,7 @@
                 <property>
                     <name>archive_file</name>
                     <!-- not sure if hardcoding  filename here is right-->
-                    <value>${archive_directory}/mobile_apps/uniques/daily/${year}-${month}-${day}.gz</value>
+                    <value>${archive_directory}/mobile_apps/uniques/daily/${archive_file_name}.gz</value>
                 </property>
                 <property>
                     <name>name_node</name>
