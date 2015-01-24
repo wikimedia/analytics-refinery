@@ -41,7 +41,7 @@ CREATE TEMPORARY FUNCTION is_pageview as 'org.wikimedia.analytics.refinery.hive.
 
 INSERT OVERWRITE TABLE ${destination_table}
     PARTITION(webrequest_source='${webrequest_source}',year=${year},month=${month},day=${day},hour=${hour})
-    SELECT
+    SELECT DISTINCT
         hostname,
         sequence,
         dt,
