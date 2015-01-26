@@ -30,7 +30,7 @@
     </parameters>
 
     <!--
-    For now, don't refine bits or upload.
+    For now, don't refine bits.
 
     <coordinator name='refine-webrequest_bits'>
         <app-path>${coordinator_file}</app-path>
@@ -73,7 +73,6 @@
         </configuration>
     </coordinator>
 
-    <!--
     <coordinator name='refine-webrequest_upload'>
         <app-path>${coordinator_file}</app-path>
         <configuration>
@@ -83,5 +82,4 @@
             </property>
         </configuration>
     </coordinator>
-    -->
 </bundle-app>
