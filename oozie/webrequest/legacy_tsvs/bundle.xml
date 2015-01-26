@@ -9,7 +9,9 @@
         </property>
 
         <!-- Required properties. -->
-        <property><name>coordinator_file</name></property>
+        <property><name>coordinator_mobile_file</name></property>
+        <property><name>coordinator_mobile_text_file</name></property>
+        <property><name>coordinator_mobile_text_upload_file</name></property>
         <property><name>name_node</name></property>
         <property><name>job_tracker</name></property>
         <property><name>start_time</name></property>
@@ -27,7 +29,7 @@
     </parameters>
 
     <coordinator name="webrequest_legacy_tsvs-sampled-1000">
-        <app-path>${coordinator_file}</app-path>
+        <app-path>${coordinator_mobile_text_upload_file}</app-path>
         <configuration>
             <property>
                 <name>aspect_name</name>
@@ -45,7 +47,7 @@
     </coordinator>
 
     <coordinator name="webrequest_legacy_tsvs-mobile-sampled-100">
-        <app-path>${coordinator_file}</app-path>
+        <app-path>${coordinator_mobile_file}</app-path>
         <configuration>
             <property>
                 <name>aspect_name</name>
@@ -59,19 +61,11 @@
                 <name>hour_offset</name>
                 <value>4</value>
             </property>
-            <property>
-                <name>needs_webrequest_text</name>
-                <value>no</value>
-            </property>
-            <property>
-                <name>needs_webrequest_upload</name>
-                <value>no</value>
-            </property>
         </configuration>
     </coordinator>
 
     <coordinator name="webrequest_legacy_tsvs-zero">
-        <app-path>${coordinator_file}</app-path>
+        <app-path>${coordinator_mobile_file}</app-path>
         <configuration>
             <property>
                 <name>aspect_name</name>
@@ -85,19 +79,11 @@
                 <name>hour_offset</name>
                 <value>6</value>
             </property>
-            <property>
-                <name>needs_webrequest_text</name>
-                <value>no</value>
-            </property>
-            <property>
-                <name>needs_webrequest_upload</name>
-                <value>no</value>
-            </property>
         </configuration>
     </coordinator>
 
     <coordinator name="webrequest_legacy_tsvs-api-usage">
-        <app-path>${coordinator_file}</app-path>
+        <app-path>${coordinator_mobile_text_file}</app-path>
         <configuration>
             <property>
                 <name>aspect_name</name>
@@ -111,15 +97,11 @@
                 <name>hour_offset</name>
                 <value>14</value>
             </property>
-            <property>
-                <name>needs_webrequest_upload</name>
-                <value>no</value>
-            </property>
         </configuration>
     </coordinator>
 
     <coordinator name="webrequest_legacy_tsvs-glam_nara">
-        <app-path>${coordinator_file}</app-path>
+        <app-path>${coordinator_mobile_text_upload_file}</app-path>
         <configuration>
             <property>
                 <name>aspect_name</name>
@@ -137,7 +119,7 @@
     </coordinator>
 
     <coordinator name="webrequest_legacy_tsvs-edits">
-        <app-path>${coordinator_file}</app-path>
+        <app-path>${coordinator_mobile_text_file}</app-path>
         <configuration>
             <property>
                 <name>aspect_name</name>
@@ -151,15 +133,11 @@
                 <name>hour_offset</name>
                 <value>18</value>
             </property>
-            <property>
-                <name>needs_webrequest_upload</name>
-                <value>no</value>
-            </property>
         </configuration>
     </coordinator>
 
     <coordinator name="webrequest_legacy_tsvs-5xx">
-        <app-path>${coordinator_file}</app-path>
+        <app-path>${coordinator_mobile_text_file}</app-path>
         <configuration>
             <property>
                 <name>aspect_name</name>
@@ -172,10 +150,6 @@
             <property>
                 <name>hour_offset</name>
                 <value>20</value>
-            </property>
-            <property>
-                <name>needs_webrequest_upload</name>
-                <value>no</value>
             </property>
         </configuration>
     </coordinator>
