@@ -9,6 +9,7 @@
         </property>
 
         <!-- Required properties. -->
+        <property><name>coordinator_misc_mobile_text_file</name></property>
         <property><name>coordinator_mobile_file</name></property>
         <property><name>coordinator_mobile_text_file</name></property>
         <property><name>coordinator_mobile_text_upload_file</name></property>
@@ -137,7 +138,7 @@
     </coordinator>
 
     <coordinator name="webrequest_legacy_tsvs-5xx">
-        <app-path>${coordinator_mobile_text_file}</app-path>
+        <app-path>${coordinator_misc_mobile_text_file}</app-path>
         <configuration>
             <property>
                 <name>aspect_name</name>
