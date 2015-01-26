@@ -56,7 +56,7 @@ INSERT OVERWRITE DIRECTORY "${destination_directory}"
             ) line,
             dt
         FROM ${webrequest_table}
-        WHERE webrequest_source IN ('text', 'mobile')
+        WHERE webrequest_source IN ('mobile', 'text')
             AND year=${year}
             AND month=${month}
             AND day=${day}

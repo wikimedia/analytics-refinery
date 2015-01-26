@@ -56,7 +56,7 @@ INSERT OVERWRITE DIRECTORY "${destination_directory}"
             ) line,
             dt
         FROM ${webrequest_table}
-        WHERE webrequest_source IN ('text', 'mobile')
+        WHERE webrequest_source IN ('mobile', 'text')
             -- TODO: Add 'bits', once it's turned on again
             -- TODO: Add 'misc', once it's available
             AND year=${year}
