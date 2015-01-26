@@ -61,6 +61,9 @@ INSERT OVERWRITE DIRECTORY "${destination_directory}"
         -- sampling.
         FROM ${webrequest_table} TABLESAMPLE(BUCKET 1 OUT OF 1000 ON rand())
         WHERE webrequest_source IN ('mobile', 'text', 'upload')
+            -- No 'bits', or 'misc', as the sampled-1000 was last produced on
+            -- erbium's udp2log stream, which did not receive those two
+            -- webrequest_sources.
             AND year=${year}
             AND month=${month}
             AND day=${day}
