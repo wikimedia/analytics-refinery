@@ -85,7 +85,7 @@ log() {
 }
 
 hline() {
-    log "  +------------------+--------+--------+--------+--------+"
+    log "  +------------------+--------+--------+--------+--------+--------+"
 }
 
 log_partition_status() {
@@ -112,7 +112,7 @@ log_partition_status() {
 }
 
 hline
-log "  | Date             |  bits  | mobile |  text  | upload |"
+log "  | Date             |  bits  |  misc  | mobile |  text  | upload |"
 hline
 
 for HOURS_OFFSET in $(seq $HOUR_OFFSET_MAX -1 $HOUR_OFFSET_MIN )
@@ -120,7 +120,7 @@ do
     DATE="$(date --utc -d "$HOURS_OFFSET hours-ago" +'%Y-%m-%dT%H/1H')"
     DATE_HDFS_PADDED="$(date --utc -d "$HOURS_OFFSET hours ago" +'%Y/%m/%d/%H')"
     log_no_lf "  | $DATE |"
-    for SOURCE in bits mobile text upload
+    for SOURCE in bits misc mobile text upload
     do
         log_no_lf "    "
         log_partition_status "$DATE_HDFS_PADDED" "$SOURCE"
