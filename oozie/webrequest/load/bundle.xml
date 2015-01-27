@@ -36,7 +36,7 @@
         </configuration>
     </coordinator>
 
-    <coordinator name='hive_webrequest_load-webrequest_misc'>
+    <coordinator name='hive_webrequest_raw_load-webrequest_misc'>
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property>
