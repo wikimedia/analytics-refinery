@@ -9,10 +9,11 @@
         </property>
         <property>
             <name>extra_filter</name>
-            <value>0=0</value> <!-- sadly enough, 'true' does not work here-->
+            <value>none</value>
             <description>
                 Additional filter to apply when selecting data from the
                 pagecounts-all-site table.
+                To have no extra_filter, use the default of 'none'.
             </description>
         </property>
 
@@ -111,7 +112,7 @@
             <param>month=${month}</param>
             <param>day=${day}</param>
             <param>hour=${hour}</param>
-            <param>extra_filter= AND ${extra_filter}</param>
+            <param>extra_filter=${extra_filter eq 'none' ? '' : concat(' AND ', extra_filter)}</param>
         </hive>
         <ok to="mark_dataset_done"/>
         <error to="kill"/>

@@ -13,7 +13,12 @@
         </property>
         <property>
             <name>extra_filter</name>
-            <value></value>
+            <value>none</value>
+            <description>
+                Additional filter to apply when selecting data from the
+                pagecounts-all-site table.
+                To have no extra_filter, use the default of 'none'.
+            </description>
         </property>
 
         <!-- Required properties. -->
