@@ -59,7 +59,7 @@
             </property>
             <property>
                 <name>hour_offset</name>
-                <value>4</value>
+                <value>3</value>
             </property>
         </configuration>
     </coordinator>
@@ -77,7 +77,7 @@
             </property>
             <property>
                 <name>hour_offset</name>
-                <value>6</value>
+                <value>4</value>
             </property>
         </configuration>
     </coordinator>
@@ -95,7 +95,7 @@
             </property>
             <property>
                 <name>hour_offset</name>
-                <value>14</value>
+                <value>5</value>
             </property>
         </configuration>
     </coordinator>
@@ -113,7 +113,7 @@
             </property>
             <property>
                 <name>hour_offset</name>
-                <value>16</value>
+                <value>6</value>
             </property>
         </configuration>
     </coordinator>
@@ -131,7 +131,7 @@
             </property>
             <property>
                 <name>hour_offset</name>
-                <value>18</value>
+                <value>7</value>
             </property>
         </configuration>
     </coordinator>
@@ -149,7 +149,7 @@
             </property>
             <property>
                 <name>hour_offset</name>
-                <value>20</value>
+                <value>8</value>
             </property>
         </configuration>
     </coordinator>
