@@ -9,8 +9,9 @@
         </property>
 
         <!-- Required properties. -->
+        <property><name>coordinator_bits_file</name></property>
+        <property><name>coordinator_bits_misc_mobile_text_file</name></property>
         <property><name>coordinator_misc_file</name></property>
-        <property><name>coordinator_misc_mobile_text_file</name></property>
         <property><name>coordinator_mobile_file</name></property>
         <property><name>coordinator_mobile_text_file</name></property>
         <property><name>coordinator_mobile_text_upload_file</name></property>
@@ -145,8 +146,11 @@
     </coordinator>
 
     <coordinator name="webrequest_legacy_tsvs-5xx">
-        <!-- TODO: Add 'bits', once it's turned on again -->
-        <app-path>${coordinator_misc_mobile_text_file}</app-path>
+        <!--
+        No 'upload', as that explicitly got excluded in the upd2log
+        filters.
+        -->
+        <app-path>${coordinator_bits_misc_mobile_text_file}</app-path>
         <configuration>
             <property>
                 <name>aspect_name</name>
@@ -163,7 +167,23 @@
         </configuration>
     </coordinator>
 
-    <!-- TODO: Add 'bits' per-source 5xx variant, once it's turned on again -->
+    <coordinator name="webrequest_legacy_tsvs-5xx-bits">
+        <app-path>${coordinator_bits_file}</app-path>
+        <configuration>
+            <property>
+                <name>aspect_name</name>
+                <value>5xx-bits</value>
+            </property>
+            <property>
+                <name>aspect_tsv_archive_directory</name>
+                <value>${webrequest_archive_directory}/5xx-bits</value>
+            </property>
+            <property>
+                <name>hour_offset</name>
+                <value>9</value>
+            </property>
+        </configuration>
+    </coordinator>
 
     <coordinator name="webrequest_legacy_tsvs-5xx-misc">
         <app-path>${coordinator_misc_file}</app-path>
@@ -178,7 +198,7 @@
             </property>
             <property>
                 <name>hour_offset</name>
-                <value>9</value>
+                <value>10</value>
             </property>
         </configuration>
     </coordinator>
@@ -196,7 +216,7 @@
             </property>
             <property>
                 <name>hour_offset</name>
-                <value>10</value>
+                <value>11</value>
             </property>
         </configuration>
     </coordinator>
@@ -214,7 +234,7 @@
             </property>
             <property>
                 <name>hour_offset</name>
-                <value>11</value>
+                <value>12</value>
             </property>
         </configuration>
     </coordinator>
@@ -232,7 +252,7 @@
             </property>
             <property>
                 <name>hour_offset</name>
-                <value>12</value>
+                <value>13</value>
             </property>
         </configuration>
     </coordinator>

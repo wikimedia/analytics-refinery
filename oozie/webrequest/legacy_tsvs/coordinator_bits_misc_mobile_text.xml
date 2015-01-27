@@ -60,6 +60,11 @@
     </datasets>
 
     <input-events>
+        <data-in name="webrequest_bits" dataset="webrequest_bits">
+            <start-instance>${coord:current(0)}</start-instance>
+            <end-instance>${coord:current(23)}</end-instance>
+        </data-in>
+
         <data-in name="webrequest_misc" dataset="webrequest_misc">
             <start-instance>${coord:current(0)}</start-instance>
             <end-instance>${coord:current(23)}</end-instance>
