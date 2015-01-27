@@ -67,9 +67,12 @@
         <!--
         The following dataset is not required as input to the
         workflow, but only helps to delay running it.
+
+        The 24 hours offset is for a full day. And we subtract 2 hours, as
+        webrequest processing starts 2 hours after the respective hour.
         -->
         <data-in name="delay" dataset="webrequest_text">
-            <instance>${coord:current(24+hour_offset)}</instance>
+            <instance>${coord:current(24-2+hour_offset)}</instance>
         </data-in>
     </input-events>
 
