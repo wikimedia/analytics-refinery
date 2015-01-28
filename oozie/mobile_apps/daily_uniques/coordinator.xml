@@ -1,10 +1,9 @@
 <coordinator-app xmlns="uri:oozie:coordinator:0.4"
     name="mobile_apps_daily_uniques-coord"
-    frequency="60"
+    frequency="${coord:days(1)}"
     start="${start_time}"
     end="${stop_time}"
     timezone="Universal">
-    <!-- will switch frequency to daily once is all tested -->
     <parameters>
         <property>
             <name>queue_name</name>
@@ -32,9 +31,6 @@
         <!--(timeout is measured in minutes)-->
         <timeout>300</timeout>
 
-        <!--
-        Need to try different settings here
-        -->
         <concurrency>2</concurrency>
     </controls>
 
@@ -45,7 +41,7 @@
     <input-events>
         <!--
             Please see datasets definition, the webrequest_mobile
-            datasets is a processed dataset from the raw data.
+            and webrequest_text are refined datasets from the raw data.
         -->
         <data-in name="mobile" dataset="webrequest_mobile">
             <start-instance>${coord:current(0)}</start-instance>
