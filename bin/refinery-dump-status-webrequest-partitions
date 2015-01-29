@@ -12,6 +12,11 @@ Options:
   --hdfs-mount MOUNT_POINT
                   -- Assume that HDFS is mounted at MOUNT_POINT (needs
                      to be an absolute path) instead of /mnt/hdfs .
+  --datasets DATASET1,DATASET2,...
+                  -- Select the datasets to output data for.
+                     The following datasets are available:
+                       raw_webrequest    -- Raw webrequest (hourly)
+                       all               -- all of the above
   --quiet         -- Only produce output, if there are faulty partitions
 
 HOURS_TO_GO_BACK  -- number of hours to go back in time. (Default: 51)
@@ -29,6 +34,28 @@ HAS_FAULTY=
 QUIET=
 QUIET_BUFFER=
 
+ALL_DATASETS=()
+
+declare -A DATASET_CAPTIONS
+declare -A DATASET_HLINES
+declare -A DATASET_VISIBILITIES
+
+add_dataset() {
+    local DATASET="$1"
+    local DATASET_CAPTION="$2"
+    local DATASET_HLINE="$(sed -e 's/[^|]/-/g; s/|/+/g' <<<"$DATASET_CAPTION")"
+
+    ALL_DATASETS=( "${ALL_DATASETS[@]}" "$DATASET" )
+
+    DATASET_CAPTIONS["$DATASET"]="$DATASET_CAPTION"
+    DATASET_HLINES["$DATASET"]="$DATASET_HLINE"
+    DATASET_VISIBILITIES["$DATASET"]=no
+}
+
+add_dataset "raw_webrequest" "  bits  |  misc  | mobile |  text  | upload |"
+
+DATASET_VISIBILITIES["raw_webrequest"]=yes
+
 error() {
     echo "Error" "$@" >&2
     exit 1
@@ -42,6 +69,44 @@ do
         "--help" | "-h" | "-?" )
             print_help
             exit 1
+            ;;
+        "--datasets" )
+            [[ $# -gt 0 ]] || error "$PARAM expects a further parameter"
+
+            # Resetting previous visibilities
+            for INNER_DATASET in "${ALL_DATASETS[@]}"
+            do
+                DATASET_VISIBILITIES["$INNER_DATASET"]=no
+            done
+
+            IFS="," read -a DATASETS_SPLIT <<<"$1"
+            for DATASET in "${DATASETS_SPLIT[@]}"
+            do
+                case "$DATASET" in
+                    "all" )
+                        for INNER_DATASET in "${ALL_DATASETS[@]}"
+                        do
+                            DATASET_VISIBILITIES["$INNER_DATASET"]=yes
+                        done
+                        ;;
+                    * )
+                        FOUND_DATASET=no
+                        for INNER_DATASET in "${ALL_DATASETS[@]}"
+                        do
+                            if [ "$DATASET" = "$INNER_DATASET" ]
+                            then
+                                DATASET_VISIBILITIES["$DATASET"]=yes
+                                FOUND_DATASET=yes
+                            fi
+                        done
+                        if [ "$FOUND_DATASET" != "yes" ]
+                        then
+                            error "Unknown dataset '$DATASET '"
+                        fi
+                        ;;
+                esac
+            done
+            shift
             ;;
         "--hdfs-mount" )
             [[ $# -gt 0 ]] || error "$PARAM expects a further parameter"
@@ -62,8 +127,8 @@ do
     esac
 done
 
-WEBREQUEST_DATA_DIR_ABS="$HDFS_MOUNT_DIR_ABS/wmf/data/raw/webrequest"
-WEBREQUEST_STATISTICS_DIR_ABS="$HDFS_MOUNT_DIR_ABS/wmf/data/raw/webrequests_faulty_hosts"
+RAW_WEBREQUEST_DATA_DIR_ABS="$HDFS_MOUNT_DIR_ABS/wmf/data/raw/webrequest"
+RAW_WEBREQUEST_STATISTICS_DIR_ABS="$HDFS_MOUNT_DIR_ABS/wmf/data/raw/webrequests_faulty_hosts"
 
 log_no_lf() {
     if [ -n "$QUIET" ]
@@ -79,28 +144,88 @@ log_no_lf() {
     fi
 }
 
+log_no_lf_centered() {
+    local TEXT="$1"
+    local AVAILABLE_LEN="$2"
+
+    local BLANK_HELPER="                                                       "
+
+    local TEXT_LEN="${#TEXT}"
+
+    log_no_lf "${BLANK_HELPER:0:$(( (AVAILABLE_LEN-TEXT_LEN) / 2 ))}"
+    log_no_lf "$TEXT"
+    log_no_lf "${BLANK_HELPER:0:$(( AVAILABLE_LEN - (AVAILABLE_LEN-TEXT_LEN) / 2 - TEXT_LEN ))}"
+}
+
 log() {
     log_no_lf "$@
 "
 }
 
 hline() {
-    log "  +------------------+--------+--------+--------+--------+--------+"
+    local KIND="$1"
+
+    log_no_lf "  +------------------+"
+    for DATASET in "${ALL_DATASETS[@]}"
+    do
+        if [ "${DATASET_VISIBILITIES["$DATASET"]}" = "yes" ]
+        then
+            local DATASET_HLINE="${DATASET_HLINES["$DATASET"]}"
+            if [ "$KIND" = "first" ]
+            then
+                DATASET_HLINE="${DATASET_HLINE//+-/--}"
+            fi
+            log_no_lf "${DATASET_HLINE}"
+        fi
+    done
+    log
 }
 
-log_partition_status() {
+first_caption_line() {
+    local DATASET
+
+    log_no_lf "  |                  |"
+    for DATASET in "${ALL_DATASETS[@]}"
+    do
+        if [ "${DATASET_VISIBILITIES["$DATASET"]}" = "yes" ]
+        then
+            local DATASET_CAPTION="${DATASET_CAPTIONS["$DATASET"]}"
+            local DATASET_CAPTION_LEN="${#DATASET_CAPTION}"
+            log_no_lf_centered "$DATASET" $((DATASET_CAPTION_LEN-1))
+            log_no_lf "|"
+        fi
+    done
+    log
+}
+
+second_caption_line() {
+    local DATASET
+
+    log_no_lf "  | Hour             |"
+    for DATASET in "${ALL_DATASETS[@]}"
+    do
+        if [ "${DATASET_VISIBILITIES["$DATASET"]}" = "yes" ]
+        then
+            log_no_lf "${DATASET_CAPTIONS["$DATASET"]}"
+        fi
+    done
+    log
+}
+
+dump_dataset_raw_webrequest_partition() {
+
     local DATE_HDFS_PADDED="$1"
     local SOURCE="$2"
     local STATUS="X"
 
     local DATE_HDFS_UNPADDED="${DATE_HDFS_PADDED///0//}"
 
-    STATISTICS_FILE_ABS="$WEBREQUEST_STATISTICS_DIR_ABS/$SOURCE/$DATE_HDFS_UNPADDED/000000_0"
+    STATISTICS_FILE_ABS="$RAW_WEBREQUEST_STATISTICS_DIR_ABS/$SOURCE/$DATE_HDFS_UNPADDED/000000_0"
     if [ -e "$STATISTICS_FILE_ABS" -a ! -s "$STATISTICS_FILE_ABS" ]
     then
         STATUS="."
     else
-        if [ -e "$WEBREQUEST_DATA_DIR_ABS/webrequest_$SOURCE/hourly/$DATE_HDFS_PADDED/_SUCCESS" ]
+        if [ -e "$RAW_WEBREQUEST_DATA_DIR_ABS/webrequest_$SOURCE/hourly/$DATE_HDFS_PADDED/_SUCCESS" ]
         then
             STATUS="M"
         else
@@ -111,20 +236,34 @@ log_partition_status() {
     log_no_lf "$STATUS"
 }
 
-hline
-log "  | Date             |  bits  |  misc  | mobile |  text  | upload |"
+dump_dataset_raw_webrequest() {
+    local DATE="$1"
+
+    local DATE_HDFS_PADDED="$(date --utc -d "$DATE" +'%Y/%m/%d/%H')"
+
+    for SOURCE in bits misc mobile text upload
+    do
+        log_no_lf "    "
+        dump_dataset_raw_webrequest_partition "$DATE_HDFS_PADDED" "$SOURCE"
+        log_no_lf "   |"
+    done
+}
+
+hline "first"
+first_caption_line
+second_caption_line
 hline
 
 for HOURS_OFFSET in $(seq $HOUR_OFFSET_MAX -1 $HOUR_OFFSET_MIN )
 do
-    DATE="$(date --utc -d "$HOURS_OFFSET hours-ago" +'%Y-%m-%dT%H/1H')"
-    DATE_HDFS_PADDED="$(date --utc -d "$HOURS_OFFSET hours ago" +'%Y/%m/%d/%H')"
-    log_no_lf "  | $DATE |"
-    for SOURCE in bits misc mobile text upload
+    DATE="$(date --utc -d "$HOURS_OFFSET hours-ago" +'%Y-%m-%d %H')"
+    log_no_lf "  | ${DATE// /T}/1H |"
+    for DATASET in "${ALL_DATASETS[@]}"
     do
-        log_no_lf "    "
-        log_partition_status "$DATE_HDFS_PADDED" "$SOURCE"
-        log_no_lf "   |"
+        if [ "${DATASET_VISIBILITIES["$DATASET"]}" = "yes" ]
+        then
+            dump_dataset_$DATASET "$DATE"
+        fi
     done
     log
 done
