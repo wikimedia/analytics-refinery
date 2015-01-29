@@ -16,6 +16,7 @@ Options:
                   -- Select the datasets to output data for.
                      The following datasets are available:
                        pagecounts-all-sites -- pagecounts-all-sites (hourly)
+                       pagecounts-raw       -- pagecounts-raw (hourly)
                        raw_webrequest       -- Raw webrequest (hourly)
                        webrequest           -- webrequest (refined tables) (hourly)
                        all                  -- all of the above
@@ -58,6 +59,7 @@ add_dataset() {
 }
 
 add_dataset "pagecounts_all_sites" " file name date  |  page   | project |"
+add_dataset "pagecounts_raw" " file name date  |  page   | project |"
 add_dataset "raw_webrequest" "  bits  |  misc  | mobile |  text  | upload |"
 add_dataset "webrequest" "  bits  |  misc  | mobile |  text  | upload |"
 
@@ -247,7 +249,7 @@ dump_dataset_pagecounts_file() {
 
 dump_dataset_pagecounts_all_sites() {
     local DATE="$1"
-    local DATASET="pagecounts_all_sites"
+    local DATASET="${2:-pagecounts_all_sites}"
 
     log_no_lf " $(date --utc -d "$DATE 1 hour" +'%Y%m%d-%H0000') |"
     for KIND in page project
@@ -256,6 +258,11 @@ dump_dataset_pagecounts_all_sites() {
         dump_dataset_pagecounts_file "$DATASET" "$KIND"
         log_no_lf "    |"
     done
+}
+
+dump_dataset_pagecounts_raw() {
+    local DATE="$1"
+    dump_dataset_pagecounts_all_sites "$DATE" "pagecounts_raw"
 }
 
 dump_dataset_raw_webrequest_partition() {
