@@ -35,6 +35,12 @@
 
     <controls>
         <!--
+        By having materialized jobs not timeout, we ease backfilling incidents
+        after recoverable hiccups on the dataset producers.
+        -->
+        <timeout>-1</timeout>
+
+        <!--
         Refining is not too cheap, so we limit
         concurrency.
 
