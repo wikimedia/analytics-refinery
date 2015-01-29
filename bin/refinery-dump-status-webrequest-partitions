@@ -15,9 +15,10 @@ Options:
   --datasets DATASET1,DATASET2,...
                   -- Select the datasets to output data for.
                      The following datasets are available:
-                       raw_webrequest    -- Raw webrequest (hourly)
-                       webrequest        -- webrequest (refined tables) (hourly)
-                       all               -- all of the above
+                       pagecounts-all-sites -- pagecounts-all-sites (hourly)
+                       raw_webrequest       -- Raw webrequest (hourly)
+                       webrequest           -- webrequest (refined tables) (hourly)
+                       all                  -- all of the above
 
                      By default, only "raw_webrequest" is shown.
 
@@ -56,6 +57,7 @@ add_dataset() {
     DATASET_VISIBILITIES["$DATASET"]=no
 }
 
+add_dataset "pagecounts_all_sites" " file name date  |  page   | project |"
 add_dataset "raw_webrequest" "  bits  |  misc  | mobile |  text  | upload |"
 add_dataset "webrequest" "  bits  |  misc  | mobile |  text  | upload |"
 
@@ -98,9 +100,9 @@ do
                         FOUND_DATASET=no
                         for INNER_DATASET in "${ALL_DATASETS[@]}"
                         do
-                            if [ "$DATASET" = "$INNER_DATASET" ]
+                            if [ "${DATASET//-/_}" = "$INNER_DATASET" ]
                             then
-                                DATASET_VISIBILITIES["$DATASET"]=yes
+                                DATASET_VISIBILITIES["$INNER_DATASET"]=yes
                                 FOUND_DATASET=yes
                             fi
                         done
@@ -135,6 +137,7 @@ done
 RAW_WEBREQUEST_DATA_DIR_ABS="$HDFS_MOUNT_DIR_ABS/wmf/data/raw/webrequest"
 RAW_WEBREQUEST_STATISTICS_DIR_ABS="$HDFS_MOUNT_DIR_ABS/wmf/data/raw/webrequests_faulty_hosts"
 WEBREQUEST_DATA_DIR_ABS="$HDFS_MOUNT_DIR_ABS/wmf/data/wmf/webrequest"
+ARCHIVE_DATA_DIR_ABS="$HDFS_MOUNT_DIR_ABS/wmf/data/archive"
 
 log_no_lf() {
     if [ -n "$QUIET" ]
@@ -216,6 +219,43 @@ second_caption_line() {
         fi
     done
     log
+}
+
+dump_dataset_pagecounts_file() {
+    local DATASET="$1"
+    local KIND="$2"
+
+    local STATUS="X"
+
+    if [ "$KIND" = page ]
+    then
+        FILE_ENDING=".gz"
+    else
+        FILE_ENDING=""
+    fi
+
+    FILE_DATE_PART="$(date --utc -d "$DATE 1 hour" +"%Y/%Y-%m/${KIND}counts-%Y%m%d-%H0000")"
+
+    FILE_ABS="$ARCHIVE_DATA_DIR_ABS/${DATASET//_/-}/$FILE_DATE_PART$FILE_ENDING"
+
+    if [ -e "$FILE_ABS" ]
+    then
+        STATUS="."
+    fi
+    log_no_lf "$STATUS"
+}
+
+dump_dataset_pagecounts_all_sites() {
+    local DATE="$1"
+    local DATASET="pagecounts_all_sites"
+
+    log_no_lf " $(date --utc -d "$DATE 1 hour" +'%Y%m%d-%H0000') |"
+    for KIND in page project
+    do
+        log_no_lf "    "
+        dump_dataset_pagecounts_file "$DATASET" "$KIND"
+        log_no_lf "    |"
+    done
 }
 
 dump_dataset_raw_webrequest_partition() {
