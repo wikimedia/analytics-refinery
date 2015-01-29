@@ -176,7 +176,7 @@ log() {
 hline() {
     local KIND="$1"
 
-    log_no_lf "  +------------------+"
+    log_no_lf "  ++------------------++"
     for DATASET in "${ALL_DATASETS[@]}"
     do
         if [ "${DATASET_VISIBILITIES["$DATASET"]}" = "yes" ]
@@ -186,7 +186,7 @@ hline() {
             then
                 DATASET_HLINE="${DATASET_HLINE//+-/--}"
             fi
-            log_no_lf "${DATASET_HLINE}"
+            log_no_lf "${DATASET_HLINE}+"
         fi
     done
     log
@@ -195,7 +195,7 @@ hline() {
 first_caption_line() {
     local DATASET
 
-    log_no_lf "  |                  |"
+    log_no_lf "  ||                  ||"
     for DATASET in "${ALL_DATASETS[@]}"
     do
         if [ "${DATASET_VISIBILITIES["$DATASET"]}" = "yes" ]
@@ -203,7 +203,7 @@ first_caption_line() {
             local DATASET_CAPTION="${DATASET_CAPTIONS["$DATASET"]}"
             local DATASET_CAPTION_LEN="${#DATASET_CAPTION}"
             log_no_lf_centered "$DATASET" $((DATASET_CAPTION_LEN-1))
-            log_no_lf "|"
+            log_no_lf "||"
         fi
     done
     log
@@ -212,12 +212,13 @@ first_caption_line() {
 second_caption_line() {
     local DATASET
 
-    log_no_lf "  | Hour             |"
+    log_no_lf "  || Hour             ||"
     for DATASET in "${ALL_DATASETS[@]}"
     do
         if [ "${DATASET_VISIBILITIES["$DATASET"]}" = "yes" ]
         then
             log_no_lf "${DATASET_CAPTIONS["$DATASET"]}"
+            log_no_lf "|"
         fi
     done
     log
@@ -328,12 +329,13 @@ hline
 for HOURS_OFFSET in $(seq $HOUR_OFFSET_MAX -1 $HOUR_OFFSET_MIN )
 do
     DATE="$(date --utc -d "$HOURS_OFFSET hours-ago" +'%Y-%m-%d %H')"
-    log_no_lf "  | ${DATE// /T}/1H |"
+    log_no_lf "  || ${DATE// /T}/1H ||"
     for DATASET in "${ALL_DATASETS[@]}"
     do
         if [ "${DATASET_VISIBILITIES["$DATASET"]}" = "yes" ]
         then
             dump_dataset_$DATASET "$DATE"
+            log_no_lf "|"
         fi
     done
     log
