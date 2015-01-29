@@ -16,7 +16,11 @@ Options:
                   -- Select the datasets to output data for.
                      The following datasets are available:
                        raw_webrequest    -- Raw webrequest (hourly)
+                       webrequest        -- webrequest (refined tables) (hourly)
                        all               -- all of the above
+
+                     By default, only "raw_webrequest" is shown.
+
   --quiet         -- Only produce output, if there are faulty partitions
 
 HOURS_TO_GO_BACK  -- number of hours to go back in time. (Default: 51)
@@ -53,6 +57,7 @@ add_dataset() {
 }
 
 add_dataset "raw_webrequest" "  bits  |  misc  | mobile |  text  | upload |"
+add_dataset "webrequest" "  bits  |  misc  | mobile |  text  | upload |"
 
 DATASET_VISIBILITIES["raw_webrequest"]=yes
 
@@ -129,6 +134,7 @@ done
 
 RAW_WEBREQUEST_DATA_DIR_ABS="$HDFS_MOUNT_DIR_ABS/wmf/data/raw/webrequest"
 RAW_WEBREQUEST_STATISTICS_DIR_ABS="$HDFS_MOUNT_DIR_ABS/wmf/data/raw/webrequests_faulty_hosts"
+WEBREQUEST_DATA_DIR_ABS="$HDFS_MOUNT_DIR_ABS/wmf/data/wmf/webrequest"
 
 log_no_lf() {
     if [ -n "$QUIET" ]
@@ -246,6 +252,24 @@ dump_dataset_raw_webrequest() {
         log_no_lf "    "
         dump_dataset_raw_webrequest_partition "$DATE_HDFS_PADDED" "$SOURCE"
         log_no_lf "   |"
+    done
+}
+
+dump_dataset_webrequest() {
+    local DATE="$1"
+
+    local DATE_DIRS_REL="$(date --utc -d "$DATE" +'year=%Y/month=%m/day=%d/hour=%H')"
+    DATE_DIRS_REL="${DATE_DIRS_REL//=0/=}"
+
+    for SOURCE in bits misc mobile text upload
+    do
+        local STATUS="X"
+        SUCCESS_FILE_ABS="$WEBREQUEST_DATA_DIR_ABS/webrequest_source=$SOURCE/$DATE_DIRS_REL/_SUCCESS"
+        if [ -e "$SUCCESS_FILE_ABS" ]
+        then
+            STATUS="."
+        fi
+        log_no_lf "    $STATUS   |"
     done
 }
 
