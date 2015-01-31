@@ -5,7 +5,10 @@ SET mapreduce.output.fileoutputformat.compress.codec=org.apache.hadoop.io.compre
 -- Generates a TSV for GLAM with _NARA_ in the URL
 --
 -- Parameters:
---     destination_directory -- Directory in HDFS where to store the generated
+--     artifacts_directory
+--                       -- Directory in HDFS containing the refinery-hive.jar
+--     destination_directory
+--                       -- Directory in HDFS where to store the generated
 --                          data in.
 --     webrequest_table  -- table containing webrequests
 --     year              -- year of the to-be-generated hour
@@ -14,13 +17,17 @@ SET mapreduce.output.fileoutputformat.compress.codec=org.apache.hadoop.io.compre
 --
 --
 -- Usage:
---     hive -f generate_glam-nara_tsv.hql          \
---         -d destination_directory=/tmp/foo       \
---         -d webrequest_table=wmf_raw.webrequest  \
---         -d year=2014                            \
---         -d month=4                              \
+--     hive -f generate_glam-nara_tsv.hql                     \
+--         -d artifacts_directory=/path/to/refinery/artifacts \
+--         -d destination_directory=/tmp/foo                  \
+--         -d webrequest_table=wmf_raw.webrequest             \
+--         -d year=2014                                       \
+--         -d month=4                                         \
 --         -d day=1
 --
+
+ADD JAR ${artifacts_directory}/org/wikimedia/analytics/refinery/refinery-hive-0.0.4.jar;
+CREATE TEMPORARY FUNCTION geocode_country as 'org.wikimedia.analytics.refinery.hive.GeocodedCountryUDF';
 
 INSERT OVERWRITE DIRECTORY "${destination_directory}"
     -- Since "ROW FORMAT DELIMITED DELIMITED FIELDS TERMINATED BY ' '" only
@@ -41,8 +48,13 @@ INSERT OVERWRITE DIRECTORY "${destination_directory}"
                 CAST(sequence AS string),
                 dt,
                 CAST(time_firstbyte AS string),
-                CONCAT_WS('|', ip, 'XX'), -- TODO: Put geocoding UDF here,
-                                          -- once it is available.
+                CONCAT_WS('|', ip, geocode_country(ip)), -- This geocoding
+                    -- happens directly on the client ip without resolving
+                    -- X-Forwarded-For. While this is known to be off, it is
+                    -- what udp-filter did for the glam_nara tsvs on the udp2log
+                    -- pipeline. We mimick this behaviour 1:1 for now and leave
+                    -- improvements to the future, when there is a proper UDF
+                    -- that handles X-Forward-For resolvement.
                 CONCAT_WS('/', cache_status, http_status),
                 CAST(response_size AS string),
                 http_method,

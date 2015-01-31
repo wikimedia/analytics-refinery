@@ -21,6 +21,7 @@
         <property><name>webrequest_datasets_file</name></property>
         <property><name>webrequest_data_directory</name></property>
         <property><name>hive_site_xml</name></property>
+        <property><name>artifacts_directory</name></property>
         <property><name>workflow_file</name></property>
         <property><name>webrequest_table</name></property>
         <property><name>mark_directory_done_workflow_file</name></property>
@@ -89,6 +90,10 @@
                 <property>
                     <name>hive_site_xml</name>
                     <value>${hive_site_xml}</value>
+                </property>
+                <property>
+                    <name>artifacts_directory</name>
+                    <value>${artifacts_directory}</value>
                 </property>
                 <property>
                     <name>webrequest_table</name>

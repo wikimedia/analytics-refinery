@@ -22,6 +22,10 @@
             <description>hive-site.xml file path in HDFS</description>
         </property>
         <property>
+            <name>artifacts_directory</name>
+            <description>Path in HDFS to artifacts.  refinery-hive.jar should be here.</description>
+        </property>
+        <property>
             <name>webrequest_table</name>
             <description>
                 Hive table to read webrequest data from.
@@ -86,6 +90,7 @@
 
             <script>generate_${aspect_name}_tsv.hql</script>
 
+            <param>artifacts_directory=${artifacts_directory}</param>
             <param>webrequest_table=${webrequest_table}</param>
             <param>destination_directory=${temporary_directory}/${wf:id()}-${aspect_name}</param>
             <param>year=${year}</param>
