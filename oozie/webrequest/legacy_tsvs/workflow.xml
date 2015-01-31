@@ -73,6 +73,15 @@
                     <name>mapreduce.job.queuename</name>
                     <value>${queue_name}</value>
                 </property>
+                <property>
+                    <!--
+                    Doubling available heap for maps from cluster-wide default
+                    of 592MB to 1184MB, as otherwise the 5xx and glam_nara tsvs
+                    run out of heap space.
+                    -->
+                    <name>mapreduce.map.java.opts</name>
+                    <value>-Xmx1184m</value>
+                </property>
             </configuration>
 
             <script>generate_${aspect_name}_tsv.hql</script>
