@@ -345,7 +345,7 @@ dump_dataset_legacy_tsvs() {
         local FILE_ABS="$ARCHIVE_DATA_DIR_ABS/webrequest/$BASE$SUFFIX"
         if [ -e "$FILE_ABS" ]
         then
-            STATUS="."
+            STATUS="_"
         fi
         log_no_lf "     $STATUS     |"
     done
@@ -370,7 +370,7 @@ dump_dataset_pagecounts_file() {
 
     if [ -e "$FILE_ABS" ]
     then
-        STATUS="."
+        STATUS="_"
     fi
     log_no_lf "$STATUS"
 }
@@ -442,7 +442,7 @@ dump_dataset_webrequest() {
         SUCCESS_FILE_ABS="$WEBREQUEST_DATA_DIR_ABS/webrequest_source=$SOURCE/$DATE_DIRS_REL/_SUCCESS"
         if [ -e "$SUCCESS_FILE_ABS" ]
         then
-            STATUS="."
+            STATUS="_"
         fi
         log_no_lf "    $STATUS   |"
     done
@@ -523,7 +523,8 @@ log "
 
 Statuses:
 
-  . --> Dataset entry is present (does not imply quality guarantees)
+  . --> Dataset entry passed automated checks
+  _ --> Dataset entry is present (does not imply quality guarantees)
   M --> Dataset entry manually marked ok
   X --> Dataset entry is known to not be ok
 
