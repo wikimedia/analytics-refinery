@@ -12,6 +12,8 @@ Options:
   --hdfs-mount MOUNT_POINT
                   -- Assume that HDFS is mounted at MOUNT_POINT (needs
                      to be an absolute path) instead of /mnt/hdfs .
+  --mark-day-changes
+                  -- Adds a hline between days.
   --datasets DATASET1,DATASET2,...
                   -- Select the datasets to output data for.
                      The following datasets are available:
@@ -39,6 +41,8 @@ HDFS_MOUNT_DIR_ABS=/mnt/hdfs
 HAS_FAULTY=
 QUIET=
 QUIET_BUFFER=
+
+MARK_DAY_CHANGES=no
 
 ALL_DATASETS=()
 
@@ -121,6 +125,9 @@ do
             [[ $# -gt 0 ]] || error "$PARAM expects a further parameter"
             HDFS_MOUNT_DIR_ABS="$1"
             shift
+            ;;
+        "--mark-day-changes" )
+            MARK_DAY_CHANGES=yes
             ;;
         "--quiet" )
             QUIET=yes
@@ -329,6 +336,13 @@ hline
 for HOURS_OFFSET in $(seq $HOUR_OFFSET_MAX -1 $HOUR_OFFSET_MIN )
 do
     DATE="$(date --utc -d "$HOURS_OFFSET hours-ago" +'%Y-%m-%d %H')"
+
+    # -- Mark day change if requested
+    if [ "$MARK_DAY_CHANGES" = "yes" -a "${DATE: -2}" = "00" -a "$HOURS_OFFSET" != "$HOUR_OFFSET_MAX" ]
+    then
+        hline
+    fi
+
     log_no_lf "  || ${DATE// /T}/1H ||"
     for DATASET in "${ALL_DATASETS[@]}"
     do
