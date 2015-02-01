@@ -361,9 +361,9 @@ log "
 
 Statuses:
 
-  . --> Partition is ok
-  M --> Partition manually marked ok
-  X --> Partition is not ok (duplicates, missing, or nulls)
+  . --> Dataset entry is present (does not imply quality guarantees)
+  M --> Dataset entry manually marked ok
+  X --> Dataset entry is known to not be ok
 
 
 "
