@@ -46,26 +46,32 @@ MARK_DAY_CHANGES=no
 
 ALL_DATASETS=()
 
+declare -A DATASET_RECURRENCES
 declare -A DATASET_CAPTIONS
 declare -A DATASET_HLINES
+declare -A DATASET_BLANKS
 declare -A DATASET_VISIBILITIES
 
 add_dataset() {
     local DATASET="$1"
-    local DATASET_CAPTION="$2"
+    local DATASET_RECURRENCE="$2"
+    local DATASET_CAPTION="$3"
     local DATASET_HLINE="$(sed -e 's/[^|]/-/g; s/|/+/g' <<<"$DATASET_CAPTION")"
+    local DATASET_BLANK="${DATASET_HLINE//-/ }" ; DATASET_BLANK="${DATASET_BLANK//+/|}"
 
     ALL_DATASETS=( "${ALL_DATASETS[@]}" "$DATASET" )
 
+    DATASET_RECURRENCES["$DATASET"]="$DATASET_RECURRENCE"
     DATASET_CAPTIONS["$DATASET"]="$DATASET_CAPTION"
     DATASET_HLINES["$DATASET"]="$DATASET_HLINE"
+    DATASET_BLANKS["$DATASET"]="$DATASET_BLANK"
     DATASET_VISIBILITIES["$DATASET"]=no
 }
 
-add_dataset "pagecounts_all_sites" " file name date  |  page   | project |"
-add_dataset "pagecounts_raw" " file name date  |  page   | project |"
-add_dataset "raw_webrequest" "  bits  |  misc  | mobile |  text  | upload |"
-add_dataset "webrequest" "  bits  |  misc  | mobile |  text  | upload |"
+add_dataset "pagecounts_all_sites" "hourly" " file name date  |  page   | project |"
+add_dataset "pagecounts_raw" "hourly" " file name date  |  page   | project |"
+add_dataset "raw_webrequest" "hourly" "  bits  |  misc  | mobile |  text  | upload |"
+add_dataset "webrequest" "hourly" "  bits  |  misc  | mobile |  text  | upload |"
 
 DATASET_VISIBILITIES["raw_webrequest"]=yes
 
@@ -183,52 +189,138 @@ log() {
 hline() {
     local KIND="$1"
 
-    log_no_lf "  ++------------------++"
-    for DATASET in "${ALL_DATASETS[@]}"
-    do
-        if [ "${DATASET_VISIBILITIES["$DATASET"]}" = "yes" ]
-        then
-            local DATASET_HLINE="${DATASET_HLINES["$DATASET"]}"
-            if [ "$KIND" = "first" ]
+    log_no_lf "  "
+
+    # daily datasets first
+    if [ "$HAS_VISIBLE_DAILY_DATASETS" = yes ]
+    then
+        log_no_lf "++---------------++"
+        for DATASET in "${ALL_DATASETS[@]}"
+        do
+            if [ "${DATASET_VISIBILITIES["$DATASET"]}" = "yes" -a "${DATASET_RECURRENCES["$DATASET"]}" = "daily" ]
             then
-                DATASET_HLINE="${DATASET_HLINE//+-/--}"
+                local DATASET_HLINE="${DATASET_HLINES["$DATASET"]}"
+                if [ "$KIND" = "first" ]
+                then
+                    DATASET_HLINE="${DATASET_HLINE//+-/--}"
+                fi
+                log_no_lf "${DATASET_HLINE}+"
             fi
-            log_no_lf "${DATASET_HLINE}+"
-        fi
-    done
+        done
+    fi
+
+    # Now for the hourly datasets
+    if [ "$HAS_VISIBLE_HOURLY_DATASETS" = yes ]
+    then
+        log_no_lf "++------------------++"
+        for DATASET in "${ALL_DATASETS[@]}"
+        do
+            if [ "${DATASET_VISIBILITIES["$DATASET"]}" = "yes" -a "${DATASET_RECURRENCES["$DATASET"]}" = "hourly" ]
+            then
+                local DATASET_HLINE="${DATASET_HLINES["$DATASET"]}"
+                if [ "$KIND" = "first" ]
+                then
+                    DATASET_HLINE="${DATASET_HLINE//+-/--}"
+                fi
+                log_no_lf "${DATASET_HLINE}+"
+            fi
+        done
+    fi
     log
 }
 
 first_caption_line() {
     local DATASET
 
-    log_no_lf "  ||                  ||"
-    for DATASET in "${ALL_DATASETS[@]}"
-    do
-        if [ "${DATASET_VISIBILITIES["$DATASET"]}" = "yes" ]
-        then
-            local DATASET_CAPTION="${DATASET_CAPTIONS["$DATASET"]}"
-            local DATASET_CAPTION_LEN="${#DATASET_CAPTION}"
-            log_no_lf_centered "$DATASET" $((DATASET_CAPTION_LEN-1))
-            log_no_lf "||"
-        fi
-    done
+    log_no_lf "  "
+
+    # daily datasets first
+    if [ "$HAS_VISIBLE_DAILY_DATASETS" = yes ]
+    then
+        log_no_lf "||               ||"
+        for DATASET in "${ALL_DATASETS[@]}"
+        do
+            if [ "${DATASET_VISIBILITIES["$DATASET"]}" = "yes" -a "${DATASET_RECURRENCES["$DATASET"]}" = "daily" ]
+            then
+                local DATASET_CAPTION="${DATASET_CAPTIONS["$DATASET"]}"
+                local DATASET_CAPTION_LEN="${#DATASET_CAPTION}"
+                log_no_lf_centered "$DATASET" $((DATASET_CAPTION_LEN-1))
+                log_no_lf "||"
+            fi
+        done
+    fi
+
+    # Now for the hourly datasets
+    if [ "$HAS_VISIBLE_HOURLY_DATASETS" = yes ]
+    then
+        log_no_lf "||                  ||"
+        for DATASET in "${ALL_DATASETS[@]}"
+        do
+            if [ "${DATASET_VISIBILITIES["$DATASET"]}" = "yes" -a "${DATASET_RECURRENCES["$DATASET"]}" = "hourly" ]
+            then
+                local DATASET_CAPTION="${DATASET_CAPTIONS["$DATASET"]}"
+                local DATASET_CAPTION_LEN="${#DATASET_CAPTION}"
+                log_no_lf_centered "$DATASET" $((DATASET_CAPTION_LEN-1))
+                log_no_lf "||"
+            fi
+        done
+    fi
     log
 }
 
 second_caption_line() {
     local DATASET
 
-    log_no_lf "  || Hour             ||"
+    log_no_lf "  "
+
+    # daily datasets first
+    if [ "$HAS_VISIBLE_DAILY_DATASETS" = yes ]
+    then
+        log_no_lf "||      Day      ||"
+        for DATASET in "${ALL_DATASETS[@]}"
+        do
+            if [ "${DATASET_VISIBILITIES["$DATASET"]}" = "yes" -a "${DATASET_RECURRENCES["$DATASET"]}" = "daily" ]
+            then
+                log_no_lf "${DATASET_CAPTIONS["$DATASET"]}"
+                log_no_lf "|"
+            fi
+        done
+    fi
+
+    # Now for the hourly datasets
+    if [ "$HAS_VISIBLE_HOURLY_DATASETS" = yes ]
+    then
+        log_no_lf "||       Hour       ||"
+        for DATASET in "${ALL_DATASETS[@]}"
+        do
+            if [ "${DATASET_VISIBILITIES["$DATASET"]}" = "yes" -a "${DATASET_RECURRENCES["$DATASET"]}" = "hourly" ]
+            then
+                log_no_lf "${DATASET_CAPTIONS["$DATASET"]}"
+                log_no_lf "|"
+            fi
+        done
+    fi
+    log
+}
+
+determine_recurrence_visibility() {
+    HAS_VISIBLE_DAILY_DATASETS=no
+    HAS_VISIBLE_HOURLY_DATASETS=no
     for DATASET in "${ALL_DATASETS[@]}"
     do
         if [ "${DATASET_VISIBILITIES["$DATASET"]}" = "yes" ]
         then
-            log_no_lf "${DATASET_CAPTIONS["$DATASET"]}"
-            log_no_lf "|"
+            if [ "${DATASET_RECURRENCES["$DATASET"]}" = "daily" ]
+            then
+                HAS_VISIBLE_DAILY_DATASETS=yes
+            elif [ "${DATASET_RECURRENCES["$DATASET"]}" = "hourly" ]
+            then
+                HAS_VISIBLE_HOURLY_DATASETS=yes
+            else
+                error "Unknown recurrence '${DATASET_RECURRENCES["$DATASET"]}' for dataset '$DATASET'"
+            fi
         fi
     done
-    log
 }
 
 dump_dataset_pagecounts_file() {
@@ -328,6 +420,8 @@ dump_dataset_webrequest() {
     done
 }
 
+determine_recurrence_visibility
+
 hline "first"
 first_caption_line
 second_caption_line
@@ -343,16 +437,55 @@ do
         hline
     fi
 
-    log_no_lf "  || ${DATE// /T}/1H ||"
-    for DATASET in "${ALL_DATASETS[@]}"
-    do
-        if [ "${DATASET_VISIBILITIES["$DATASET"]}" = "yes" ]
+    # Check if this hour produces output at all. If not, omit it
+    # completely. This omitting allows to not get superfluous 23 empty lines,
+    # when only daily datasets are visible.
+    if [ \( "$HAS_VISIBLE_DAILY_DATASETS" = yes -a "${DATE: -2}" = "00" \) \
+        -o "$HAS_VISIBLE_HOURLY_DATASETS" = yes ]
+    then
+
+        log_no_lf "  "
+
+        # daily datasets first
+        if [ "$HAS_VISIBLE_DAILY_DATASETS" = yes ]
         then
-            dump_dataset_$DATASET "$DATE"
-            log_no_lf "|"
+            if [ "${DATE: -2}" = "00" ]
+            then
+                log_no_lf "|| ${DATE:0:10}/1D ||"
+            else
+                log_no_lf "||               ||"
+            fi
+
+            for DATASET in "${ALL_DATASETS[@]}"
+            do
+                if [ "${DATASET_VISIBILITIES["$DATASET"]}" = "yes" -a "${DATASET_RECURRENCES["$DATASET"]}" = "daily" ]
+                then
+                    if [ "${DATE: -2}" = "00" ]
+                    then
+                        dump_dataset_$DATASET "$DATE"
+                    else
+                        log_no_lf "${DATASET_BLANKS["$DATASET"]]}"
+                    fi
+                    log_no_lf "|"
+                fi
+            done
         fi
-    done
-    log
+
+        # Now for the hourly datasets
+        if [ "$HAS_VISIBLE_HOURLY_DATASETS" = yes ]
+        then
+            log_no_lf "|| ${DATE// /T}/1H ||"
+            for DATASET in "${ALL_DATASETS[@]}"
+            do
+                if [ "${DATASET_VISIBILITIES["$DATASET"]}" = "yes" -a "${DATASET_RECURRENCES["$DATASET"]}" = "hourly" ]
+                then
+                    dump_dataset_$DATASET "$DATE"
+                    log_no_lf "|"
+                fi
+            done
+        fi
+        log
+    fi
 done
 
 hline
