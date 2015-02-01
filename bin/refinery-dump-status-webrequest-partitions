@@ -440,7 +440,8 @@ do
     # Check if this hour produces output at all. If not, omit it
     # completely. This omitting allows to not get superfluous 23 empty lines,
     # when only daily datasets are visible.
-    if [ \( "$HAS_VISIBLE_DAILY_DATASETS" = yes -a "${DATE: -2}" = "00" \) \
+    if [ \( "$HAS_VISIBLE_DAILY_DATASETS" = yes -a \
+            \( "${DATE: -2}" = "00" -o "$HOURS_OFFSET" = "$HOUR_OFFSET_MAX" \) \) \
         -o "$HAS_VISIBLE_HOURLY_DATASETS" = yes ]
     then
 
@@ -449,7 +450,7 @@ do
         # daily datasets first
         if [ "$HAS_VISIBLE_DAILY_DATASETS" = yes ]
         then
-            if [ "${DATE: -2}" = "00" ]
+            if [ "${DATE: -2}" = "00" -o "$HOURS_OFFSET" = "$HOUR_OFFSET_MAX" ]
             then
                 log_no_lf "|| ${DATE:0:10}/1D ||"
             else
@@ -460,7 +461,7 @@ do
             do
                 if [ "${DATASET_VISIBILITIES["$DATASET"]}" = "yes" -a "${DATASET_RECURRENCES["$DATASET"]}" = "daily" ]
                 then
-                    if [ "${DATE: -2}" = "00" ]
+                    if [ "${DATE: -2}" = "00"  -o "$HOURS_OFFSET" = "$HOUR_OFFSET_MAX" ]
                     then
                         dump_dataset_$DATASET "$DATE"
                     else
