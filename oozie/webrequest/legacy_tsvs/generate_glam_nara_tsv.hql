@@ -26,7 +26,7 @@ SET mapreduce.output.fileoutputformat.compress.codec=org.apache.hadoop.io.compre
 --         -d day=1
 --
 
-ADD JAR ${artifacts_directory}/org/wikimedia/analytics/refinery/refinery-hive-0.0.4.jar;
+ADD JAR ${artifacts_directory}/org/wikimedia/analytics/refinery/refinery-hive-0.0.5.jar;
 CREATE TEMPORARY FUNCTION geocode_country as 'org.wikimedia.analytics.refinery.hive.GeocodedCountryUDF';
 
 INSERT OVERWRITE DIRECTORY "${destination_directory}"
