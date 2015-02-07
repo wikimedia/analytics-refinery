@@ -8,6 +8,8 @@ SET mapreduce.output.fileoutputformat.compress.codec=org.apache.hadoop.io.compre
 --     destination_directory -- Directory in HDFS where to store the generated
 --                          data in.
 --     webrequest_table  -- table containing webrequests
+--     webrequest_sources -- Comma separated list of quoted webrequest_sources
+--                          to be used for generating data
 --     year              -- year of the to-be-generated hour
 --     month             -- month of the to-be-generated hour
 --     day               -- day of the to-be-generated hour
@@ -17,6 +19,7 @@ SET mapreduce.output.fileoutputformat.compress.codec=org.apache.hadoop.io.compre
 --     hive -f generate_api-usage_tsv.hql          \
 --         -d destination_directory=/tmp/foo       \
 --         -d webrequest_table=wmf_raw.webrequest  \
+--         -d webrequest_sources="'mobile'"        \
 --         -d year=2014                            \
 --         -d month=4                              \
 --         -d day=1
@@ -60,7 +63,7 @@ INSERT OVERWRITE DIRECTORY "${destination_directory}"
         -- covers only an hour worth of data. Hence, we resort to BUCKET
         -- sampling.
         FROM ${webrequest_table} TABLESAMPLE(BUCKET 1 OUT OF 100 ON rand())
-        WHERE webrequest_source IN ('mobile', 'text')
+        WHERE webrequest_source IN (${webrequest_sources})
             AND year=${year}
             AND month=${month}
             AND day=${day}

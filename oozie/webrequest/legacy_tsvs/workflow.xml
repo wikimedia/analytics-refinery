@@ -96,6 +96,26 @@
             <param>year=${year}</param>
             <param>month=${month}</param>
             <param>day=${day}</param>
+            <!--
+            We extract the needed webrequest_sources from the coordinator path
+            (which always exists in our setting).
+            This variable holds quoted strings, separated by commas. So for
+            example a coordinator path of
+
+              /path/to/coordinator_misc_mobile.xml
+
+            will get turned into
+
+              'misc', 'mobile'
+
+            . This allows to use the variable straight in HivQL via
+
+              [...] AND webrequest_source IN ( ${webrequest_source} )
+
+            and not worry about duplicating the dependencies between the
+            coordinator and the HiveQL file.
+            -->
+            <param>webrequest_sources=${replaceAll(replaceAll(wf:conf('oozie.coord.application.path'), '^.*/coordinator_([a-z_]*).xml', '\'$1\''),'_','\', \'')}</param>
         </hive>
         <ok to="mark_dataset_done"/>
         <error to="kill"/>

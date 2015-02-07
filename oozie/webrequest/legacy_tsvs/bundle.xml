@@ -30,6 +30,10 @@
     </parameters>
 
     <coordinator name="webrequest_legacy_tsvs-sampled-1000">
+        <!--
+        No 'bits', or 'misc', as the sampled-1000 was last produced on erbium's
+        udp2log stream, which did not receive those two webrequest_sources.
+        -->
         <app-path>${coordinator_mobile_text_upload_file}</app-path>
         <configuration>
             <property>
@@ -138,6 +142,7 @@
     </coordinator>
 
     <coordinator name="webrequest_legacy_tsvs-5xx">
+        <!-- TODO: Add 'bits', once it's turned on again -->
         <app-path>${coordinator_misc_mobile_text_file}</app-path>
         <configuration>
             <property>
