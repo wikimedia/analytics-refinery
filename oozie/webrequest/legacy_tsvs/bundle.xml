@@ -9,10 +9,13 @@
         </property>
 
         <!-- Required properties. -->
+        <property><name>coordinator_misc_file</name></property>
         <property><name>coordinator_misc_mobile_text_file</name></property>
         <property><name>coordinator_mobile_file</name></property>
         <property><name>coordinator_mobile_text_file</name></property>
         <property><name>coordinator_mobile_text_upload_file</name></property>
+        <property><name>coordinator_text_file</name></property>
+        <property><name>coordinator_upload_file</name></property>
         <property><name>name_node</name></property>
         <property><name>job_tracker</name></property>
         <property><name>start_time</name></property>
@@ -156,6 +159,80 @@
             <property>
                 <name>hour_offset</name>
                 <value>8</value>
+            </property>
+        </configuration>
+    </coordinator>
+
+    <!-- TODO: Add 'bits' per-source 5xx variant, once it's turned on again -->
+
+    <coordinator name="webrequest_legacy_tsvs-5xx-misc">
+        <app-path>${coordinator_misc_file}</app-path>
+        <configuration>
+            <property>
+                <name>aspect_name</name>
+                <value>5xx-misc</value>
+            </property>
+            <property>
+                <name>aspect_tsv_archive_directory</name>
+                <value>${webrequest_archive_directory}/5xx-misc</value>
+            </property>
+            <property>
+                <name>hour_offset</name>
+                <value>9</value>
+            </property>
+        </configuration>
+    </coordinator>
+
+    <coordinator name="webrequest_legacy_tsvs-5xx-mobile">
+        <app-path>${coordinator_mobile_file}</app-path>
+        <configuration>
+            <property>
+                <name>aspect_name</name>
+                <value>5xx-mobile</value>
+            </property>
+            <property>
+                <name>aspect_tsv_archive_directory</name>
+                <value>${webrequest_archive_directory}/5xx-mobile</value>
+            </property>
+            <property>
+                <name>hour_offset</name>
+                <value>10</value>
+            </property>
+        </configuration>
+    </coordinator>
+
+    <coordinator name="webrequest_legacy_tsvs-5xx-text">
+        <app-path>${coordinator_text_file}</app-path>
+        <configuration>
+            <property>
+                <name>aspect_name</name>
+                <value>5xx-text</value>
+            </property>
+            <property>
+                <name>aspect_tsv_archive_directory</name>
+                <value>${webrequest_archive_directory}/5xx-text</value>
+            </property>
+            <property>
+                <name>hour_offset</name>
+                <value>11</value>
+            </property>
+        </configuration>
+    </coordinator>
+
+    <coordinator name="webrequest_legacy_tsvs-5xx-upload">
+        <app-path>${coordinator_upload_file}</app-path>
+        <configuration>
+            <property>
+                <name>aspect_name</name>
+                <value>5xx-upload</value>
+            </property>
+            <property>
+                <name>aspect_tsv_archive_directory</name>
+                <value>${webrequest_archive_directory}/5xx-upload</value>
+            </property>
+            <property>
+                <name>hour_offset</name>
+                <value>12</value>
             </property>
         </configuration>
     </coordinator>
