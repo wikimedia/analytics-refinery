@@ -36,7 +36,7 @@ SET hive.enforce.bucketing           = true;
 -- table is clustered by.
 SET mapreduce.job.reduces            = 64;
 
-ADD JAR ${artifacts_directory}/refinery-hive.jar;
+ADD JAR ${artifacts_directory}/org/wikimedia/analytics/refinery/refinery-hive-0.0.6.jar;
 CREATE TEMPORARY FUNCTION is_pageview as 'org.wikimedia.analytics.refinery.hive.IsPageviewUDF';
 
 INSERT OVERWRITE TABLE ${destination_table}
