@@ -18,6 +18,7 @@ Options:
                   -- Select the datasets to output data for.
                      The following datasets are available:
                        legacy_tsvs          -- legacy webrequest TSVs (daily)
+                       mediacounts          -- mediacounts table data (hourly)
                        pagecounts-all-sites -- pagecounts-all-sites (hourly)
                        pagecounts-raw       -- pagecounts-raw (hourly)
                        raw_webrequest       -- Raw webrequest (hourly)
@@ -70,6 +71,7 @@ add_dataset() {
 }
 
 add_dataset "legacy_tsvs" "daily" "    5xx    | 5xx-bits  | 5xx-misc  |5xx-mobile | 5xx-text  |5xx-upload |    api    |   edits   | glam_nara |  mobile   |  sampled  |   zero    |"
+add_dataset "mediacounts" "daily" " mediacounts |"
 add_dataset "pagecounts_all_sites" "hourly" " file name date  |  page   | project |"
 add_dataset "pagecounts_raw" "hourly" " file name date  |  page   | project |"
 add_dataset "raw_webrequest" "hourly" "  bits  |  misc  | mobile |  text  | upload |"
@@ -357,6 +359,18 @@ dump_dataset_legacy_tsvs() {
         fi
         log_no_lf "     $STATUS     |"
     done
+}
+
+dump_dataset_mediacounts() {
+    local DATE="$1"
+
+    local STATUS="X"
+    local FILE_ABS="$ARCHIVE_DATA_DIR_ABS/mediacounts/daily/$(date --utc -d "$DATE" +"%Y/mediacounts.%Y-%m-%d").v00.tsv.bz2"
+    if [ -e "$FILE_ABS" ]
+    then
+        STATUS="_"
+    fi
+    log_no_lf "      $STATUS      |"
 }
 
 dump_dataset_pagecounts_file() {
