@@ -36,7 +36,9 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `webrequest`(
     `x_analytics`       string  COMMENT 'X-Analytics header of response',
     `range`             string  COMMENT 'Range header of response',
     `is_pageview`       boolean COMMENT 'Indicates if this record was marked as a pageview during refinement',
-    `record_version`    string  COMMENT 'Keeps track of changes in the table content definition - https://wikitech.wikimedia.org/wiki/Analytics/Data/Webrequest'
+    `record_version`    string  COMMENT 'Keeps track of changes in the table content definition - https://wikitech.wikimedia.org/wiki/Analytics/Data/Webrequest',
+    `client_ip`         string  COMMENT 'Client IP computed during refinement using ip and x_forwarded_for',
+    `geocoded_data`     map<string, string>  COMMENT 'Geoceded data computed during refinement using computed client ip and maxmind database'
 )
 PARTITIONED BY (
     `webrequest_source` string  COMMENT 'Source cluster',
@@ -46,8 +48,7 @@ PARTITIONED BY (
     `hour`              int     COMMENT 'Unpadded hour of request'
 )
 CLUSTERED BY(hostname, sequence) INTO 64 BUCKETS
-ROW FORMAT SERDE
-    'org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe'
-STORED AS PARQUETFILE
+STORED AS PARQUET
 LOCATION '/wmf/data/wmf/webrequest'
 ;
+

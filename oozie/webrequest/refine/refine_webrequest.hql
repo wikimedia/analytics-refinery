@@ -48,6 +48,8 @@ SET mapreduce.job.reduces            = 64;
 
 ADD JAR ${artifacts_directory}/org/wikimedia/analytics/refinery/refinery-hive-${refinery_jar_version}.jar;
 CREATE TEMPORARY FUNCTION is_pageview as 'org.wikimedia.analytics.refinery.hive.IsPageviewUDF';
+CREATE TEMPORARY FUNCTION client_ip as 'org.wikimedia.analytics.refinery.hive.ClientIpUDF';
+CREATE TEMPORARY FUNCTION geocoded_data as 'org.wikimedia.analytics.refinery.hive.GeocodedDataUDF';
 
 INSERT OVERWRITE TABLE ${destination_table}
     PARTITION(webrequest_source='${webrequest_source}',year=${year},month=${month},day=${day},hour=${hour})
@@ -72,7 +74,9 @@ INSERT OVERWRITE TABLE ${destination_table}
         x_analytics,
         range,
         is_pageview(uri_host, uri_path, uri_query, http_status, content_type, user_agent) as is_pageview,
-        '${record_version}' as record_version
+        '${record_version}' as record_version,
+        client_ip(ip, x_forwarded_for) as client_ip,
+        geocoded_data(client_ip(ip, x_forwarded_for)) as geocoded_data
     FROM
         ${source_table}
     WHERE
