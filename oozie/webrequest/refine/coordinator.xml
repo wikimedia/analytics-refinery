@@ -27,6 +27,7 @@
         <property><name>datasets_file</name></property>
 
         <property><name>hive_site_xml</name></property>
+        <property><name>refinery_jar_version</name></property>
         <property><name>artifacts_directory</name></property>
         <property><name>source_table</name></property>
         <property><name>destination_table</name></property>
@@ -112,6 +113,10 @@
                 <property>
                     <name>hive_site_xml</name>
                     <value>${hive_site_xml}</value>
+                </property>
+                <property>
+                    <name>refinery_jar_version</name>
+                    <value>${refinery_jar_version}</value>
                 </property>
                 <property>
                     <name>artifacts_directory</name>

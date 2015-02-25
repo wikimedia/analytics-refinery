@@ -1,4 +1,9 @@
 -- Parameters:
+--     refinery_jar_version
+--                       -- Version of the jar to import for UDFs
+--     artifacts_directory
+--                       -- The artifact directory where to find
+--                          jar files to import for UDFs
 --     source_table      -- Fully qualified table name to compute the
 --                          statistics for.
 --     destination_table -- Fully qualified table name to stopre the
@@ -19,6 +24,8 @@
 --
 -- Usage:
 --     hive -f refine_webrequest.hql                              \
+--         -d refinery_jar_version=0.0.7                     \
+--         -d artifacts_directory=/wmf/refinery/current/artifacts \
 --         -d source_table=wmf_raw.webrequest                     \
 --         -d destination_table=wmf.webrequest                    \
 --         -d webrequest_source=text                              \
@@ -39,7 +46,7 @@ SET hive.enforce.bucketing           = true;
 -- table is clustered by.
 SET mapreduce.job.reduces            = 64;
 
-ADD JAR ${artifacts_directory}/org/wikimedia/analytics/refinery/refinery-hive-0.0.6.jar;
+ADD JAR ${artifacts_directory}/org/wikimedia/analytics/refinery/refinery-hive-${refinery_jar_version}.jar;
 CREATE TEMPORARY FUNCTION is_pageview as 'org.wikimedia.analytics.refinery.hive.IsPageviewUDF';
 
 INSERT OVERWRITE TABLE ${destination_table}

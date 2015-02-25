@@ -24,6 +24,10 @@
             <description>hive-site.xml file path in HDFS</description>
         </property>
         <property>
+            <name>refinery_jar_version</name>
+            <value>Version of the refinery-hive jar file to import for UDFs</value>
+        </property>
+        <property>
             <name>artifacts_directory</name>
             <description>Path in HDFS to artifacts.  refinery-hive.jar should be here.</description>
         </property>
@@ -88,6 +92,7 @@
             </configuration>
 
             <script>${hive_script}</script>
+            <param>refinery_jar_version=${refinery_jar_version}</param>
             <param>artifacts_directory=${artifacts_directory}</param>
             <param>source_table=${source_table}</param>
             <param>destination_table=${destination_table}</param>
