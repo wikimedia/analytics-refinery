@@ -31,6 +31,7 @@
         <property><name>source_table</name></property>
         <property><name>destination_table</name></property>
         <property><name>webrequest_source</name></property>
+        <property><name>record_version</name></property>
     </parameters>
 
     <controls>
@@ -127,6 +128,10 @@
                 <property>
                     <name>webrequest_source</name>
                     <value>${webrequest_source}</value>
+                </property>
+                <property>
+                    <name>record_version</name>
+                    <value>${record_version}</value>
                 </property>
                 <property>
                     <name>year</name>

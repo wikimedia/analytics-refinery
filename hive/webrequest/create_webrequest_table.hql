@@ -35,7 +35,8 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `webrequest`(
     `accept_language`   string  COMMENT 'Accept-Language header of request',
     `x_analytics`       string  COMMENT 'X-Analytics header of response',
     `range`             string  COMMENT 'Range header of response',
-    `is_pageview`       boolean COMMENT 'Indicates if this record was marked as a pageview during refinement'
+    `is_pageview`       boolean COMMENT 'Indicates if this record was marked as a pageview during refinement',
+    `record_version`    string  COMMENT 'Keeps track of changes in the table content definition - https://wikitech.wikimedia.org/wiki/Analytics/Data/Webrequest'
 )
 PARTITIONED BY (
     `webrequest_source` string  COMMENT 'Source cluster',

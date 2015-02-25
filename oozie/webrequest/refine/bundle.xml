@@ -27,6 +27,7 @@
         <property><name>artifacts_directory</name></property>
         <property><name>source_table</name></property>
         <property><name>destination_table</name></property>
+        <property><name>record_version</name></property>
     </parameters>
 
     <coordinator name='refine-webrequest_bits'>

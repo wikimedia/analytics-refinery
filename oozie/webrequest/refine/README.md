@@ -18,4 +18,7 @@ stored in Parquet format.
 Note that this job uses the checked dataset.  If a raw webrequest import
 does not have the _SUCCESS done-flag in the directory, the data for that
 hour will not be refined until it does.
+
+Please update the record_version if you change the table content definition
+and/or schema.
 _

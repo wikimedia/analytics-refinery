@@ -6,6 +6,8 @@
 --                          have schema described in [1].
 --     webrequest_source -- webrequest_source of partition to compute
 --                          statistics for.
+--     record_version    -- record_version keeping track of changes
+--                          in the table content definition.
 --     year              -- year of partition to compute statistics
 --                          for.
 --     month             -- month of partition to compute statistics
@@ -20,6 +22,7 @@
 --         -d source_table=wmf_raw.webrequest                     \
 --         -d destination_table=wmf.webrequest                    \
 --         -d webrequest_source=text                              \
+--         -d record_version=0.0.1                                \
 --         -d year=2014                                           \
 --         -d month=12                                            \
 --         -d day=30                                              \
@@ -61,7 +64,8 @@ INSERT OVERWRITE TABLE ${destination_table}
         accept_language,
         x_analytics,
         range,
-        is_pageview(uri_host, uri_path, uri_query, http_status, content_type, user_agent) as is_pageview
+        is_pageview(uri_host, uri_path, uri_query, http_status, content_type, user_agent) as is_pageview,
+        '${record_version}' as record_version
     FROM
         ${source_table}
     WHERE

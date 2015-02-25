@@ -40,6 +40,10 @@
             <description>The partition's webrequest_source</description>
         </property>
         <property>
+            <name>record_version</name>
+            <description>The record_version at the given moment</description>
+        </property>
+        <property>
             <name>year</name>
             <description>The partition's year</description>
         </property>
@@ -88,6 +92,7 @@
             <param>source_table=${source_table}</param>
             <param>destination_table=${destination_table}</param>
             <param>webrequest_source=${webrequest_source}</param>
+            <param>record_version=${record_version}</param>
             <param>year=${year}</param>
             <param>month=${month}</param>
             <param>day=${day}</param>
