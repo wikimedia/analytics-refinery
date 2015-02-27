@@ -236,6 +236,23 @@ hline() {
     log
 }
 
+first_caption_line_dataset() {
+    local DATASET="$1"
+    local DATASET_CAPTION="${DATASET_CAPTIONS["$DATASET"]}"
+    local DATASET_CAPTION_LEN="${#DATASET_CAPTION}"
+
+    local CAPTION="$DATASET"
+
+    if [ "$DATASET_CAPTION" = " $CAPTION |" ]
+    then
+        # First and second caption line would agree, hence we skip the first
+        # one, to get a more compact look of the table
+        CAPTION=""
+    fi
+    log_no_lf_centered "$CAPTION" $((DATASET_CAPTION_LEN-1))
+    log_no_lf "||"
+}
+
 first_caption_line() {
     local DATASET
 
@@ -249,10 +266,7 @@ first_caption_line() {
         do
             if [ "${DATASET_VISIBILITIES["$DATASET"]}" = "yes" -a "${DATASET_RECURRENCES["$DATASET"]}" = "daily" ]
             then
-                local DATASET_CAPTION="${DATASET_CAPTIONS["$DATASET"]}"
-                local DATASET_CAPTION_LEN="${#DATASET_CAPTION}"
-                log_no_lf_centered "$DATASET" $((DATASET_CAPTION_LEN-1))
-                log_no_lf "||"
+                first_caption_line_dataset "$DATASET"
             fi
         done
     fi
@@ -265,10 +279,7 @@ first_caption_line() {
         do
             if [ "${DATASET_VISIBILITIES["$DATASET"]}" = "yes" -a "${DATASET_RECURRENCES["$DATASET"]}" = "hourly" ]
             then
-                local DATASET_CAPTION="${DATASET_CAPTIONS["$DATASET"]}"
-                local DATASET_CAPTION_LEN="${#DATASET_CAPTION}"
-                log_no_lf_centered "$DATASET" $((DATASET_CAPTION_LEN-1))
-                log_no_lf "||"
+                first_caption_line_dataset "$DATASET"
             fi
         done
     fi
