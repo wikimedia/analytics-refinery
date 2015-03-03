@@ -1,0 +1,101 @@
+<coordinator-app xmlns="uri:oozie:coordinator:0.4"
+    name="mobile_apps_uniques_monthly-coord"
+    frequency="${coord:months(1)}"
+    start="${start_time}"
+    end="${stop_time}"
+    timezone="Universal">
+    <parameters>
+        <property>
+            <name>queue_name</name>
+            <value>default</value>
+        </property>
+
+        <!-- Required properties. -->
+        <property><name>name_node</name></property>
+        <property><name>job_tracker</name></property>
+        <property><name>mark_directory_done_workflow_file</name></property>
+        <property><name>workflow_file</name></property>
+        <property><name>start_time</name></property>
+        <property><name>stop_time</name></property>
+
+        <property><name>datasets_file</name></property>
+        <property><name>temporary_directory</name></property>
+        <property><name>archive_directory</name></property>
+        <property><name>archive_file_name</name></property>
+
+        <property><name>source_table</name></property>
+        <property><name>archive_table</name></property>
+
+        <property><name>webrequest_data_directory</name></property>
+        <property><name>datasets_file</name></property>
+    </parameters>
+
+    <controls>
+        <!--(timeout is measured in minutes)-->
+        <timeout>300</timeout>
+
+        <concurrency>2</concurrency>
+    </controls>
+
+    <datasets>
+        <include>${datasets_file}</include>
+    </datasets>
+
+    <input-events>
+        <!--
+            Please see datasets definition, the webrequest_mobile
+            and webrequest_text are refined datasets from the raw data.
+        -->
+        <data-in name="mobile" dataset="webrequest_mobile">
+            <start-instance>${coord:current(0)}</start-instance>
+            <end-instance>${coord:current(coord:daysInMonth(0) * 24 - 1)}</end-instance>
+        </data-in>
+        <data-in name="text" dataset="webrequest_text">
+            <start-instance>${coord:current(0)}</start-instance>
+            <end-instance>${coord:current(coord:daysInMonth(0) * 24 - 1)}</end-instance>
+        </data-in>
+    </input-events>
+
+
+   <action>
+      <workflow>
+          <app-path>${workflow_file}</app-path>
+
+            <configuration>
+              <!-- Pass these properties through to the workflow -->
+              <property><name>name_node</name><value>${name_node}</value></property>
+              <property><name>job_tracker</name><value>${job_tracker}</value></property>
+              <property><name>queue_name</name><value>${queue_name}</value></property>
+
+              <property>
+                  <name>hive_site_xml</name>
+                  <value>${hive_site_xml}</value>
+              </property>
+              <property>
+                  <name>source_table</name>
+                  <value>${source_table}</value>
+              </property>
+              <property>
+                  <name>archive_table</name>
+                  <value>${archive_table}</value>
+              </property>
+              <property>
+                  <name>year</name>
+                  <value>${coord:formatTime(coord:nominalTime(), "y")}</value>
+              </property>
+              <property>
+                  <name>month</name>
+                  <value>${coord:formatTime(coord:nominalTime(), "M")}</value>
+              </property>
+              <property>
+                  <name>archive_file_name</name>
+                  <value>${archive_file_name}</value>
+              </property>
+              <property>
+                  <name>temporary_directory</name>
+                  <value>${temporary_directory}</value>
+              </property>
+          </configuration>
+      </workflow>
+  </action>
+  </coordinator-app>

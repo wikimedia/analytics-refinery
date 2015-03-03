@@ -1,0 +1,136 @@
+<workflow-app name="mobile_apps_uniques_monthly-${year}-${month}-wf" xmlns="uri:oozie:workflow:0.4">
+    <parameters>
+        <!-- Required properties -->
+        <property><name>name_node</name></property>
+        <property><name>job_tracker</name></property>
+
+        <property>
+            <name>hive_site_xml</name>
+            <description>hive-site.xml file path in HDFS</description>
+        </property>
+        <!-- specifying parameter values in file to test running -->
+        <property>
+            <name>source_table</name>
+            <description>Hive table to read data from.</description>
+        </property>
+        <property>
+            <name>archive_table</name>
+            <description>Hive table to read archived data from.</description>
+        </property>
+        <property>
+            <name>year</name>
+            <description>The partition's year</description>
+        </property>
+        <property>
+            <name>month</name>
+            <description>The partition's month</description>
+        </property>
+        <property>
+            <name>archive_file_name</name>
+            <description>The file name, zero padded like: 2015-01 </description>
+        </property>
+        <property>
+            <name>temporary_directory</name>
+            <value>${temporary_directory}</value>
+        </property>
+        <property>
+            <name>mark_directory_done_workflow_file</name>
+            <description>Workflow for marking a directory done</description>
+        </property>
+        <property>
+            <name>archive_job_output_workflow_file</name>
+            <description>Workflow to move a data file to the archive</description>
+        </property>
+
+    </parameters>
+
+    <start to="get_mobile_apps_uniques_monthly"/>
+    <action name="get_mobile_apps_uniques_monthly">
+        <hive xmlns="uri:oozie:hive-action:0.2">
+            <job-tracker>${job_tracker}</job-tracker>
+            <name-node>${name_node}</name-node>
+            <job-xml>${hive_site_xml}</job-xml>
+            <configuration>
+                <property>
+                    <name>mapreduce.job.queuename</name>
+                    <value>${queue_name}</value>
+                </property>
+                <property>
+                    <name>hive.exec.scratchdir</name>
+                    <value>/tmp/hive-${user}</value>
+                </property>
+            </configuration>
+            <script>generate_uniques_monthly.hql</script>
+            <param>source_table=${source_table}</param>
+            <param>archive_table=${archive_table}</param>
+            <param>temporary_directory=${temporary_directory}/${wf:id()}</param>
+            <param>year=${year}</param>
+            <param>month=${month}</param>
+        </hive>
+        <ok to="mark_dataset_done"/>
+        <error to="kill"/>
+    </action>
+
+    <kill name="kill">
+        <message>Action failed, error message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+    </kill>
+
+    <action name="mark_dataset_done">
+        <sub-workflow>
+            <app-path>${mark_directory_done_workflow_file}</app-path>
+            <configuration>
+                <property>
+                    <name>directory</name>
+                    <value>${temporary_directory}/${wf:id()}</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="move_mobile_apps_uniques_monthly_to_archive"/>
+        <error to="kill"/>
+    </action>
+
+    <action name="move_mobile_apps_uniques_monthly_to_archive">
+        <sub-workflow>
+            <app-path>${archive_job_output_workflow_file}</app-path>
+            <configuration>
+                <property>
+                    <name>source_directory</name>
+                    <value>${temporary_directory}/${wf:id()}</value>
+                </property>
+                <property>
+                    <name>expected_filename_ending</name>
+                    <value>gz</value>
+                </property>
+                <property>
+                    <name>archive_file</name>
+                    <!-- not sure if hardcoding  filename here is right-->
+                    <value>${archive_directory}/mobile_apps/uniques/monthly/${archive_file_name}.gz</value>
+                </property>
+                <property>
+                    <name>name_node</name>
+                    <value>${name_node}</value>
+                </property>
+                <property>
+                    <name>job_tracker</name>
+                    <value>${job_tracker}</value>
+                </property>
+
+                <property>
+                    <name>hive_site_xml</name>
+                    <value>${hive_site_xml}</value>
+                </property>
+
+            </configuration>
+        </sub-workflow>
+        <ok to="end"/>
+        <error to="archive_fail"/>
+    </action>
+
+ <kill name="archive_fail">
+    <message>Archive of mobile apps monthly unques failed, error
+            message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+ </kill>
+
+
+    <end name="end"/>
+</workflow-app>
