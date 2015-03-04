@@ -1,5 +1,5 @@
 <coordinator-app xmlns="uri:oozie:coordinator:0.4"
-    name="mobile_apps_daily_uniques-coord"
+    name="mobile_apps_uniques_daily-coord"
     frequency="${coord:days(1)}"
     start="${start_time}"
     end="${stop_time}"
@@ -21,7 +21,10 @@
         <property><name>datasets_file</name></property>
         <property><name>temporary_directory</name></property>
         <property><name>archive_directory</name></property>
+        <property><name>archive_file_name</name></property>
+
         <property><name>source_table</name></property>
+        <property><name>archive_table</name></property>
 
         <property><name>webrequest_data_directory</name></property>
         <property><name>datasets_file</name></property>
@@ -73,6 +76,10 @@
                   <value>${source_table}</value>
               </property>
               <property>
+                  <name>archive_table</name>
+                  <value>${archive_table}</value>
+              </property>
+              <property>
                   <name>year</name>
                   <value>${coord:formatTime(coord:nominalTime(), "y")}</value>
               </property>
@@ -86,7 +93,7 @@
               </property>
               <property>
                   <name>archive_file_name</name>
-                  <value>${coord:formatTime(coord:nominalTime(), "yyyy-MM-dd")}</value>
+                  <value>${archive_file_name}</value>
               </property>
               <property>
                   <name>temporary_directory</name>

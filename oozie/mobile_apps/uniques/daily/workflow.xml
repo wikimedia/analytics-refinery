@@ -1,4 +1,4 @@
-<workflow-app name="mobile_apps_daily_uniques-${year}-${month}-${day}-wf" xmlns="uri:oozie:workflow:0.4">
+<workflow-app name="mobile_apps_uniques_daily-${year}-${month}-${day}-wf" xmlns="uri:oozie:workflow:0.4">
     <parameters>
         <!-- Required properties -->
         <property><name>name_node</name></property>
@@ -11,9 +11,11 @@
         <!-- specifying parameter values in file to test running -->
         <property>
             <name>source_table</name>
-            <description>
-                Hive table to read data from.
-            </description>
+            <description>Hive table to read data from.</description>
+        </property>
+        <property>
+            <name>archive_table</name>
+            <description>Hive table to read archived data from.</description>
         </property>
         <property>
             <name>year</name>
@@ -29,7 +31,7 @@
         </property>
         <property>
             <name>archive_file_name</name>
-            <description>The file name, zero padded like: 2015-01-01 </description>
+            <description>The file name, zero padded like: 2015-01 </description>
         </property>
         <property>
             <name>temporary_directory</name>
@@ -43,10 +45,11 @@
             <name>archive_job_output_workflow_file</name>
             <description>Workflow to move a data file to the archive</description>
         </property>
+
     </parameters>
 
-    <start to="get_apps_uniques"/>
-    <action name="get_apps_uniques">
+    <start to="get_mobile_apps_uniques_daily"/>
+    <action name="get_mobile_apps_uniques_daily">
         <hive xmlns="uri:oozie:hive-action:0.2">
             <job-tracker>${job_tracker}</job-tracker>
             <name-node>${name_node}</name-node>
@@ -61,9 +64,10 @@
                     <value>/tmp/hive-${user}</value>
                 </property>
             </configuration>
-            <script>generate_daily_uniques.hql</script>
+            <script>generate_uniques_daily.hql</script>
             <param>source_table=${source_table}</param>
-            <param>destination_directory=${temporary_directory}/${wf:id()}</param>
+            <param>archive_table=${archive_table}</param>
+            <param>temporary_directory=${temporary_directory}/${wf:id()}</param>
             <param>year=${year}</param>
             <param>month=${month}</param>
             <param>day=${day}</param>
@@ -71,6 +75,7 @@
         <ok to="mark_dataset_done"/>
         <error to="kill"/>
     </action>
+
     <kill name="kill">
         <message>Action failed, error message[${wf:errorMessage(wf:lastErrorNode())}]</message>
     </kill>
@@ -85,13 +90,12 @@
                 </property>
             </configuration>
         </sub-workflow>
-        <ok to="move_apps_uniques_to_archive"/>
+        <ok to="move_mobile_apps_uniques_daily_to_archive"/>
         <error to="kill"/>
     </action>
 
-
-<action name="move_apps_uniques_to_archive">
-    <sub-workflow>
+    <action name="move_mobile_apps_uniques_daily_to_archive">
+        <sub-workflow>
             <app-path>${archive_job_output_workflow_file}</app-path>
             <configuration>
                 <property>
@@ -131,6 +135,7 @@
     <message>Archive of mobile apps daily unques failed, error
             message[${wf:errorMessage(wf:lastErrorNode())}]</message>
  </kill>
+
 
     <end name="end"/>
 </workflow-app>
