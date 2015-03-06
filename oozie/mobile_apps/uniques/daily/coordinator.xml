@@ -32,7 +32,7 @@
 
     <controls>
         <!--(timeout is measured in minutes)-->
-        <timeout>300</timeout>
+        <timeout>-1</timeout>
 
         <concurrency>2</concurrency>
     </controls>
