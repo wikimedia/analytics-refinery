@@ -20,7 +20,7 @@ SET hive.enforce.bucketing           = true;
 -- table is clustered by.
 SET mapreduce.job.reduces            = 64;
 
-ADD JAR ${artifacts_directory}/org/wikimedia/analytics/refinery/refinery-hive-0.0.7.jar;
+ADD JAR ${artifacts_directory}/org/wikimedia/analytics/refinery/refinery-hive-0.0.8.jar;
 CREATE TEMPORARY FUNCTION parse_media_file_url AS 'org.wikimedia.analytics.refinery.hive.MediaFileUrlParserUDF';
 CREATE TEMPORARY FUNCTION classify_referer AS 'org.wikimedia.analytics.refinery.hive.RefererClassifierUDF';
 
