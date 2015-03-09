@@ -34,7 +34,8 @@
         <!--(timeout is measured in minutes)-->
         <timeout>-1</timeout>
 
-        <concurrency>2</concurrency>
+        <!-- Needs to be 1 because the same output file is shared -->
+        <concurrency>1</concurrency>
     </controls>
 
     <datasets>
