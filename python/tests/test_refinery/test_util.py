@@ -26,7 +26,12 @@ class TestHiveUtil(TestCase):
             'table1': {
                 'metadata': {
                     'Location':      'hdfs://test.example.com:8020/path/to/table1',
-                }
+                },
+            },
+            'table2': {
+                'metadata': {
+                    'Location':      'hdfs://test.example.com:8020/path/to/table2',
+                },
             },
         }
 
@@ -37,6 +42,13 @@ class TestHiveUtil(TestCase):
                 'partitions_spec':      ['webrequest_source=\'mobile\',year=2013,month=10,day=01,hour=01', 'webrequest_source=\'mobile\',year=2013,month=10,day=01,hour=02'],
                 'partitions_datetime':  [datetime(2013,10,01,01), datetime(2013,10,01,02)],
                 'partitions_path':      ['/path/to/table1/webrequest_mobile/hourly/2013/10/01/01', '/path/to/table1/webrequest_mobile/hourly/2013/10/01/02'],
+            },
+            'table2': {
+                'location':             '/path/to/table2',
+                'partitions_desc':      ['webrequest_source=mobile/year=2013/month=10/day=01/hour=01', 'webrequest_source=mobile/year=2013/month=10/day=01/hour=02'],
+                'partitions_spec':      ['webrequest_source=\'mobile\',year=2013,month=10,day=01,hour=01', 'webrequest_source=\'mobile\',year=2013,month=10,day=01,hour=02'],
+                'partitions_datetime':  [datetime(2013,10,01,01), datetime(2013,10,01,02)],
+                'partitions_path':      ['/path/to/table1/webrequest_source=mobile/year=2013/month=10/day=01/hour=01', '/path/to/table2/webrequest_source=mobile/year=2013/month=10/day=01/hour=02'],
             },
         }
 
@@ -74,12 +86,22 @@ class TestHiveUtil(TestCase):
         dt     = HiveUtils.partition_datetime_from_spec(spec, regex)
         self.assertEqual(dt, expect)
 
-    def test_partition_datetime_from_path(self):
+    def test_partition_datetime_from_path_raw(self):
         expect = self.table_info['table1']['partitions_datetime'][0]
         path   = self.table_info['table1']['partitions_path'][0]
         regex  = r'.*/hourly/(.+)$'
+        format = '%Y/%m/%d/%H'
 
-        dt     = HiveUtils.partition_datetime_from_path(path, regex)
+        dt     = HiveUtils.partition_datetime_from_path(path, regex, format)
+        self.assertEqual(dt, expect)
+
+    def test_partition_datetime_from_path_refined(self):
+        expect = self.table_info['table2']['partitions_datetime'][0]
+        path   = self.table_info['table2']['partitions_path'][0]
+        regex  = r'.*/(year=.+)$'
+        format ='year=%Y/month=%m/day=%d/hour=%H'
+
+        dt     = HiveUtils.partition_datetime_from_path(path, regex, format)
         self.assertEqual(dt, expect)
 
     def test_drop_partitions_ddl(self):
@@ -90,4 +112,3 @@ class TestHiveUtil(TestCase):
 
         statement = self.hive.drop_partitions_ddl('table1', self.table_info['table1']['partitions_spec'])
         self.assertEqual(statement, expect)
-
