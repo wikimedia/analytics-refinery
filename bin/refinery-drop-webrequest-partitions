@@ -29,6 +29,7 @@ Options:
     -t --table=<table>                  Name of webrequest table.  [default: webrequest]
     -l --location=<location>            Base HDFS location path of the webrequest table.  If not
                                         specified, this will be inferred from the table schema metadata.
+    -w --webrequest-type=<type>         Either 'raw' or 'refined'.  [default: raw]
     -o --hive-options=<options>         Any valid Hive CLI options you want to pass to Hive commands.
                                         Example: '--auxpath /path/to/hive-serdes-1.0-SNAPSHOT.jar'
     -v --verbose                        Turn on verbose debug logging.
@@ -47,17 +48,20 @@ from refinery.util import HiveUtils, HdfsUtils
 # from pprint import pprint as pp
 
 
+
+
 if __name__ == '__main__':
     # parse arguments
     arguments = docopt(__doc__)
     # pp(arguments)
-    days           = int(arguments['--older-than-days'])
-    database       = arguments['--database']
-    table          = arguments['--table']
-    table_location = arguments['--location']
-    hive_options   = arguments['--hive-options']
-    verbose        = arguments['--verbose']
-    dry_run        = arguments['--dry-run']
+    days            = int(arguments['--older-than-days'])
+    database        = arguments['--database']
+    table           = arguments['--table']
+    table_location  = arguments['--location']
+    hive_options    = arguments['--hive-options']
+    webrequest_type = arguments['--webrequest-type']
+    verbose         = arguments['--verbose']
+    dry_run         = arguments['--dry-run']
 
     log_level = logging.INFO
     if verbose:
@@ -67,21 +71,17 @@ if __name__ == '__main__':
                         format='%(asctime)s %(levelname)-6s %(message)s',
                         datefmt='%Y-%m-%dT%H:%M:%S')
 
-    # This regex names its group matches by the actual
-    # partition column name.  This is required so that
-    # HiveUtils partition_spec_from_path can parse a path
-    # and return a partition spec for use in a Hive DDL statement.
-    webrequest_path_regex = re.compile(r'/webrequest_(?P<webrequest_source>[^/]+)/hourly/(?P<year>[^/]+)/(?P<month>[^/]+)/(?P<day>[^/]+)/(?P<hour>[^/]+)')
 
-    # This regex tells HiveUtils partition_datetime_from_path
-    # how to extract just the date portion from a partition path.
-    # The match group will be passed to dateutil.parser.parse to
-    # return a datetime object.
-    webrequest_date_regex = re.compile(r'.*/hourly/(.+)$')
+    if webrequest_type not in ['raw', 'refined']:
+        logging.error('\'{0}\' is not a valid webrequest-type.  Must be one of \'raw\' or \'refined\''
+            .format(webrequest_type))
+        sys.exit(1)
 
-    # Allows easy extraction of partition fields from the partition spec.
-    # This regex is used with HiveUtils partition_datetime_from_spec.
-    partition_spec_regex   = re.compile(r'webrequest_source=(?P<webrequest_source>[^/,]+)[/,]year=(?P<year>[^/,]+)[/,]month=(?P<month>[^/,]+)[/,]day=(?P<day>[^/]+)[/,]hour=(?P<hour>[^/,]+)')
+    if not HdfsUtils.validate_path(table_location):
+        logging.error('{0} table location \'{1}\' is not a valid HDFS path.  Path must start with \'/\' or \'hdfs://\'.  Aborting.'
+            .format(table, table_location))
+        sys.exit(1)
+
 
     # Instantiate HiveUtils.
     hive = HiveUtils(database, hive_options)
@@ -92,17 +92,36 @@ if __name__ == '__main__':
     if table_location == None:
         table_location = hive.table_location(table)
 
-    if not HdfsUtils.validate_path(table_location):
-        logging.error('{0} table location \'{1}\' is not a valid HDFS path.  Path must start with \'/\' or \'hdfs://\'.  Aborting.'
-            .format(table, table_location))
-        sys.exit(1)
 
-    # This glob will be used to list out all partition paths in HDFS.
-    partition_glob = os.path.join(table_location, '*', 'hourly', '*', '*', '*', '*')
+    # Allows easy extraction of partition fields from the partition spec.
+    # This regex is used with HiveUtils partition_datetime_from_spec.
+    # and could be used with HDFS partition paths that match the default
+    # Hive partition layout (I.e. key1=val1/key2=val2, etc.)
+    partition_spec_regex   = re.compile(r'webrequest_source=(?P<webrequest_source>[^/,]+)[/,]year=(?P<year>[^/,]+)[/,]month=(?P<month>[^/,]+)[/,]day=(?P<day>[^/]+)[/,]hour=(?P<hour>[^/,]+)')
+
+    # These globs will be used to list out all partition paths in HDFS.
+    partition_globs = {
+        'raw':      os.path.join(table_location, '*', 'hourly', '*', '*', '*', '*')
+        'refined':  os.path.join(table_location, '*', '*', '*', '*', '*')
+    }
+
+    # These regexes tells HiveUtils partition_datetime_from_path
+    # how to extract just the date portion from a partition path.
+    # The first match group will be passed to datetime.datetime.strptime
+    # using one of the below date_formats.
+    date_regexes = {
+        'raw':      re.compile(r'.*/hourly/(.+)$'),
+        'refined':  re.compile(r'.*/(year=.+)$')
+    }
+    # These will be used to extract a datetime object from the string
+    # matched by date_regex in HiveUtils partition_datetime_from_path
+    date_formats = {
+        'raw':       '%Y/%m/%d/%H',
+        'refined':   'year=%Y/month=%m/day=%d/hour=%H'
+    }
 
     # Delete partitions older than this.
     old_partition_datetime_threshold = datetime.datetime.now() - datetime.timedelta(days=days)
-
 
     partition_specs_to_drop   = []
     partition_paths_to_delete = []
@@ -118,16 +137,17 @@ if __name__ == '__main__':
 
     # Loop through all the partition directory paths for this table
     # and check if any of them are old enough for deletion.
-    for partition_path in HdfsUtils.ls(partition_glob, include_children=False):
+    for partition_path in HdfsUtils.ls(partition_globs[webrequest_type], include_children=False):
         try:
             partition_datetime = hive.partition_datetime_from_path(
                 partition_path,
-                webrequest_date_regex
+                date_regexes[webrequest_type],
+                date_formats[webrequest_type]
             )
-        except ValueError:
+        except ValueError as e:
             logging.error(
-                'hive.partition_datetime_from_path could not parse date found in {0} using pattern {1}. Skipping.'
-                .format(partition_path, webrequest_date_regex.pattern)
+                'hive.partition_datetime_from_path could not parse date found in {0} using pattern {1}. Skipping. ({2})'
+                .format(partition_path, date_regex.pattern, e)
             )
             continue
 

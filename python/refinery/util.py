@@ -18,7 +18,6 @@ Wikimedia Anaytics Refinery python utilities.
 """
 
 import datetime
-from dateutil.parser import parse as dateutil_parse
 import logging
 import os
 import subprocess
@@ -330,7 +329,7 @@ class HiveUtils(object):
         )
 
     @staticmethod
-    def partition_datetime_from_path(path, regex):
+    def partition_datetime_from_path(path, regex, format):
         """
         Given an HDFS path and a regex with the first matching
         group a date string suitable for passing to dateutil.parser.parse,
@@ -342,15 +341,19 @@ class HiveUtils(object):
                        as match.group(1) that can be parsed with
                        dateutil.parser.parse.
                        regex may be a string or a compiled re.
+            format   : match.group(1) from regex will be passed to
+                       datetime.datetime.strptime with this provided
+                       format.
         Returns:
             datetime object matching this spec's date.
 
         Example:
             partition_datetime_from_path(
-                path='/wmf/data/raw/webrequest/webrequest_mobile/hourly/2014/05/14/23',
-                regex=r'.*/hourly/(.+)$'
+                path='/wmf/data/webrequest/webrequest_source=misc/year=2015/month=1/day=9/hour=0"
+                regex=r'.*/(year=.+)$',
+                format=k'year=%Y/month=%m/day=%d/hour=%H'
             )
-            returns: datetime.datetime(2014, 5, 14, 23, 0)
+            returns: datetime.datetime(2015, 1, 9, 0, 0)
 
         """
         if isinstance(regex, basestring):
@@ -358,7 +361,7 @@ class HiveUtils(object):
 
         match = regex.search(path)
         if match:
-            return dateutil_parse(match.group(1))
+            return datetime.datetime.strptime(match.group(1), format)
         else:
             logger.debug('No path matching {0} was found in {1}.'.format(regex.pattern, path))
             return None
@@ -450,4 +453,3 @@ class HdfsUtils(object):
     @staticmethod
     def validate_path(path):
         return path.startswith('/') or path.startswith('hdfs://')
-
