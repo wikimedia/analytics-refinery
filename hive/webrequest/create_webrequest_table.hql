@@ -38,7 +38,14 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `webrequest`(
     `is_pageview`       boolean COMMENT 'Indicates if this record was marked as a pageview during refinement',
     `record_version`    string  COMMENT 'Keeps track of changes in the table content definition - https://wikitech.wikimedia.org/wiki/Analytics/Data/Webrequest',
     `client_ip`         string  COMMENT 'Client IP computed during refinement using ip and x_forwarded_for',
-    `geocoded_data`     map<string, string>  COMMENT 'Geoceded data computed during refinement using computed client ip and maxmind database'
+    `geocoded_data`     map<string, string>  COMMENT 'Geocoded map with continent, country_code, country, city, subdivision, postal_code, latitude, longitude, timezone keys  and associated values.',
+    -- Waiting for x_cache format to change before parsing into a map
+    `x_cache`           string  COMMENT 'X-Cache header of response',
+    -- Next two fields are to replace original ua and x_analytics ones.
+    -- However such schema modification implies backward incompatibility.
+    -- We will replace once we feel confident enough that 'every' backward incompatible change is done.
+    `user_agent_map`    map<string, string>  COMMENT 'User-agent map with browser_name, browser_major, device, os_name, os_minor, os_major keys and associated values',
+    `x_analytics_map`   map<string, string>  COMMENT 'X_analytics map view of the x_analytics field'
 )
 PARTITIONED BY (
     `webrequest_source` string  COMMENT 'Source cluster',

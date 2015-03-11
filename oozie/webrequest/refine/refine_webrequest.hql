@@ -50,6 +50,7 @@ ADD JAR ${artifacts_directory}/org/wikimedia/analytics/refinery/refinery-hive-${
 CREATE TEMPORARY FUNCTION is_pageview as 'org.wikimedia.analytics.refinery.hive.IsPageviewUDF';
 CREATE TEMPORARY FUNCTION client_ip as 'org.wikimedia.analytics.refinery.hive.ClientIpUDF';
 CREATE TEMPORARY FUNCTION geocoded_data as 'org.wikimedia.analytics.refinery.hive.GeocodedDataUDF';
+CREATE TEMPORARY FUNCTION ua_parser as 'org.wikimedia.analytics.refinery.hive.UAParserUDF';
 
 INSERT OVERWRITE TABLE ${destination_table}
     PARTITION(webrequest_source='${webrequest_source}',year=${year},month=${month},day=${day},hour=${hour})
@@ -76,7 +77,10 @@ INSERT OVERWRITE TABLE ${destination_table}
         is_pageview(uri_host, uri_path, uri_query, http_status, content_type, user_agent) as is_pageview,
         '${record_version}' as record_version,
         client_ip(ip, x_forwarded_for) as client_ip,
-        geocoded_data(client_ip(ip, x_forwarded_for)) as geocoded_data
+        geocoded_data(client_ip(ip, x_forwarded_for)) as geocoded_data,
+        x_cache,
+        ua_parser(user_agent) as user_agent_map,
+        str_to_map(x_analytics, '\;', '=') as x_analytics_map
     FROM
         ${source_table}
     WHERE
