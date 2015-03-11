@@ -101,7 +101,7 @@ if __name__ == '__main__':
 
     # These globs will be used to list out all partition paths in HDFS.
     partition_globs = {
-        'raw':      os.path.join(table_location, '*', 'hourly', '*', '*', '*', '*')
+        'raw':      os.path.join(table_location, '*', 'hourly', '*', '*', '*', '*'),
         'refined':  os.path.join(table_location, '*', '*', '*', '*', '*')
     }
 
