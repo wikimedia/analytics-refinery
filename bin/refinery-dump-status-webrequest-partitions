@@ -18,7 +18,7 @@ Options:
                   -- Select the datasets to output data for.
                      The following datasets are available:
                        legacy_tsvs          -- legacy webrequest TSVs (daily)
-                       mediacounts          -- mediacounts table data (hourly)
+                       mediacounts          -- mediacounts (daily)
                        pagecounts-all-sites -- pagecounts-all-sites (hourly)
                        pagecounts-raw       -- pagecounts-raw (hourly)
                        raw_webrequest       -- Raw webrequest (hourly)
