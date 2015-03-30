@@ -80,7 +80,10 @@ INSERT OVERWRITE TABLE ${destination_table}
         geocoded_data(client_ip(ip, x_forwarded_for)) as geocoded_data,
         x_cache,
         ua_parser(user_agent) as user_agent_map,
-        str_to_map(x_analytics, '\;', '=') as x_analytics_map
+        CASE COALESCE(x_analytics, '-')
+          WHEN '-' THEN NULL
+          ELSE str_to_map(x_analytics, '\;', '=')
+        END as x_analytics_map
     FROM
         ${source_table}
     WHERE
