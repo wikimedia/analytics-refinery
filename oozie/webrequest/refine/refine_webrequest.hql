@@ -51,6 +51,9 @@ CREATE TEMPORARY FUNCTION is_pageview as 'org.wikimedia.analytics.refinery.hive.
 CREATE TEMPORARY FUNCTION client_ip as 'org.wikimedia.analytics.refinery.hive.ClientIpUDF';
 CREATE TEMPORARY FUNCTION geocoded_data as 'org.wikimedia.analytics.refinery.hive.GeocodedDataUDF';
 CREATE TEMPORARY FUNCTION ua_parser as 'org.wikimedia.analytics.refinery.hive.UAParserUDF';
+CREATE TEMPORARY FUNCTION get_access_method as 'org.wikimedia.analytics.refinery.hive.GetAccessMethodUDF';
+CREATE TEMPORARY FUNCTION is_crawler as 'org.wikimedia.analytics.refinery.hive.IsCrawlerUDF';
+
 
 INSERT OVERWRITE TABLE ${destination_table}
     PARTITION(webrequest_source='${webrequest_source}',year=${year},month=${month},day=${day},hour=${hour})
@@ -83,7 +86,15 @@ INSERT OVERWRITE TABLE ${destination_table}
         CASE COALESCE(x_analytics, '-')
           WHEN '-' THEN NULL
           ELSE str_to_map(x_analytics, '\;', '=')
-        END as x_analytics_map
+        END as x_analytics_map,
+        -- Hack to get a correct timestamp because of hive inconsistent conversion
+        CAST(unix_timestamp(dt, "yyyy-MM-dd'T'HH:mm:ss") * 1.0 as timestamp) as ts,
+        get_access_method(uri_host, user_agent) as access_method,
+        CASE
+            WHEN ((ua_parser(user_agent)['device'] = 'Spider') OR (is_crawler(user_agent))) THEN 'spider'
+            ELSE 'user'
+        END as agent_type,
+        (str_to_map(x_analytics, '\;', '=')['zero'] IS NOT NULL) as is_zero
     FROM
         ${source_table}
     WHERE
