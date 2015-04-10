@@ -45,7 +45,11 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `webrequest`(
     -- However such schema modification implies backward incompatibility.
     -- We will replace once we feel confident enough that 'every' backward incompatible change is done.
     `user_agent_map`    map<string, string>  COMMENT 'User-agent map with browser_name, browser_major, device, os_name, os_minor, os_major keys and associated values',
-    `x_analytics_map`   map<string, string>  COMMENT 'X_analytics map view of the x_analytics field'
+    `x_analytics_map`   map<string, string>  COMMENT 'X_analytics map view of the x_analytics field',
+    `ts`                timestamp            COMMENT 'Unix timestamp in milliseconds extracted from dt',
+    `access_method`     string  COMMENT 'Method used to accessing the site (mobile app|mobile web|desktop)',
+    `agent_type`        string  COMMENT 'Categorise the agent making the webrequest as either user or spider (automatas to be added).',
+    `is_zero`           boolean COMMENT 'Indicates if the webrequest is accessed through a zero provider'
 )
 PARTITIONED BY (
     `webrequest_source` string  COMMENT 'Source cluster',
