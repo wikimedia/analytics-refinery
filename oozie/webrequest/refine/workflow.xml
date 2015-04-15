@@ -8,6 +8,8 @@
             <value>default</value>
         </property>
 
+
+
         <!-- Required properties -->
         <property><name>name_node</name></property>
         <property><name>job_tracker</name></property>
@@ -84,6 +86,11 @@
                 <property>
                     <name>mapreduce.job.queuename</name>
                     <value>${queue_name}</value>
+                </property>
+                <!--make sure oozie:launcher runs in a low priority queue -->
+                <property>
+                    <name>oozie.launcher.mapred.job.queue.name</name>
+                    <value>default</value>
                 </property>
                 <property>
                     <name>hive.exec.scratchdir</name>

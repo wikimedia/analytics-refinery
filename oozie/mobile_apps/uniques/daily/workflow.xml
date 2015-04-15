@@ -55,6 +55,11 @@
             <name-node>${name_node}</name-node>
             <job-xml>${hive_site_xml}</job-xml>
             <configuration>
+                <!--make sure oozie:launcher runs in a low priority queue -->
+                <property>
+                    <name>oozie.launcher.mapred.job.queue.name</name>
+                    <value>default</value>
+                </property>
                 <property>
                     <name>mapreduce.job.queuename</name>
                     <value>${queue_name}</value>
