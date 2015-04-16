@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <bundle-app xmlns="uri:oozie:bundle:0.2"
-    name="hive_webrequest_load-${table}-bundle">
+    name="load_webrequest-${table}-bundle">
 
     <parameters>
         <property>
@@ -30,7 +30,7 @@
         <property><name>mark_directory_done_workflow_file</name></property>
     </parameters>
 
-    <coordinator name='hive_webrequest_raw_load-webrequest_bits'>
+    <coordinator name="load_webrequest-${table}-bits-coord">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property>
@@ -40,7 +40,7 @@
         </configuration>
     </coordinator>
 
-    <coordinator name='hive_webrequest_raw_load-webrequest_misc'>
+    <coordinator name="load_webrequest-${table}-misc-coord">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property>
@@ -50,7 +50,7 @@
         </configuration>
     </coordinator>
 
-    <coordinator name='hive_webrequest_raw_load-webrequest_mobile'>
+    <coordinator name="load_webrequest-${table}-mobile-coord">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property>
@@ -60,7 +60,7 @@
         </configuration>
     </coordinator>
 
-    <coordinator name='hive_webrequest_raw_load-webrequest_text'>
+    <coordinator name="load_webrequest-${table}-text-coord">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property>
@@ -70,7 +70,7 @@
         </configuration>
     </coordinator>
 
-    <coordinator name='hive_webrequest_raw_load-webrequest_upload'>
+    <coordinator name="load_webrequest-${table}-upload-coord">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property>

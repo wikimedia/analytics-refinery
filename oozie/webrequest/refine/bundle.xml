@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <bundle-app xmlns="uri:oozie:bundle:0.2"
-    name="refine-${source_table}->${destination_table}-bundle">
+    name="refine_webrequest-${source_table}->${destination_table}-bundle">
 
     <parameters>
         <property>
@@ -35,7 +35,7 @@
         <property><name>record_version</name></property>
     </parameters>
 
-    <coordinator name='refine-webrequest_bits'>
+    <coordinator name="refine_webrequest-${source_table}->${destination_table}-bits-coord">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property>
@@ -45,7 +45,7 @@
         </configuration>
     </coordinator>
 
-    <coordinator name='refine-webrequest_misc'>
+    <coordinator name="refine_webrequest-${source_table}->${destination_table}-misc-coord">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property>
@@ -55,7 +55,7 @@
         </configuration>
     </coordinator>
 
-    <coordinator name='refine-webrequest_mobile'>
+    <coordinator name="refine_webrequest-${source_table}->${destination_table}-mobile-coord">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property>
@@ -65,7 +65,7 @@
         </configuration>
     </coordinator>
 
-    <coordinator name='refine-webrequest_text'>
+    <coordinator name="refine_webrequest-${source_table}->${destination_table}-text-coord">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property>
@@ -75,7 +75,7 @@
         </configuration>
     </coordinator>
 
-    <coordinator name='refine-webrequest_upload'>
+    <coordinator name="refine_webrequest-${source_table}->${destination_table}-upload-coord">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property>

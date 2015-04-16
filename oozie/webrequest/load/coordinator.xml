@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <coordinator-app xmlns="uri:oozie:coordinator:0.4"
-    name="hive_webrequest_raw_load-${table}-${webrequest_source}-coord"
+    name="load_webrequest-${table}-${webrequest_source}-coord"
     frequency="${coord:hours(1)}"
     start="${start_time}"
     end="${stop_time}"

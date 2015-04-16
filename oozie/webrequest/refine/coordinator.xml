@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <coordinator-app xmlns="uri:oozie:coordinator:0.4"
-    name="refine-${source_table}->${destination_table}-${webrequest_source}-coord"
+    name="refine_webrequest-${source_table}->${destination_table}-${webrequest_source}-coord"
     frequency="${coord:hours(1)}"
     start="${start_time}"
     end="${stop_time}"
