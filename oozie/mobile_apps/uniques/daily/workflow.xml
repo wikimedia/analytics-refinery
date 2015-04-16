@@ -8,6 +8,11 @@
             <name>oozie_launcher_queue_name</name>
             <value>oozie</value>
         </property>
+        <property>
+            <name>oozie_launcher_memory</name>
+            <value>256</value>
+        </property>
+
 
         <!-- Required properties -->
         <property><name>name_node</name></property>
@@ -69,6 +74,11 @@
                     <name>oozie.launcher.mapred.job.queue.name</name>
                     <value>${oozie_launcher_queue_name}</value>
                 </property>
+                <property>
+                    <name>oozie.launcher.mapreduce.map.memory.mb</name>
+                    <value>${oozie_launcher_memory}</value>
+                </property>
+
                 <property>
                     <name>mapreduce.job.queuename</name>
                     <value>${queue_name}</value>
