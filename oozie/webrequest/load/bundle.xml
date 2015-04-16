@@ -30,7 +30,7 @@
         <property><name>mark_directory_done_workflow_file</name></property>
     </parameters>
 
-    <coordinator name="load_webrequest-${table}-bits-coord">
+    <coordinator name="load_webrequest-bits-coord">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property>
@@ -40,7 +40,7 @@
         </configuration>
     </coordinator>
 
-    <coordinator name="load_webrequest-${table}-misc-coord">
+    <coordinator name="load_webrequest-misc-coord">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property>
@@ -50,7 +50,7 @@
         </configuration>
     </coordinator>
 
-    <coordinator name="load_webrequest-${table}-mobile-coord">
+    <coordinator name="load_webrequest-mobile-coord">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property>
@@ -60,7 +60,7 @@
         </configuration>
     </coordinator>
 
-    <coordinator name="load_webrequest-${table}-text-coord">
+    <coordinator name="load_webrequest-text-coord">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property>
@@ -70,7 +70,7 @@
         </configuration>
     </coordinator>
 
-    <coordinator name="load_webrequest-${table}-upload-coord">
+    <coordinator name="load_webrequest-upload-coord">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property>
