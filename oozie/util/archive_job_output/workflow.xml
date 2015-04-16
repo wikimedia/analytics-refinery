@@ -8,6 +8,11 @@
             <value>default</value>
         </property>
         <property>
+            <name>oozie_launcher_queue_name</name>
+            <value>oozie</value>
+        </property>
+
+        <property>
             <name>done_file</name>
             <value>_SUCCESS</value>
             <description>
@@ -80,7 +85,7 @@
                 <!--make sure oozie:launcher runs in a low priority queue -->
                 <property>
                     <name>oozie.launcher.mapred.job.queue.name</name>
-                    <value>default</value>
+                    <value>${oozie_launcher_queue_name}</value>
                 </property>
                 <property>
                     <name>mapred.job.queue.name</name>
@@ -104,7 +109,7 @@
                 <!--make sure oozie:launcher runs in a low priority queue -->
                 <property>
                     <name>oozie.launcher.mapred.job.queue.name</name>
-                    <value>default</value>
+                    <value>${oozie_launcher_queue_name}</value>
                 </property>
                 <property>
                     <name>mapreduce.job.queuename</name>

@@ -7,8 +7,10 @@
             <name>queue_name</name>
             <value>default</value>
         </property>
-
-
+        <property>
+            <name>oozie_launcher_queue_name</name>
+            <value>oozie</value>
+        </property>
 
         <!-- Required properties -->
         <property><name>name_node</name></property>
@@ -90,7 +92,7 @@
                 <!--make sure oozie:launcher runs in a low priority queue -->
                 <property>
                     <name>oozie.launcher.mapred.job.queue.name</name>
-                    <value>default</value>
+                    <value>${oozie_launcher_queue_name}</value>
                 </property>
                 <property>
                     <name>hive.exec.scratchdir</name>

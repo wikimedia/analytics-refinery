@@ -12,6 +12,11 @@
             <value>default</value>
         </property>
         <property>
+            <name>oozie_launcher_queue_name</name>
+            <value>oozie</value>
+        </property>
+
+        <property>
             <name>extra_filter</name>
             <value>none</value>
             <description>

@@ -8,6 +8,11 @@
             <value>default</value>
         </property>
         <property>
+            <name>oozie_launcher_queue_name</name>
+            <value>oozie</value>
+        </property>
+
+        <property>
             <name>aspect_compression_ending</name>
             <value>.gz</value>
             <description>The filename ending for this aspect's file.</description>
@@ -76,7 +81,7 @@
                 <!--make sure oozie:launcher runs in a low priority queue -->
                 <property>
                     <name>oozie.launcher.mapred.job.queue.name</name>
-                    <value>default</value>
+                    <value>${oozie_launcher_queue_name}</value>
                 </property>
                 <property>
                     <name>mapreduce.job.queuename</name>
