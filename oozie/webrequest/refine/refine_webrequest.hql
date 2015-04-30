@@ -92,7 +92,7 @@ INSERT OVERWRITE TABLE ${destination_table}
         CAST(unix_timestamp(dt, "yyyy-MM-dd'T'HH:mm:ss") * 1.0 as timestamp) as ts,
         get_access_method(uri_host, user_agent) as access_method,
         CASE
-            WHEN ((ua_parser(user_agent)['device'] = 'Spider') OR (is_crawler(user_agent))) THEN 'spider'
+            WHEN ((ua_parser(user_agent)['device_family'] = 'Spider') OR (is_crawler(user_agent))) THEN 'spider'
             ELSE 'user'
         END as agent_type,
         (str_to_map(x_analytics, '\;', '=')['zero'] IS NOT NULL) as is_zero
