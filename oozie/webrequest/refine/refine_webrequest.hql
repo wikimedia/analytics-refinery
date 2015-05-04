@@ -46,6 +46,7 @@ SET hive.enforce.bucketing           = true;
 -- table is clustered by.
 SET mapreduce.job.reduces            = 64;
 
+ADD JAR /usr/lib/hive-hcatalog/share/hcatalog/hive-hcatalog-core.jar;
 ADD JAR ${artifacts_directory}/org/wikimedia/analytics/refinery/refinery-hive-${refinery_jar_version}.jar;
 CREATE TEMPORARY FUNCTION is_pageview as 'org.wikimedia.analytics.refinery.hive.IsPageviewUDF';
 CREATE TEMPORARY FUNCTION client_ip as 'org.wikimedia.analytics.refinery.hive.ClientIpUDF';

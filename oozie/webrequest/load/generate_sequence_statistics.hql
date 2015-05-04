@@ -46,6 +46,7 @@
 --         -d hour=1
 --
 
+ADD JAR /usr/lib/hive-hcatalog/share/hcatalog/hive-hcatalog-core.jar;
 INSERT OVERWRITE TABLE ${destination_table}
   PARTITION(webrequest_source='${webrequest_source}',year=${year},month=${month},day=${day},hour=${hour})
   SELECT
