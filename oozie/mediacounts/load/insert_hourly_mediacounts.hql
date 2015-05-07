@@ -22,6 +22,9 @@ SET mapreduce.job.reduces            = 64;
 
 ADD JAR ${artifacts_directory}/org/wikimedia/analytics/refinery/refinery-hive-0.0.8.jar;
 CREATE TEMPORARY FUNCTION parse_media_file_url AS 'org.wikimedia.analytics.refinery.hive.MediaFileUrlParserUDF';
+
+------------ WARNING -----------------
+-- The RefererClassifierUDF has changed in refinery-hive-0.0.11.jar, returning a string instead of a map.
 CREATE TEMPORARY FUNCTION classify_referer AS 'org.wikimedia.analytics.refinery.hive.RefererClassifierUDF';
 
 

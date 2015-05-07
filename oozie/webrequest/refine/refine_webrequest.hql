@@ -54,6 +54,7 @@ CREATE TEMPORARY FUNCTION geocoded_data as 'org.wikimedia.analytics.refinery.hiv
 CREATE TEMPORARY FUNCTION ua_parser as 'org.wikimedia.analytics.refinery.hive.UAParserUDF';
 CREATE TEMPORARY FUNCTION get_access_method as 'org.wikimedia.analytics.refinery.hive.GetAccessMethodUDF';
 CREATE TEMPORARY FUNCTION is_crawler as 'org.wikimedia.analytics.refinery.hive.IsCrawlerUDF';
+CREATE TEMPORARY FUNCTION classify_referer AS 'org.wikimedia.analytics.refinery.hive.RefererClassifierUDF';
 
 
 INSERT OVERWRITE TABLE ${destination_table}
@@ -95,7 +96,8 @@ INSERT OVERWRITE TABLE ${destination_table}
             WHEN ((ua_parser(user_agent)['device_family'] = 'Spider') OR (is_crawler(user_agent))) THEN 'spider'
             ELSE 'user'
         END as agent_type,
-        (str_to_map(x_analytics, '\;', '=')['zero'] IS NOT NULL) as is_zero
+        (str_to_map(x_analytics, '\;', '=')['zero'] IS NOT NULL) as is_zero,
+        classify_referer(referer) as referer_class
     FROM
         ${source_table}
     WHERE

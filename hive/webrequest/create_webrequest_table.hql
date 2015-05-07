@@ -49,7 +49,8 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `webrequest`(
     `ts`                timestamp            COMMENT 'Unix timestamp in milliseconds extracted from dt',
     `access_method`     string  COMMENT 'Method used to accessing the site (mobile app|mobile web|desktop)',
     `agent_type`        string  COMMENT 'Categorise the agent making the webrequest as either user or spider (automatas to be added).',
-    `is_zero`           boolean COMMENT 'Indicates if the webrequest is accessed through a zero provider'
+    `is_zero`           boolean COMMENT 'Indicates if the webrequest is accessed through a zero provider',
+    `referer_class`     string  COMMENT 'Indicates if a referer is internal, external or unknown.'
 )
 PARTITIONED BY (
     `webrequest_source` string  COMMENT 'Source cluster',
