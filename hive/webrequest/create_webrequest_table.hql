@@ -44,13 +44,15 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `webrequest`(
     -- Next two fields are to replace original ua and x_analytics ones.
     -- However such schema modification implies backward incompatibility.
     -- We will replace once we feel confident enough that 'every' backward incompatible change is done.
-    `user_agent_map`    map<string, string>  COMMENT 'User-agent map with browser_name, browser_major, device, os_name, os_minor, os_major keys and associated values',
+    `user_agent_map`    map<string, string>  COMMENT 'User-agent map with browser_name, browser_major, device, os_name, os_major, os_minor and wmf_app_version keys and associated values',
     `x_analytics_map`   map<string, string>  COMMENT 'X_analytics map view of the x_analytics field',
     `ts`                timestamp            COMMENT 'Unix timestamp in milliseconds extracted from dt',
     `access_method`     string  COMMENT 'Method used to accessing the site (mobile app|mobile web|desktop)',
     `agent_type`        string  COMMENT 'Categorise the agent making the webrequest as either user or spider (automatas to be added).',
     `is_zero`           boolean COMMENT 'Indicates if the webrequest is accessed through a zero provider',
-    `referer_class`     string  COMMENT 'Indicates if a referer is internal, external or unknown.'
+    `referer_class`     string  COMMENT 'Indicates if a referer is internal, external or unknown.',
+    `normalized_host`   struct<project_class: string, project:string, qualifiers: array<string>, tld: String>  COMMENT 'struct containing project_class (such as wikipedia or wikidata for instance), project (such as en or commons), qualifiers (a list of in-between values, such as m and/or zero) and tld (org most often)',
+    `pageview_info`     map<string, string>  COMMENT 'map containing project, language_variant and page_title values only when is_pageview = TRUE.'
 )
 PARTITIONED BY (
     `webrequest_source` string  COMMENT 'Source cluster',

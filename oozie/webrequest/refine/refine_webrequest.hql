@@ -55,6 +55,8 @@ CREATE TEMPORARY FUNCTION ua_parser as 'org.wikimedia.analytics.refinery.hive.UA
 CREATE TEMPORARY FUNCTION get_access_method as 'org.wikimedia.analytics.refinery.hive.GetAccessMethodUDF';
 CREATE TEMPORARY FUNCTION is_crawler as 'org.wikimedia.analytics.refinery.hive.IsCrawlerUDF';
 CREATE TEMPORARY FUNCTION classify_referer AS 'org.wikimedia.analytics.refinery.hive.RefererClassifierUDF';
+CREATE TEMPORARY FUNCTION get_pageview_info AS 'org.wikimedia.analytics.refinery.hive.GetPageviewInfoUDF';
+CREATE TEMPORARY FUNCTION normalize_host AS 'org.wikimedia.analytics.refinery.hive.HostNormalizerUDF';
 
 
 INSERT OVERWRITE TABLE ${destination_table}
@@ -97,7 +99,9 @@ INSERT OVERWRITE TABLE ${destination_table}
             ELSE 'user'
         END as agent_type,
         (str_to_map(x_analytics, '\;', '=')['zero'] IS NOT NULL) as is_zero,
-        classify_referer(referer) as referer_class
+        classify_referer(referer) as referer_class,
+        normalize_host(uri_host) as normalized_host,
+        get_pageview_info(uri_host, uri_path, uri_query) as pageview_info
     FROM
         ${source_table}
     WHERE
