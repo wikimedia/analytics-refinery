@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coordinator-app xmlns="uri:oozie:coordinator:0.4"
+    name="app_session_metrics_weekly-coord"
+    frequency="${coord:days(7)}"
+    start="${start_time}"
+    end="${stop_time}"
+    timezone="Universal">
+
+    <parameters>
+
+        <!-- Required properties. -->
+        <property><name>name_node</name></property>
+        <property><name>job_tracker</name></property>
+        <property><name>queue_name</name></property>
+
+        <property><name>workflow_file</name></property>
+        <property><name>datasets_file</name></property>
+
+        <property><name>start_time</name></property>
+        <property><name>stop_time</name></property>
+
+        <property><name>spark_master</name></property>
+        <property><name>spark_job_jar</name></property>
+        <property><name>spark_job_class</name></property>
+        <property><name>spark_executor_memory</name></property>
+        <property><name>spark_number_executors</name></property>
+        <property><name>temporary_directory</name></property>
+        <property><name>webrequest_data_directory</name></property>
+        <property><name>period_days</name></property>
+    </parameters>
+
+    <controls>
+        <!--(timeout is measured in minutes)-->
+        <timeout>-1</timeout>
+
+        <!-- Has to be 1 because the jobs are appending results to a shared output file -->
+        <concurrency>1</concurrency>
+
+        <throttle>2</throttle>
+
+    </controls>
+
+    <datasets>
+        <!--
+        Include refined datasets files.
+        $datasets_file will be used as the input events
+        -->
+        <include>${datasets_file}</include>
+    </datasets>
+
+    <input-events>
+        <data-in name="mobile" dataset="webrequest_mobile">
+            <!-- 30 days of data in hours -->
+            <start-instance>${coord:current(0)}</start-instance>
+            <end-instance>${coord:current(24 * 30 - 1)}</end-instance>
+        </data-in>
+    </input-events>
+
+    <action>
+        <workflow>
+            <app-path>${workflow_file}</app-path>
+            <configuration>
+
+                <property>
+                    <name>year</name>
+                    <value>${coord:formatTime(coord:nominalTime(), "y")}</value>
+                </property>
+                <property>
+                    <name>month</name>
+                    <value>${coord:formatTime(coord:nominalTime(), "M")}</value>
+                </property>
+                <property>
+                    <name>day</name>
+                    <value>${coord:formatTime(coord:nominalTime(), "d")}</value>
+                </property>
+
+            </configuration>
+        </workflow>
+    </action>
+</coordinator-app>

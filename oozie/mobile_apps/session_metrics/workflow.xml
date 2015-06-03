@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow-app xmlns="uri:oozie:workflow:0.4"
+    name="app_session_metrics-${year}-${month}-${day}-period-${period_days}-wf">
+
+    <parameters>
+
+        <!-- Default values for inner oozie settings -->
+        <property>
+            <name>oozie_launcher_queue_name</name>
+            <value>${queue_name}</value>
+        </property>
+        <property>
+            <name>oozie_launcher_memory</name>
+            <value>256</value>
+        </property>
+
+        <!-- Required properties -->
+        <property><name>name_node</name></property>
+        <property><name>job_tracker</name></property>
+        <property><name>queue_name</name></property>
+
+        <property>
+            <name>spark_master</name>
+            <description>Master to be used for Spark (yarn, local, other)</description>
+        </property>
+        <property>
+            <name>spark_job_jar</name>
+            <description>Path to the jar to be used to run spark job</description>
+        </property>
+        <property>
+            <name>spark_job_class</name>
+            <description>Class of the spark job to be run</description>
+        </property>
+        <property>
+            <name>spark_executor_memory</name>
+            <description>Memory to allocate for each spark executor</description>
+        </property>
+        <property>
+            <name>spark_number_executors</name>
+            <description>Number of executors to run in parallel</description>
+        </property>
+        <property>
+            <name>year</name>
+            <description>Year of date from which last n days is calculated for the report</description>
+        </property>
+        <property>
+            <name>month</name>
+            <description>Month of date from which last n days is calculated for the report</description>
+        </property>
+        <property>
+            <name>day</name>
+            <description>Day of month of the date from which last n days is calculated for the report</description>
+        </property>
+        <property>
+            <name>period_days</name>
+            <description>Period in days for which app session metrics are to be calculated</description>
+        </property>
+        <property>
+            <name>webrequest_data_directory</name>
+            <description>Path to webrequest data on Hadoop</description>
+        </property>
+        <property>
+            <name>output_directory</name>
+            <description>Directory where the results of the job are written into</description>
+        </property>
+    </parameters>
+
+    <start to="compute_stats_for_metrics"/>
+
+    <action name="compute_stats_for_metrics">
+        <spark xmlns="uri:oozie:spark-action:0.1">
+
+            <job-tracker>${job_tracker}</job-tracker>
+            <name-node>${name_node}</name-node>
+            <configuration>
+                <!--make sure oozie:launcher runs in a low priority queue -->
+                <property>
+                    <name>oozie.launcher.mapred.job.queue.name</name>
+                    <value>${oozie_launcher_queue_name}</value>
+                </property>
+                <property>
+                    <name>oozie.launcher.mapreduce.map.memory.mb</name>
+                    <value>${oozie_launcher_memory}</value>
+                </property>
+            </configuration>
+            <master>${spark_master}</master>
+            <mode>${spark_deploy}</mode>
+            <name>${spark_job_name}-${year}-${month}-${day}</name>
+            <class>${spark_job_class}</class>
+            <jar>${spark_job_jar}</jar>
+            <spark-opts>--conf spark.yarn.jar=${spark_assembly_jar} --executor-memory ${spark_executor_memory} --num-executors ${spark_number_executors} --queue ${queue_name}</spark-opts>
+            <arg>--year</arg>
+            <arg>${year}</arg>
+            <arg>--month</arg>
+            <arg>${month}</arg>
+            <arg>--day</arg>
+            <arg>${day}</arg>
+            <arg>--period-days</arg>
+            <arg>${period_days}</arg>
+            <!--The num-partitions value controls the number of partitions for the Spark job's computations,
+                Specifying a very small number for large amounts of data can lead of OOM errors.-->
+            <arg>--num-partitions</arg>
+            <arg>${spark_number_executors}</arg>
+            <arg>--output-dir</arg>
+            <arg>${output_directory}</arg>
+            <arg>--webrequest-base-path</arg>
+            <arg>${webrequest_data_directory}</arg>
+        </spark>
+        <ok to="end" />
+        <error to="kill" />
+    </action>
+
+    <kill name="kill">
+        <message>Action failed, error message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+    </kill>
+    <end name="end"/>
+</workflow-app>
