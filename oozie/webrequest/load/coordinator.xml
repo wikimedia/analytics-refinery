@@ -7,21 +7,9 @@
     timezone="Universal">
 
     <parameters>
-        <property>
-            <name>queue_name</name>
-            <value>default</value>
-        </property>
-        <property>
-            <name>oozie_launcher_queue_name</name>
-            <value>oozie</value>
-        </property>
-        <property>
-            <name>oozie_launcher_memory</name>
-            <value>256</value>
-        </property>
 
-
-        <!-- Required properties. -->
+        <!-- Required properties -->
+        <property><name>queue_name</name></property>
         <property><name>name_node</name></property>
         <property><name>job_tracker</name></property>
         <property><name>workflow_file</name></property>

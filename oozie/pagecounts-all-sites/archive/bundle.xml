@@ -3,16 +3,8 @@
     name="pagecounts_all_sites_archive-bundle">
 
     <parameters>
-        <property>
-            <name>queue_name</name>
-            <value>default</value>
-        </property>
-        <property>
-            <name>oozie_launcher_queue_name</name>
-            <value>oozie</value>
-        </property>
-
-        <!-- Required properties. -->
+        <!-- Required properties -->
+        <property><name>queue_name</name></property>
         <property><name>coordinator_file</name></property>
         <property><name>job_tracker</name></property>
         <property><name>start_time</name></property>

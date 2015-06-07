@@ -11,7 +11,19 @@
             </description>
         </property>
 
+        <!-- Default values for inner oozie settings -->
+        <property>
+            <name>oozie_launcher_queue_name</name>
+            <value>${queue_name}</value>
+        </property>
+        <property>
+            <name>oozie_launcher_memory</name>
+            <value>256</value>
+        </property>
+
         <!-- Required properties -->
+        <property><name>queue_name</name></property>
+
         <property>
             <name>directory</name>
             <description>
