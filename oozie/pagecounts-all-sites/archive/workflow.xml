@@ -149,24 +149,8 @@
     <action name="move_data_to_archive">
         <sub-workflow>
             <app-path>${archive_job_output_workflow_file}</app-path>
+            <propagate-configuration/>
             <configuration>
-                <property>
-                    <name>job_tracker</name>
-                    <value>${job_tracker}</value>
-                </property>
-                <property>
-                    <name>name_node</name>
-                    <value>${name_node}</value>
-                </property>
-                <!--make sure oozie:launcher runs in a low priority queue -->
-                <property>
-                    <name>oozie.launcher.mapred.job.queue.name</name>
-                    <value>${oozie_launcher_queue_name}</value>
-                </property>
-                <property>
-                    <name>queue_name</name>
-                    <value>${queue_name}</value>
-                </property>
                 <property>
                     <name>source_directory</name>
                     <value>${temporary_directory}/${wf:id()}-${aspect_name}</value>

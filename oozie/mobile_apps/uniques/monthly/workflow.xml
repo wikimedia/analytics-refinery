@@ -113,6 +113,7 @@
     <action name="move_mobile_apps_uniques_monthly_to_archive">
         <sub-workflow>
             <app-path>${archive_job_output_workflow_file}</app-path>
+            <propagate-configuration/>
             <configuration>
                 <property>
                     <name>source_directory</name>
@@ -127,20 +128,6 @@
                     <!-- not sure if hardcoding  filename here is right-->
                     <value>${archive_directory}/mobile_apps/uniques/monthly/${archive_file_name}.gz</value>
                 </property>
-                <property>
-                    <name>name_node</name>
-                    <value>${name_node}</value>
-                </property>
-                <property>
-                    <name>job_tracker</name>
-                    <value>${job_tracker}</value>
-                </property>
-
-                <property>
-                    <name>hive_site_xml</name>
-                    <value>${hive_site_xml}</value>
-                </property>
-
             </configuration>
         </sub-workflow>
         <ok to="end"/>
