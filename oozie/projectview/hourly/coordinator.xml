@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coordinator-app xmlns="uri:oozie:coordinator:0.4"
+    name="projectview_hourly-coord"
+    frequency="${coord:hours(1)}"
+    start="${start_time}"
+    end="${stop_time}"
+    timezone="Universal">
+
+    <parameters>
+
+        <!-- Required properties. -->
+        <property><name>name_node</name></property>
+        <property><name>job_tracker</name></property>
+        <property><name>queue_name</name></property>
+
+        <property><name>workflow_file</name></property>
+
+        <property><name>start_time</name></property>
+        <property><name>stop_time</name></property>
+
+        <property><name>pageview_datasets_file</name></property>
+        <property><name>pageview_data_directory</name></property>
+
+        <property><name>projectview_datasets_file</name></property>
+        <property><name>projectview_data_directory</name></property>
+
+        <property><name>hive_site_xml</name></property>
+        <property><name>source_table</name></property>
+        <property><name>destination_table</name></property>
+    </parameters>
+
+    <controls>
+        <!--
+        By having materialized jobs not timeout, we ease backfilling incidents
+        after recoverable hiccups on the dataset producers.
+        -->
+        <timeout>-1</timeout>
+
+        <!--
+        projectview aggregation is not too heavy, but we limit
+        concurrency for resource sharing.
+
+        Also note, that back-filling is not limited by the
+        coordinator's frequency, so back-filling works nicely
+        even-though the concurrency is low.
+        -->
+        <concurrency>2</concurrency>
+
+
+        <!--
+        Since we expect only one incarnation per hourly dataset, the
+        default throttle of 12 is way to high, and there is not need
+        to keep that many materialized jobs around.
+
+        By resorting to 2, we keep the hdfs checks on the datasets
+        low, while still being able to easily feed the concurrency.
+        -->
+        <throttle>2</throttle>
+    </controls>
+
+    <datasets>
+        <!--
+        Include pageview and projectview datasets files.
+        $pageview_datasets_file will be used as the input events
+        $projectview_datasets_file will be used as the output events
+        -->
+        <include>${pageview_datasets_file}</include>
+        <include>${projectview_datasets_file}</include>
+    </datasets>
+
+    <input-events>
+        <data-in name="pageview_hourly_input" dataset="pageview_hourly">
+            <instance>${coord:current(0)}</instance>
+        </data-in>
+    </input-events>
+
+    <output-events>
+        <data-out name="projectview_hourly_output" dataset="projectview_hourly">
+            <instance>${coord:current(0)}</instance>
+        </data-out>
+    </output-events>
+
+    <action>
+        <workflow>
+            <app-path>${workflow_file}</app-path>
+            <configuration>
+
+                <property>
+                    <name>year</name>
+                    <value>${coord:formatTime(coord:nominalTime(), "y")}</value>
+                </property>
+                <property>
+                    <name>month</name>
+                    <value>${coord:formatTime(coord:nominalTime(), "M")}</value>
+                </property>
+                <property>
+                    <name>day</name>
+                    <value>${coord:formatTime(coord:nominalTime(), "d")}</value>
+                </property>
+                <property>
+                    <name>hour</name>
+                    <value>${coord:formatTime(coord:nominalTime(), "H")}</value>
+                </property>
+                <property>
+                    <!-- To mark directory done after success -->
+                    <name>destination_dataset_directory</name>
+                    <value>${coord:dataOut('projectview_hourly_output')}</value>
+                </property>
+
+            </configuration>
+        </workflow>
+    </action>
+</coordinator-app>
