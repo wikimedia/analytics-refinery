@@ -101,7 +101,10 @@ INSERT OVERWRITE TABLE ${destination_table}
         (str_to_map(x_analytics, '\;', '=')['zero'] IS NOT NULL) as is_zero,
         classify_referer(referer) as referer_class,
         normalize_host(uri_host) as normalized_host,
-        get_pageview_info(uri_host, uri_path, uri_query) as pageview_info
+        CASE
+           WHEN is_pageview(uri_host, uri_path, uri_query, http_status, content_type, user_agent) THEN get_pageview_info(uri_host, uri_path, uri_query)
+           ELSE NULL
+        END as pageview_info
     FROM
         ${source_table}
     WHERE
