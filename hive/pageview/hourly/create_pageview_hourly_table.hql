@@ -22,7 +22,7 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `pageview_hourly`(
     `access_method`     string  COMMENT 'Method used to access the pages, can be desktop, mobile web, or mobile app',
     `zero_carrier`      string  COMMENT 'Zero carrier if pageviews are accessed through one, null otherwise',
     `agent_type`        string  COMMENT 'Agent accessing the pages, can be spider or user',
-    `referer_class`     string  COMMENT 'Can be internal, external or unknown'
+    `referer_class`     string  COMMENT 'Can be internal, external or unknown',
     `continent`         string  COMMENT 'Continent of the accessing agents (computed using maxmind GeoIP database)',
     `country_code`      string  COMMENT 'Country iso code of the accessing agents (computed using maxmind GeoIP database)',
     `country`           string  COMMENT 'Country (text) of the accessing agents (computed using maxmind GeoIP database)',
