@@ -26,7 +26,7 @@
 --
 
 SET parquet.compression              = SNAPPY;
-
+SET mapred.reduce.tasks              = 8;
 
 INSERT OVERWRITE TABLE ${destination_table}
     PARTITION(year=${year},month=${month},day=${day},hour=${hour})
