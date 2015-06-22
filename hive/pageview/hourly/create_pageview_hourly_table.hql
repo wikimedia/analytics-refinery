@@ -29,7 +29,7 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `pageview_hourly`(
     `subdivision`       string  COMMENT 'Subdivision of the accessing agents (computed using maxmind GeoIP database)',
     `city`              string  COMMENT 'City iso code of the accessing agents (computed using maxmind GeoIP database)',
     `record_version`    string  COMMENT 'Keeps track of changes in the table content definition - https://wikitech.wikimedia.org/wiki/Analytics/Data/Pageview_hourly',
-    `count`             bigint  COMMENT 'number of pageviews'
+    `view_count`        bigint  COMMENT 'number of pageviews'
 )
 PARTITIONED BY (
     `year`              int     COMMENT 'Unpadded year of pageviews',
@@ -40,7 +40,3 @@ PARTITIONED BY (
 STORED AS PARQUET
 LOCATION '/wmf/data/wmf/pageview/hourly'
 ;
-
-
-
-

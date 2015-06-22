@@ -20,11 +20,11 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `projectview_hourly`(
     `access_method`     string  COMMENT 'Method used to access the pages, can be desktop, mobile web, or mobile app',
     `zero_carrier`      string  COMMENT 'Zero carrier if pageviews are accessed through one, null otherwise',
     `agent_type`        string  COMMENT 'Agent accessing the pages, can be spider or user',
-    `referer_class`     string  COMMENT 'Can be internal, external or unknown'
+    `referer_class`     string  COMMENT 'Can be internal, external or unknown',
     `continent`         string  COMMENT 'Continent of the accessing agents (computed using maxmind GeoIP database)',
     `country_code`      string  COMMENT 'Country iso code of the accessing agents (computed using maxmind GeoIP database)',
     `record_version`    string  COMMENT 'Keeps track of changes in the table content definition - https://wikitech.wikimedia.org/wiki/Analytics/Data/Projectview_hourly',
-    `count`             bigint  COMMENT 'number of pageviews'
+    `view_count`        bigint  COMMENT 'number of pageviews'
 )
 PARTITIONED BY (
     `year`              int     COMMENT 'Unpadded year of projectviews',

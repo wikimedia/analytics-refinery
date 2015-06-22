@@ -40,7 +40,7 @@ INSERT OVERWRITE TABLE ${destination_table}
         continent,
         country_code,
         '${record_version}' AS record_version,
-        SUM(count) AS count
+        SUM(view_count) AS view_count
     FROM
         ${source_table}
     WHERE year=${year} AND month=${month} AND day=${day} AND hour=${hour}

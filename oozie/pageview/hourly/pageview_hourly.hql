@@ -44,7 +44,7 @@ INSERT OVERWRITE TABLE ${destination_table}
         geocoded_data['subdivision'] AS subdivision,
         geocoded_data['city'] AS city,
         '${record_version}' AS record_version,
-        COUNT(1) AS count
+        COUNT(1) AS view_count
     FROM
         ${source_table}
     WHERE webrequest_source IN ('text', 'mobile') AND
