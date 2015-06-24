@@ -15,7 +15,7 @@
 --                          for.
 --
 -- Usage:
---     hive -f projectview_hourly.hql                             \
+--     hive -f aggregate_pageview_to_projectview.hql              \
 --         -d source_table=wmf.pageview_hourly                    \
 --         -d destination_table=wmf.projectview_hourly            \
 --         -d record_version=0.0.1                                \

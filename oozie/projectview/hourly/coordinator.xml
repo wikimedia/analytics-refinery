@@ -27,6 +27,12 @@
         <property><name>hive_site_xml</name></property>
         <property><name>source_table</name></property>
         <property><name>destination_table</name></property>
+
+        <property><name>temporary_directory</name></property>
+        <property><name>projectview_archive_directory</name></property>
+
+        <property><name>mark_directory_done_workflow_file</name></property>
+        <property><name>archive_job_output_workflow_file</name></property>
     </parameters>
 
     <controls>
@@ -37,14 +43,14 @@
         <timeout>-1</timeout>
 
         <!--
-        projectview aggregation is not too heavy, but we limit
+        projectview aggregation is really small, but we limit
         concurrency for resource sharing.
 
         Also note, that back-filling is not limited by the
         coordinator's frequency, so back-filling works nicely
         even-though the concurrency is low.
         -->
-        <concurrency>2</concurrency>
+        <concurrency>4</concurrency>
 
 
         <!--
@@ -55,7 +61,7 @@
         By resorting to 2, we keep the hdfs checks on the datasets
         low, while still being able to easily feed the concurrency.
         -->
-        <throttle>2</throttle>
+        <throttle>4</throttle>
     </controls>
 
     <datasets>
@@ -105,6 +111,24 @@
                     <!-- To mark directory done after success -->
                     <name>destination_dataset_directory</name>
                     <value>${coord:dataOut('projectview_hourly_output')}</value>
+                </property>
+
+                <!-- To mimic webstatcollector, file name must be the end of the aggregated hour-->
+                <property>
+                    <name>year_plus_1_hour</name>
+                    <value>${coord:formatTime(coord:dateOffset(coord:nominalTime(), 1, "HOUR"), "yyyy")}</value>
+                </property>
+                <property>
+                    <name>month_plus_1_hour</name>
+                    <value>${coord:formatTime(coord:dateOffset(coord:nominalTime(), 1, "HOUR"), "MM")}</value>
+                </property>
+                <property>
+                    <name>day_plus_1_hour</name>
+                    <value>${coord:formatTime(coord:dateOffset(coord:nominalTime(), 1, "HOUR"), "dd")}</value>
+                </property>
+                <property>
+                    <name>hour_plus_1_hour</name>
+                    <value>${coord:formatTime(coord:dateOffset(coord:nominalTime(), 1, "HOUR"), "HH")}</value>
                 </property>
 
             </configuration>

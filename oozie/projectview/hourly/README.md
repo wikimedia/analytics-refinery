@@ -1,10 +1,13 @@
 # Aggregation phase for projectview from pageview
+# and archive into webstatcollector format.
 
 This job is responsible for aggregating projectview
-from pageview.
+from pageview, and then transform/archive this data
+into webstatcollector format.
 
 Output is appended into (year, month, day, hour) partitions
-in /wmf/data/wmf/projectview/hourly
+in /wmf/data/wmf/projectview/hourly, and then archived into
+/wmf/data/archive/projectview/webstatcollector/hourly
 
 # Outline
 

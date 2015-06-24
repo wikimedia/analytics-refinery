@@ -22,10 +22,10 @@
 
         <!-- Aggregation related configuration properties-->
         <property>
-            <name>hive_script</name>
+            <name>hive_script_aggregate</name>
             <!-- This is relative to the containing directory of this file. -->
-            <value>projectview_hourly.hql</value>
-            <description>Hive script to run.</description>
+            <value>aggregate_pageview_to_projectview.hql</value>
+            <description>Hive script to run for aggregating projectview.</description>
         </property>
 
         <property>
@@ -34,11 +34,11 @@
         </property>
         <property>
             <name>source_table</name>
-            <description>Hive table to refine</description>
+            <description>Hive table to aggregate</description>
         </property>
         <property>
             <name>destination_table</name>
-            <description>The destinaton table to store refined data in.</description>
+            <description>The destinaton table to store transformed data in.</description>
         </property>
         <property>
             <name>year</name>
@@ -64,6 +64,44 @@
             <name>destination_dataset_directory</name>
             <description>Directory to generate the done flag in</description>
         </property>
+
+        <property>
+            <name>hive_script_transform</name>
+            <!-- This is relative to the containing directory of this file. -->
+            <value>transform_projectview_to_projectcounts.hql</value>
+            <description>Hive script to run for archiving with webstatcollector format.</description>
+        </property>
+        <!-- To mimic webstatcollector, file name must be the end of the aggregated hour-->
+        <property>
+            <name>year_plus_1_hour</name>
+            <description>The partition's year plus one hour</description>
+        </property>
+        <property>
+            <name>month_plus_1_hour</name>
+            <description>The partition's month plus one hour</description>
+        </property>
+        <property>
+            <name>day_plus_1_hour</name>
+            <description>The partition's day plus one hour</description>
+        </property>
+        <property>
+            <name>hour_plus_1_hour</name>
+            <description>The partition's hour plus one hour</description>
+        </property>
+
+        <property>
+            <name>temporary_directory</name>
+            <description>A directory in HDFS for temporary files</description>
+        </property>
+        <property>
+            <name>projectview_archive_directory</name>
+            <description>Directory to archive the workflow output to</description>
+        </property>
+        <property>
+            <name>archive_job_output_workflow_file</name>
+            <description>Workflow to move a data file to the archive</description>
+        </property>
+
     </parameters>
 
     <start to="aggregate"/>
@@ -93,7 +131,7 @@
                 </property>
             </configuration>
 
-            <script>${hive_script}</script>
+            <script>${hive_script_aggregate}</script>
             <param>source_table=${source_table}</param>
             <param>destination_table=${destination_table}</param>
             <param>record_version=${record_version}</param>
@@ -114,6 +152,74 @@
                 <property>
                     <name>directory</name>
                     <value>${destination_dataset_directory}</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="transform"/>
+        <error to="kill"/>
+    </action>
+
+    <action name="transform">
+        <hive xmlns="uri:oozie:hive-action:0.2">
+            <job-tracker>${job_tracker}</job-tracker>
+            <name-node>${name_node}</name-node>
+            <job-xml>${hive_site_xml}</job-xml>
+            <configuration>
+                <property>
+                    <name>mapreduce.job.queuename</name>
+                    <value>${queue_name}</value>
+                </property>
+                <!--make sure oozie:launcher runs in a low priority queue -->
+                <property>
+                    <name>oozie.launcher.mapred.job.queue.name</name>
+                    <value>${oozie_launcher_queue_name}</value>
+                </property>
+                <property>
+                    <name>oozie.launcher.mapreduce.map.memory.mb</name>
+                    <value>${oozie_launcher_memory}</value>
+                </property>
+                <property>
+                    <name>hive.exec.scratchdir</name>
+                    <value>/tmp/hive-${user}</value>
+                </property>
+            </configuration>
+
+            <script>${hive_script_transform}</script>
+            <!-- Here, the source for archive is the
+                 destination of the previous job -->
+            <param>source_table=${destination_table}</param>
+            <param>year=${year}</param>
+            <param>month=${month}</param>
+            <param>day=${day}</param>
+            <param>hour=${hour}</param>
+            <param>destination_directory=${temporary_directory}/${wf:id()}</param>
+        </hive>
+
+        <ok to="move_data_to_archive"/>
+        <error to="kill"/>
+    </action>
+
+    <action name="move_data_to_archive">
+        <sub-workflow>
+            <app-path>${archive_job_output_workflow_file}</app-path>
+            <propagate-configuration/>
+            <configuration>
+                <property>
+                    <name>source_directory</name>
+                    <value>${temporary_directory}/${wf:id()}</value>
+                </property>
+                <property>
+                    <name>expected_filename_ending</name>
+                    <value>EMPTY</value>
+                </property>
+                <property>
+                    <name>archive_file</name>
+                    <!--
+                    webstatscollector used the end of the collection period as
+                    timestamp in the filename. To not break scripts of people,
+                    we also name files that way.
+                    -->
+                    <value>${projectview_archive_directory}/${year_plus_1_hour}/${year_plus_1_hour}-${month_plus_1_hour}/projectcounts-${year_plus_1_hour}${month_plus_1_hour}${day_plus_1_hour}-${hour_plus_1_hour}0000</value>
                 </property>
             </configuration>
         </sub-workflow>
