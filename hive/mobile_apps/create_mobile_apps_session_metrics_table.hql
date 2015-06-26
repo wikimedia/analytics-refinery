@@ -28,5 +28,5 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `mobile_apps_session_metrics`(
 ROW FORMAT DELIMITED
 FIELDS TERMINATED BY '\t'
 LINES TERMINATED BY '\n'
-LOCATION '/wmf/data/archive/mobile_apps/session_metrics'
+LOCATION '/wmf/data/wmf/mobile_apps/session_metrics'
 ;
