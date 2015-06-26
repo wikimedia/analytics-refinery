@@ -36,6 +36,10 @@
             <description>Memory to allocate for each spark executor</description>
         </property>
         <property>
+            <name>spark_driver_memory</name>
+            <description>Memory to allocate for spark driver process</description>
+        </property>
+        <property>
             <name>spark_number_executors</name>
             <description>Number of executors to run in parallel</description>
         </property>
@@ -88,7 +92,7 @@
             <name>${spark_job_name}-${year}-${month}-${day}</name>
             <class>${spark_job_class}</class>
             <jar>${spark_job_jar}</jar>
-            <spark-opts>--conf spark.yarn.jar=${spark_assembly_jar} --executor-memory ${spark_executor_memory} --num-executors ${spark_number_executors} --queue ${queue_name}</spark-opts>
+            <spark-opts>--conf spark.yarn.jar=${spark_assembly_jar} --executor-memory ${spark_executor_memory} --driver-memory ${spark_driver_memory} --num-executors ${spark_number_executors} --queue ${queue_name}</spark-opts>
             <arg>--year</arg>
             <arg>${year}</arg>
             <arg>--month</arg>
