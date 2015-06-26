@@ -141,11 +141,11 @@
             <param>hour=${hour}</param>
         </hive>
 
-        <ok to="mark_dataset_done"/>
+        <ok to="mark_aggregated_projectview_dataset_done"/>
         <error to="kill"/>
     </action>
 
-    <action name="mark_dataset_done">
+    <action name="mark_aggregated_projectview_dataset_done">
         <sub-workflow>
             <app-path>${mark_directory_done_workflow_file}</app-path>
             <configuration>
@@ -195,6 +195,20 @@
             <param>destination_directory=${temporary_directory}/${wf:id()}</param>
         </hive>
 
+        <ok to="mark_transformed_projectview_dataset_done"/>
+        <error to="kill"/>
+    </action>
+
+    <action name="mark_transformed_projectview_dataset_done">
+        <sub-workflow>
+            <app-path>${mark_directory_done_workflow_file}</app-path>
+            <configuration>
+                <property>
+                    <name>directory</name>
+                    <value>${temporary_directory}/${wf:id()}</value>
+                </property>
+            </configuration>
+        </sub-workflow>
         <ok to="move_data_to_archive"/>
         <error to="kill"/>
     </action>
