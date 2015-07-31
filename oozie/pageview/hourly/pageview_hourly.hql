@@ -51,6 +51,7 @@ INSERT OVERWRITE TABLE ${destination_table}
     WHERE webrequest_source IN ('text', 'mobile') AND
         year=${year} AND month=${month} AND day=${day} AND hour=${hour}
         AND is_pageview = TRUE
+        AND COALESCE(pageview_info['project'], '') != ''
     GROUP BY
         pageview_info['project'],
         pageview_info['language_variant'],
