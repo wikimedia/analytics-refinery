@@ -23,12 +23,12 @@
         <property><name>mark_directory_done_workflow_file</name></property>
     </parameters>
 
-    <coordinator name="load_webrequest-bits-coord">
+    <coordinator name="load_webrequest-maps-coord">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property>
                 <name>webrequest_source</name>
-                <value>bits</value>
+                <value>maps</value>
             </property>
         </configuration>
     </coordinator>

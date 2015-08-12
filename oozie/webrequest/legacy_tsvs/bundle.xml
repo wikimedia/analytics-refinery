@@ -6,9 +6,8 @@
 
         <!-- Required properties -->
         <property><name>queue_name</name></property>
-        <property><name>coordinator_bits_file</name></property>
-        <property><name>coordinator_bits_misc_mobile_text_file</name></property>
         <property><name>coordinator_misc_file</name></property>
+        <property><name>coordinator_misc_mobile_text_file</name></property>
         <property><name>coordinator_mobile_file</name></property>
         <property><name>coordinator_mobile_text_file</name></property>
         <property><name>coordinator_mobile_text_upload_file</name></property>
@@ -32,7 +31,7 @@
 
     <coordinator name="webrequest_legacy_tsvs-sampled-1000">
         <!--
-        No 'bits', or 'misc', as the sampled-1000 was last produced on erbium's
+        No 'misc', as the sampled-1000 was last produced on erbium's
         udp2log stream, which did not receive those two webrequest_sources.
         -->
         <app-path>${coordinator_mobile_text_upload_file}</app-path>
@@ -147,7 +146,7 @@
         No 'upload', as that explicitly got excluded in the upd2log
         filters.
         -->
-        <app-path>${coordinator_bits_misc_mobile_text_file}</app-path>
+        <app-path>${coordinator_misc_mobile_text_file}</app-path>
         <configuration>
             <property>
                 <name>aspect_name</name>
@@ -160,24 +159,6 @@
             <property>
                 <name>hour_offset</name>
                 <value>8</value>
-            </property>
-        </configuration>
-    </coordinator>
-
-    <coordinator name="webrequest_legacy_tsvs-5xx-bits">
-        <app-path>${coordinator_bits_file}</app-path>
-        <configuration>
-            <property>
-                <name>aspect_name</name>
-                <value>5xx-bits</value>
-            </property>
-            <property>
-                <name>aspect_tsv_archive_directory</name>
-                <value>${webrequest_archive_directory}/5xx-bits</value>
-            </property>
-            <property>
-                <name>hour_offset</name>
-                <value>9</value>
             </property>
         </configuration>
     </coordinator>

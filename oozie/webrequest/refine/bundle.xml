@@ -28,12 +28,12 @@
         <property><name>record_version</name></property>
     </parameters>
 
-    <coordinator name="refine_webrequest-bits-coord">
+    <coordinator name="refine_webrequest-maps-coord">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property>
                 <name>webrequest_source</name>
-                <value>bits</value>
+                <value>maps</value>
             </property>
         </configuration>
     </coordinator>
