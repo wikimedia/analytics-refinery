@@ -23,6 +23,8 @@ Options:
                        pagecounts-raw       -- pagecounts-raw (hourly)
                        raw_webrequest       -- Raw webrequest (hourly)
                        webrequest           -- webrequest (refined tables) (hourly)
+                       pageview             -- pageview aggregation (hourly)
+                       projectview          -- projectview aggregation (hourly)
                        all                  -- all of the above
 
                      By default, only "raw_webrequest" is shown.
@@ -70,12 +72,14 @@ add_dataset() {
     DATASET_VISIBILITIES["$DATASET"]=no
 }
 
-add_dataset "legacy_tsvs" "daily" "    5xx    | 5xx-bits  | 5xx-misc  |5xx-mobile | 5xx-text  |5xx-upload |    api    |   edits   | glam_nara |  mobile   |  sampled  |   zero    |"
+add_dataset "legacy_tsvs" "daily" "    5xx    | 5xx-misc  |5xx-mobile | 5xx-text  |5xx-upload |    api    |   edits   | glam_nara |  mobile   |  sampled  |   zero    |"
 add_dataset "mediacounts" "daily" "   full  | top1000 |"
 add_dataset "pagecounts_all_sites" "hourly" " file name date  |  page   | project |"
 add_dataset "pagecounts_raw" "hourly" " file name date  |  page   | project |"
-add_dataset "raw_webrequest" "hourly" "  bits  |  misc  | mobile |  text  | upload |"
-add_dataset "webrequest" "hourly" "  bits  |  misc  | mobile |  text  | upload |"
+add_dataset "raw_webrequest" "hourly" "  maps  |  misc  | mobile |  text  | upload |"
+add_dataset "webrequest" "hourly" "  maps  |  misc  | mobile |  text  | upload |"
+add_dataset "pageview" "hourly" "  hourly  |"
+add_dataset "projectview" "hourly" "   hourly    |"
 
 DATASET_VISIBILITIES["raw_webrequest"]=yes
 
@@ -157,6 +161,8 @@ RAW_WEBREQUEST_DATA_DIR_ABS="$HDFS_MOUNT_DIR_ABS/wmf/data/raw/webrequest"
 RAW_WEBREQUEST_STATISTICS_DIR_ABS="$HDFS_MOUNT_DIR_ABS/wmf/data/raw/webrequests_faulty_hosts"
 WEBREQUEST_DATA_DIR_ABS="$HDFS_MOUNT_DIR_ABS/wmf/data/wmf/webrequest"
 ARCHIVE_DATA_DIR_ABS="$HDFS_MOUNT_DIR_ABS/wmf/data/archive"
+PAGEVIEW_DATA_DIR_ABS="$HDFS_MOUNT_DIR_ABS/wmf/data/wmf/pageview/hourly"
+PROJECTVIEW_DATA_DIR_ABS="$HDFS_MOUNT_DIR_ABS/wmf/data/wmf/projectview/hourly"
 
 log_no_lf() {
     if [ -n "$QUIET" ]
@@ -349,7 +355,6 @@ dump_dataset_legacy_tsvs() {
     local BASE
     for BASE in \
         5xx/5xx \
-        5xx-bits/5xx-bits \
         5xx-misc/5xx-misc \
         5xx-mobile/5xx-mobile \
         5xx-text/5xx-text \
@@ -465,7 +470,7 @@ dump_dataset_raw_webrequest() {
 
     local DATE_HDFS_PADDED="$(date --utc -d "$DATE" +'%Y/%m/%d/%H')"
 
-    for SOURCE in bits misc mobile text upload
+    for SOURCE in maps misc mobile text upload
     do
         log_no_lf "    "
         dump_dataset_raw_webrequest_partition "$DATE_HDFS_PADDED" "$SOURCE"
@@ -479,7 +484,7 @@ dump_dataset_webrequest() {
     local DATE_DIRS_REL="$(date --utc -d "$DATE" +'year=%Y/month=%m/day=%d/hour=%H')"
     DATE_DIRS_REL="${DATE_DIRS_REL//=0/=}"
 
-    for SOURCE in bits misc mobile text upload
+    for SOURCE in maps misc mobile text upload
     do
         local STATUS="X"
         SUCCESS_FILE_ABS="$WEBREQUEST_DATA_DIR_ABS/webrequest_source=$SOURCE/$DATE_DIRS_REL/_SUCCESS"
@@ -489,6 +494,36 @@ dump_dataset_webrequest() {
         fi
         log_no_lf "    $STATUS   |"
     done
+}
+
+dump_dataset_pageview() {
+    local DATE="$1"
+
+    local DATE_DIRS_REL="$(date --utc -d "$DATE" +'year=%Y/month=%m/day=%d/hour=%H')"
+    DATE_DIRS_REL="${DATE_DIRS_REL//=0/=}"
+
+    local STATUS="X"
+    SUCCESS_FILE_ABS="$PAGEVIEW_DATA_DIR_ABS/$DATE_DIRS_REL/_SUCCESS"
+    if [ -e "$SUCCESS_FILE_ABS" ]
+    then
+        STATUS="_"
+    fi
+    log_no_lf "     $STATUS    |"
+}
+
+dump_dataset_projectview() {
+    local DATE="$1"
+
+    local DATE_DIRS_REL="$(date --utc -d "$DATE" +'year=%Y/month=%m/day=%d/hour=%H')"
+    DATE_DIRS_REL="${DATE_DIRS_REL//=0/=}"
+
+    local STATUS="X"
+    SUCCESS_FILE_ABS="$PROJECTVIEW_DATA_DIR_ABS/$DATE_DIRS_REL/_SUCCESS"
+    if [ -e "$SUCCESS_FILE_ABS" ]
+    then
+        STATUS="_"
+    fi
+    log_no_lf "      $STATUS      |"
 }
 
 determine_recurrence_visibility
