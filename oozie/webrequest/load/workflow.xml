@@ -62,6 +62,12 @@
             </description>
         </property>
         <property>
+            <name>statistics_hourly_table</name>
+            <description>
+                Hive table to write hourly aggregate partition statistics to.
+            </description>
+        </property>
+        <property>
             <name>faulty_hosts_directory</name>
             <description>
                 Base directory in HDFS where information about
@@ -139,6 +145,43 @@
 
             <param>source_table=${table}</param>
             <param>destination_table=${statistics_table}</param>
+            <param>year=${year}</param>
+            <param>month=${month}</param>
+            <param>day=${day}</param>
+            <param>hour=${hour}</param>
+            <param>webrequest_source=${webrequest_source}</param>
+        </hive>
+        <ok to="generate_sequence_statistics_hourly"/>
+        <error to="kill"/>
+    </action>
+
+
+    <!-- TODO: Use the result of the hourly query to mark a dataset as _SUCCEEDED -->
+    <action name="generate_sequence_statistics_hourly">
+        <hive xmlns="uri:oozie:hive-action:0.3">
+            <job-tracker>${job_tracker}</job-tracker>
+            <name-node>${name_node}</name-node>
+            <job-xml>${hive_site_xml}</job-xml>
+            <configuration>
+                <!--make sure oozie:launcher runs in a low priority queue -->
+                <property>
+                    <name>oozie.launcher.mapred.job.queue.name</name>
+                    <value>${oozie_launcher_queue_name}</value>
+                </property>
+                <property>
+                    <name>oozie.launcher.mapreduce.map.memory.mb</name>
+                    <value>${oozie_launcher_memory}</value>
+                </property>
+                <property>
+                    <name>mapreduce.job.queuename</name>
+                    <value>${queue_name}</value>
+                </property>
+            </configuration>
+
+            <script>generate_sequence_statistics_hourly.hql</script>
+
+            <param>source_table=${statistics_table}</param>
+            <param>destination_table=${statistics_hourly_table}</param>
             <param>year=${year}</param>
             <param>month=${month}</param>
             <param>day=${day}</param>
