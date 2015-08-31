@@ -28,9 +28,9 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `pageview_hourly`(
     `country`           string  COMMENT 'Country (text) of the accessing agents (computed using maxmind GeoIP database)',
     `subdivision`       string  COMMENT 'Subdivision of the accessing agents (computed using maxmind GeoIP database)',
     `city`              string  COMMENT 'City iso code of the accessing agents (computed using maxmind GeoIP database)',
+    `user_agent_map`    map<string, string>  COMMENT 'User-agent map with device_family, browser_family, browser_major, os_family, os_major, os_minor and wmf_app_version keys and associated values',
     `record_version`    string  COMMENT 'Keeps track of changes in the table content definition - https://wikitech.wikimedia.org/wiki/Analytics/Data/Pageview_hourly',
-    `view_count`        bigint  COMMENT 'number of pageviews',
-    `user_agent_map`    map<string, string>  COMMENT 'User-agent map with device_family, browser_family, browser_major, os_family, os_major, os_minor and wmf_app_version keys and associated values'
+    `view_count`        bigint  COMMENT 'number of pageviews'
 )
 PARTITIONED BY (
     `year`              int     COMMENT 'Unpadded year of pageviews',
