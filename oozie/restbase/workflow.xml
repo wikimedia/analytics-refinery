@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow-app xmlns="uri:oozie:workflow:0.4"
+    name="restbase_metrics-${year}-${month}-${day}-${hour}-wf">
+
+    <parameters>
+
+        <!-- Default values for inner oozie settings -->
+        <property>
+            <name>oozie_launcher_queue_name</name>
+            <value>${queue_name}</value>
+        </property>
+        <property>
+            <name>oozie_launcher_memory</name>
+            <value>256</value>
+        </property>
+
+        <!-- Required properties -->
+        <property><name>name_node</name></property>
+        <property><name>job_tracker</name></property>
+        <property><name>queue_name</name></property>
+
+        <property>
+            <name>spark_master</name>
+            <description>Master to be used for Spark (yarn, local, other)</description>
+        </property>
+        <property>
+            <name>spark_job_jar</name>
+            <description>Path to the jar to be used to run spark job</description>
+        </property>
+        <property>
+            <name>spark_job_class</name>
+            <description>Class of the spark job to be run</description>
+        </property>
+        <property>
+            <name>spark_executor_memory</name>
+            <description>Memory to allocate for each spark executor</description>
+        </property>
+        <property>
+            <name>spark_driver_memory</name>
+            <description>Memory to allocate for spark driver process</description>
+        </property>
+        <property>
+            <name>spark_number_executors</name>
+            <description>Number of executors to run in parallel</description>
+        </property>
+        <property>
+            <name>year</name>
+            <description>The partition's year</description>
+        </property>
+        <property>
+            <name>month</name>
+            <description>The partition's month</description>
+        </property>
+        <property>
+            <name>day</name>
+            <description>The partition's day</description>
+        </property>
+        <property>
+            <name>hour</name>
+            <description>The partition's hour</description>
+        </property>
+        <property>
+            <name>graphite_host</name>
+            <description>Graphite Host url</description>
+        </property>
+        <property>
+            <name>graphite_port</name>
+            <description>Graphite port</description>
+        </property>
+        <property>
+            <name>graphite_namespace</name>
+            <description>Namespace/prefix for metric in Graphite</description>
+        </property>
+        <property>
+            <name>webrequest_data_directory</name>
+            <description>Path to webrequest data on Hadoop</description>
+        </property>
+    </parameters>
+
+    <start to="generate_restbase_metrics"/>
+
+    <action name="generate_restbase_metrics">
+        <spark xmlns="uri:oozie:spark-action:0.1">
+
+            <job-tracker>${job_tracker}</job-tracker>
+            <name-node>${name_node}</name-node>
+            <configuration>
+                <!--make sure oozie:launcher runs in a low priority queue -->
+                <property>
+                    <name>oozie.launcher.mapred.job.queue.name</name>
+                    <value>${oozie_launcher_queue_name}</value>
+                </property>
+                <property>
+                    <name>oozie.launcher.mapreduce.map.memory.mb</name>
+                    <value>${oozie_launcher_memory}</value>
+                </property>
+            </configuration>
+            <master>${spark_master}</master>
+            <mode>${spark_deploy}</mode>
+            <name>${spark_job_name}-${year}-${month}-${day}-${hour}</name>
+            <class>${spark_job_class}</class>
+            <jar>${spark_job_jar}</jar>
+            <spark-opts>--conf spark.yarn.jar=${spark_assembly_jar} --executor-memory ${spark_executor_memory} --driver-memory ${spark_driver_memory} --num-executors ${spark_number_executors} --queue ${queue_name} </spark-opts>
+            <arg>--year</arg>
+            <arg>${year}</arg>
+            <arg>--month</arg>
+            <arg>${month}</arg>
+            <arg>--day</arg>
+            <arg>${day}</arg>
+            <arg>--hour</arg>
+            <arg>${hour}</arg>
+            <arg>--graphite-host</arg>
+            <arg>${graphite_host}</arg>
+            <arg>--graphite-port</arg>
+            <arg>${graphite_port}</arg>
+            <arg>--namespace</arg>
+            <arg>${graphite_namespace}</arg>
+            <arg>--webrequest-base-path</arg>
+            <arg>${webrequest_data_directory}</arg>
+        </spark>
+        <ok to="end" />
+        <error to="kill" />
+    </action>
+
+    <kill name="kill">
+        <message>Action failed, error message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+    </kill>
+    <end name="end"/>
+</workflow-app>

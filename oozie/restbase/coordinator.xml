@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coordinator-app xmlns="uri:oozie:coordinator:0.4"
+    name="restbase_metrics_hourly-coord"
+    frequency="${coord:hours(1)}"
+    start="${start_time}"
+    end="${stop_time}"
+    timezone="Universal">
+
+    <parameters>
+
+        <!-- Required properties. -->
+        <property><name>name_node</name></property>
+        <property><name>job_tracker</name></property>
+        <property><name>queue_name</name></property>
+
+        <property><name>workflow_file</name></property>
+        <property><name>datasets_file</name></property>
+
+        <property><name>start_time</name></property>
+        <property><name>stop_time</name></property>
+
+        <property><name>spark_master</name></property>
+        <property><name>spark_job_jar</name></property>
+        <property><name>spark_job_class</name></property>
+        <property><name>spark_executor_memory</name></property>
+        <property><name>spark_driver_memory</name></property>
+        <property><name>spark_number_executors</name></property>
+        <property><name>graphite_host</name></property>
+        <property><name>graphite_port</name></property>
+        <property><name>graphite_namespace</name></property>
+        <property><name>webrequest_data_directory</name></property>
+    </parameters>
+
+    <controls>
+        <!--(timeout is measured in minutes)-->
+        <timeout>-1</timeout>
+
+        <!-- Setting low concurrency for resource sharing.
+             The job runs pretty fast (~1 minute) and increasing concurrency should not cause any problems-->
+        <concurrency>2</concurrency>
+
+        <throttle>2</throttle>
+
+    </controls>
+
+    <datasets>
+        <!--
+        Include refined datasets files.
+        $datasets_file will be used as the input events
+        -->
+        <include>${datasets_file}</include>
+    </datasets>
+
+    <input-events>
+        <data-in name="text_refined_input" dataset="webrequest_text">
+            <instance>${coord:current(0)}</instance>
+        </data-in>
+    </input-events>
+
+    <action>
+        <workflow>
+            <app-path>${workflow_file}</app-path>
+            <configuration>
+
+                <property>
+                    <name>year</name>
+                    <value>${coord:formatTime(coord:nominalTime(), "y")}</value>
+                </property>
+                <property>
+                    <name>month</name>
+                    <value>${coord:formatTime(coord:nominalTime(), "M")}</value>
+                </property>
+                <property>
+                    <name>day</name>
+                    <value>${coord:formatTime(coord:nominalTime(), "d")}</value>
+                </property>
+                <property>
+                    <name>hour</name>
+                    <value>${coord:formatTime(coord:nominalTime(), "H")}</value>
+                </property>
+            </configuration>
+        </workflow>
+    </action>
+</coordinator-app>
