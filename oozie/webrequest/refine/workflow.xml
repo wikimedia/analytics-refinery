@@ -32,7 +32,7 @@
         </property>
         <property>
             <name>refinery_jar_version</name>
-            <value>Version of the refinery-hive jar file to import for UDFs</value>
+            <description>Version of the refinery-hive jar file to import for UDFs</description>
         </property>
         <property>
             <name>artifacts_directory</name>
