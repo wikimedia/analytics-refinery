@@ -1,0 +1,516 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bundle-app xmlns="uri:oozie:bundle:0.2"
+    name="cassandra_load-bundle">
+
+    <parameters>
+
+        <!-- Required properties -->
+        <property><name>queue_name</name></property>
+        <property><name>name_node</name></property>
+        <property><name>job_tracker</name></property>
+
+        <property><name>coordinator_file_hourly</name></property>
+        <property><name>coordinator_file_daily</name></property>
+        <property><name>coordinator_file_monthly</name></property>
+
+        <property><name>workflow_file_hourly</name></property>
+        <property><name>workflow_file_daily</name></property>
+        <property><name>workflow_file_monthly</name></property>
+
+        <property><name>start_time</name></property>
+        <property><name>stop_time</name></property>
+
+        <property><name>pageview_datasets_file</name></property>
+        <property><name>projectview_datasets_file</name></property>
+
+        <property><name>hive_site_xml</name></property>
+        <property><name>temporary_directory</name></property>
+
+        <property><name>refinery_cassandra_jar_path</name></property>
+        <property><name>cassandra_reducer_class</name></property>
+        <property><name>cassandra_output_format_class</name></property>
+        <property><name>cassandra_nodes</name></property>
+        <property><name>batch_size</name></property>
+
+        <property><name>cassandra_host</name></property>
+        <property><name>cassandra_port</name></property>
+        <property><name>cassandra_username</name></property>
+        <property><name>cassandra_password</name></property>
+
+        <property><name>hive_value_separator</name></property>
+        <property><name>cassandra_table</name></property>
+
+        <property><name>constant_output_domain_field</name></property>
+        <property><name>constant_output_domain_value</name></property>
+        <property><name>constant_output_granularity_field</name></property>
+        <property><name>constant_output_tid_field</name></property>
+        <property><name>constant_output_tid_value</name></property>
+
+
+        <!--**************************************************
+                       Pageview Per Article Flat parameters
+        **************************************************-->
+
+        <property>
+            <name>per_article_flat_datasets_file</name>
+            <value>${pageview_datasets_file}</value>
+        </property>
+        <property>
+            <name>per_article_flat_dataset_name</name>
+            <value>pageview_hourly</value>
+        </property>
+        <property>
+            <name>per_article_flat_hive_script</name>
+            <value>pageview_per_article.hql</value>
+        </property>
+        <property>
+            <name>per_article_flat_source_table</name>
+            <value>wmf.pageview_hourly</value>
+        </property>
+        <property>
+            <name>per_article_flat_parallel_loaders</name>
+            <value>3</value>
+        </property>
+        <property>
+            <name>per_article_flat_cql</name>
+            <value>UPDATE "local_group_default_T_pageviews_per_article_flat"."data" SET "aa" = ?, "ab" = ?, "as" = ?, "au" = ?, "da" = ?, "db" = ?, "ds" = ?, "du" = ?, "maa" = ?, "mab" = ?, "mas" = ?, "mau" = ?, "mwa" = ?, "mwb" = ?, "mws" = ?, "mwu" = ?</value>
+        </property>
+        <property>
+            <name>per_article_flat_keyspace</name>
+            <value>local_group_default_T_pageviews_per_article_flat</value>
+        </property>
+        <property>
+            <name>per_article_flat_hive_fields</name>
+            <value>project,article,timestamp,aa,ab,as,au,da,db,ds,du,maa,mab,mas,mau,mwa,mwb,mws,mwu</value>
+        </property>
+        <property>
+            <name>per_article_flat_hive_fields_types</name>
+            <value>text,text,text,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int</value>
+        </property>
+        <property>
+            <name>per_article_flat_cassandra_fields</name>
+            <value>aa,ab,as,au,da,db,ds,du,maa,mab,mas,mau,mwa,mwb,mws,mwu</value>
+        </property>
+        <property>
+            <name>per_article_flat_cassandra_primary_keys</name>
+            <value>_domain,project,article,granularity,timestamp,_tid</value>
+        </property>
+
+
+        <!--**************************************************
+                       Pageview Per Projects parameters
+        **************************************************-->
+
+        <property>
+            <name>per_project_datasets_file</name>
+            <value>${projectview_datasets_file}</value>
+        </property>
+        <property>
+            <name>per_project_dataset_name</name>
+            <value>projectview_hourly</value>
+        </property>
+        <property>
+            <name>per_project_hive_script</name>
+            <value>pageview_per_project.hql</value>
+        </property>
+        <property>
+            <name>per_project_source_table</name>
+            <value>wmf.projectview_hourly</value>
+        </property>
+        <property>
+            <name>per_project_parallel_loaders</name>
+            <value>1</value>
+        </property>
+        <property>
+            <name>per_project_cql</name>
+            <value>UPDATE "local_group_default_T_pageviews_per_project"."data" SET "v" = ?</value>
+        </property>
+        <property>
+            <name>per_project_keyspace</name>
+            <value>local_group_default_T_pageviews_per_project</value>
+        </property>
+        <property>
+            <name>per_project_hive_fields</name>
+            <value>project,access,agent,timestamp,v</value>
+        </property>
+        <property>
+            <name>per_project_hive_fields_types</name>
+            <value>text,text,text,text,bigint</value>
+        </property>
+        <property>
+            <name>per_project_cassandra_fields</name>
+            <value>v</value>
+        </property>
+        <property>
+            <name>per_project_cassandra_primary_keys</name>
+            <value>_domain,project,access,agent,granularity,timestamp,_tid</value>
+        </property>
+
+
+        <!--**************************************************
+                       Pageview Top Article parameters
+        **************************************************-->
+
+        <property>
+            <name>top_articles_datasets_file</name>
+            <value>${pageview_datasets_file}</value>
+        </property>
+        <property>
+            <name>top_articles_dataset_name</name>
+            <value>pageview_hourly</value>
+        </property>
+        <property>
+            <name>top_articles_hive_script</name>
+            <value>pageview_top_articles.hql</value>
+        </property>
+        <property>
+            <name>top_articles_source_table</name>
+            <value>wmf.pageview_hourly</value>
+        </property>
+        <property>
+            <name>top_articles_parallel_loaders</name>
+            <value>3</value>
+        </property>
+        <property>
+            <name>top_articles_cql</name>
+            <value>UPDATE "local_group_default_T_top_pageviews"."data" SET "articlesJSON" = ?</value>
+        </property>
+        <property>
+            <name>top_articles_keyspace</name>
+            <value>local_group_default_T_top_pageviews</value>
+        </property>
+        <property>
+            <name>top_articles_hive_fields</name>
+            <value>project,access,year,month,day,articlesJSON</value>
+        </property>
+        <property>
+            <name>top_articles_hive_fields_types</name>
+            <value>text,text,text,text,text,text</value>
+        </property>
+        <property>
+            <name>top_articles_cassandra_fields</name>
+            <value>articlesJSON</value>
+        </property>
+        <property>
+            <name>top_articles_cassandra_primary_keys</name>
+            <value>_domain,project,access,year,month,day,_tid</value>
+        </property>
+
+    </parameters>
+
+
+    <!--**************************************************
+                       Pageview Per Article Flat coordinators
+        **************************************************-->
+
+    <coordinator name="cassandra_pageview_per_article_daily-coord">
+        <app-path>${coordinator_file_daily}</app-path>
+        <configuration>
+            <property>
+                <name>workflow_file</name>
+                <value>${workflow_file_daily}</value>
+            </property>
+
+            <!-- Dataset the job depends on -->
+            <property>
+                <name>datasets_file</name>
+                <value>${per_article_flat_datasets_file}</value>
+            </property>
+            <property>
+                <name>dataset_name</name>
+                <value>${per_article_flat_dataset_name}</value>
+            </property>
+
+            <!-- Hive data preparation job stuff -->
+            <property>
+                <name>hive_script</name>
+                <value>${per_article_flat_hive_script}</value>
+            </property>
+            <property>
+                <name>source_table</name>
+                <value>${per_article_flat_source_table}</value>
+            </property>
+
+            <!-- cassandra loader job stuff -->
+            <property>
+                <name>cassandra_parallel_loaders</name>
+                <value>${per_article_flat_parallel_loaders}</value>
+            </property>
+            <property>
+                <name>cassandra_cql</name>
+                <value>${per_article_flat_cql}</value>
+            </property>
+            <property>
+                <name>cassandra_keyspace</name>
+                <value>${per_article_flat_keyspace}</value>
+            </property>
+            <property>
+                <name>hive_fields</name>
+                <value>${per_article_flat_hive_fields}</value>
+            </property>
+            <property>
+                <name>hive_fields_types</name>
+                <value>${per_article_flat_hive_fields_types}</value>
+            </property>
+            <property>
+                <name>cassandra_fields</name>
+                <value>${per_article_flat_cassandra_fields}</value>
+            </property>
+            <property>
+                <name>cassandra_primary_keys</name>
+                <value>${per_article_flat_cassandra_primary_keys}</value>
+            </property>
+        </configuration>
+    </coordinator>
+
+
+    <!--**************************************************
+                       Pageview Per Projects coordinators
+        **************************************************-->
+
+    <coordinator name="cassandra_pageview_per_project_hourly-coord">
+        <app-path>${coordinator_file_hourly}</app-path>
+        <configuration>
+            <property>
+                <name>workflow_file</name>
+                <value>${workflow_file_hourly}</value>
+            </property>
+
+            <!-- Dataset the job depends on -->
+            <property>
+                <name>datasets_file</name>
+                <value>${per_project_datasets_file}</value>
+            </property>
+            <property>
+                <name>dataset_name</name>
+                <value>${per_project_dataset_name}</value>
+            </property>
+
+            <!-- Hive data preparation job stuff -->
+            <property>
+                <name>hive_script</name>
+                <value>${per_project_hive_script}</value>
+            </property>
+            <property>
+                <name>source_table</name>
+                <value>${per_project_source_table}</value>
+            </property>
+
+            <!-- cassandra loader job stuff -->
+            <property>
+                <name>cassandra_parallel_loaders</name>
+                <value>${per_project_parallel_loaders}</value>
+            </property>
+            <property>
+                <name>cassandra_cql</name>
+                <value>${per_project_cql}</value>
+            </property>
+            <property>
+                <name>cassandra_keyspace</name>
+                <value>${per_project_keyspace}</value>
+            </property>
+            <property>
+                <name>hive_fields</name>
+                <value>${per_project_hive_fields}</value>
+            </property>
+            <property>
+                <name>hive_fields_types</name>
+                <value>${per_project_hive_fields_types}</value>
+            </property>
+            <property>
+                <name>cassandra_fields</name>
+                <value>${per_project_cassandra_fields}</value>
+            </property>
+            <property>
+                <name>cassandra_primary_keys</name>
+                <value>${per_project_cassandra_primary_keys}</value>
+            </property>
+        </configuration>
+    </coordinator>
+
+    <coordinator name="cassandra_pageview_per_project_daily-coord">
+        <app-path>${coordinator_file_daily}</app-path>
+        <configuration>
+            <property>
+                <name>workflow_file</name>
+                <value>${workflow_file_daily}</value>
+            </property>
+
+            <!-- Dataset the job depends on -->
+            <property>
+                <name>datasets_file</name>
+                <value>${per_project_datasets_file}</value>
+            </property>
+            <property>
+                <name>dataset_name</name>
+                <value>${per_project_dataset_name}</value>
+            </property>
+
+            <!-- Hive data preparation job stuff -->
+            <property>
+                <name>hive_script</name>
+                <value>${per_project_hive_script}</value>
+            </property>
+            <property>
+                <name>source_table</name>
+                <value>${per_project_source_table}</value>
+            </property>
+
+            <!-- cassandra loader job stuff -->
+            <property>
+                <name>cassandra_parallel_loaders</name>
+                <value>${per_project_parallel_loaders}</value>
+            </property>
+            <property>
+                <name>cassandra_cql</name>
+                <value>${per_project_cql}</value>
+            </property>
+            <property>
+                <name>cassandra_keyspace</name>
+                <value>${per_project_keyspace}</value>
+            </property>
+            <property>
+                <name>hive_fields</name>
+                <value>${per_project_hive_fields}</value>
+            </property>
+            <property>
+                <name>hive_fields_types</name>
+                <value>${per_project_hive_fields_types}</value>
+            </property>
+            <property>
+                <name>cassandra_fields</name>
+                <value>${per_project_cassandra_fields}</value>
+            </property>
+            <property>
+                <name>cassandra_primary_keys</name>
+                <value>${per_project_cassandra_primary_keys}</value>
+            </property>
+        </configuration>
+    </coordinator>
+
+    <coordinator name="cassandra_pageview_per_project_monthly-coord">
+        <app-path>${coordinator_file_monthly}</app-path>
+        <configuration>
+            <property>
+                <name>workflow_file</name>
+                <value>${workflow_file_monthly}</value>
+            </property>
+
+            <!-- Dataset the job depends on -->
+            <property>
+                <name>datasets_file</name>
+                <value>${per_project_datasets_file}</value>
+            </property>
+            <property>
+                <name>dataset_name</name>
+                <value>${per_project_dataset_name}</value>
+            </property>
+
+            <!-- Hive data preparation job stuff -->
+            <property>
+                <name>hive_script</name>
+                <value>${per_project_hive_script}</value>
+            </property>
+            <property>
+                <name>source_table</name>
+                <value>${per_project_source_table}</value>
+            </property>
+
+            <!-- cassandra loader job stuff -->
+            <property>
+                <name>cassandra_parallel_loaders</name>
+                <value>${per_project_parallel_loaders}</value>
+            </property>
+            <property>
+                <name>cassandra_cql</name>
+                <value>${per_project_cql}</value>
+            </property>
+            <property>
+                <name>cassandra_keyspace</name>
+                <value>${per_project_keyspace}</value>
+            </property>
+            <property>
+                <name>hive_fields</name>
+                <value>${per_project_hive_fields}</value>
+            </property>
+            <property>
+                <name>hive_fields_types</name>
+                <value>${per_project_hive_fields_types}</value>
+            </property>
+            <property>
+                <name>cassandra_fields</name>
+                <value>${per_project_cassandra_fields}</value>
+            </property>
+            <property>
+                <name>cassandra_primary_keys</name>
+                <value>${per_project_cassandra_primary_keys}</value>
+            </property>
+        </configuration>
+    </coordinator>
+
+
+    <!--**************************************************
+                       Pageview Top Article coordinators
+        **************************************************-->
+
+    <coordinator name="cassandra_pageview_top_articles_daily-coord">
+        <app-path>${coordinator_file_daily}</app-path>
+        <configuration>
+            <property>
+                <name>workflow_file</name>
+                <value>${workflow_file_daily}</value>
+            </property>
+
+            <!-- Dataset the job depends on -->
+            <property>
+                <name>datasets_file</name>
+                <value>${top_articles_datasets_file}</value>
+            </property>
+            <property>
+                <name>dataset_name</name>
+                <value>${top_articles_dataset_name}</value>
+            </property>
+
+            <!-- Hive data preparation job stuff -->
+            <property>
+                <name>hive_script</name>
+                <value>${top_articles_hive_script}</value>
+            </property>
+            <property>
+                <name>source_table</name>
+                <value>${top_articles_source_table}</value>
+            </property>
+
+            <!-- cassandra loader job stuff -->
+            <property>
+                <name>cassandra_parallel_loaders</name>
+                <value>${per_article_flat_parallel_loaders}</value>
+            </property>
+            <property>
+                <name>cassandra_cql</name>
+                <value>${top_articles_cql}</value>
+            </property>
+            <property>
+                <name>cassandra_keyspace</name>
+                <value>${top_articles_keyspace}</value>
+            </property>
+            <property>
+                <name>hive_fields</name>
+                <value>${top_articles_hive_fields}</value>
+            </property>
+            <property>
+                <name>hive_fields_types</name>
+                <value>${top_articles_hive_fields_types}</value>
+            </property>
+            <property>
+                <name>cassandra_fields</name>
+                <value>${top_articles_cassandra_fields}</value>
+            </property>
+            <property>
+                <name>cassandra_primary_keys</name>
+                <value>${top_articles_cassandra_primary_keys}</value>
+            </property>
+        </configuration>
+    </coordinator>
+
+</bundle-app>
