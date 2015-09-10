@@ -53,7 +53,8 @@ CREATE TEMPORARY FUNCTION client_ip as 'org.wikimedia.analytics.refinery.hive.Cl
 CREATE TEMPORARY FUNCTION geocoded_data as 'org.wikimedia.analytics.refinery.hive.GeocodedDataUDF';
 CREATE TEMPORARY FUNCTION ua_parser as 'org.wikimedia.analytics.refinery.hive.UAParserUDF';
 CREATE TEMPORARY FUNCTION get_access_method as 'org.wikimedia.analytics.refinery.hive.GetAccessMethodUDF';
-CREATE TEMPORARY FUNCTION is_crawler as 'org.wikimedia.analytics.refinery.hive.IsCrawlerUDF';
+CREATE TEMPORARY FUNCTION is_spider as 'org.wikimedia.analytics.refinery.hive.IsSpiderUDF';
+CREATE TEMPORARY FUNCTION is_wikimedia_bot as 'org.wikimedia.analytics.refinery.hive.IsWikimediaBotUDF';
 CREATE TEMPORARY FUNCTION classify_referer AS 'org.wikimedia.analytics.refinery.hive.RefererClassifierUDF';
 CREATE TEMPORARY FUNCTION get_pageview_info AS 'org.wikimedia.analytics.refinery.hive.GetPageviewInfoUDF';
 CREATE TEMPORARY FUNCTION normalize_host AS 'org.wikimedia.analytics.refinery.hive.HostNormalizerUDF';
@@ -95,7 +96,8 @@ INSERT OVERWRITE TABLE ${destination_table}
         CAST(unix_timestamp(dt, "yyyy-MM-dd'T'HH:mm:ss") * 1.0 as timestamp) as ts,
         get_access_method(uri_host, user_agent) as access_method,
         CASE
-            WHEN ((ua_parser(user_agent)['device_family'] = 'Spider') OR (is_crawler(user_agent))) THEN 'spider'
+            WHEN ((is_wikimedia_bot(user_agent))) THEN 'bot'
+            WHEN ((ua_parser(user_agent)['device_family'] = 'Spider') OR (is_spider(user_agent))) THEN 'spider'
             ELSE 'user'
         END as agent_type,
         (str_to_map(x_analytics, '\;', '=')['zero'] IS NOT NULL) as is_zero,
