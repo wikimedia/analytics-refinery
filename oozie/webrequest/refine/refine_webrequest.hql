@@ -82,7 +82,7 @@ INSERT OVERWRITE TABLE ${destination_table}
         accept_language,
         x_analytics,
         range,
-        is_pageview(uri_host, uri_path, uri_query, http_status, content_type, user_agent) as is_pageview,
+        is_pageview(uri_host, uri_path, uri_query, http_status, content_type, user_agent, x_analytics) as is_pageview,
         '${record_version}' as record_version,
         client_ip(ip, x_forwarded_for) as client_ip,
         geocoded_data(client_ip(ip, x_forwarded_for)) as geocoded_data,
