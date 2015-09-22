@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <workflow-app xmlns="uri:oozie:workflow:0.4"
-    name="pageview-hourly-${source_table}->${destination_table}-${year},${month},${day},${hour}-wf">
+    name="pageview-hourly-${webrequest_table}->${pageview_table}-${year},${month},${day},${hour}-wf">
 
     <parameters>
 
@@ -22,10 +22,16 @@
 
         <!-- Aggregation related configuration properties-->
         <property>
-            <name>hive_script_aggregate</name>
+            <name>hive_pageview_script_aggregate</name>
             <!-- This is relative to the containing directory of this file. -->
             <value>pageview_hourly.hql</value>
             <description>Hive script to run.</description>
+        </property>
+        <property>
+             <name>hive_whitelist_check_script</name>
+             <!-- This is relative to the containing directory of this file. -->
+             <value>pageview_whitelist_check.hql</value>
+            <description>Hive pageview whitelist check script to run.</description>
         </property>
 
         <property>
@@ -33,13 +39,22 @@
             <description>hive-site.xml file path in HDFS</description>
         </property>
         <property>
-            <name>source_table</name>
+            <name>webrequest_table</name>
             <description>Hive table to refine</description>
         </property>
         <property>
-            <name>destination_table</name>
+            <name>pageview_table</name>
             <description>The destinaton table to store refined data in.</description>
         </property>
+        <property>
+            <name>whitelist_table</name>
+            <description>Hive pageview whitelist table for check</description>
+        </property>
+        <property>
+            <name>unexpected_values_table</name>
+            <description>Hive pageview unexpected values from whitelist check</description>
+        </property>
+
         <property>
             <name>year</name>
             <description>The partition's year</description>
@@ -61,8 +76,32 @@
             <description>Workflow for marking a directory done</description>
         </property>
         <property>
-            <name>destination_dataset_directory</name>
-            <description>Directory to generate the done flag in</description>
+            <name>pageview_dataset_directory</name>
+            <description>Pageview directory to generate the done flag in</description>
+        </property>
+        <property>
+            <name>unexpected_values_dataset_directory</name>
+            <description>Pageview unexpected values directory to generate the done flag in</description>
+        </property>
+        <property>
+            <name>send_error_email_workflow_file</name>
+            <description>Workflow for sending an email</description>
+        </property>
+
+        <property>
+            <name>hive_pageview_script_transform</name>
+            <!-- This is relative to the containing directory of this file. -->
+            <value>transform_pageview_to_legacy_format.hql</value>
+            <description>Hive script to run for archiving with the legacy format used on dumps through 2015.</description>
+        </property>
+        <!-- To mimic webstatcollector, file name must be the end of the aggregated hour-->
+        <property>
+            <name>year_plus_1_hour</name>
+            <description>The partition's year plus one hour</description>
+        </property>
+        <property>
+            <name>month_plus_1_hour</name>
+            <description>The partition's month plus one hour</description>
         </property>
 
         <property>
@@ -130,10 +169,9 @@
                     <value>/tmp/hive-${user}</value>
                 </property>
             </configuration>
-
-            <script>${hive_script_aggregate}</script>
-            <param>source_table=${source_table}</param>
-            <param>destination_table=${destination_table}</param>
+            <script>${hive_pageview_script_aggregate}</script>
+            <param>source_table=${webrequest_table}</param>
+            <param>destination_table=${pageview_table}</param>
             <param>record_version=${record_version}</param>
             <param>year=${year}</param>
             <param>month=${month}</param>
@@ -142,7 +180,7 @@
         </hive>
 
         <ok to="mark_aggregated_pageview_dataset_done"/>
-        <error to="kill"/>
+        <error to="send_error_email"/>
     </action>
 
     <action name="mark_aggregated_pageview_dataset_done">
@@ -151,12 +189,12 @@
             <configuration>
                 <property>
                     <name>directory</name>
-                    <value>${destination_dataset_directory}</value>
+                    <value>${pageview_dataset_directory}</value>
                 </property>
             </configuration>
         </sub-workflow>
         <ok to="transform"/>
-        <error to="kill"/>
+        <error to="send_error_email"/>
     </action>
 
     <action name="transform">
@@ -184,10 +222,10 @@
                 </property>
             </configuration>
 
-            <script>${hive_script_transform}</script>
+            <script>${hive_pageview_script_transform}</script>
             <!-- Here, the source for archive is the
                  destination of the previous job -->
-            <param>source_table=${destination_table}</param>
+            <param>source_table=${pageview_table}</param>
             <param>year=${year}</param>
             <param>month=${month}</param>
             <param>day=${day}</param>
@@ -196,7 +234,7 @@
         </hive>
 
         <ok to="mark_transformed_pageview_dataset_done"/>
-        <error to="kill"/>
+        <error to="send_error_email"/>
     </action>
 
     <action name="mark_transformed_pageview_dataset_done">
@@ -210,7 +248,7 @@
             </configuration>
         </sub-workflow>
         <ok to="move_data_to_archive"/>
-        <error to="kill"/>
+        <error to="send_error_email"/>
     </action>
 
     <action name="move_data_to_archive">
@@ -237,7 +275,105 @@
                 </property>
             </configuration>
         </sub-workflow>
+        <ok to="whitelist_check"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <action name="whitelist_check">
+        <hive xmlns="uri:oozie:hive-action:0.2">
+            <job-tracker>${job_tracker}</job-tracker>
+            <name-node>${name_node}</name-node>
+            <job-xml>${hive_site_xml}</job-xml>
+            <configuration>
+                <property>
+                    <name>mapreduce.job.queuename</name>
+                    <value>${queue_name}</value>
+                </property>
+                <!--make sure oozie:launcher runs in a low priority queue -->
+                <property>
+                    <name>oozie.launcher.mapred.job.queue.name</name>
+                    <value>${oozie_launcher_queue_name}</value>
+                </property>
+                <property>
+                    <name>oozie.launcher.mapreduce.map.memory.mb</name>
+                    <value>${oozie_launcher_memory}</value>
+                </property>
+                <property>
+                    <name>hive.exec.scratchdir</name>
+                    <value>/tmp/hive-${user}</value>
+                </property>
+            </configuration>
+
+            <script>${hive_whitelist_check_script}</script>
+            <param>source_table=${pageview_table}</param>
+            <param>whitelist_table=${whitelist_table}</param>
+            <param>destination_table=${unexpected_values_table}</param>
+            <param>year=${year}</param>
+            <param>month=${month}</param>
+            <param>day=${day}</param>
+            <param>hour=${hour}</param>
+        </hive>
+
+        <ok to="mark_unexpected_values_dataset_done"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <action name="mark_unexpected_values_dataset_done">
+        <sub-workflow>
+            <app-path>${mark_directory_done_workflow_file}</app-path>
+            <configuration>
+                <property>
+                    <name>directory</name>
+                    <value>${unexpected_values_dataset_directory}</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="empty_result_check"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <!-- Check unexpected_values partition is empty using file size = 0 -->
+    <decision name="empty_result_check">
+        <switch>
+            <case to="send_whitelist_email">
+              ${fs:dirSize(unexpected_values_dataset_directory) eq 0}
+            </case>
+            <default to="end"/>
+        </switch>
+    </decision>
+
+
+    <action name="send_whitelist_email">
+        <sub-workflow>
+            <app-path>${send_error_email_workflow_file}</app-path>
+            <propagate-configuration/>
+            <configuration>
+                <property>
+                    <name>parent_name</name>
+                    <value>${wf:name()}</value>
+                </property>
+                <property>
+                    <name>subject</name>
+                    <value>Unexpected values in pageview for workflow - ${wf:name()}</value>
+                </property>
+            </configuration>
+        </sub-workflow>
         <ok to="end"/>
+        <error to="kill"/>
+    </action>
+
+    <action name="send_error_email">
+        <sub-workflow>
+            <app-path>${send_error_email_workflow_file}</app-path>
+            <propagate-configuration/>
+            <configuration>
+                <property>
+                    <name>parent_name</name>
+                    <value>${wf:name()}</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="kill"/>
         <error to="kill"/>
     </action>
 

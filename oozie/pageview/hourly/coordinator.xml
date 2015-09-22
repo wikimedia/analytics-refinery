@@ -25,8 +25,12 @@
         <property><name>pageview_data_directory</name></property>
 
         <property><name>hive_site_xml</name></property>
-        <property><name>source_table</name></property>
-        <property><name>destination_table</name></property>
+
+        <property><name>webrequest_table</name></property>
+        <property><name>pageview_table</name></property>
+        <property><name>whitelist_table</name></property>
+        <property><name>unexpected_values_table</name></property>
+        <property><name>send_error_email_workflow_file</name></property>
 
         <property><name>temporary_directory</name></property>
         <property><name>pageview_archive_directory</name></property>
@@ -87,6 +91,9 @@
         <data-out name="pageview_hourly_output" dataset="pageview_hourly">
             <instance>${coord:current(0)}</instance>
         </data-out>
+        <data-out name="pageview_unexpected_values_output" dataset="pageview_unexpected_values">
+            <instance>${coord:current(0)}</instance>
+        </data-out>
     </output-events>
 
     <action>
@@ -112,8 +119,30 @@
                 </property>
                 <property>
                     <!-- To mark directory done after success -->
-                    <name>destination_dataset_directory</name>
+                    <name>pageview_dataset_directory</name>
                     <value>${coord:dataOut('pageview_hourly_output')}</value>
+                </property>
+                <property>
+                    <!-- To mark directory done after whitelist check success -->
+                    <name>unexpected_values_dataset_directory</name>
+                    <value>${coord:dataOut('pageview_unexpected_values_output')}</value>
+                </property>
+                <!-- To mimic webstatcollector, file name must be the end of the aggregated hour-->
+                <property>
+                    <name>year_plus_1_hour</name>
+                    <value>${coord:formatTime(coord:dateOffset(coord:nominalTime(), 1, "HOUR"), "yyyy")}</value>
+                </property>
+                <property>
+                    <name>month_plus_1_hour</name>
+                    <value>${coord:formatTime(coord:dateOffset(coord:nominalTime(), 1, "HOUR"), "MM")}</value>
+                </property>
+                <property>
+                    <name>day_plus_1_hour</name>
+                    <value>${coord:formatTime(coord:dateOffset(coord:nominalTime(), 1, "HOUR"), "dd")}</value>
+                </property>
+                <property>
+                    <name>hour_plus_1_hour</name>
+                    <value>${coord:formatTime(coord:dateOffset(coord:nominalTime(), 1, "HOUR"), "HH")}</value>
                 </property>
 
                 <!-- To mimic webstatcollector, file name must be the end of the aggregated hour-->
