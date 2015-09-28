@@ -29,7 +29,7 @@
 
         <property>
             <name>to</name>
-            <value>otto@wikimedia.org,joal@wikimedia.org,milimetric@wikimedia.org,madhuvishy@wikimedia.org,mforns@wikimedia.org</value>
+            <value>otto@wikimedia.org,joal@wikimedia.org,milimetric@wikimedia.org,madhuvishy@wikimedia.org,mforns@wikimedia.org,nuria@wikimedia.org</value>
             <description>
                 The comma-separated list of email recipients
             </description>
