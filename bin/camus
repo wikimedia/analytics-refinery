@@ -21,6 +21,7 @@ Options:
     -h --help                           Show this help message and exit.
     -N --job-name=<job-name>            Hadoop JobName. [default: Camus Job]
     -j --jar=<jar-file>                 Path to Camus .jar file.  [default: /srv/deployment/analytics/refinery/artifacts/camus-wmf.jar]
+    -l --libjars=<jar-file(s)>          Comma separated paths to external jars to make available to Camus' Map Reduce jobs
     -f --force                          If set, job will be submitted without checking if it is already running.
     -n --dry-run                        Prints command that would have been run without running it.
 """
@@ -59,15 +60,18 @@ if __name__ == '__main__':
     jar             = arguments['--jar']
     job_name        = arguments['--job-name']
     properties_file = arguments['<properties-file>']
+    libjars         = arguments['--libjars']
 
     if not arguments['--force'] and is_yarn_application_running(job_name):
         logging.warn('Not submitting camus job "{0}", it is currently running.'.format(job_name))
         sys.exit(1)
 
-    command = '/usr/bin/hadoop jar {0} com.linkedin.camus.etl.kafka.CamusJob -P {1} -Dcamus.job.name="{2}"'.format(
+    libjars_opt = '' if not libjars else ('-libjars ' + libjars)
+    command = '/usr/bin/hadoop jar {0} com.linkedin.camus.etl.kafka.CamusJob -P {1} -Dcamus.job.name="{2}" {3}'.format(
         jar,
         properties_file,
-        job_name
+        job_name,
+        libjars_opt
     )
     logging.info('Submitting camus job "{0}": {1}'.format(job_name, command))
 
