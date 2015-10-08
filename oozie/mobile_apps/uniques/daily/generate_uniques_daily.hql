@@ -89,6 +89,9 @@ FROM
             unique_count
         FROM
             ${archive_table}
+        WHERE NOT ((year = ${year})
+            AND (month = ${month})
+            AND (day = ${day}))
 
         UNION ALL
 
