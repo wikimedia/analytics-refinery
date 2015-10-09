@@ -67,11 +67,11 @@ if __name__ == '__main__':
         sys.exit(1)
 
     libjars_opt = '' if not libjars else ('-libjars ' + libjars)
-    command = '/usr/bin/hadoop jar {0} com.linkedin.camus.etl.kafka.CamusJob -P {1} -Dcamus.job.name="{2}" {3}'.format(
+    command = '/usr/bin/hadoop jar {0} com.linkedin.camus.etl.kafka.CamusJob {1} -P {2} -Dcamus.job.name="{3}"'.format(
         jar,
+        libjars_opt,
         properties_file,
-        job_name,
-        libjars_opt
+        job_name
     )
     logging.info('Submitting camus job "{0}": {1}'.format(job_name, command))
 
