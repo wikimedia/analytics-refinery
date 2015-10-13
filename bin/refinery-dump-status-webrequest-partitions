@@ -31,6 +31,8 @@ Options:
 
   --quiet         -- Only produce output, if there are faulty partitions
 
+  --percent-lost  -- Query hive to get percent lost of incomplete partitions.
+
 HOURS_TO_GO_BACK  -- number of hours to go back in time. (Default: 51)
 
 EOF
@@ -47,6 +49,7 @@ QUIET=
 QUIET_BUFFER=
 
 MARK_DAY_CHANGES=no
+PERCENT_LOST=no
 
 ALL_DATASETS=()
 
@@ -76,7 +79,7 @@ add_dataset "legacy_tsvs" "daily" "    5xx    | 5xx-misc  |5xx-mobile | 5xx-text
 add_dataset "mediacounts" "daily" "   full  | top1000 |"
 add_dataset "pagecounts_all_sites" "hourly" " file name date  |  page   | project |"
 add_dataset "pagecounts_raw" "hourly" " file name date  |  page   | project |"
-add_dataset "raw_webrequest" "hourly" "  maps  |  misc  | mobile |  text  | upload |"
+add_dataset "raw_webrequest" "hourly" "     maps    |     misc    |    mobile   |     text    |    upload   |"
 add_dataset "webrequest" "hourly" "  maps  |  misc  | mobile |  text  | upload |"
 add_dataset "pageview" "hourly" "  hourly  |"
 add_dataset "projectview" "hourly" "   hourly    |"
@@ -145,6 +148,9 @@ do
             ;;
         "--quiet" )
             QUIET=yes
+            ;;
+        "--percent-lost" )
+            PERCENT_LOST=yes
             ;;
         * )
             if [ $# -eq 0 ]
@@ -347,6 +353,17 @@ determine_recurrence_visibility() {
     done
 }
 
+get_percent_different() {
+
+    local DATE="$1"
+    local SOURCE="$2"
+
+    local CONDITIONS="year=${DATE:0:4} AND month=${DATE:5:2} AND day=${DATE:8:2} AND hour=${DATE:11:2} AND webrequest_source='$SOURCE'"
+    local QUERY="SELECT LPAD(ROUND(percent_lost, 1), 5, ' ') FROM wmf_raw.webrequest_sequence_stats_hourly WHERE $CONDITIONS;"
+
+    echo "$(hive -S -e "$QUERY" 2>/dev/null | tail -n 1)%"
+}
+
 dump_dataset_legacy_tsvs() {
     local DATE="$1"
 
@@ -445,20 +462,25 @@ dump_dataset_raw_webrequest_partition() {
 
     local DATE_HDFS_PADDED="$1"
     local SOURCE="$2"
-    local STATUS="X"
+    local STATUS=
 
     local DATE_HDFS_UNPADDED="${DATE_HDFS_PADDED///0//}"
 
     STATISTICS_FILE_ABS="$RAW_WEBREQUEST_STATISTICS_DIR_ABS/$SOURCE/$DATE_HDFS_UNPADDED/000000_0"
     if [ -e "$STATISTICS_FILE_ABS" -a ! -s "$STATISTICS_FILE_ABS" ]
     then
-        STATUS="."
+        STATUS="     ."
     else
         if [ -e "$RAW_WEBREQUEST_DATA_DIR_ABS/webrequest_$SOURCE/hourly/$DATE_HDFS_PADDED/_SUCCESS" ]
         then
-            STATUS="M"
+            STATUS="     M"
         else
-            STATUS="X"
+            if [ "$PERCENT_LOST" = "yes" ]
+            then
+                STATUS="$(get_percent_different "$DATE_HDFS_PADDED" "$SOURCE")"
+            else
+                STATUS="     X"
+            fi
             HAS_FAULTY=yes
         fi
     fi
@@ -601,10 +623,11 @@ log "
 
 Statuses:
 
-  . --> Dataset entry passed automated checks
-  _ --> Dataset entry is present (does not imply quality guarantees)
-  M --> Dataset entry manually marked ok
-  X --> Dataset entry is known to not be ok
+  .  --> Dataset entry passed automated checks
+  _  --> Dataset entry is present (does not imply quality guarantees)
+  M  --> Dataset entry manually marked ok
+  X  --> Dataset entry is known to not be ok
+  N% --> Dataset entry is known to have a loss of N percent
 
 
 "
