@@ -9,7 +9,7 @@
 --     hour              -- hour of partition to compute statistics for.
 --
 -- Usage:
---     hive -f transform_projectview_to_projectcounts.hql         \
+--     hive -f transform_projectview_to_legacy_format.hql         \
 --         -d source_table=wmf.projectview_hourly                 \
 --         -d destination_directory=/tmp/example                  \
 --         -d year=2015                                           \

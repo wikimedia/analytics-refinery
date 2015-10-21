@@ -68,8 +68,8 @@
         <property>
             <name>hive_script_transform</name>
             <!-- This is relative to the containing directory of this file. -->
-            <value>transform_projectview_to_projectcounts.hql</value>
-            <description>Hive script to run for archiving with webstatcollector format.</description>
+            <value>transform_projectview_to_legacy_format.hql</value>
+            <description>Hive script to run for archiving with the legacy format used on dumps through 2015.</description>
         </property>
         <!-- To mimic webstatcollector, file name must be the end of the aggregated hour-->
         <property>
@@ -233,7 +233,7 @@
                     timestamp in the filename. To not break scripts of people,
                     we also name files that way.
                     -->
-                    <value>${projectview_archive_directory}/${year_plus_1_hour}/${year_plus_1_hour}-${month_plus_1_hour}/projectcounts-${year_plus_1_hour}${month_plus_1_hour}${day_plus_1_hour}-${hour_plus_1_hour}0000</value>
+                    <value>${projectview_archive_directory}/${year_plus_1_hour}/${year_plus_1_hour}-${month_plus_1_hour}/projectviews-${year_plus_1_hour}${month_plus_1_hour}${day_plus_1_hour}-${hour_plus_1_hour}0000</value>
                 </property>
             </configuration>
         </sub-workflow>

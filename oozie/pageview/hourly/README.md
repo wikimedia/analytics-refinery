@@ -1,11 +1,14 @@
 # Aggregation phase for pageview from webrequest
+# and archive into legacy format.
 
-This job is responsible for filtering pageview from
-refined webrequest table, then aggregating them into
-interesting dimensions.
+This job is responsible for filtering pageview data
+from the refined webrequest table, aggregating it into
+interesting dimensions, and finally transforming and
+archiving it into legacy format.
 
 Output is appended into (year, month, day, hour) partitions
-in /wmf/data/wmf/pageview/hourly
+in /wmf/data/wmf/pageview/hourly, and then archived into
+/wmf/data/archive/pageview/legacy/hourly
 
 # Outline
 
