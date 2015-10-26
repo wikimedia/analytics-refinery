@@ -332,11 +332,11 @@
         <error to="send_error_email"/>
     </action>
 
-    <!-- Check unexpected_values partition is empty using file size = 0 -->
+    <!-- Check unexpected_values partition is empty using file size > 0 -->
     <decision name="empty_result_check">
         <switch>
             <case to="send_whitelist_email">
-              ${fs:dirSize(unexpected_values_dataset_directory) eq 0}
+              ${fs:dirSize(unexpected_values_dataset_directory) gt 0}
             </case>
             <default to="end"/>
         </switch>
