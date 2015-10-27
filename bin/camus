@@ -13,17 +13,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-""" Wrapper for launching Camus Kafka Importer
+""" Wrapper for launching Camus Kafka Importer and CamusPartitionChecker
 
 Usage: camus [options] <properties-file>
 
 Options:
     -h --help                           Show this help message and exit.
+    -n --dry-run                        Prints command that would have been run without running anything.
+    -r --run                            If set, a camus job will be launched using the given configuration
     -N --job-name=<job-name>            Hadoop JobName. [default: Camus Job]
     -j --jar=<jar-file>                 Path to Camus .jar file.  [default: /srv/deployment/analytics/refinery/artifacts/camus-wmf.jar]
     -l --libjars=<jar-file(s)>          Comma separated paths to external jars to make available to Camus' Map Reduce jobs
     -f --force                          If set, job will be submitted without checking if it is already running.
-    -n --dry-run                        Prints command that would have been run without running it.
+    -c --check                          If set, a CamusPartitionChecker job will be submitted after the camus run if any (checking and flagging imported partitions).
+    -q --check-jar=<jar-file>           Path to refinery-job jar file. [default: /srv/deployment/analytics/refinery/artifacts/refinery-job.jar]
+    -d --check-datetime=<datetime>      Camus run date to check (yyyy-mm-dd-HH-MM-SS format). Most recent run if not set.
+    -m --check-dry-run                  Execute the check in dry-run mode.
 """
 __author__ = 'Andrew Otto <otto@wikimedia.org>'
 
@@ -56,24 +61,48 @@ def is_yarn_application_running(job_name):
 if __name__ == '__main__':
     # parse arguments
     arguments = docopt(__doc__)
+    exit_value = 0
 
-    jar             = arguments['--jar']
-    job_name        = arguments['--job-name']
     properties_file = arguments['<properties-file>']
-    libjars         = arguments['--libjars']
+    dry_run = arguments['--dry-run']
 
-    if not arguments['--force'] and is_yarn_application_running(job_name):
-        logging.warn('Not submitting camus job "{0}", it is currently running.'.format(job_name))
-        sys.exit(1)
+    #Camus execution block
+    if (arguments['--run']):
+        jar             = arguments['--jar']
+        job_name        = arguments['--job-name']
+        libjars         = arguments['--libjars']
 
-    libjars_opt = '' if not libjars else ('-libjars ' + libjars)
-    command = '/usr/bin/hadoop jar {0} com.linkedin.camus.etl.kafka.CamusJob {1} -P {2} -Dcamus.job.name="{3}"'.format(
-        jar,
-        libjars_opt,
-        properties_file,
-        job_name
-    )
-    logging.info('Submitting camus job "{0}": {1}'.format(job_name, command))
+        if not arguments['--force'] and is_yarn_application_running(job_name):
+            logging.warn('Not submitting camus job "{0}", it is currently running.'.format(job_name))
+            sys.exit(1)
 
-    if not arguments['--dry-run']:
-        sys.exit(os.system(command))
+        libjars_opt = '' if not libjars else ('-libjars ' + libjars)
+        camus_command = '/usr/bin/hadoop jar {0} com.linkedin.camus.etl.kafka.CamusJob {1} -P {2} -Dcamus.job.name="{3}"'.format(
+            jar,
+            libjars_opt,
+            properties_file,
+            job_name
+        )
+        logging.info('Submitting camus job "{0}": {1}'.format(job_name, camus_command))
+
+        camus_res = 0
+        if not dry_run:
+            exit_value += os.system(camus_command)
+
+    # Check execution block
+    if (arguments['--check']):
+        check_jar       = arguments['--check-jar']
+        # Spark classpath contains hadoop jars, no need to add them explicitely
+        check_classpath = ':'.join([check_jar, '$(/usr/lib/spark/bin/compute-classpath.sh)', '/usr/share/java/*'])
+        datetime_to_check = '-d %s' % arguments['--check-datetime'] if arguments['--check-datetime'] else ''
+        checker_command = '/usr/bin/java -cp "{0}" org.wikimedia.analytics.refinery.job.CamusPartitionChecker -c {1} {2}'.format(
+            check_classpath,
+            properties_file,
+            datetime_to_check
+        )
+
+        logging.info('Submitting camus-checker job: {0}'.format(checker_command))
+        if not dry_run:
+            exit_value += os.system(checker_command + (' --dry-run' if arguments['--check-dry-run'] else ''))
+
+    sys.exit(exit_value)
