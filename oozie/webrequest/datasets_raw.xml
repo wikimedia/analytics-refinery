@@ -20,35 +20,35 @@ Use this dataset in your coordinator.xml files by setting:
              initial-instance="${start_time}"
              timezone="Universal">
         <uri-template>${webrequest_raw_data_directory}/webrequest_maps/hourly/${YEAR}/${MONTH}/${DAY}/${HOUR}</uri-template>
-        <done-flag></done-flag>
+        <done-flag>_IMPORTED</done-flag>
     </dataset>
     <dataset name="webrequest_misc_raw_unchecked"
              frequency="${coord:hours(1)}"
              initial-instance="${start_time}"
              timezone="Universal">
         <uri-template>${webrequest_raw_data_directory}/webrequest_misc/hourly/${YEAR}/${MONTH}/${DAY}/${HOUR}</uri-template>
-        <done-flag></done-flag>
+        <done-flag>_IMPORTED</done-flag>
     </dataset>
     <dataset name="webrequest_mobile_raw_unchecked"
              frequency="${coord:hours(1)}"
              initial-instance="${start_time}"
              timezone="Universal">
         <uri-template>${webrequest_raw_data_directory}/webrequest_mobile/hourly/${YEAR}/${MONTH}/${DAY}/${HOUR}</uri-template>
-        <done-flag></done-flag>
+        <done-flag>_IMPORTED</done-flag>
     </dataset>
     <dataset name="webrequest_text_raw_unchecked"
              frequency="${coord:hours(1)}"
              initial-instance="${start_time}"
              timezone="Universal">
         <uri-template>${webrequest_raw_data_directory}/webrequest_text/hourly/${YEAR}/${MONTH}/${DAY}/${HOUR}</uri-template>
-        <done-flag></done-flag>
+        <done-flag>_IMPORTED</done-flag>
     </dataset>
     <dataset name="webrequest_upload_raw_unchecked"
              frequency="${coord:hours(1)}"
              initial-instance="${start_time}"
              timezone="Universal">
         <uri-template>${webrequest_raw_data_directory}/webrequest_upload/hourly/${YEAR}/${MONTH}/${DAY}/${HOUR}</uri-template>
-        <done-flag></done-flag>
+        <done-flag>_IMPORTED</done-flag>
     </dataset>
 
     <!--

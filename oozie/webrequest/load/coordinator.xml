@@ -81,40 +81,12 @@
         <data-in name="input" dataset="webrequest_${webrequest_source}_raw_unchecked">
             <instance>${coord:current(0)}</instance>
         </data-in>
-        <!--
-        In order to prevent the job from running too early, we wait
-        for the dataset that is 2 hours in the future (1 hour is too
-        little, as the directory for the dataset 1 hour in the future
-        might get created /before/ writing for the current dataset
-        finishes).
-         -->
-        <data-in name="ready_indicator" dataset="webrequest_${webrequest_source}_raw_unchecked">
-            <instance>${coord:current(2)}</instance>
-        </data-in>
     </input-events>
 
     <action>
         <workflow>
             <app-path>${workflow_file}</app-path>
             <configuration>
-
-                <!-- Pass these properties through to the workflow -->
-                <property><name>name_node</name><value>${name_node}</value></property>
-                <property><name>job_tracker</name><value>${job_tracker}</value></property>
-                <property><name>queue_name</name><value>${queue_name}</value></property>
-
-                <property>
-                    <name>add_partition_workflow_file</name>
-                    <value>${add_partition_workflow_file}</value>
-                </property>
-                <property>
-                    <name>hive_site_xml</name>
-                    <value>${hive_site_xml}</value>
-                </property>
-                <property>
-                    <name>table</name>
-                    <value>${table}</value>
-                </property>
                 <property>
                     <name>year</name>
                     <value>${coord:formatTime(coord:nominalTime(), "y")}</value>
@@ -135,15 +107,6 @@
                     <name>location</name>
                     <value>${coord:dataIn('input')}</value>
                 </property>
-                <property>
-                    <name>statistics_table</name>
-                    <value>${statistics_table}</value>
-                </property>
-                <property>
-                    <name>faulty_hosts_directory</name>
-                    <value>${faulty_hosts_directory}</value>
-                </property>
-
             </configuration>
         </workflow>
     </action>
