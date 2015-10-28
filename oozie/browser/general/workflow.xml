@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <workflow-app xmlns="uri:oozie:workflow:0.4"
-    name="browser_general-${year}-${month}-${day}-wf">
+    name="browser_general-${output_timestamp}-wf">
 
     <parameters>
         <!-- Default values for inner oozie settings -->
@@ -40,6 +40,10 @@
         <property>
             <name>output_base_path</name>
             <description>Directory where to write the reports.</description>
+        </property>
+        <property>
+            <name>output_timestamp</name>
+            <description>The full start date in format: yyyy-MM-dd.</description>
         </property>
         <property>
             <name>year</name>
@@ -89,7 +93,7 @@
             <script>${hive_script}</script>
             <param>projectview_source=${projectview_source}</param>
             <param>pageview_source=${pageview_source}</param>
-            <param>destination_directory=${output_base_path}/mobile_web-${year}-${month}-${day}</param>
+            <param>destination_directory=${output_base_path}/mobile_web-${output_timestamp}</param>
             <param>access_methods='mobile web'</param>
             <param>year=${year}</param>
             <param>month=${month}</param>
@@ -129,7 +133,7 @@
             <script>${hive_script}</script>
             <param>projectview_source=${projectview_source}</param>
             <param>pageview_source=${pageview_source}</param>
-            <param>destination_directory=${output_base_path}/desktop_and_mobile_web-${year}-${month}-${day}</param>
+            <param>destination_directory=${output_base_path}/desktop_and_mobile_web-${output_timestamp}</param>
             <param>access_methods='desktop','mobile web'</param>
             <param>year=${year}</param>
             <param>month=${month}</param>

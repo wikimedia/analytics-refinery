@@ -54,7 +54,7 @@ INSERT OVERWRITE DIRECTORY '${destination_directory}'
                 '\t',
                 CONCAT(user_agent_map['os_family'], ' ', user_agent_map['os_major']),
                 CONCAT(user_agent_map['browser_family'], ' ', user_agent_map['browser_major']),
-                CAST(SUM(view_count) * 100 / total.view_count_total AS string)
+                CAST(ROUND(SUM(view_count) * 100 / total.view_count_total, 2) AS string)
             ) AS tsv_line,
             SUM(view_count) * 100 / total.view_count_total AS percent
         FROM
@@ -70,7 +70,7 @@ INSERT OVERWRITE DIRECTORY '${destination_directory}'
             CONCAT(user_agent_map['browser_family'], ' ', user_agent_map['browser_major']),
             total.view_count_total
         HAVING
-            (SUM(view_count) * 100 / total.view_count_total) > 0.5
+            (SUM(view_count) * 100 / total.view_count_total) > 0.1
         ORDER BY percent DESC
     ) AS tsv_lines
 ;

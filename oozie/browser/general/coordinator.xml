@@ -71,6 +71,10 @@
                     <name>day</name>
                     <value>${coord:formatTime(coord:nominalTime(), "d")}</value>
                 </property>
+                <property>
+                    <name>output_timestamp</name>
+                    <value>${coord:formatTime(coord:nominalTime(), "yyyy-MM-dd")}</value>
+                </property>
 
             </configuration>
         </workflow>
