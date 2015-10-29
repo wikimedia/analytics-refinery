@@ -271,7 +271,7 @@
                     timestamp in the filename. To not break scripts of people,
                     we also name files that way.
                     -->
-                    <value>${pageview_archive_directory}/${year_plus_1_hour}/${year_plus_1_hour}-${month_plus_1_hour}/pageviews-${year_plus_1_hour}${month_plus_1_hour}${day_plus_1_hour}-${hour_plus_1_hour}0000</value>
+                    <value>${pageview_archive_directory}/${year_plus_1_hour}/${year_plus_1_hour}-${month_plus_1_hour}/pageviews-${year_plus_1_hour}${month_plus_1_hour}${day_plus_1_hour}-${hour_plus_1_hour}0000.gz</value>
                 </property>
             </configuration>
         </sub-workflow>
