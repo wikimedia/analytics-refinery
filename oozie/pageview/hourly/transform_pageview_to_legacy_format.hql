@@ -18,8 +18,8 @@
 --         -d hour=1
 --
 
-SET hive.exec.compress.output        =false;
-SET mapred.reduce.tasks              = 1;
+SET hive.exec.compress.output=true;
+SET mapreduce.output.fileoutputformat.compress.codec=org.apache.hadoop.io.compress.GzipCodec;
 
 
 INSERT OVERWRITE DIRECTORY "${destination_directory}"
