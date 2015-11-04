@@ -1,0 +1,173 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Note: You should make sure to put refinery/python on your PYTHONPATH.
+#   export PYTHONPATH=$PYTHONPATH:/path/to/refinery/python
+
+"""
+Automatically drops old Hive partitions from the CirrusSearchRequestSet table
+and deletes the hourly time bucketed directory from HDFS.
+
+Usage: refinery-drop-cirrus-searchrequest-set-partitions [options]
+
+Options:
+    -h --help                           Show this help message and exit.
+    -d --older-than-days=<days>         Drop data older than this number of days.  [default: 60]
+    -D --database=<dbname>              Hive database name.  [default: default]
+    -t --table=<table>                  Name of CirrusSearchRequestSet table.  [default: CirrusSearchRequestSet]
+    -l --location=<location>            Base HDFS location path of the CirrusSearchRequestSet table.  If not
+                                        specified, this will be inferred from the table schema metadata.
+    -o --hive-options=<options>         Any valid Hive CLI options you want to pass to Hive commands.
+                                        Example: '--auxpath /path/to/hive-serdes-1.0-SNAPSHOT.jar'
+    -v --verbose                        Turn on verbose debug logging.
+    -n --dry-run                        Don't actually drop any partitions, just output the Hive queries to drop partitions.
+"""
+__author__ = 'Andrew Otto <otto@wikimedia.org>'
+
+import datetime
+from   docopt   import docopt
+import logging
+import re
+import os
+import sys
+from refinery.util import HiveUtils, HdfsUtils
+
+# from pprint import pprint as pp
+
+
+
+
+if __name__ == '__main__':
+    # parse arguments
+    arguments = docopt(__doc__)
+    # pp(arguments)
+    days            = int(arguments['--older-than-days'])
+    database        = arguments['--database']
+    table           = arguments['--table']
+    table_location  = arguments['--location']
+    hive_options    = arguments['--hive-options']
+    verbose         = arguments['--verbose']
+    dry_run         = arguments['--dry-run']
+
+    # Only raw for now
+    partition_type  = 'raw';
+
+    log_level = logging.INFO
+    if verbose:
+        log_level = logging.DEBUG
+
+    logging.basicConfig(level=log_level,
+                        format='%(asctime)s %(levelname)-6s %(message)s',
+                        datefmt='%Y-%m-%dT%H:%M:%S')
+
+
+    if not HdfsUtils.validate_path(table_location):
+        logging.error('{0} table location \'{1}\' is not a valid HDFS path.  Path must start with \'/\' or \'hdfs://\'.  Aborting.'
+            .format(table, table_location))
+        sys.exit(1)
+
+
+    # Instantiate HiveUtils.
+    hive = HiveUtils(database, hive_options)
+
+    # The base location of this CirrusSearchRequestSet table in HDFS.
+    # If it was not provided via the CLI, then attempt to
+    # infer if from the table metadata.
+    if table_location == None:
+        table_location = hive.table_location(table)
+
+
+    # Allows easy extraction of partition fields from the partition spec.
+    # This regex is used with HiveUtils partition_datetime_from_spec.
+    # and could be used with HDFS partition paths that match the default
+    # Hive partition layout (I.e. key1=val1/key2=val2, etc.)
+    partition_spec_regex   = re.compile(r'^year=(?P<year>[^/,]+)[/,]month=(?P<month>[^/,]+)[/,]day=(?P<day>[^/]+)[/,]hour=(?P<hour>[^/,]+)')
+
+    # These globs will be used to list out all partition paths in HDFS.
+    partition_globs = {
+        'raw':      os.path.join(table_location, 'hourly', '*', '*', '*', '*'),
+    }
+
+    # These regexes tells HiveUtils partition_datetime_from_path
+    # how to extract just the date portion from a partition path.
+    # The first match group will be passed to datetime.datetime.strptime
+    # using one of the below date_formats.
+    date_regexes = {
+        'raw':      re.compile(r'.*/hourly/(.+)$'),
+    }
+    # These will be used to extract a datetime object from the string
+    # matched by date_regex in HiveUtils partition_datetime_from_path
+    date_formats = {
+        'raw':       '%Y/%m/%d/%H',
+    }
+
+    # Delete partitions older than this.
+    old_partition_datetime_threshold = datetime.datetime.now() - datetime.timedelta(days=days)
+
+    partition_specs_to_drop   = []
+    partition_paths_to_delete = []
+
+    # Loop through all partitions for this table and drop anything that is too old.
+    for partition_spec in hive.partitions(table):
+        partition_datetime = hive.partition_datetime_from_spec(
+            partition_spec,
+            partition_spec_regex
+        )
+        if partition_datetime < old_partition_datetime_threshold:
+            partition_specs_to_drop.append(partition_spec)
+
+    # Loop through all the partition directory paths for this table
+    # and check if any of them are old enough for deletion.
+    for partition_path in HdfsUtils.ls(partition_globs[partition_type], include_children=False):
+        try:
+            partition_datetime = hive.partition_datetime_from_path(
+                partition_path,
+                date_regexes[partition_type],
+                date_formats[partition_type]
+            )
+        except ValueError as e:
+            logging.error(
+                'hive.partition_datetime_from_path could not parse date found in {0} using pattern {1}. Skipping. ({2})'
+                .format(partition_path, date_regex.pattern, e)
+            )
+            continue
+
+        if partition_datetime and partition_datetime < old_partition_datetime_threshold:
+            partition_paths_to_delete.append(partition_path)
+
+
+    # Drop any old Hive partitions
+    if partition_specs_to_drop:
+        if dry_run:
+            print(hive.drop_partitions_ddl(table, partition_specs_to_drop))
+        else:
+            logging.info('Dropping {0} partitions from table {1}.{2}'
+                .format(len(partition_specs_to_drop), database, table)
+            )
+            hive.drop_partitions(table, partition_specs_to_drop)
+    else:
+        logging.info('No partitions need dropped for table {0}.{1}'.format(database, table))
+
+    # Delete any old HDFS data
+    if partition_paths_to_delete:
+        if dry_run:
+            print('hdfs dfs -rm -R ' + ' '.join(partition_paths_to_delete))
+        else:
+            logging.info('Removing {0} partition directories for table {1}.{2} from {3}.'
+                .format(len(partition_paths_to_delete), database, table, table_location)
+            )
+            HdfsUtils.rm(' '.join(partition_paths_to_delete))
+    else:
+        logging.info('No partition directories need removed for table {0}.{1}'.format(database, table))
