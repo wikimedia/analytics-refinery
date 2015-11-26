@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coordinator-app xmlns="uri:oozie:coordinator:0.4"
+    name="cassandra_load_monthly-${cassandra_keyspace}-coord"
+    frequency="${coord:months(1)}"
+    start="${start_time}"
+    end="${stop_time}"
+    timezone="Universal">
+
+    <parameters>
+
+        <!-- Required properties -->
+        <property><name>queue_name</name></property>
+        <property><name>name_node</name></property>
+        <property><name>job_tracker</name></property>
+        <property><name>workflow_file</name></property>
+
+        <property><name>start_time</name></property>
+        <property><name>stop_time</name></property>
+
+        <property><name>datasets_file</name></property>
+        <property><name>dataset_name</name></property>
+
+        <property><name>hive_site_xml</name></property>
+        <property><name>hive_script</name></property>
+        <property><name>hive_value_separator</name></property>
+        <property><name>source_table</name></property>
+        <property><name>temporary_directory</name></property>
+
+        <property><name>refinery_cassandra_jar_path</name></property>
+        <property><name>cassandra_reducer_class</name></property>
+        <property><name>cassandra_output_format_class</name></property>
+        <property><name>cassandra_parallel_loaders</name></property>
+        <property><name>cassandra_nodes</name></property>
+        <property><name>batch_size</name></property>
+
+        <property><name>cassandra_host</name></property>
+        <property><name>cassandra_username</name></property>
+        <property><name>cassandra_password</name></property>
+
+        <property><name>hive_fields</name></property>
+        <property><name>hive_fields_types</name></property>
+
+        <property><name>cassandra_keyspace</name></property>
+        <property><name>cassandra_table</name></property>
+        <property><name>cassandra_fields</name></property>
+        <property><name>cassandra_primary_keys</name></property>
+
+        <property><name>constant_output_domain_field</name></property>
+        <property><name>constant_output_domain_value</name></property>
+        <property><name>constant_output_granularity_field</name></property>
+        <property><name>constant_output_tid_field</name></property>
+        <property><name>constant_output_tid_value</name></property>
+
+
+    </parameters>
+
+    <controls>
+        <!--
+        By having materialized jobs not timeout, we ease backfilling incidents
+        after recoverable hiccups on the dataset producers.
+        -->
+        <timeout>-1</timeout>
+
+        <concurrency>1</concurrency>
+
+        <throttle>2</throttle>
+    </controls>
+
+    <datasets>
+        <!--
+        Include pageview or projectview hourly dataset files.
+        $datasets_file will be used as the input events.
+        -->
+        <include>${datasets_file}</include>
+    </datasets>
+
+    <input-events>
+        <data-in name="data_input" dataset="${dataset_name}">
+            <start-instance>${coord:current(0)}</start-instance>
+            <end-instance>${coord:current(coord:daysInMonth(0) * 24 - 1)}</end-instance>
+        </data-in>
+    </input-events>
+
+    <action>
+        <workflow>
+            <app-path>${workflow_file}</app-path>
+            <configuration>
+                <!-- new properties to be passed to the workflow -->
+
+                <property>
+                    <name>constant_output_granularity_value</name>
+                    <value>monthly,text</value>
+                </property>
+
+                <property>
+                    <name>year</name>
+                    <value>${coord:formatTime(coord:nominalTime(), "y")}</value>
+                </property>
+                <property>
+                    <name>month</name>
+                    <value>${coord:formatTime(coord:nominalTime(), "M")}</value>
+                </property>
+
+            </configuration>
+        </workflow>
+    </action>
+</coordinator-app>
