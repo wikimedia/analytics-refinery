@@ -106,7 +106,11 @@ INSERT OVERWRITE TABLE ${destination_table}
         CASE
            WHEN is_pageview(uri_host, uri_path, uri_query, http_status, content_type, user_agent) THEN get_pageview_info(uri_host, uri_path, uri_query)
            ELSE NULL
-        END as pageview_info
+        END as pageview_info,
+        CASE COALESCE(x_analytics, '-')
+          WHEN '-' THEN NULL
+          ELSE str_to_map(x_analytics, '\;', '=')['page_id']
+        END as page_id
     FROM
         ${source_table}
     WHERE
