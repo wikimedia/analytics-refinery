@@ -37,7 +37,7 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `webrequest`(
     `range`             string  COMMENT 'Range header of response',
     `is_pageview`       boolean COMMENT 'Indicates if this record was marked as a pageview during refinement',
     `record_version`    string  COMMENT 'Keeps track of changes in the table content definition - https://wikitech.wikimedia.org/wiki/Analytics/Data/Webrequest',
-    `client_ip`         string  COMMENT 'Client IP computed during refinement using ip and x_forwarded_for',
+    `client_ip`         string  COMMENT 'Client IP - DEPRECATED - Same as IP.',
     `geocoded_data`     map<string, string>  COMMENT 'Geocoded map with continent, country_code, country, city, subdivision, postal_code, latitude, longitude, timezone keys  and associated values.',
     -- Waiting for x_cache format to change before parsing into a map
     `x_cache`           string  COMMENT 'X-Cache header of response',
