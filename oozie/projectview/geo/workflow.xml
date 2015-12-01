@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow-app xmlns="uri:oozie:workflow:0.4"
+    name="projectview-geo-hourly-${source_table}->archive-${year},${month},${day},${hour}-wf">
+
+    <parameters>
+
+        <!-- Default values for inner oozie settings -->
+        <property>
+            <name>oozie_launcher_queue_name</name>
+            <value>${queue_name}</value>
+        </property>
+        <property>
+            <name>oozie_launcher_memory</name>
+            <value>256</value>
+        </property>
+
+        <!-- Required properties -->
+        <property><name>queue_name</name></property>
+        <property><name>name_node</name></property>
+        <property><name>job_tracker</name></property>
+
+
+        <!-- Configuration properties for hourly geographic breakdown output -->
+        <property>
+            <name>hive_projectview_geo_hourly_script</name>
+            <!-- This is relative to the containing directory of this file. -->
+            <value>archive_projectview_geo_hourly.hql</value>
+            <description>Hive script to run.</description>
+        </property>
+
+        <property>
+            <name>hive_site_xml</name>
+            <description>hive-site.xml file path in HDFS</description>
+        </property>
+        <property>
+            <name>source_table</name>
+            <description>The source table to aggregate by geography</description>
+        </property>
+        <property>
+            <name>geo_hourly_directory</name>
+            <description>The destination directory for aggregate geo data</description>
+        </property>
+
+        <property>
+            <name>year</name>
+            <description>The partition's year</description>
+        </property>
+        <property>
+            <name>month</name>
+            <description>The partition's month</description>
+        </property>
+        <property>
+            <name>day</name>
+            <description>The partition's day</description>
+        </property>
+        <property>
+            <name>hour</name>
+            <description>The partition's hour</description>
+        </property>
+        <property>
+            <name>send_error_email_workflow_file</name>
+            <description>Workflow for sending an email</description>
+        </property>
+
+        <property>
+            <name>mark_directory_done_workflow_file</name>
+            <description>Workflow for marking a directory done</description>
+        </property>
+        <property>
+            <name>temporary_directory</name>
+            <description>A directory in HDFS for temporary files</description>
+        </property>
+
+    </parameters>
+
+    <start to="aggregate"/>
+
+    <action name="aggregate">
+        <hive xmlns="uri:oozie:hive-action:0.2">
+            <job-tracker>${job_tracker}</job-tracker>
+            <name-node>${name_node}</name-node>
+            <job-xml>${hive_site_xml}</job-xml>
+            <configuration>
+                <property>
+                    <name>mapreduce.job.queuename</name>
+                    <value>${queue_name}</value>
+                </property>
+                <!--make sure oozie:launcher runs in a low priority queue -->
+                <property>
+                    <name>oozie.launcher.mapred.job.queue.name</name>
+                    <value>${oozie_launcher_queue_name}</value>
+                </property>
+                <property>
+                    <name>oozie.launcher.mapreduce.map.memory.mb</name>
+                    <value>${oozie_launcher_memory}</value>
+                </property>
+                <property>
+                    <name>hive.exec.scratchdir</name>
+                    <value>/tmp/hive-${user}</value>
+                </property>
+            </configuration>
+
+            <script>${hive_projectview_geo_hourly_script}</script>
+
+            <param>source_table=${source_table}</param>
+            <param>year=${year}</param>
+            <param>month=${month}</param>
+            <param>day=${day}</param>
+            <param>hour=${hour}</param>
+            <param>destination_directory=${temporary_directory}/${wf:id()}</param>
+        </hive>
+
+        <ok to="mark_aggregated_geo_hourly_done"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <action name="mark_aggregated_geo_hourly_done">
+        <sub-workflow>
+            <app-path>${mark_directory_done_workflow_file}</app-path>
+            <configuration>
+                <property>
+                    <name>directory</name>
+                    <value>${temporary_directory}/${wf:id()}</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="move_data_to_destination"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <action name="move_data_to_destination">
+        <sub-workflow>
+            <app-path>${archive_job_output_workflow_file}</app-path>
+            <propagate-configuration/>
+            <configuration>
+                <property>
+                    <name>source_directory</name>
+                    <value>${temporary_directory}/${wf:id()}</value>
+                </property>
+                <property>
+                    <name>expected_filename_ending</name>
+                    <value>EMPTY</value>
+                </property>
+                <property>
+                    <name>archive_file</name>
+                    <value>${geo_hourly_directory}/${year}/${year}-${month}/projectviews-geo-${year}${month}${day}-${hour}0000.gz</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="end"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <action name="send_error_email">
+        <sub-workflow>
+            <app-path>${send_error_email_workflow_file}</app-path>
+            <propagate-configuration/>
+            <configuration>
+                <property>
+                    <name>parent_name</name>
+                    <value>${wf:name()}</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="kill"/>
+        <error to="kill"/>
+    </action>
+
+    <kill name="kill">
+        <message>Action failed, error message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+    </kill>
+    <end name="end"/>
+</workflow-app>

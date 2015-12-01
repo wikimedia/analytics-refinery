@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coordinator-app xmlns="uri:oozie:coordinator:0.4"
+    name="projectview_geo-coord"
+    frequency="${coord:hours(1)}"
+    start="${start_time}"
+    end="${stop_time}"
+    timezone="Universal">
+
+    <parameters>
+
+        <!-- Required properties. -->
+        <property><name>name_node</name></property>
+        <property><name>job_tracker</name></property>
+        <property><name>queue_name</name></property>
+
+        <property><name>workflow_file</name></property>
+
+        <property><name>start_time</name></property>
+        <property><name>stop_time</name></property>
+
+        <property><name>projectview_datasets_file</name></property>
+        <property><name>projectview_data_directory</name></property>
+
+        <property><name>hive_site_xml</name></property>
+        <property><name>source_table</name></property>
+
+        <property><name>temporary_directory</name></property>
+        <property><name>geo_hourly_directory</name></property>
+
+        <property><name>mark_directory_done_workflow_file</name></property>
+        <property><name>archive_job_output_workflow_file</name></property>
+    </parameters>
+
+    <controls>
+        <!--
+        By having materialized jobs not timeout, we ease backfilling incidents
+        after recoverable hiccups on the dataset producers.
+        -->
+        <timeout>-1</timeout>
+
+        <!--
+        projectview aggregation is really small, but we limit
+        concurrency for resource sharing.
+
+        Also note, that back-filling is not limited by the
+        coordinator's frequency, so back-filling works nicely
+        even-though the concurrency is low.
+        -->
+        <concurrency>4</concurrency>
+
+
+        <!--
+        Since we expect only one incarnation per hourly dataset, the
+        default throttle of 12 is way to high, and there is not need
+        to keep that many materialized jobs around.
+
+        By resorting to 2, we keep the hdfs checks on the datasets
+        low, while still being able to easily feed the concurrency.
+        -->
+        <throttle>4</throttle>
+    </controls>
+
+    <datasets>
+        <!--
+        Include projectview dataset file.
+        $projectview_datasets_file will be used as the input events
+        -->
+        <include>${projectview_datasets_file}</include>
+    </datasets>
+
+    <input-events>
+        <data-in name="projectview_hourly_input" dataset="projectview_hourly">
+            <instance>${coord:current(0)}</instance>
+        </data-in>
+    </input-events>
+
+    <action>
+        <workflow>
+            <app-path>${workflow_file}</app-path>
+            <configuration>
+
+                <property>
+                    <name>year</name>
+                    <value>${coord:formatTime(coord:nominalTime(), "yyyy")}</value>
+                </property>
+                <property>
+                    <name>month</name>
+                    <value>${coord:formatTime(coord:nominalTime(), "MM")}</value>
+                </property>
+                <property>
+                    <name>day</name>
+                    <value>${coord:formatTime(coord:nominalTime(), "dd")}</value>
+                </property>
+                <property>
+                    <name>hour</name>
+                    <value>${coord:formatTime(coord:nominalTime(), "HH")}</value>
+                </property>
+
+            </configuration>
+        </workflow>
+    </action>
+</coordinator-app>
