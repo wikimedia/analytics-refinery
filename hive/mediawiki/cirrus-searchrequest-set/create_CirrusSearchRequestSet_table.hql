@@ -16,7 +16,7 @@
 -- Parameters:
 --     None
 -- Usage:
---     hive -f create_CirrusSearchRequestSet_table.hql
+--     hive -f create_CirrusSearchRequestSet_table.hql --database wmf_raw
 --
 
 CREATE EXTERNAL TABLE CirrusSearchRequestSet
@@ -36,3 +36,4 @@ LOCATION
 TBLPROPERTIES (
    'avro.schema.literal'='{"type":"record","name":"CirrusSearchRequestSet","namespace":"org.wikimedia.analytics.schemas","fields":[{"name":"ts","type":"int","default":0},{"name":"wikiId","type":"string","default":""},{"name":"source","type":"string","default":""},{"name":"identity","type":"string","default":""},{"name":"ip","type":"string","default":""},{"name":"userAgent","type":"string","default":""},{"name":"backendUserTests","type":{"type":"array","items":"string"},"default":[]},{"name":"payload","type":{"type":"map","values":"string"},"default":{}},{"name":"requests","default":[],"type":{"type":"array","items":{"name":"CirrusSearchRequest","namespace":"org.wikimedia.analytics.schemas","type":"record","fields":[{"name":"query","type":"string","default":""},{"name":"queryType","type":"string","default":""},{"name":"indices","type":{"type":"array","items":"string"},"default":[]},{"name":"tookMs","type":"int","default":-1},{"name":"elasticTookMs","type":"int","default":-1},{"name":"limit","type":"int","default":-1},{"name":"hitsTotal","type":"int","default":-1},{"name":"hitsReturned","type":"int","default":-1},{"name":"hitsOffset","type":"int","default":-1},{"name":"namespaces","type":{"type":"array","items":"int"},"default":[]},{"name":"suggestion","type":"string","default":""},{"name":"suggestionRequested","type":"boolean","default":false},{"name":"payload","type":{"type":"map","values":"string"},"default":{}}]}}}]}'
 )
+;
