@@ -49,7 +49,6 @@ SET mapreduce.job.reduces            = 64;
 ADD JAR /usr/lib/hive-hcatalog/share/hcatalog/hive-hcatalog-core.jar;
 ADD JAR ${artifacts_directory}/org/wikimedia/analytics/refinery/refinery-hive-${refinery_jar_version}.jar;
 CREATE TEMPORARY FUNCTION is_pageview as 'org.wikimedia.analytics.refinery.hive.IsPageviewUDF';
-CREATE TEMPORARY FUNCTION client_ip as 'org.wikimedia.analytics.refinery.hive.ClientIpUDF';
 CREATE TEMPORARY FUNCTION geocoded_data as 'org.wikimedia.analytics.refinery.hive.GeocodedDataUDF';
 CREATE TEMPORARY FUNCTION ua_parser as 'org.wikimedia.analytics.refinery.hive.UAParserUDF';
 CREATE TEMPORARY FUNCTION get_access_method as 'org.wikimedia.analytics.refinery.hive.GetAccessMethodUDF';
@@ -84,8 +83,8 @@ INSERT OVERWRITE TABLE ${destination_table}
         range,
         is_pageview(uri_host, uri_path, uri_query, http_status, content_type, user_agent, x_analytics) as is_pageview,
         '${record_version}' as record_version,
-        client_ip(ip, x_forwarded_for) as client_ip,
-        geocoded_data(client_ip(ip, x_forwarded_for)) as geocoded_data,
+        ip as client_ip,
+        geocoded_data(ip) as geocoded_data,
         x_cache,
         ua_parser(user_agent) as user_agent_map,
         CASE COALESCE(x_analytics, '-')
