@@ -23,6 +23,8 @@
 
         <property><name>hive_site_xml</name></property>
         <property><name>source_table</name></property>
+        <property><name>artifacts_directory</name></property>
+        <property><name>refinery_jar_version</name></property>
 
         <property><name>temporary_directory</name></property>
         <property><name>geo_hourly_directory</name></property>
