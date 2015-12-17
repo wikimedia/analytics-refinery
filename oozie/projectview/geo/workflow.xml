@@ -37,6 +37,14 @@
             <description>The source table to aggregate by geography</description>
         </property>
         <property>
+            <name>artifacts_directory</name>
+            <description>Path in HDFS to artifacts.  refinery-hive.jar should be here.</description>
+        </property>
+        <property>
+            <name>refinery_jar_version</name>
+            <description>Version of the refinery-hive jar file to import for UDFs</description>
+        </property>
+        <property>
             <name>geo_hourly_directory</name>
             <description>The destination directory for aggregate geo data</description>
         </property>
@@ -103,6 +111,8 @@
             <script>${hive_projectview_geo_hourly_script}</script>
 
             <param>source_table=${source_table}</param>
+            <param>artifacts_directory=${artifacts_directory}</param>
+            <param>refinery_jar_version=${refinery_jar_version}</param>
             <param>year=${year}</param>
             <param>month=${month}</param>
             <param>day=${day}</param>

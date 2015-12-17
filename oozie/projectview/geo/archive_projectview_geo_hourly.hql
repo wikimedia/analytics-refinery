@@ -2,6 +2,9 @@
 --     source_table          -- Fully qualified table name with a
 --                              country_code column
 --     destination_directory -- Directory to write CSV output to
+--     artifacts_directory   -- The artifact directory where to find
+--                              jar files to import for UDFs
+--     refinery_jar_version  -- Version of the jar to import for UDFs
 --     year                  -- year of partition to compute statistics for.
 --     month                 -- month of partition to compute statistics for.
 --     day                   -- day of partition to compute statistics for.
@@ -12,6 +15,7 @@
 --         -d source_table=wmf.pageview_hourly                  \
 --         -d destination_directory=/tmp/example                \
 --         -d artifacts_directory=/path/to/refinery/artifacts   \
+--         -d refinery_jar_version=0.0.24                       \
 --         -d year=2015                                         \
 --         -d month=6                                           \
 --         -d day=1                                             \
