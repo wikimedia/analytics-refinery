@@ -145,24 +145,6 @@
                     <value>${coord:formatTime(coord:dateOffset(coord:nominalTime(), 1, "HOUR"), "HH")}</value>
                 </property>
 
-                <!-- To mimic webstatcollector, file name must be the end of the aggregated hour-->
-                <property>
-                    <name>year_plus_1_hour</name>
-                    <value>${coord:formatTime(coord:dateOffset(coord:nominalTime(), 1, "HOUR"), "yyyy")}</value>
-                </property>
-                <property>
-                    <name>month_plus_1_hour</name>
-                    <value>${coord:formatTime(coord:dateOffset(coord:nominalTime(), 1, "HOUR"), "MM")}</value>
-                </property>
-                <property>
-                    <name>day_plus_1_hour</name>
-                    <value>${coord:formatTime(coord:dateOffset(coord:nominalTime(), 1, "HOUR"), "dd")}</value>
-                </property>
-                <property>
-                    <name>hour_plus_1_hour</name>
-                    <value>${coord:formatTime(coord:dateOffset(coord:nominalTime(), 1, "HOUR"), "HH")}</value>
-                </property>
-
             </configuration>
         </workflow>
     </action>
