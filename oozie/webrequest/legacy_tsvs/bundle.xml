@@ -51,42 +51,6 @@
         </configuration>
     </coordinator>
 
-    <coordinator name="webrequest_legacy_tsvs-mobile-sampled-100">
-        <app-path>${coordinator_mobile_file}</app-path>
-        <configuration>
-            <property>
-                <name>aspect_name</name>
-                <value>mobile-sampled-100</value>
-            </property>
-            <property>
-                <name>aspect_tsv_archive_directory</name>
-                <value>${webrequest_archive_directory}/mobile</value>
-            </property>
-            <property>
-                <name>hour_offset</name>
-                <value>3</value>
-            </property>
-        </configuration>
-    </coordinator>
-
-    <coordinator name="webrequest_legacy_tsvs-zero">
-        <app-path>${coordinator_mobile_file}</app-path>
-        <configuration>
-            <property>
-                <name>aspect_name</name>
-                <value>zero</value>
-            </property>
-            <property>
-                <name>aspect_tsv_archive_directory</name>
-                <value>${webrequest_archive_directory}/zero</value>
-            </property>
-            <property>
-                <name>hour_offset</name>
-                <value>4</value>
-            </property>
-        </configuration>
-    </coordinator>
-
     <coordinator name="webrequest_legacy_tsvs-api-usage">
         <app-path>${coordinator_mobile_text_file}</app-path>
         <configuration>
@@ -177,24 +141,6 @@
             <property>
                 <name>hour_offset</name>
                 <value>10</value>
-            </property>
-        </configuration>
-    </coordinator>
-
-    <coordinator name="webrequest_legacy_tsvs-5xx-mobile">
-        <app-path>${coordinator_mobile_file}</app-path>
-        <configuration>
-            <property>
-                <name>aspect_name</name>
-                <value>5xx-mobile</value>
-            </property>
-            <property>
-                <name>aspect_tsv_archive_directory</name>
-                <value>${webrequest_archive_directory}/5xx-mobile</value>
-            </property>
-            <property>
-                <name>hour_offset</name>
-                <value>11</value>
             </property>
         </configuration>
     </coordinator>
