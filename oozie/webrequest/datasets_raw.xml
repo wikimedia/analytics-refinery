@@ -29,13 +29,6 @@ Use this dataset in your coordinator.xml files by setting:
         <uri-template>${webrequest_raw_data_directory}/webrequest_misc/hourly/${YEAR}/${MONTH}/${DAY}/${HOUR}</uri-template>
         <done-flag>_IMPORTED</done-flag>
     </dataset>
-    <dataset name="webrequest_mobile_raw_unchecked"
-             frequency="${coord:hours(1)}"
-             initial-instance="${start_time}"
-             timezone="Universal">
-        <uri-template>${webrequest_raw_data_directory}/webrequest_mobile/hourly/${YEAR}/${MONTH}/${DAY}/${HOUR}</uri-template>
-        <done-flag>_IMPORTED</done-flag>
-    </dataset>
     <dataset name="webrequest_text_raw_unchecked"
              frequency="${coord:hours(1)}"
              initial-instance="${start_time}"
@@ -69,13 +62,6 @@ Use this dataset in your coordinator.xml files by setting:
              initial-instance="${start_time}"
              timezone="Universal">
         <uri-template>${webrequest_raw_data_directory}/webrequest_misc/hourly/${YEAR}/${MONTH}/${DAY}/${HOUR}</uri-template>
-        <done-flag>_PARTITIONED</done-flag>
-    </dataset>
-    <dataset name="webrequest_mobile_raw_partitioned"
-             frequency="${coord:hours(1)}"
-             initial-instance="${start_time}"
-             timezone="Universal">
-        <uri-template>${webrequest_raw_data_directory}/webrequest_mobile/hourly/${YEAR}/${MONTH}/${DAY}/${HOUR}</uri-template>
         <done-flag>_PARTITIONED</done-flag>
     </dataset>
     <dataset name="webrequest_text_raw_partitioned"
@@ -114,13 +100,6 @@ Use this dataset in your coordinator.xml files by setting:
              initial-instance="${start_time}"
              timezone="Universal">
         <uri-template>${webrequest_raw_data_directory}/webrequest_misc/hourly/${YEAR}/${MONTH}/${DAY}/${HOUR}</uri-template>
-        <done-flag>_SUCCESS</done-flag>
-    </dataset>
-    <dataset name="webrequest_mobile_raw"
-             frequency="${coord:hours(1)}"
-             initial-instance="${start_time}"
-             timezone="Universal">
-        <uri-template>${webrequest_raw_data_directory}/webrequest_mobile/hourly/${YEAR}/${MONTH}/${DAY}/${HOUR}</uri-template>
         <done-flag>_SUCCESS</done-flag>
     </dataset>
     <dataset name="webrequest_text_raw"

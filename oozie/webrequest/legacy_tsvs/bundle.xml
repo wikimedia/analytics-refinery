@@ -7,9 +7,8 @@
         <!-- Required properties -->
         <property><name>queue_name</name></property>
         <property><name>coordinator_misc_file</name></property>
-        <property><name>coordinator_misc_mobile_text_file</name></property>
-        <property><name>coordinator_mobile_text_file</name></property>
-        <property><name>coordinator_mobile_text_upload_file</name></property>
+        <property><name>coordinator_misc_text_file</name></property>
+        <property><name>coordinator_text_upload_file</name></property>
         <property><name>coordinator_text_file</name></property>
         <property><name>coordinator_upload_file</name></property>
         <property><name>name_node</name></property>
@@ -33,7 +32,7 @@
         No 'misc', as the sampled-1000 was last produced on erbium's
         udp2log stream, which did not receive those two webrequest_sources.
         -->
-        <app-path>${coordinator_mobile_text_upload_file}</app-path>
+        <app-path>${coordinator_text_upload_file}</app-path>
         <configuration>
             <property>
                 <name>aspect_name</name>
@@ -51,7 +50,7 @@
     </coordinator>
 
     <coordinator name="webrequest_legacy_tsvs-api-usage">
-        <app-path>${coordinator_mobile_text_file}</app-path>
+        <app-path>${coordinator_text_file}</app-path>
         <configuration>
             <property>
                 <name>aspect_name</name>
@@ -69,7 +68,7 @@
     </coordinator>
 
     <coordinator name="webrequest_legacy_tsvs-glam_nara">
-        <app-path>${coordinator_mobile_text_upload_file}</app-path>
+        <app-path>${coordinator_text_upload_file}</app-path>
         <configuration>
             <property>
                 <name>aspect_name</name>
@@ -87,7 +86,7 @@
     </coordinator>
 
     <coordinator name="webrequest_legacy_tsvs-edits">
-        <app-path>${coordinator_mobile_text_file}</app-path>
+        <app-path>${coordinator_text_file}</app-path>
         <configuration>
             <property>
                 <name>aspect_name</name>
@@ -109,7 +108,7 @@
         No 'upload', as that explicitly got excluded in the upd2log
         filters.
         -->
-        <app-path>${coordinator_misc_mobile_text_file}</app-path>
+        <app-path>${coordinator_misc_text_file}</app-path>
         <configuration>
             <property>
                 <name>aspect_name</name>

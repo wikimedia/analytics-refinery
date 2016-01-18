@@ -57,10 +57,6 @@
     </datasets>
 
     <input-events>
-        <data-in name="webrequest_mobile" dataset="webrequest_mobile">
-            <start-instance>${coord:current(0)}</start-instance>
-            <end-instance>${coord:current(23)}</end-instance>
-        </data-in>
 
         <data-in name="webrequest_text" dataset="webrequest_text">
             <start-instance>${coord:current(0)}</start-instance>

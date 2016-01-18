@@ -79,9 +79,6 @@
     </datasets>
 
     <input-events>
-        <data-in name="mobile_refined_input" dataset="webrequest_mobile">
-            <instance>${coord:current(0)}</instance>
-        </data-in>
         <data-in name="text_refined_input" dataset="webrequest_text">
             <instance>${coord:current(0)}</instance>
         </data-in>

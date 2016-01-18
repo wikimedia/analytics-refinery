@@ -19,7 +19,7 @@ SET mapreduce.output.fileoutputformat.compress.codec=org.apache.hadoop.io.compre
 --     hive -f generate_api-usage_tsv.hql          \
 --         -d destination_directory=/tmp/foo       \
 --         -d webrequest_table=wmf_raw.webrequest  \
---         -d webrequest_sources="'mobile'"        \
+--         -d webrequest_sources="'text'"        \
 --         -d year=2014                            \
 --         -d month=4                              \
 --         -d day=1
