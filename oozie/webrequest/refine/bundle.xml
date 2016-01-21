@@ -48,6 +48,16 @@
         </configuration>
     </coordinator>
 
+    <coordinator name="refine_webrequest-mobile-coord">
+        <app-path>${coordinator_file}</app-path>
+        <configuration>
+            <property>
+                <name>webrequest_source</name>
+                <value>mobile</value>
+            </property>
+        </configuration>
+    </coordinator>
+
     <coordinator name="refine_webrequest-text-coord">
         <app-path>${coordinator_file}</app-path>
         <configuration>

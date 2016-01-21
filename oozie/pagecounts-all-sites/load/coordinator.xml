@@ -59,6 +59,9 @@
         <data-in name="input_text" dataset="webrequest_text">
             <instance>${coord:current(0)}</instance>
         </data-in>
+        <data-in name="input_mobile" dataset="webrequest_mobile">
+            <instance>${coord:current(0)}</instance>
+        </data-in>
     </input-events>
 
     <output-events>

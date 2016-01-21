@@ -42,9 +42,13 @@
 
     <input-events>
         <!--
-            Please see datasets definition webrequest_text is a
-            refined dataset from the raw data.
+            Please see datasets definition, the webrequest_mobile
+            and webrequest_text are refined datasets from the raw data.
         -->
+        <data-in name="mobile" dataset="webrequest_mobile">
+            <start-instance>${coord:current(0)}</start-instance>
+            <end-instance>${coord:current(coord:daysInMonth(0) * 24 - 1)}</end-instance>
+        </data-in>
         <data-in name="text" dataset="webrequest_text">
             <start-instance>${coord:current(0)}</start-instance>
             <end-instance>${coord:current(coord:daysInMonth(0) * 24 - 1)}</end-instance>
