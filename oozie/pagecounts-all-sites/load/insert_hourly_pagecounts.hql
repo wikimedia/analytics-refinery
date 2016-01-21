@@ -44,7 +44,7 @@ INSERT OVERWRITE TABLE ${destination_table}
             response_size
         FROM ${source_table}
         WHERE
-            webrequest_source IN ('text')
+            webrequest_source IN ('text', 'mobile')
             AND year=${year}
             AND month=${month}
             AND day=${day}

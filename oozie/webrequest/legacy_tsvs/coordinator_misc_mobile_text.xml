@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coordinator-app xmlns="uri:oozie:coordinator:0.4"
+    name="webrequest_legacy_tsvs-${aspect_name}-coord"
+    frequency="${coord:days(1)}"
+    start="${start_time}"
+    end="${stop_time}"
+    timezone="Universal">
+
+    <parameters>
+
+        <!-- Required properties -->
+        <property><name>queue_name</name></property>
+        <property><name>name_node</name></property>
+        <property><name>job_tracker</name></property>
+        <property><name>start_time</name></property>
+        <property><name>hour_offset</name></property>
+        <property><name>stop_time</name></property>
+        <property><name>webrequest_datasets_file</name></property>
+        <property><name>webrequest_data_directory</name></property>
+        <property><name>hive_site_xml</name></property>
+        <property><name>artifacts_directory</name></property>
+        <property><name>workflow_file</name></property>
+        <property><name>webrequest_table</name></property>
+        <property><name>mark_directory_done_workflow_file</name></property>
+        <property><name>temporary_directory</name></property>
+        <property><name>aspect_tsv_archive_directory</name></property>
+        <property><name>archive_job_output_workflow_file</name></property>
+        <property><name>aspect_name</name></property>
+    </parameters>
+
+    <controls>
+        <!--
+        By having materialized jobs not timeout, we ease backfilling incidents
+        after recoverable hiccups on the dataset producers.
+        -->
+        <timeout>-1</timeout>
+
+        <!--
+        Since the job only runs daily, even low concurrency allows to catch up
+        pretty fast. Hence, we can limit concurrency to 1, as the tsvs typically
+        process quite some data.
+        -->
+        <concurrency>1</concurrency>
+
+        <!--
+        In order to keep backfilling after an incident simple, we only start
+        throttling materialization after 4 days.
+        Due to the low concurrency, and low discrepancy between progressing
+        time, and expected availability of datasets, we should typically have
+        far less materialized jobs.
+        -->
+        <throttle>4</throttle>
+    </controls>
+
+    <datasets>
+        <include>${webrequest_datasets_file}</include>
+    </datasets>
+
+    <input-events>
+
+        <data-in name="webrequest_misc" dataset="webrequest_misc">
+            <start-instance>${coord:current(0)}</start-instance>
+            <end-instance>${coord:current(23)}</end-instance>
+        </data-in>
+
+        <data-in name="webrequest_mobile" dataset="webrequest_mobile">
+            <start-instance>${coord:current(0)}</start-instance>
+            <end-instance>${coord:current(23)}</end-instance>
+        </data-in>
+
+        <data-in name="webrequest_text" dataset="webrequest_text">
+            <start-instance>${coord:current(0)}</start-instance>
+            <end-instance>${coord:current(23)}</end-instance>
+        </data-in>
+
+        <!--
+        The following dataset is not required as input to the
+        workflow, but only helps to delay running it.
+
+        The 24 hours offset is for a full day. And we subtract 2 hours, as
+        webrequest processing starts 2 hours after the respective hour.
+        -->
+        <data-in name="delay" dataset="webrequest_text">
+            <instance>${coord:current(24-2+hour_offset)}</instance>
+        </data-in>
+    </input-events>
+
+    <action>
+        <workflow>
+            <app-path>${workflow_file}</app-path>
+            <configuration>
+
+                <!-- Pass these properties through to the workflow -->
+                <property><name>name_node</name><value>${name_node}</value></property>
+                <property><name>job_tracker</name><value>${job_tracker}</value></property>
+                <property><name>queue_name</name><value>${queue_name}</value></property>
+
+                <property>
+                    <name>hive_site_xml</name>
+                    <value>${hive_site_xml}</value>
+                </property>
+                <property>
+                    <name>artifacts_directory</name>
+                    <value>${artifacts_directory}</value>
+                </property>
+                <property>
+                    <name>webrequest_table</name>
+                    <value>${webrequest_table}</value>
+                </property>
+                <property>
+                    <name>year</name>
+                    <value>${coord:formatTime(coord:nominalTime(), "yyyy")}</value>
+                </property>
+                <property>
+                    <name>month</name>
+                    <value>${coord:formatTime(coord:nominalTime(), "MM")}</value>
+                </property>
+                <property>
+                    <name>day</name>
+                    <value>${coord:formatTime(coord:nominalTime(), "dd")}</value>
+                </property>
+                <property>
+                    <name>mark_directory_done_workflow_file</name>
+                    <value>${mark_directory_done_workflow_file}</value>
+                </property>
+                <property>
+                    <name>temporary_directory</name>
+                    <value>${temporary_directory}</value>
+                </property>
+                <property>
+                    <name>aspect_name</name>
+                    <value>${aspect_name}</value>
+                </property>
+                <property>
+                    <name>aspect_tsv_archive_directory</name>
+                    <value>${aspect_tsv_archive_directory}</value>
+                </property>
+                <property>
+                    <name>archive_job_output_workflow_file</name>
+                    <value>${archive_job_output_workflow_file}</value>
+                </property>
+            </configuration>
+        </workflow>
+    </action>
+</coordinator-app>

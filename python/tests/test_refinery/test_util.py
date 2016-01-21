@@ -38,17 +38,17 @@ class TestHiveUtil(TestCase):
         self.table_info = {
             'table1': {
                 'location':             '/path/to/table1',
-                'partitions_desc':      ['webrequest_source=text/year=2013/month=10/day=01/hour=01', 'webrequest_source=text/year=2013/month=10/day=01/hour=02'],
-                'partitions_spec':      ['webrequest_source=\'text\',year=2013,month=10,day=01,hour=01', 'webrequest_source=\'text\',year=2013,month=10,day=01,hour=02'],
+                'partitions_desc':      ['webrequest_source=mobile/year=2013/month=10/day=01/hour=01', 'webrequest_source=mobile/year=2013/month=10/day=01/hour=02'],
+                'partitions_spec':      ['webrequest_source=\'mobile\',year=2013,month=10,day=01,hour=01', 'webrequest_source=\'mobile\',year=2013,month=10,day=01,hour=02'],
                 'partitions_datetime':  [datetime(2013,10,01,01), datetime(2013,10,01,02)],
-                'partitions_path':      ['/path/to/table1/webrequest_text/hourly/2013/10/01/01', '/path/to/table1/webrequest_text/hourly/2013/10/01/02'],
+                'partitions_path':      ['/path/to/table1/webrequest_mobile/hourly/2013/10/01/01', '/path/to/table1/webrequest_mobile/hourly/2013/10/01/02'],
             },
             'table2': {
                 'location':             '/path/to/table2',
-                'partitions_desc':      ['webrequest_source=text/year=2013/month=10/day=01/hour=01', 'webrequest_source=text/year=2013/month=10/day=01/hour=02'],
-                'partitions_spec':      ['webrequest_source=\'text\',year=2013,month=10,day=01,hour=01', 'webrequest_source=\'text\',year=2013,month=10,day=01,hour=02'],
+                'partitions_desc':      ['webrequest_source=mobile/year=2013/month=10/day=01/hour=01', 'webrequest_source=mobile/year=2013/month=10/day=01/hour=02'],
+                'partitions_spec':      ['webrequest_source=\'mobile\',year=2013,month=10,day=01,hour=01', 'webrequest_source=\'mobile\',year=2013,month=10,day=01,hour=02'],
                 'partitions_datetime':  [datetime(2013,10,01,01), datetime(2013,10,01,02)],
-                'partitions_path':      ['/path/to/table1/webrequest_source=text/year=2013/month=10/day=01/hour=01', '/path/to/table2/webrequest_source=text/year=2013/month=10/day=01/hour=02'],
+                'partitions_path':      ['/path/to/table1/webrequest_source=mobile/year=2013/month=10/day=01/hour=01', '/path/to/table2/webrequest_source=mobile/year=2013/month=10/day=01/hour=02'],
             },
         }
 

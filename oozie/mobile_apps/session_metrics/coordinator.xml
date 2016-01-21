@@ -50,7 +50,7 @@
     </datasets>
 
     <input-events>
-        <data-in name="text" dataset="webrequest_text">
+        <data-in name="mobile" dataset="webrequest_mobile">
             <!-- 30 days of data in hours -->
             <start-instance>${coord:current(0)}</start-instance>
             <end-instance>${coord:current(24 * 30 - 1)}</end-instance>

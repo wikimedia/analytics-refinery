@@ -75,12 +75,12 @@ add_dataset() {
     DATASET_VISIBILITIES["$DATASET"]=no
 }
 
-add_dataset "legacy_tsvs" "daily" "    5xx    | 5xx-misc  | 5xx-text  |5xx-upload |    api    |   edits   | glam_nara |  sampled  |   zero    |"
+add_dataset "legacy_tsvs" "daily" "    5xx    | 5xx-misc  |5xx-mobile | 5xx-text  |5xx-upload |    api    |   edits   | glam_nara |  mobile   |  sampled  |   zero    |"
 add_dataset "mediacounts" "daily" "   full  | top1000 |"
 add_dataset "pagecounts_all_sites" "hourly" " file name date  |  page   | project |"
 add_dataset "pagecounts_raw" "hourly" " file name date  |  page   | project |"
-add_dataset "raw_webrequest" "hourly" "     maps    |     misc    |     text    |    upload   |"
-add_dataset "webrequest" "hourly" "  maps  |  misc  |  text  | upload |"
+add_dataset "raw_webrequest" "hourly" "     maps    |     misc    |    mobile   |     text    |    upload   |"
+add_dataset "webrequest" "hourly" "  maps  |  misc  | mobile |  text  | upload |"
 add_dataset "pageview" "hourly" "  hourly  |"
 add_dataset "projectview" "hourly" "   hourly    |"
 
@@ -373,11 +373,13 @@ dump_dataset_legacy_tsvs() {
     for BASE in \
         5xx/5xx \
         5xx-misc/5xx-misc \
+        5xx-mobile/5xx-mobile \
         5xx-text/5xx-text \
         5xx-upload/5xx-upload \
         api/api-usage \
         edits/edits \
         glam_nara/glam_nara \
+        mobile/mobile-sampled-100 \
         sampled/sampled-1000 \
         zero/zero \
 
@@ -490,7 +492,7 @@ dump_dataset_raw_webrequest() {
 
     local DATE_HDFS_PADDED="$(date --utc -d "$DATE" +'%Y/%m/%d/%H')"
 
-    for SOURCE in maps misc text upload
+    for SOURCE in maps misc mobile text upload
     do
         log_no_lf "    "
         dump_dataset_raw_webrequest_partition "$DATE_HDFS_PADDED" "$SOURCE"
@@ -504,7 +506,7 @@ dump_dataset_webrequest() {
     local DATE_DIRS_REL="$(date --utc -d "$DATE" +'year=%Y/month=%m/day=%d/hour=%H')"
     DATE_DIRS_REL="${DATE_DIRS_REL//=0/=}"
 
-    for SOURCE in maps misc text upload
+    for SOURCE in maps misc mobile text upload
     do
         local STATUS="X"
         SUCCESS_FILE_ABS="$WEBREQUEST_DATA_DIR_ABS/webrequest_source=$SOURCE/$DATE_DIRS_REL/_SUCCESS"
