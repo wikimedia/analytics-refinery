@@ -1,0 +1,89 @@
+<coordinator-app xmlns="uri:oozie:coordinator:0.4"
+    name="last_access_uniques_daily-coord"
+    frequency="${coord:days(1)}"
+    start="${start_time}"
+    end="${stop_time}"
+    timezone="Universal">
+    <parameters>
+
+        <!-- Required properties. -->
+        <property><name>name_node</name></property>
+        <property><name>job_tracker</name></property>
+        <property><name>mark_directory_done_workflow_file</name></property>
+        <property><name>send_error_email_workflow_file</name></property>
+        <property><name>workflow_file</name></property>
+        <property><name>start_time</name></property>
+        <property><name>stop_time</name></property>
+
+        <property><name>source_table</name></property>
+        <property><name>destination_table</name></property>
+
+        <property><name>webrequest_data_directory</name></property>
+        <property><name>webrequest_datasets_file</name></property>
+        <property><name>last_access_uniques_data_directory</name></property>
+        <property><name>last_access_uniques_datasets_file</name></property>
+    </parameters>
+
+    <controls>
+        <!--(timeout is measured in minutes)-->
+        <timeout>-1</timeout>
+
+        <!-- Heavy on resource so limit parallel execution to 2 -->
+        <concurrency>2</concurrency>
+
+        <throttle>2</throttle>
+    </controls>
+
+    <datasets>
+        <include>${webrequest_datasets_file}</include>
+        <include>${last_access_uniques_datasets_file}</include>
+    </datasets>
+
+    <input-events>
+        <!--
+            Please see datasets definition, the webrequest_mobile
+            and webrequest_text are refined datasets from the raw data.
+        -->
+        <data-in name="mobile" dataset="webrequest_mobile">
+            <start-instance>${coord:current(0)}</start-instance>
+            <end-instance>${coord:current(23)}</end-instance>
+        </data-in>
+        <data-in name="text" dataset="webrequest_text">
+            <start-instance>${coord:current(0)}</start-instance>
+            <end-instance>${coord:current(23)}</end-instance>
+        </data-in>
+    </input-events>
+
+    <output-events>
+        <data-out name="last_access_uniques_daily_output" dataset="last_access_uniques_daily">
+            <instance>${coord:current(0)}</instance>
+        </data-out>
+    </output-events>
+
+
+   <action>
+      <workflow>
+          <app-path>${workflow_file}</app-path>
+
+            <configuration>
+              <!-- Pass these properties through to the workflow -->
+              <property>
+                  <name>year</name>
+                  <value>${coord:formatTime(coord:nominalTime(), "y")}</value>
+              </property>
+              <property>
+                  <name>month</name>
+                  <value>${coord:formatTime(coord:nominalTime(), "M")}</value>
+              </property>
+              <property>
+                  <name>day</name>
+                  <value>${coord:formatTime(coord:nominalTime(), "d")}</value>
+              </property>
+              <property>
+                    <name>destination_dataset_directory</name>
+                    <value>${coord:dataOut('last_access_uniques_daily_output')}</value>
+                </property>
+          </configuration>
+      </workflow>
+  </action>
+  </coordinator-app>

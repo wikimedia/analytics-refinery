@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Defines reusable datasets for last access uniques data.
+Use this dataset in your coordinator.xml files by setting:
+
+    ${start_time}     - the initial instance of your data.
+                        Example: 2014-04-01T00:00Z
+    ${last_access_uniques_directory} - Path to directory where
+    last access uniques data is stored.
+                        Example: /wmf/data/wmf/last_access_uniques
+-->
+
+<datasets>
+
+    <!--
+    The last_access_uniques_daily dataset contains uniques devices per project
+    host and country, counted using the last_access method.
+
+    Note that we do not use “${...}” but “${"$"}{...}", as dataset files are
+    passed to EL twice in cascade, and in the first EL level, ${MONTH}
+    evaluates to the string “${MONTH}”. Hence, we escape the dollar sign in
+    “${....}" to “${"$"}{...}”. At the first EL level, “${"$"}” gets turned
+    into a dollar sign, and “{...}”  is just passed along. Hence, we arrive
+    at “${...}” as input for the second EL level. There, the variables hold
+    their expected values, and we can start unpadding them.
+    -->
+    <dataset name="last_access_uniques_daily"
+             frequency="${coord:days(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${last_access_uniques_data_directory}/daily/year=${YEAR}/month=${"$"}{MONTH + 0}/day=${"$"}{DAY + 0}</uri-template>
+        <done-flag>_SUCCESS</done-flag>
+    </dataset>
+</datasets>
