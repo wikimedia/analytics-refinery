@@ -20,7 +20,7 @@
 --
 --
 -- Usage:
---     hive -f generate_uinques_daily.hql
+--     hive -f generate_uniques_daily.hql
 --         -d source_table=wmf.webrequest
 --         -d archive_table=wmf.mobile_apps_uniques_daily
 --         -d temporary_directory=/tmp/mobile_apps/2015-2-1
