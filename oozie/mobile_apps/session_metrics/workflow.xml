@@ -60,6 +60,10 @@
             <description>Period in days for which app session metrics are to be calculated</description>
         </property>
         <property>
+            <name>split_by_os</name>
+            <description>Calculate metrics broken down by os family</description>
+        </property>
+        <property>
             <name>webrequest_data_directory</name>
             <description>Path to webrequest data on Hadoop</description>
         </property>
@@ -101,6 +105,8 @@
             <arg>${day}</arg>
             <arg>--period-days</arg>
             <arg>${period_days}</arg>
+            <arg>--split-by-os</arg>
+            <arg>${split_by_os}</arg>
             <!--The num-partitions value controls the number of partitions for the Spark job's computations,
                 Specifying a very small number for large amounts of data can lead of OOM errors.-->
             <arg>--num-partitions</arg>
