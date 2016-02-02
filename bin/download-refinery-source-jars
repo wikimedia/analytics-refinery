@@ -1,0 +1,37 @@
+#!/bin/bash
+
+# Silly little script to assist with refinery-source .jar updates.
+# Example:
+#   ./bin/download-refinery-source-jars 0.0.26
+# This will download all refinery 0.0.26 version jars from archiva,
+# symlink them in ./artifacts/, and output a git command that you
+# can run (if you wish) to add and commit jars.
+#
+
+version="${1}"
+archiva_base_uri="https://archiva.wikimedia.org/repository/releases/org/wikimedia/analytics/refinery"
+
+if [ -z "${version}" ]; then
+    echo "Usage: $0 <version>"
+    exit 1
+fi
+
+# TODO: make this smarter
+if [ $(basename $(pwd)) != 'refinery' ]; then
+    echo "Must run from refinery repository root. (pwd is $(pwd))"
+    exit 1
+fi
+
+
+for j in camus core job cassandra hive; do
+    (wget "${archiva_base_uri}/$j/refinery-$j/$version/refinery-$j-$version.jar" \
+        -O ./artifacts/org/wikimedia/analytics/refinery/refinery-$j-$version.jar \
+        && ln -sfv ./artifacts/org/wikimedia/analytics/refinery/refinery-$j-$version.jar ./artifacts/refinery-$j.jar) &
+done
+
+wait
+
+echo "Done!"
+ls -l artifacts/refinery*.jar
+echo "Don't forget to git add jars and commit!"
+echo "git add ./artifacts/refinery-*.jar ./artifacts/org/wikimedia/analytics/refinery/refinery-*-$version.jar && git commit"
