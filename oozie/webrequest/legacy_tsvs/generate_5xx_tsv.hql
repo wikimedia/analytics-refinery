@@ -2,7 +2,7 @@ SET hive.exec.compress.output=true;
 SET mapreduce.output.fileoutputformat.compress.codec=org.apache.hadoop.io.compress.GzipCodec;
 --^ To work around HIVE-3296, we have SETs before any comments
 
--- Generates a TSV of server errors on the mobile, and text partitions
+-- Generates a TSV of server errors on the text partition
 --
 -- Parameters:
 --     destination_directory -- Directory in HDFS where to store the generated
@@ -19,7 +19,7 @@ SET mapreduce.output.fileoutputformat.compress.codec=org.apache.hadoop.io.compre
 --     hive -f generate_5xx_tsv.hql                \
 --         -d destination_directory=/tmp/foo       \
 --         -d webrequest_table=wmf_raw.webrequest  \
---         -d webrequest_sources="'mobile'"        \
+--         -d webrequest_sources="'text'"        \
 --         -d year=2014                            \
 --         -d month=4                              \
 --         -d day=1

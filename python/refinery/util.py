@@ -267,10 +267,10 @@ class HiveUtils(object):
 
         Example:
             partition_spec_from_path(
-                path='/wmf/data/raw/webrequest/webrequest_mobile/hourly/2014/05/14/23',
+                path='/wmf/data/raw/webrequest/webrequest_text/hourly/2014/05/14/23',
                 regex=r'/webrequest_(?P<webrequest_source>[^/]+)/hourly/(?P<year>[^/]+)/(?P<month>[^/]+)/(?P<day>[^/]+)/(?P<hour>[^/]+)'
             )
-            returns: 'webrequest_source='mobile',year=2014,month=05,day=14,hour=23
+            returns: 'webrequest_source='text',year=2014,month=05,day=14,hour=23
         """
         if isinstance(regex, basestring):
             regex = re.compile(regex)
@@ -312,7 +312,7 @@ class HiveUtils(object):
 
         Example:
             partition_datetime_from_spec(
-                spec='webrequest_source=\'mobile\',year=2014,month=05,day=14,hour=00',
+                spec='webrequest_source=\'text\',year=2014,month=05,day=14,hour=00',
                 regex=r'webrequest_source=(?P<webrequest_source>[^/,]+)[/,]year=(?P<year>[^/,]+)[/,]month=(?P<month>[^/,]+)[/,]day=(?P<day>[^/]+)[/,]hour=(?P<hour>[^/,]+)'
             )
             returns: datetime.datetime(2014, 5, 14, 23, 0)

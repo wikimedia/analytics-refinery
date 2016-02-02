@@ -51,8 +51,8 @@
     </datasets>
 
     <input-events>
-        <data-in name="mobile" dataset="webrequest_mobile">
-            <!-- period_days days of data in hours -->
+        <data-in name="text" dataset="webrequest_text">
+          <!-- period_days days of data in hours -->
             <start-instance>${coord:current(0)}</start-instance>
             <end-instance>${coord:current(24 * period_days - 1)}</end-instance>
         </data-in>

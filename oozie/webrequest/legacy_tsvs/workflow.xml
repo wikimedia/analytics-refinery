@@ -120,11 +120,11 @@
             This variable holds quoted strings, separated by commas. So for
             example a coordinator path of
 
-              /path/to/coordinator_misc_mobile.xml
+              /path/to/coordinator_misc_text.xml
 
             will get turned into
 
-              'misc', 'mobile'
+              'misc', 'text'
 
             . This allows to use the variable straight in HivQL via
 
