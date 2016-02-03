@@ -66,11 +66,6 @@
             <description>Pageview directory to generate the done flag in</description>
         </property>
 
-        <property>
-            <name>archive_job_output_workflow_file</name>
-            <description>Workflow to move a data file to the archive</description>
-        </property>
-
     </parameters>
 
     <start to="aggregate"/>

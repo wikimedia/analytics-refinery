@@ -46,5 +46,5 @@ INSERT OVERWRITE TABLE ${destination_table}
         http_method,
         response_size,
         uri_host,
-        uri_path,
+        uri_path
 ;
