@@ -23,7 +23,7 @@ WITH last_access_dates AS (
         year,
         month,
         day,
-        lower(uri_host) as uri_host,,
+        lower(uri_host) as uri_host,
         geocoded_data['country'] AS country,
         geocoded_data['country_code'] AS country_code,
         unix_timestamp(x_analytics_map['WMF-Last-Access'], 'dd-MMM-yyyy') AS last_access,
