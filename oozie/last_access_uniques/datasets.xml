@@ -13,8 +13,8 @@ Use this dataset in your coordinator.xml files by setting:
 <datasets>
 
     <!--
-    The last_access_uniques_daily dataset contains uniques devices per project
-    host and country, counted using the last_access method.
+    The last_access_uniques_[daily,monthly] datasets contain uniques devices
+    per project, host and country, counted using the last_access method.
 
     Note that we do not use “${...}” but “${"$"}{...}", as dataset files are
     passed to EL twice in cascade, and in the first EL level, ${MONTH}
@@ -29,6 +29,14 @@ Use this dataset in your coordinator.xml files by setting:
              initial-instance="${start_time}"
              timezone="Universal">
         <uri-template>${last_access_uniques_data_directory}/daily/year=${YEAR}/month=${"$"}{MONTH + 0}/day=${"$"}{DAY + 0}</uri-template>
+        <done-flag>_SUCCESS</done-flag>
+    </dataset>
+
+    <dataset name="last_access_uniques_monthly"
+             frequency="${coord:months(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${last_access_uniques_data_directory}/monthly/year=${YEAR}/month=${"$"}{MONTH + 0}</uri-template>
         <done-flag>_SUCCESS</done-flag>
     </dataset>
 </datasets>
