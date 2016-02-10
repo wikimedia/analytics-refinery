@@ -37,7 +37,7 @@ WITH last_access_dates AS (
     WHERE x_analytics_map IS NOT NULL
       AND agent_type = 'user'
       AND is_pageview = TRUE
-      AND webrequest_source IN ('mobile','text')
+      AND webrequest_source = 'text'
       AND year = ${year}
       AND month = ${month}
       AND day = ${day}
