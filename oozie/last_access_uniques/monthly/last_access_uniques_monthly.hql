@@ -40,7 +40,8 @@ WITH last_access_dates AS (
       AND month = ${month}
 ),
 
--- Only keeping clients having 1 event without cookies (fresh sessions)
+-- Only keeping clients having 1 event without cookies and 0 with cookies
+-- (fresh sessions not already counted with last_access method)
 fresh_sessions_aggregated AS (
     SELECT
         uri_host,
@@ -51,18 +52,19 @@ fresh_sessions_aggregated AS (
             hash(ip, user_agent, accept_language, uri_host) AS id,
             uri_host,
             country_code,
-            COUNT(1) AS cardinal
+            SUM(CASE WHEN (nocookies IS NOT NULL) THEN 1 ELSE 0 END),
+            SUM(CASE WHEN (nocookies IS NULL) THEN 1 ELSE 0 END)
         FROM
             last_access_dates
-        WHERE
-            -- Only keeping clients NOT having cookies (yet)
-            nocookies is NOT NULL
         GROUP BY
             hash(ip, user_agent, accept_language, uri_host),
             uri_host,
             country_code
-        -- Only keeping clients having done 1 event with no cookies
-        HAVING COUNT(1) = 1
+        -- Only keeping clients having done
+        --    1 event without cookies
+        --    0 with cookies (if > 0, already counted with last_access method)
+        HAVING SUM(CASE WHEN (nocookies IS NOT NULL) THEN 1 ELSE 0 END) = 1
+            AND SUM(CASE WHEN (nocookies IS NULL) THEN 1 ELSE 0 END) = 0
         ) fresh_sessions
     GROUP BY
         uri_host,
