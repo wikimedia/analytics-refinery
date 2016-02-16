@@ -513,4 +513,64 @@
         </configuration>
     </coordinator>
 
+    <coordinator name="cassandra_pageview_top_articles_monthly-coord">
+        <app-path>${coordinator_file_monthly}</app-path>
+        <configuration>
+            <property>
+                <name>workflow_file</name>
+                <value>${workflow_file_monthly}</value>
+            </property>
+
+            <!-- Dataset the job depends on -->
+            <property>
+                <name>datasets_file</name>
+                <value>${top_articles_datasets_file}</value>
+            </property>
+            <property>
+                <name>dataset_name</name>
+                <value>${top_articles_dataset_name}</value>
+            </property>
+
+            <!-- Hive data preparation job stuff -->
+            <property>
+                <name>hive_script</name>
+                <value>${top_articles_hive_script}</value>
+            </property>
+            <property>
+                <name>source_table</name>
+                <value>${top_articles_source_table}</value>
+            </property>
+
+            <!-- cassandra loader job stuff -->
+            <property>
+                <name>cassandra_parallel_loaders</name>
+                <value>${per_article_flat_parallel_loaders}</value>
+            </property>
+            <property>
+                <name>cassandra_cql</name>
+                <value>${top_articles_cql}</value>
+            </property>
+            <property>
+                <name>cassandra_keyspace</name>
+                <value>${top_articles_keyspace}</value>
+            </property>
+            <property>
+                <name>hive_fields</name>
+                <value>${top_articles_hive_fields}</value>
+            </property>
+            <property>
+                <name>hive_fields_types</name>
+                <value>${top_articles_hive_fields_types}</value>
+            </property>
+            <property>
+                <name>cassandra_fields</name>
+                <value>${top_articles_cassandra_fields}</value>
+            </property>
+            <property>
+                <name>cassandra_primary_keys</name>
+                <value>${top_articles_cassandra_primary_keys}</value>
+            </property>
+        </configuration>
+    </coordinator>
+
 </bundle-app>

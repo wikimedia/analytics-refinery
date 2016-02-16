@@ -14,13 +14,11 @@
 --         -d year=2015                                           \
 --         -d month=5                                             \
 --         -d day=1                                               \
---         -d reducers_number=1                                   \
 --
 
 
 SET hive.exec.compress.output=true;
 SET mapreduce.output.fileoutputformat.compress.codec=org.apache.hadoop.io.compress.GzipCodec;
-SET mapred.reduce.tasks=${reducers_number};
 
 
 INSERT OVERWRITE DIRECTORY "${destination_directory}"
