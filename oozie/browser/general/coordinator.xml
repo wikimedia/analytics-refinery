@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <coordinator-app xmlns="uri:oozie:coordinator:0.4"
     name="browser_general-coord"
-    frequency="${coord:days(time_window)}"
+    frequency="${coord:days(1)}"
     start="${start_time}"
     end="${stop_time}"
     timezone="Universal">
@@ -16,7 +16,6 @@
         <property><name>workflow_file</name></property>
         <property><name>start_time</name></property>
         <property><name>stop_time</name></property>
-        <property><name>time_window</name></property>
 
         <property><name>projectview_datasets_file</name></property>
         <property><name>projectview_data_directory</name></property>
@@ -27,7 +26,13 @@
         <property><name>hive_site_xml</name></property>
         <property><name>projectview_source</name></property>
         <property><name>pageview_source</name></property>
-        <property><name>output_base_path</name></property>
+        <property><name>destination_table</name></property>
+
+        <property><name>threshold</name></property>
+        <property><name>os_family_unknown</name></property>
+        <property><name>os_major_unknown</name></property>
+        <property><name>browser_family_unknown</name></property>
+        <property><name>browser_major_unknown</name></property>
     </parameters>
 
     <controls>
@@ -43,14 +48,14 @@
 
     <input-events>
         <data-in name="projectview_hourly_input" dataset="projectview_hourly">
-            <!-- 7 days of data in hours -->
+            <!-- 1 day of data in hours -->
             <start-instance>${coord:current(0)}</start-instance>
-            <end-instance>${coord:current(time_window * 24 - 1)}</end-instance>
+            <end-instance>${coord:current(23)}</end-instance>
         </data-in>
         <data-in name="pageview_hourly_input" dataset="pageview_hourly">
-            <!-- 7 days of data in hours -->
+            <!-- 1 day of data in hours -->
             <start-instance>${coord:current(0)}</start-instance>
-            <end-instance>${coord:current(time_window * 24 - 1)}</end-instance>
+            <end-instance>${coord:current(23)}</end-instance>
         </data-in>
     </input-events>
 
