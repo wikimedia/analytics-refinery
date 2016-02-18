@@ -86,7 +86,7 @@ SELECT
         -- Other cases, don't
         ELSE 0
     END) AS uniques_underestimate,
-    oenca.uniques_offset AS uniques_offset,
+    fresh.uniques_offset AS uniques_offset,
     SUM(CASE
         -- Last access not set and client accept cookies --> first visit, count
         WHEN (la.last_access IS NULL AND la.nocookies is NULL) THEN 1
@@ -95,21 +95,20 @@ SELECT
             AND (la.last_access < unix_timestamp(CONCAT('${year}-', LPAD('${month}', 2, '0'), '-01'), 'yyyy-MM-dd'))) THEN 1
         -- Other cases, don't
         ELSE 0
-    END) + oenca.uniques_offset AS uniques_estimate
+    END) + fresh.uniques_offset AS uniques_estimate
 FROM
     last_access_dates AS la
-    INNER JOIN fresh_sessions_aggregated AS oenca
-        ON (oenca.uri_host = la.uri_host
-            AND oenca.country_code = la.country_code)
+    INNER JOIN fresh_sessions_aggregated AS fresh
+        ON (fresh.uri_host = la.uri_host
+            AND fresh.country_code = la.country_code)
 GROUP BY
     la.uri_host,
     la.country,
     la.country_code,
-    oenca.uniques_offset
+    fresh.uniques_offset
 -- TODO
 -- Add HAVING clause to restrict on long tail (maybe ?)
-ORDER BY
-    uniques_estimate DESC
+--
 -- Limit enforced by hive strict mapreduce setting.
 -- 1000000000 == NO LIMIT !
 LIMIT 1000000000;

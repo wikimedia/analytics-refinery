@@ -111,8 +111,7 @@ GROUP BY
     fresh.uniques_offset
 -- TODO
 -- Add HAVING clause to restrict on long tail (maybe ?)
-ORDER BY
-    uniques_estimate DESC
+--
 -- Limit enforced by hive strict mapreduce setting.
 -- 1000000000 == NO LIMIT !
 LIMIT 1000000000;

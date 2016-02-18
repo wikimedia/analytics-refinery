@@ -72,6 +72,11 @@
                     <name>mapreduce.job.queuename</name>
                     <value>${queue_name}</value>
                 </property>
+                <!--Let hive decide on the number of reducers -->
+                <property>
+                    <name>mapred.reduce.tasks</name>
+                    <value>-1</value>
+                </property>
                 <property>
                     <name>hive.exec.scratchdir</name>
                     <value>/tmp/hive-${user}</value>
