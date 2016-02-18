@@ -28,29 +28,26 @@ WITH ranked AS (
         access,
         year,
         month,
-        day,
         views,
-        rank() OVER (PARTITION BY project, access, year, month, day ORDER BY views DESC) as rank,
-        row_number() OVER (PARTITION BY project, access, year, month, day ORDER BY views DESC) as rn
+        rank() OVER (PARTITION BY project, access, year, month ORDER BY views DESC) as rank,
+        row_number() OVER (PARTITION BY project, access, year, month ORDER BY views DESC) as rn
     FROM (
         SELECT
             project,
-            reflect("org.json.simple.JSONObject", "escape", regexp_replace(page_title, '\t', '')) AS page_title,
+            reflect("org.json.simple.JSONObject", "escape", regexp_replace(page_title, '${separator}', '')) AS page_title,
             COALESCE(regexp_replace(access_method, ' ', '-'), 'all-access') AS access,
             LPAD(year, 4, "0") as year,
             LPAD(month, 2, "0") as month,
-            LPAD(day, 2, "0") as day,
             SUM(view_count) as views
         FROM ${source_table}
         WHERE
             year = ${year}
             AND month = ${month}
-            AND day = ${day}
             AND agent_type = 'user'
-        GROUP BY project, regexp_replace(page_title, '${separator}', ''), access_method, year, month, day
+        GROUP BY project, regexp_replace(page_title, '${separator}', ''), access_method, year, month
         GROUPING SETS (
-            (project, regexp_replace(page_title, '${separator}', ''), access_method, year, month, day),
-            (project, regexp_replace(page_title, '${separator}', ''), year, month, day)
+            (project, regexp_replace(page_title, '${separator}', ''), access_method, year, month),
+            (project, regexp_replace(page_title, '${separator}', ''), year, month)
         )
     ) raw
 ),
@@ -60,7 +57,6 @@ max_rank AS (
         access,
         year,
         month,
-        day,
         rank as max_rank
     FROM ranked
     WHERE
@@ -70,7 +66,6 @@ max_rank AS (
         access,
         year,
         month,
-        day,
         rank
 )
 INSERT OVERWRITE DIRECTORY "${destination_directory}"
@@ -83,7 +78,7 @@ SELECT
         ranked.access,
         ranked.year,
         ranked.month,
-        ranked.day,
+        'all-days',
         CONCAT('[',
             CONCAT_WS(',', collect_set(
                 CONCAT('{"article":"', ranked.page_title,
@@ -97,13 +92,11 @@ LEFT JOIN max_rank ON (
     AND ranked.access = max_rank.access
     AND ranked.year = max_rank.year
     AND ranked.month = max_rank.month
-    AND ranked.day = max_rank.day
 )
 WHERE ranked.rank < COALESCE(max_rank.max_rank, 1001)
 GROUP BY
     ranked.project,
     ranked.access,
     ranked.year,
-    ranked.month,
-    ranked.day
+    ranked.month
 ;

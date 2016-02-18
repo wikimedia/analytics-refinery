@@ -165,6 +165,11 @@
                     <name>oozie.launcher.mapreduce.map.memory.mb</name>
                     <value>${oozie_launcher_memory}</value>
                 </property>
+                <!--Let hive decide on the number of reducers -->
+                <property>
+                    <name>mapred.reduce.tasks</name>
+                    <value>-1</value>
+                </property>
                 <property>
                     <name>hive.exec.scratchdir</name>
                     <value>/tmp/hive-${user}</value>
@@ -179,7 +184,6 @@
             <param>month=${month}</param>
             <param>day=${day}</param>
             <param>hour=${hour}</param>
-            <param>reducers_number=${cassandra_parallel_loaders}</param>
         </hive>
 
         <ok to="load_cassandra"/>
