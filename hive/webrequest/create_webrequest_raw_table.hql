@@ -44,7 +44,7 @@ PARTITIONED BY (
     `day`               int     COMMENT 'Unpadded day of request',
     `hour`              int     COMMENT 'Unpadded hour of request')
 ROW FORMAT SERDE
-    'org.apache.hcatalog.data.JsonSerDe'
+    'org.apache.hive.hcatalog.data.JsonSerDe'
 -- We only care about the INPUTFORMAT, not the OUTPUTFORMAT. But
 -- Hive's syntax does not allow to specify one without the
 -- other. Hence, we give both and use a default for the OUTPUTFORMAT.
