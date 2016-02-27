@@ -20,11 +20,17 @@
         <property><name>job_tracker</name></property>
 
         <property>
+            <name>oozie_directory</name>
+            <value>${name_node}/wmf/refinery/current/oozie</value>
+        </property>
+        <property>
             <name>add_partition_workflow_file</name>
+            <value>${oozie_directory}/util/hive/partition/add/workflow.xml</value>
             <description>Workflow definition for adding a partition</description>
         </property>
         <property>
             <name>hive_site_xml</name>
+            <value>${oozie_directory}/util/hive/hive-site.xml</value>
             <description>hive-site.xml file path in HDFS</description>
         </property>
         <property>
@@ -53,10 +59,12 @@
         </property>
         <property>
             <name>mark_directory_done_workflow_file</name>
+            <value>${oozie_directory}/util/mark_directory_done/workflow.xml</value>
             <description>Workflow for marking a directory done</description>
         </property>
         <property>
             <name>send_error_email_workflow_file</name>
+            <value>${oozie_directory}/util/send_error_email/workflow.xml</value>
             <description>Workflow for sending an error email</description>
         </property>
     </parameters>
@@ -69,8 +77,16 @@
             <propagate-configuration/>
             <configuration>
                 <property>
+                    <name>table</name>
+                    <value>${table}</value>
+                </property>
+                <property>
                     <name>partition_spec</name>
                     <value>year=${year},month=${month},day=${day},hour=${hour}</value>
+                </property>
+                <property>
+                    <name>location</name>
+                    <value>${location}</value>
                 </property>
             </configuration>
         </sub-workflow>
@@ -81,7 +97,7 @@
     <!--
     This adds an empty _SUCCESS done-flag file into
     The directory for which we just added a Hive partition.
-    The CirrusSearchRequestSet_raw_partitioned dataset uses this.
+    The *_raw_partitioned dataset uses this.
     -->
     <action name="mark_add_partition_done">
         <sub-workflow>
@@ -103,8 +119,8 @@
             <propagate-configuration/>
             <configuration>
                 <property>
-		    <name>to</name>
-		    <value>otto@wikimedia.org,joal@wikimedia.org,dandreescu@wikimedia.org,madhuvishy@wikimedia.org,mforns@wikimedia.org,nuria@wikimedia.org,dcausse@wikimedia.org,ebernhardson@wikimedia.org,okeyes@wikimedia.org,mpopov@wikimedia.org</value>
+                    <name>to</name>
+                    <value>${send_error_email_to}</value>
                 </property>
                 <property>
                     <name>parent_name</name>
@@ -113,6 +129,14 @@
                 <property>
                     <name>parent_failed_action</name>
                     <value>${wf:lastErrorNode()}</value>
+                </property>
+                <property>
+                    <name>parent_error_code</name>
+                    <value>${wf:errorCode(wf:lastErrorNode())}</value>
+                </property>
+                <property>
+                    <name>parent_error_message</name>
+                    <value>${wf:errorMessage(wf:lastErrorNode())}</value>
                 </property>
             </configuration>
         </sub-workflow>

@@ -17,17 +17,17 @@
 #   export PYTHONPATH=$PYTHONPATH:/path/to/refinery/python
 
 """
-Automatically drops old Hive partitions from the CirrusSearchRequestSet table
+Automatically drops old Hive partitions from the table
 and deletes the hourly time bucketed directory from HDFS.
 
-Usage: refinery-drop-cirrus-searchrequest-set-partitions [options]
+Usage: refinery-drop-hourly-partitions [options]
 
 Options:
     -h --help                           Show this help message and exit.
     -d --older-than-days=<days>         Drop data older than this number of days.  [default: 60]
     -D --database=<dbname>              Hive database name.  [default: default]
-    -t --table=<table>                  Name of CirrusSearchRequestSet table.  [default: CirrusSearchRequestSet]
-    -l --location=<location>            Base HDFS location path of the CirrusSearchRequestSet table.  If not
+    -t --table=<table>                  Name of table.
+    -l --location=<location>            Base HDFS location path of the table.  If not
                                         specified, this will be inferred from the table schema metadata.
     -o --hive-options=<options>         Any valid Hive CLI options you want to pass to Hive commands.
                                         Example: '--auxpath /path/to/hive-serdes-1.0-SNAPSHOT.jar'
@@ -73,7 +73,7 @@ if __name__ == '__main__':
                         datefmt='%Y-%m-%dT%H:%M:%S')
 
 
-    if not HdfsUtils.validate_path(table_location):
+    if table_location and not HdfsUtils.validate_path(table_location):
         logging.error('{0} table location \'{1}\' is not a valid HDFS path.  Path must start with \'/\' or \'hdfs://\'.  Aborting.'
             .format(table, table_location))
         sys.exit(1)
@@ -82,7 +82,7 @@ if __name__ == '__main__':
     # Instantiate HiveUtils.
     hive = HiveUtils(database, hive_options)
 
-    # The base location of this CirrusSearchRequestSet table in HDFS.
+    # The base location of this table in HDFS.
     # If it was not provided via the CLI, then attempt to
     # infer if from the table metadata.
     if table_location == None:

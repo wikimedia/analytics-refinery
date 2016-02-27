@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bundle-app xmlns="uri:oozie:bundle:0.2"
+    name="load_mediawiki-bundle">
+
+    <parameters>
+        <!-- Required properties -->
+        <property><name>queue_name</name></property>
+        <property><name>coordinator_file</name></property>
+        <property><name>name_node</name></property>
+        <property><name>job_tracker</name></property>
+        <property><name>workflow_file</name></property>
+        <property><name>start_time</name></property>
+        <property><name>stop_time</name></property>
+        <property><name>database</name></property>
+        <property><name>raw_base_directory</name></property>
+        <property><name>datasets_raw_file</name></property>
+        <property><name>common_error_to</name></property>
+    </parameters>
+
+    <coordinator name="load_mediawiki_CirrusSearchRequestSet-coord">
+        <app-path>${coordinator_file}</app-path>
+        <configuration>
+            <property>
+                <name>channel</name>
+                <value>CirrusSearchRequestSet</value>
+            </property>
+            <property>
+                <name>raw_data_directory</name>
+                <value>${raw_base_directory}/mediawiki_CirrusSearchRequestSet</value>
+            </property>
+            <property>
+                <name>send_error_email_to</name>
+                <value>${common_error_to},dcausse@wikimedia.org,ebernhardson@wikimedia.org,okeyes@wikimedia.org,mpopov@wikimedia.org</value>
+            </property>
+        </configuration>
+    </coordinator>
+
+    <coordinator name="load_mediawiki_ApiAction-coord">
+        <app-path>${coordinator_file}</app-path>
+        <configuration>
+            <property>
+                <name>channel</name>
+                <value>ApiAction</value>
+            </property>
+            <property>
+                <name>raw_data_directory</name>
+                <value>${raw_base_directory}/mediawiki_ApiAction</value>
+            </property>
+            <property>
+                <name>send_error_email_to</name>
+                <value>${common_error_to},bdavis@wikimedia.org,bjorsch@wikimedia.org,gtisza@wikimedia.org</value>
+            </property>
+        </configuration>
+    </coordinator>
+
+</bundle-app>

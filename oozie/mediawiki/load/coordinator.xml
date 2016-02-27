@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <coordinator-app xmlns="uri:oozie:coordinator:0.4"
-    name="load_mediawiki_${table}-coord"
+    name="load_mediawiki-${database}.${channel}-coord"
     frequency="${coord:hours(1)}"
     start="${start_time}"
     end="${stop_time}"
@@ -15,14 +15,39 @@
         <property><name>workflow_file</name></property>
         <property><name>start_time</name></property>
         <property><name>stop_time</name></property>
-        <property><name>datasets_raw_file</name></property>
-        <property><name>cirrus_searchrequest_set_raw_data_directory</name></property>
+        <property><name>send_error_email_to</name></property>
+        <property>
+            <name>datasets_raw_file</name>
+            <description>File that describes raw datasets</description>
+        </property>
+        <property>
+            <name>database</name>
+            <description>Hive database to load data into</description>
+        </property>
+        <property>
+            <name>channel</name>
+            <description>MediaWiki debug log channel name</description>
+        </property>
+        <property>
+            <name>raw_data_directory</name>
+            <description>
+                Directory in which the this coordinator will look for
+                hourly data.
+            </description>
+        </property>
 
-        <property><name>hive_site_xml</name></property>
-        <property><name>add_partition_workflow_file</name></property>
-        <property><name>table</name></property>
-        <property><name>mark_directory_done_workflow_file</name></property>
-        <property><name>send_error_email_workflow_file</name></property>
+        <property>
+            <name>table</name>
+            <value>${database}.${channel}</value>
+        </property>
+        <property>
+            <name>input_dataset</name>
+            <value>raw_imported</value>
+        </property>
+        <property>
+            <name>output_dataset</name>
+            <value>raw_success</value>
+        </property>
     </parameters>
 
     <controls>
@@ -63,16 +88,22 @@
     <datasets>
         <!--
         Include the given $datasets_raw_file file.  This should
-        define the "CirrusSearchRequestSet_raw" datasets for this coordinator.
+        define the "*_raw" datasets for this coordinator.
         -->
         <include>${datasets_raw_file}</include>
     </datasets>
 
     <input-events>
-        <data-in name="input" dataset="CirrusSearchRequestSet_raw_imported">
+        <data-in name="input" dataset="${input_dataset}">
             <instance>${coord:current(0)}</instance>
         </data-in>
     </input-events>
+
+    <output-events>
+        <data-out name="output" dataset="${output_dataset}">
+            <instance>${coord:current(0)}</instance>
+        </data-out>
+    </output-events>
 
     <action>
         <workflow>
