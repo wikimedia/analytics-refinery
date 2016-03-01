@@ -22,7 +22,6 @@ WITH last_access_dates AS (
     SELECT
         year,
         month,
-        day,
         lower(uri_host) as uri_host,
         geocoded_data['country'] AS country,
         geocoded_data['country_code'] AS country_code,

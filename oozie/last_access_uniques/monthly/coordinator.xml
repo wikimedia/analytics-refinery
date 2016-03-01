@@ -10,18 +10,22 @@
         <property><name>name_node</name></property>
         <property><name>job_tracker</name></property>
         <property><name>mark_directory_done_workflow_file</name></property>
+        <property><name>archive_job_output_workflow_file</name></property>
         <property><name>send_error_email_workflow_file</name></property>
         <property><name>workflow_file</name></property>
         <property><name>start_time</name></property>
         <property><name>stop_time</name></property>
 
-        <property><name>source_table</name></property>
-        <property><name>destination_table</name></property>
+        <property><name>webrequest_table</name></property>
+        <property><name>last_access_uniques_monthly_table</name></property>
 
         <property><name>webrequest_data_directory</name></property>
         <property><name>webrequest_datasets_file</name></property>
         <property><name>last_access_uniques_data_directory</name></property>
         <property><name>last_access_uniques_datasets_file</name></property>
+
+        <property><name>temporary_directory</name></property>
+        <property><name>uniques_archive_directory</name></property>
     </parameters>
 
     <controls>
@@ -64,14 +68,14 @@
               <!-- Pass these properties through to the workflow -->
               <property>
                   <name>year</name>
-                  <value>${coord:formatTime(coord:nominalTime(), "y")}</value>
+                  <value>${coord:formatTime(coord:nominalTime(), "yyyy")}</value>
               </property>
               <property>
                   <name>month</name>
-                  <value>${coord:formatTime(coord:nominalTime(), "M")}</value>
+                  <value>${coord:formatTime(coord:nominalTime(), "MM")}</value>
               </property>
               <property>
-                    <name>destination_dataset_directory</name>
+                    <name>uniques_dataset_directory</name>
                     <value>${coord:dataOut('last_access_uniques_monthly_output')}</value>
                 </property>
           </configuration>
