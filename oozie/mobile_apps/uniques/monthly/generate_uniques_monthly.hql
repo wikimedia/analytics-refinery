@@ -31,10 +31,6 @@
 SET hive.exec.compress.output=true;
 SET mapreduce.output.fileoutputformat.compress.codec=org.apache.hadoop.io.compress.GzipCodec;
 
--- Hard-limiting number of reducer to force a single file in the
--- target directory.
-SET mapred.reduce.tasks=1;
-
 
 -- Create a temporary table, then compute the new unique count
 -- and concatenate it to archived data.
