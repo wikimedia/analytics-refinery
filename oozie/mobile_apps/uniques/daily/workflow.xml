@@ -57,6 +57,10 @@
             <name>archive_job_output_workflow_file</name>
             <description>Workflow to move a data file to the archive</description>
         </property>
+        <property>
+            <name>send_error_email_workflow_file</name>
+            <description>Workflow for sending an email</description>
+        </property>
 
     </parameters>
 
@@ -100,12 +104,8 @@
             <param>day=${day}</param>
         </hive>
         <ok to="mark_dataset_done"/>
-        <error to="kill"/>
+        <error to="send_error_email"/>
     </action>
-
-    <kill name="kill">
-        <message>Action failed, error message[${wf:errorMessage(wf:lastErrorNode())}]</message>
-    </kill>
 
     <action name="mark_dataset_done">
         <sub-workflow>
@@ -118,7 +118,7 @@
             </configuration>
         </sub-workflow>
         <ok to="move_mobile_apps_uniques_daily_to_archive"/>
-        <error to="kill"/>
+        <error to="send_error_email"/>
     </action>
 
     <action name="move_mobile_apps_uniques_daily_to_archive">
@@ -142,14 +142,39 @@
             </configuration>
         </sub-workflow>
         <ok to="end"/>
-        <error to="archive_fail"/>
+        <error to="send_error_email"/>
     </action>
 
- <kill name="archive_fail">
-    <message>Archive of mobile apps daily unques failed, error
-            message[${wf:errorMessage(wf:lastErrorNode())}]</message>
- </kill>
+    <action name="send_error_email">
+        <sub-workflow>
+            <app-path>${send_error_email_workflow_file}</app-path>
+            <propagate-configuration/>
+            <configuration>
+                <property>
+                    <name>parent_name</name>
+                    <value>${wf:name()}</value>
+                </property>
+                <property>
+                    <name>parent_failed_action</name>
+                    <value>${wf:lastErrorNode()}</value>
+                </property>
+                <property>
+                    <name>parent_error_code</name>
+                    <value>${wf:errorCode(wf:lastErrorNode())}</value>
+                </property>
+                <property>
+                    <name>parent_error_message</name>
+                    <value>${wf:errorMessage(wf:lastErrorNode())}</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="kill"/>
+        <error to="kill"/>
+    </action>
 
+    <kill name="kill">
+        <message>Action failed, error message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+    </kill>
 
     <end name="end"/>
 </workflow-app>
