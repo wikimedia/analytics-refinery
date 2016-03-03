@@ -115,6 +115,14 @@
                     <name>parent_failed_action</name>
                     <value>${wf:lastErrorNode()}</value>
                 </property>
+                <property>
+                    <name>parent_error_code</name>
+                    <value>${wf:errorCode(wf:lastErrorNode())}</value>
+                </property>
+                <property>
+                    <name>parent_error_message</name>
+                    <value>${wf:errorMessage(wf:lastErrorNode())}</value>
+                </property>
             </configuration>
         </sub-workflow>
         <ok to="kill"/>
