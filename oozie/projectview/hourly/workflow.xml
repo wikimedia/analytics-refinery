@@ -101,6 +101,10 @@
             <name>archive_job_output_workflow_file</name>
             <description>Workflow to move a data file to the archive</description>
         </property>
+        <property>
+            <name>send_error_email_workflow_file</name>
+            <description>Workflow for sending an email</description>
+        </property>
 
     </parameters>
 
@@ -142,7 +146,7 @@
         </hive>
 
         <ok to="mark_aggregated_projectview_dataset_done"/>
-        <error to="kill"/>
+        <error to="send_error_email"/>
     </action>
 
     <action name="mark_aggregated_projectview_dataset_done">
@@ -156,7 +160,7 @@
             </configuration>
         </sub-workflow>
         <ok to="transform"/>
-        <error to="kill"/>
+        <error to="send_error_email"/>
     </action>
 
     <action name="transform">
@@ -196,7 +200,7 @@
         </hive>
 
         <ok to="mark_transformed_projectview_dataset_done"/>
-        <error to="kill"/>
+        <error to="send_error_email"/>
     </action>
 
     <action name="mark_transformed_projectview_dataset_done">
@@ -210,7 +214,7 @@
             </configuration>
         </sub-workflow>
         <ok to="move_data_to_archive"/>
-        <error to="kill"/>
+        <error to="send_error_email"/>
     </action>
 
     <action name="move_data_to_archive">
@@ -238,6 +242,33 @@
             </configuration>
         </sub-workflow>
         <ok to="end"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <action name="send_error_email">
+        <sub-workflow>
+            <app-path>${send_error_email_workflow_file}</app-path>
+            <propagate-configuration/>
+            <configuration>
+                <property>
+                    <name>parent_name</name>
+                    <value>${wf:name()}</value>
+                </property>
+                <property>
+                    <name>parent_failed_action</name>
+                    <value>${wf:lastErrorNode()}</value>
+                </property>
+                <property>
+                    <name>parent_error_code</name>
+                    <value>${wf:errorCode(wf:lastErrorNode())}</value>
+                </property>
+                <property>
+                    <name>parent_error_message</name>
+                    <value>${wf:errorMessage(wf:lastErrorNode())}</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="kill"/>
         <error to="kill"/>
     </action>
 

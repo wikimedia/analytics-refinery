@@ -333,17 +333,21 @@
             <propagate-configuration/>
             <configuration>
                 <property>
-                    <name>parent_name</name>
-                    <value>${wf:name()}</value>
-                </property>
-                <property>
                     <name>subject</name>
                     <value>Unexpected values in pageview for workflow - ${wf:name()}</value>
+                </property>
+                <property>
+                    <name>body</name>
+                    <value>Values were found in pageview that were not in the whitelist.
+
+Please have a look and take necessary action !
+Thanks :)
+-- Oozie</value>
                 </property>
             </configuration>
         </sub-workflow>
         <ok to="end"/>
-        <error to="kill"/>
+        <error to="send_error_email"/>
     </action>
 
     <action name="send_error_email">
@@ -354,6 +358,18 @@
                 <property>
                     <name>parent_name</name>
                     <value>${wf:name()}</value>
+                </property>
+                <property>
+                    <name>parent_failed_action</name>
+                    <value>${wf:lastErrorNode()}</value>
+                </property>
+                <property>
+                    <name>parent_error_code</name>
+                    <value>${wf:errorCode(wf:lastErrorNode())}</value>
+                </property>
+                <property>
+                    <name>parent_error_message</name>
+                    <value>${wf:errorMessage(wf:lastErrorNode())}</value>
                 </property>
             </configuration>
         </sub-workflow>

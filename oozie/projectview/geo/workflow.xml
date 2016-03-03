@@ -149,7 +149,7 @@
                 </property>
                 <property>
                     <name>expected_filename_ending</name>
-                    <value>EMPTY</value>
+                    <value>.gz</value>
                 </property>
                 <property>
                     <name>archive_file</name>
@@ -169,6 +169,18 @@
                 <property>
                     <name>parent_name</name>
                     <value>${wf:name()}</value>
+                </property>
+                <property>
+                    <name>parent_failed_action</name>
+                    <value>${wf:lastErrorNode()}</value>
+                </property>
+                <property>
+                    <name>parent_error_code</name>
+                    <value>${wf:errorCode(wf:lastErrorNode())}</value>
+                </property>
+                <property>
+                    <name>parent_error_message</name>
+                    <value>${wf:errorMessage(wf:lastErrorNode())}</value>
                 </property>
             </configuration>
         </sub-workflow>
