@@ -17,6 +17,8 @@
         <property><name>workflow_file_daily</name></property>
         <property><name>workflow_file_monthly</name></property>
 
+        <property><name>send_error_email_workflow_file</name></property>
+
         <property><name>start_time</name></property>
         <property><name>stop_time</name></property>
 
