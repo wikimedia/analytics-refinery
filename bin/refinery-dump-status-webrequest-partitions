@@ -75,7 +75,7 @@ add_dataset() {
     DATASET_VISIBILITIES["$DATASET"]=no
 }
 
-add_dataset "legacy_tsvs" "daily" "    5xx    | 5xx-misc  | 5xx-text  |5xx-upload |    api    |   edits   | glam_nara |  sampled  |   zero    |"
+add_dataset "legacy_tsvs" "daily" "    5xx    | 5xx-misc  | 5xx-text  |5xx-upload |    api    |   edits   | glam_nara |  sampled  |"
 add_dataset "mediacounts" "daily" "   full  | top1000 |"
 add_dataset "pagecounts_all_sites" "hourly" " file name date  |  page   | project |"
 add_dataset "pagecounts_raw" "hourly" " file name date  |  page   | project |"
@@ -379,7 +379,6 @@ dump_dataset_legacy_tsvs() {
         edits/edits \
         glam_nara/glam_nara \
         sampled/sampled-1000 \
-        zero/zero \
 
     do
         local STATUS="X"
