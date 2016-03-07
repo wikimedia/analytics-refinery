@@ -103,7 +103,7 @@ INSERT OVERWRITE TABLE ${destination_table}
         referer_classify(referer) as referer_class,
         normalize_host(uri_host) as normalized_host,
         CASE
-           WHEN is_pageview(uri_host, uri_path, uri_query, http_status, content_type, user_agent) THEN get_pageview_info(uri_host, uri_path, uri_query)
+           WHEN is_pageview(uri_host, uri_path, uri_query, http_status, content_type, user_agent, x_analytics) THEN get_pageview_info(uri_host, uri_path, uri_query)
            ELSE NULL
         END as pageview_info,
         CASE COALESCE(x_analytics, '-')
