@@ -44,6 +44,8 @@ WITH ranked AS (
             year = ${year}
             AND month = ${month}
             AND agent_type = 'user'
+            -- Remove special unknown pageview (see T117346)
+            AND page_title != '-'
         GROUP BY project, regexp_replace(page_title, '${separator}', ''), access_method, year, month
         GROUPING SETS (
             (project, regexp_replace(page_title, '${separator}', ''), access_method, year, month),
