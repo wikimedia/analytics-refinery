@@ -35,7 +35,7 @@ WITH ranked AS (
     FROM (
         SELECT
             project,
-            reflect("org.json.simple.JSONObject", "escape", regexp_replace(page_title, '\t', '')) AS page_title,
+            reflect("org.json.simple.JSONObject", "escape", regexp_replace(page_title, '${separator}', '')) AS page_title,
             COALESCE(regexp_replace(access_method, ' ', '-'), 'all-access') AS access,
             LPAD(year, 4, "0") as year,
             LPAD(month, 2, "0") as month,
@@ -47,6 +47,8 @@ WITH ranked AS (
             AND month = ${month}
             AND day = ${day}
             AND agent_type = 'user'
+            -- Remove special unknown pageview (see T117346)
+            AND page_title != '-'
         GROUP BY project, regexp_replace(page_title, '${separator}', ''), access_method, year, month, day
         GROUPING SETS (
             (project, regexp_replace(page_title, '${separator}', ''), access_method, year, month, day),
