@@ -29,9 +29,6 @@ SET mapred.reduce.tasks=1;
 WITH pageview_hour AS (
     SELECT
         project,
-        continent,
-        country,
-        country_code,
         access_method,
         agent_type,
         SUM(view_count) as view_count
@@ -42,9 +39,6 @@ WITH pageview_hour AS (
         AND hour = ${hour}
     GROUP BY
         project,
-        continent,
-        country,
-        country_code,
         access_method,
         agent_type
 ),
@@ -60,7 +54,7 @@ distinct_values AS (
     FROM pageview_hour
     GROUP BY project
 
-    UNION ALL 
+    UNION ALL
 
     -- distinct access_method
     SELECT
