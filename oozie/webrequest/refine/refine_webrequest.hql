@@ -53,7 +53,6 @@ CREATE TEMPORARY FUNCTION geocoded_data as 'org.wikimedia.analytics.refinery.hiv
 CREATE TEMPORARY FUNCTION ua_parser as 'org.wikimedia.analytics.refinery.hive.UAParserUDF';
 CREATE TEMPORARY FUNCTION get_access_method as 'org.wikimedia.analytics.refinery.hive.GetAccessMethodUDF';
 CREATE TEMPORARY FUNCTION is_spider as 'org.wikimedia.analytics.refinery.hive.IsSpiderUDF';
-CREATE TEMPORARY FUNCTION is_wikimedia_bot as 'org.wikimedia.analytics.refinery.hive.IsWikimediaBotUDF';
 CREATE TEMPORARY FUNCTION referer_classify AS 'org.wikimedia.analytics.refinery.hive.SmartReferrerClassifierUDF';
 CREATE TEMPORARY FUNCTION get_pageview_info AS 'org.wikimedia.analytics.refinery.hive.GetPageviewInfoUDF';
 CREATE TEMPORARY FUNCTION normalize_host AS 'org.wikimedia.analytics.refinery.hive.HostNormalizerUDF';
@@ -95,7 +94,6 @@ INSERT OVERWRITE TABLE ${destination_table}
         CAST(unix_timestamp(dt, "yyyy-MM-dd'T'HH:mm:ss") * 1.0 as timestamp) as ts,
         get_access_method(uri_host, user_agent) as access_method,
         CASE
-            WHEN ((is_wikimedia_bot(user_agent))) THEN 'bot'
             WHEN ((ua_parser(user_agent)['device_family'] = 'Spider') OR (is_spider(user_agent))) THEN 'spider'
             ELSE 'user'
         END as agent_type,
