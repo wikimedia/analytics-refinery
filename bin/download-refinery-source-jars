@@ -26,7 +26,7 @@ fi
 for j in camus core job cassandra hive; do
     (wget "${archiva_base_uri}/$j/refinery-$j/$version/refinery-$j-$version.jar" \
         -O ./artifacts/org/wikimedia/analytics/refinery/refinery-$j-$version.jar \
-        && ln -sfv ./artifacts/org/wikimedia/analytics/refinery/refinery-$j-$version.jar ./artifacts/refinery-$j.jar) &
+        && ln -sfv org/wikimedia/analytics/refinery/refinery-$j-$version.jar ./artifacts/refinery-$j.jar) &
 done
 
 wait
