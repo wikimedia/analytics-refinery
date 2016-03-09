@@ -24,13 +24,13 @@
             <description>hive-site.xml file path in HDFS</description>
         </property>
         <property>
-            <name>source_table</name>
+            <name>webrequest_table</name>
             <description>
                 Hive table to read webrequests from.
             </description>
         </property>
         <property>
-            <name>destination_table</name>
+            <name>mediacounts_table</name>
             <description>
                 Hive table to write mediacounts aggregates to.
             </description>
@@ -101,8 +101,8 @@
             <script>insert_hourly_mediacounts.hql</script>
 
             <param>artifacts_directory=${artifacts_directory}</param>
-            <param>source_table=${source_table}</param>
-            <param>destination_table=${destination_table}</param>
+            <param>source_table=${webrequest_table}</param>
+            <param>destination_table=${mediacounts_table}</param>
             <param>year=${year}</param>
             <param>month=${month}</param>
             <param>day=${day}</param>
