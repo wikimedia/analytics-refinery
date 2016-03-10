@@ -26,6 +26,7 @@
         <property><name>faulty_hosts_directory</name></property>
         <property><name>mark_directory_done_workflow_file</name></property>
         <property><name>send_error_email_workflow_file</name></property>
+        <property><name>sla_alert_contact</name></property>
     </parameters>
 
     <controls>
@@ -109,5 +110,15 @@
                 </property>
             </configuration>
         </workflow>
+        <sla:info>
+            <!--
+                Use action actual time as SLA base, since it's the time used
+                to compute timeout
+            -->
+            <sla:nominal-time>${coord:actualTime()}</sla:nominal-time>
+            <sla:should-end>${3 * HOURS}</sla:should-end>
+            <sla:alert-events>end_miss</sla:alert-events>
+            <sla:alert-contact>${sla_alert_contact}</sla:alert-contact>
+        </sla:info>
     </action>
 </coordinator-app>
