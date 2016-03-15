@@ -19,6 +19,8 @@
 
         <property><name>datasets_file</name></property>
         <property><name>dataset_name</name></property>
+        <property><name>dataset_freq</name></property>
+
 
         <property><name>hive_site_xml</name></property>
         <property><name>hive_script</name></property>
@@ -78,7 +80,8 @@
     <input-events>
         <data-in name="data_input" dataset="${dataset_name}">
             <start-instance>${coord:current(0)}</start-instance>
-            <end-instance>${coord:current(coord:daysInMonth(0) * 24 - 1)}</end-instance>
+            <!-- Ugly hack to manage different frequency based datasets correctly -->
+            <end-instance>${(dataset_freq == "month") ? coord:current(0): (dataset_freq == "day") ? coord:current(coord:daysInMonth(0) - 1): coord:current(coord:daysInMonth(0) * 24 - 1)}</end-instance>
         </data-in>
     </input-events>
 

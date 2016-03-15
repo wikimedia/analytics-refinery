@@ -74,12 +74,12 @@
             <value>3</value>
         </property>
         <property>
-            <name>per_article_flat_cql</name>
-            <value>UPDATE "local_group_default_T_pageviews_per_article_flat"."data" SET "aa" = ?, "ab" = ?, "as" = ?, "au" = ?, "da" = ?, "db" = ?, "ds" = ?, "du" = ?, "maa" = ?, "mab" = ?, "mas" = ?, "mau" = ?, "mwa" = ?, "mwb" = ?, "mws" = ?, "mwu" = ?</value>
-        </property>
-        <property>
             <name>per_article_flat_keyspace</name>
             <value>local_group_default_T_pageviews_per_article_flat</value>
+        </property>
+        <property>
+            <name>per_article_flat_cql</name>
+            <value>UPDATE "${per_article_flat_keyspace}"."data" SET "aa" = ?, "ab" = ?, "as" = ?, "au" = ?, "da" = ?, "db" = ?, "ds" = ?, "du" = ?, "maa" = ?, "mab" = ?, "mas" = ?, "mau" = ?, "mwa" = ?, "mwb" = ?, "mws" = ?, "mwu" = ?</value>
         </property>
         <property>
             <name>per_article_flat_hive_fields</name>
@@ -124,12 +124,12 @@
             <value>1</value>
         </property>
         <property>
-            <name>per_project_cql</name>
-            <value>UPDATE "local_group_default_T_pageviews_per_project"."data" SET "v" = ?</value>
-        </property>
-        <property>
             <name>per_project_keyspace</name>
             <value>local_group_default_T_pageviews_per_project</value>
+        </property>
+        <property>
+            <name>per_project_cql</name>
+            <value>UPDATE "${per_project_keyspace}"."data" SET "v" = ?</value>
         </property>
         <property>
             <name>per_project_hive_fields</name>
@@ -174,12 +174,12 @@
             <value>3</value>
         </property>
         <property>
-            <name>top_articles_cql</name>
-            <value>UPDATE "local_group_default_T_top_pageviews"."data" SET "articlesJSON" = ?</value>
-        </property>
-        <property>
             <name>top_articles_keyspace</name>
             <value>local_group_default_T_top_pageviews</value>
+        </property>
+        <property>
+            <name>top_articles_cql</name>
+            <value>UPDATE "${top_articles_keyspace}"."data" SET "articlesJSON" = ?</value>
         </property>
         <property>
             <name>top_articles_hive_fields</name>
@@ -198,7 +198,50 @@
             <value>_domain,project,access,year,month,day,_tid</value>
         </property>
 
+        <!--**************************************************
+                       Unique devices parameters
+        **************************************************-->
+
+        <property>
+            <name>unique_devices_datasets_file</name>
+            <value>${last_access_uniques_datasets_file}</value>
+        </property>
+        <property>
+            <name>unique_devices_hive_script</name>
+            <value>unique_devices.hql</value>
+        </property>
+        <property>
+            <name>unique_devices_parallel_loaders</name>
+            <value>1</value>
+        </property>
+        <property>
+            <name>unique_devices_keyspace</name>
+            <value>local_group_default_T_unique_devices</value>
+        </property>
+        <property>
+            <name>unique_devices_cql</name>
+            <value>UPDATE "${unique_devices_keyspace}"."data" SET "devices" = ?</value>
+        </property>
+        <property>
+            <name>unique_devices_hive_fields</name>
+            <value>project,access-site,timestamp,devices</value>
+        </property>
+        <property>
+            <name>unique_devices_hive_fields_types</name>
+            <value>text,text,text,bigint</value>
+        </property>
+        <property>
+            <name>unique_devices_cassandra_fields</name>
+            <value>devices</value>
+        </property>
+        <property>
+            <name>unique_devices_cassandra_primary_keys</name>
+            <value>_domain,project,access-site,granularity,timestamp,_tid</value>
+        </property>
+
     </parameters>
+
+
 
 
     <!--**************************************************
@@ -407,6 +450,12 @@
                 <name>dataset_name</name>
                 <value>${per_project_dataset_name}</value>
             </property>
+            <!-- frequency of the dataset to manage different datasets
+                 correctly in coordinator -->
+            <property>
+                <name>dataset_freq</name>
+                <value>hour</value>
+            </property>
 
             <!-- Hive data preparation job stuff -->
             <property>
@@ -486,7 +535,7 @@
             <!-- cassandra loader job stuff -->
             <property>
                 <name>cassandra_parallel_loaders</name>
-                <value>${per_article_flat_parallel_loaders}</value>
+                <value>${top_articles_parallel_loaders}</value>
             </property>
             <property>
                 <name>cassandra_cql</name>
@@ -532,6 +581,12 @@
                 <name>dataset_name</name>
                 <value>${top_articles_dataset_name}</value>
             </property>
+            <!-- frequency of the dataset to manage different datasets
+                 correctly in coordinator -->
+            <property>
+                <name>dataset_freq</name>
+                <value>hour</value>
+            </property>
 
             <!-- Hive data preparation job stuff -->
             <property>
@@ -546,7 +601,7 @@
             <!-- cassandra loader job stuff -->
             <property>
                 <name>cassandra_parallel_loaders</name>
-                <value>${per_article_flat_parallel_loaders}</value>
+                <value>${top_articles_parallel_loaders}</value>
             </property>
             <property>
                 <name>cassandra_cql</name>
@@ -571,6 +626,137 @@
             <property>
                 <name>cassandra_primary_keys</name>
                 <value>${top_articles_cassandra_primary_keys}</value>
+            </property>
+        </configuration>
+    </coordinator>
+
+
+    <!--**************************************************
+                       Unique devices coordinators
+        **************************************************-->
+
+    <coordinator name="cassandra_unique_devices_daily-coord">
+        <app-path>${coordinator_file_daily}</app-path>
+        <configuration>
+            <property>
+                <name>workflow_file</name>
+                <value>${workflow_file_daily}</value>
+            </property>
+
+            <!-- Dataset the job depends on -->
+            <property>
+                <name>datasets_file</name>
+                <value>${unique_devices_datasets_file}</value>
+            </property>
+            <property>
+                <name>dataset_name</name>
+                <value>last_access_uniques_daily</value>
+            </property>
+
+            <!-- Hive data preparation job stuff -->
+            <property>
+                <name>hive_script</name>
+                <value>${unique_devices_hive_script}</value>
+            </property>
+            <property>
+                <name>source_table</name>
+                <value>wmf.last_access_uniques_daily</value>
+            </property>
+
+            <!-- cassandra loader job stuff -->
+            <property>
+                <name>cassandra_parallel_loaders</name>
+                <value>${unique_devices_parallel_loaders}</value>
+            </property>
+            <property>
+                <name>cassandra_cql</name>
+                <value>${unique_devices_cql}</value>
+            </property>
+            <property>
+                <name>cassandra_keyspace</name>
+                <value>${unique_devices_keyspace}</value>
+            </property>
+            <property>
+                <name>hive_fields</name>
+                <value>${unique_devices_hive_fields}</value>
+            </property>
+            <property>
+                <name>hive_fields_types</name>
+                <value>${unique_devices_hive_fields_types}</value>
+            </property>
+            <property>
+                <name>cassandra_fields</name>
+                <value>${unique_devices_cassandra_fields}</value>
+            </property>
+            <property>
+                <name>cassandra_primary_keys</name>
+                <value>${unique_devices_cassandra_primary_keys}</value>
+            </property>
+        </configuration>
+    </coordinator>
+
+    <coordinator name="cassandra_unique_devices_monthly-coord">
+        <app-path>${coordinator_file_monthly}</app-path>
+        <configuration>
+            <property>
+                <name>workflow_file</name>
+                <value>${workflow_file_monthly}</value>
+            </property>
+
+            <!-- Dataset the job depends on -->
+            <property>
+                <name>datasets_file</name>
+                <value>${unique_devices_datasets_file}</value>
+            </property>
+            <property>
+                <name>dataset_name</name>
+                <value>last_access_uniques_monthly</value>
+            </property>
+            <!-- frequency of the dataset to manage different datasets
+                 correctly in coordinator -->
+            <property>
+                <name>dataset_freq</name>
+                <value>month</value>
+            </property>
+
+            <!-- Hive data preparation job stuff -->
+            <property>
+                <name>hive_script</name>
+                <value>${unique_devices_hive_script}</value>
+            </property>
+            <property>
+                <name>source_table</name>
+                <value>wmf.last_access_uniques_monthly</value>
+            </property>
+
+            <!-- cassandra loader job stuff -->
+            <property>
+                <name>cassandra_parallel_loaders</name>
+                <value>${unique_devices_parallel_loaders}</value>
+            </property>
+            <property>
+                <name>cassandra_cql</name>
+                <value>${unique_devices_cql}</value>
+            </property>
+            <property>
+                <name>cassandra_keyspace</name>
+                <value>${unique_devices_keyspace}</value>
+            </property>
+            <property>
+                <name>hive_fields</name>
+                <value>${unique_devices_hive_fields}</value>
+            </property>
+            <property>
+                <name>hive_fields_types</name>
+                <value>${unique_devices_hive_fields_types}</value>
+            </property>
+            <property>
+                <name>cassandra_fields</name>
+                <value>${unique_devices_cassandra_fields}</value>
+            </property>
+            <property>
+                <name>cassandra_primary_keys</name>
+                <value>${unique_devices_cassandra_primary_keys}</value>
             </property>
         </configuration>
     </coordinator>
