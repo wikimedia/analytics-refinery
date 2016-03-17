@@ -34,6 +34,6 @@ OUTPUTFORMAT
 LOCATION
   'hdfs://analytics-hadoop/wmf/data/raw/mediawiki/mediawiki_ApiAction/hourly'
 TBLPROPERTIES (
-'avro.schema.literal'='{"type":"record","name":"ActionApi","namespace":"org.wikimedia.analytics.schemas","fields":[{"name":"ts","type":"int","default":0},{"name":"ip","type":"string","default":""},{"name":"userAgent","type":"string","default":""},{"name":"wiki","type":"string","default":""},{"name":"timeSpentBackend","type":"int","default":-1},{"name":"hadError","type":"boolean","default":false},{"name":"errorCodes","type":{"type":"array","items":"string"},"default":[]},{"name":"params","type":{"type":"map","values":"string"},"default":{}}]}'
+'avro.schema.literal'='{"type":"record","name":"ApiAction","namespace":"org.wikimedia.analytics.schemas","fields":[{"name":"ts","type":"int","default":0},{"name":"ip","type":"string","default":""},{"name":"userAgent","type":"string","default":""},{"name":"wiki","type":"string","default":""},{"name":"timeSpentBackend","type":"int","default":-1},{"name":"hadError","type":"boolean","default":false},{"name":"errorCodes","type":{"type":"array","items":"string"},"default":[]},{"name":"params","type":{"type":"map","values":"string"},"default":{}}]}'
 )
 ;
