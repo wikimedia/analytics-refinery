@@ -68,10 +68,22 @@
             </description>
         </property>
         <property>
-            <name>faulty_hosts_directory</name>
+            <name>data_loss_check_directory_base</name>
             <description>
-                Base directory in HDFS where information about
-                obviously faulty hosts will get collected.
+                Base directory in HDFS where to put data loss information
+            </description>
+        </property>
+        <property>
+            <name>error_data_loss_threshold</name>
+            <description>If data loss (percent) is above this value
+                the job is failed and refined not launched.
+            </description>
+        </property>
+        <property>
+            <name>warning_data_loss_threshold</name>
+            <description>If data loss (percent) is above this value
+                and less than error_data_loss_threshold an email is sent
+                but refine is still launched.
             </description>
         </property>
         <property>
@@ -208,8 +220,12 @@
             <propagate-configuration/>
             <configuration>
                 <property>
-                    <name>faulty_hosts_directory</name>
-                    <value>${faulty_hosts_directory}/${webrequest_source}/${year}/${month}/${day}/${hour}</value>
+                    <name>error_data_loss_directory</name>
+                    <value>${data_loss_check_directory_base}/${webrequest_source}/${year}/${month}/${day}/${hour}/ERROR</value>
+                </property>
+                <property>
+                    <name>warning_data_loss_directory</name>
+                    <value>${data_loss_check_directory_base}/${webrequest_source}/${year}/${month}/${day}/${hour}/WARNING</value>
                 </property>
             </configuration>
         </sub-workflow>

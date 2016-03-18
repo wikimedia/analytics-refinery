@@ -44,23 +44,47 @@
             <description>The partition's hour</description>
         </property>
         <property>
-            <name>statistics_table</name>
+            <name>statistics_hourly_table</name>
             <description>
                 Hive table to write partition statistics to.
             </description>
         </property>
         <property>
-            <name>faulty_hosts_directory</name>
+            <name>error_data_loss_directory</name>
             <description>
-                Base directory in HDFS where information about
-                obviously faulty hosts will get collected.
+                Base directory in HDFS where to put data loss information
+                when error threshold is passed
             </description>
+        </property>
+        <property>
+            <name>warning_data_loss_directory</name>
+            <description>
+                Base directory in HDFS where to put data loss information
+                when warning threshold is passed but not error threshold
+            </description>
+        </property>
+        <property>
+            <name>error_data_loss_threshold</name>
+            <description>If data loss (percent) is above this value
+                the job is failed and refined not launched.
+            </description>
+        </property>
+        <property>
+            <name>warning_data_loss_threshold</name>
+            <description>If data loss (percent) is above this value
+                and less than error_data_loss_threshold an email is sent
+                but refine is still launched.
+            </description>
+        </property>
+        <property>
+            <name>send_error_email_workflow_file</name>
+            <description>Workflow for sending an error email</description>
         </property>
     </parameters>
 
-    <start to="extract_faulty_hosts"/>
+    <start to="extract_error_data_loss"/>
 
-    <action name="extract_faulty_hosts">
+    <action name="extract_error_data_loss">
         <hive xmlns="uri:oozie:hive-action:0.3">
             <job-tracker>${job_tracker}</job-tracker>
             <name-node>${name_node}</name-node>
@@ -81,35 +105,156 @@
                 </property>
             </configuration>
 
-            <script>extract_faulty_hosts.hql</script>
+            <script>extract_data_loss.hql</script>
 
-            <param>table=${statistics_table}</param>
-            <param>target=${faulty_hosts_directory}</param>
+            <param>table=${statistics_hourly_table}</param>
+            <param>target=${error_data_loss_directory}</param>
+            <param>threshold=${error_data_loss_threshold}</param>
             <param>webrequest_source=${webrequest_source}</param>
             <param>year=${year}</param>
             <param>month=${month}</param>
             <param>day=${day}</param>
             <param>hour=${hour}</param>
         </hive>
-        <ok to="check_faulty_hosts"/>
+        <ok to="check_error_data_loss"/>
         <error to="kill"/>
     </action>
 
-    <decision name="check_faulty_hosts">
+    <decision name="check_error_data_loss">
         <switch>
-            <!-- TODO: Add a case for faulty hosts with minimal loss that marks
-            a dataset with a done-flag indicating that even though there is some
-            loss, it is minimal, and users could proceed with processing.
-             -->
-            <case to="end">
-                ${fs:fileSize(concat(faulty_hosts_directory, "/000000_0")) eq 0}
+            <case to="extract_warning_data_loss">
+                ${fs:fileSize(concat(error_data_loss_directory, "/000000_0")) eq 0}
             </case>
-            <default to="kill_faulty_hosts"/>
+            <default to="send_error_data_loss_email"/>
         </switch>
     </decision>
 
-    <kill name="kill_faulty_hosts">
-        <message>Faulty hosts file (${faulty_hosts_directory}/000000_0) is not empty. So either there are faulty hosts, or computation failed.</message>
+
+    <action name="extract_warning_data_loss">
+        <hive xmlns="uri:oozie:hive-action:0.3">
+            <job-tracker>${job_tracker}</job-tracker>
+            <name-node>${name_node}</name-node>
+            <job-xml>${hive_site_xml}</job-xml>
+            <configuration>
+                <!--make sure oozie:launcher runs in a low priority queue -->
+                <property>
+                    <name>oozie.launcher.mapred.job.queue.name</name>
+                    <value>${oozie_launcher_queue_name}</value>
+                </property>
+                <property>
+                    <name>oozie.launcher.mapreduce.map.memory.mb</name>
+                    <value>${oozie_launcher_memory}</value>
+                </property>
+                <property>
+                    <name>mapreduce.job.queuename</name>
+                    <value>${queue_name}</value>
+                </property>
+            </configuration>
+
+            <script>extract_data_loss.hql</script>
+
+            <param>table=${statistics_hourly_table}</param>
+            <param>target=${warning_data_loss_directory}</param>
+            <param>threshold=${warning_data_loss_threshold}</param>
+            <param>webrequest_source=${webrequest_source}</param>
+            <param>year=${year}</param>
+            <param>month=${month}</param>
+            <param>day=${day}</param>
+            <param>hour=${hour}</param>
+        </hive>
+        <ok to="check_warning_data_loss"/>
+        <error to="kill"/>
+    </action>
+
+    <decision name="check_warning_data_loss">
+        <switch>
+            <case to="end">
+                ${fs:fileSize(concat(warning_data_loss_directory, "/000000_0")) eq 0}
+            </case>
+            <default to="send_warning_data_loss_email"/>
+        </switch>
+    </decision>
+
+
+    <action name="send_error_data_loss_email">
+        <sub-workflow>
+            <app-path>${send_error_email_workflow_file}</app-path>
+            <propagate-configuration/>
+            <configuration>
+                <property>
+                    <name>subject</name>
+                    <value>Data Loss ERROR - Workflow ${wf:name()}</value>
+                </property>
+                <property>
+                    <name>body</name>
+                    <value>Please check ${statistics_hourly_table}.
+This is an ERROR.
+This job has failed, refine has not been launched.
+
+Please have a look and take necessary action !
+Thanks :)
+-- Oozie</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="kill_error_data_loss"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <action name="send_warning_data_loss_email">
+        <sub-workflow>
+            <app-path>${send_error_email_workflow_file}</app-path>
+            <propagate-configuration/>
+            <configuration>
+                <property>
+                    <name>subject</name>
+                    <value>Data Loss Warning - Workflow ${wf:name()}</value>
+                </property>
+                <property>
+                    <name>body</name>
+                    <value>Please check ${statistics_hourly_table}.
+This is a WARNING.
+Data Loss is small (< 5 %), refine have been launched.
+
+Please have a look and take necessary action !
+Thanks :)
+-- Oozie</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="end"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <action name="send_error_email">
+        <sub-workflow>
+            <app-path>${send_error_email_workflow_file}</app-path>
+            <propagate-configuration/>
+            <configuration>
+                <property>
+                    <name>parent_name</name>
+                    <value>${wf:name()}</value>
+                </property>
+                <property>
+                    <name>parent_failed_action</name>
+                    <value>${wf:lastErrorNode()}</value>
+                </property>
+                <property>
+                    <name>parent_error_code</name>
+                    <value>${wf:errorCode(wf:lastErrorNode())}</value>
+                </property>
+                <property>
+                    <name>parent_error_message</name>
+                    <value>${wf:errorMessage(wf:lastErrorNode())}</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="kill"/>
+        <error to="kill"/>
+    </action>
+
+    <kill name="kill_error_data_loss">
+        <message>Data Loss Error ! Please check ${error_data_loss_directory}/000000_0</message>
     </kill>
 
     <kill name="kill">
