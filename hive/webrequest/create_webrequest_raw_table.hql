@@ -31,7 +31,7 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `webrequest` (
     `uri_query`         string  COMMENT 'Query of request',
     `content_type`      string  COMMENT 'Content-Type header of response',
     `referer`           string  COMMENT 'Referer header of request',
-    `x_forwarded_for`   string  COMMENT 'X-Forwarded-For header of request',
+    `x_forwarded_for`   string  COMMENT 'X-Forwarded-For header of request (deprecated)',
     `user_agent`        string  COMMENT 'User-Agent header of request',
     `accept_language`   string  COMMENT 'Accept-Language header of request',
     `x_analytics`       string  COMMENT 'X-Analytics header of response',

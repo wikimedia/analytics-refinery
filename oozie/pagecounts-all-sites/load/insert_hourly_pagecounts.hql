@@ -65,7 +65,7 @@ INSERT OVERWRITE TABLE ${destination_table}
                             '208.80.155.',
                             '91.198.174.'
                         )
-                    ) OR x_forwarded_for != '-'
+                    )
                 )
             AND SUBSTR(uri_path, 1, 31) != '/wiki/Special:CentralAutoLogin/'
             AND http_status NOT IN ( '301', '302', '303' )
