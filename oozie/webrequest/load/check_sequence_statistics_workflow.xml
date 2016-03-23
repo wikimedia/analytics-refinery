@@ -214,7 +214,7 @@ Thanks :)
                     <name>body</name>
                     <value>Please check ${statistics_hourly_table}.
 This is a WARNING.
-Data Loss is small (< 5 %), refine have been launched.
+Data Loss is small (less than ${error_data_loss_threshold}%), refine have been launched.
 
 Please have a look and take necessary action !
 Thanks :)
