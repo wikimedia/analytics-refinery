@@ -79,7 +79,7 @@
     <input-events>
         <data-in name="data_input" dataset="${dataset_name}">
             <start-instance>${coord:current(0)}</start-instance>
-            <end-instance>${(dataset_freq == "day") ? coord:current(coord:current(0)) : coord:current(coord:current(23))}</end-instance>
+            <end-instance>${(dataset_freq == "day") ? coord:current(0) : coord:current(coord:current(23))}</end-instance>
         </data-in>
     </input-events>
 
