@@ -39,7 +39,7 @@ INSERT OVERWRITE TABLE ${destination_table}
         ${source_table}
     WHERE webrequest_source = 'text'
         AND year=${year} AND month=${month} AND day=${day} AND hour=${hour}
-        AND uri_path like '/api/rest_v1/metrics/pageviews/%'
+        AND uri_path like '/api/rest_v1/metrics/%'
     GROUP BY
         cache_status,
         http_status,
