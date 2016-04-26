@@ -3,8 +3,6 @@
 Refinery contains scripts, artifacts, and configuration for WMF's
 analytics cluster.
 
-
-
 ## Setting up the refinery repository
 
 1. Install git-fat from https://github.com/jedbrown/git-fat on your
@@ -62,3 +60,13 @@ analytics cluster.
    this globally.
 
 8. Done.
+
+
+## Oozie job naming convention
+
+* Job base names is following directory pattern in the oozie directory,
+    replacing slashes with dashes. For instance `webrequest/load/bundle.xml` job
+    is named `webrequest-load-bundle`, and `last_access_uniques/daily/coordinator.xml`
+    is named `last_access_uniques-daily-coord`.
+* Root job names end either in `-bundle` or `-coord`, while children job names
+   end with job parameters separated with dashes.

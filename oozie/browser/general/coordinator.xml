@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <coordinator-app xmlns="uri:oozie:coordinator:0.4"
-    name="browser_general-coord"
+    name="browser-general-coord"
     frequency="${coord:days(1)}"
     start="${start_time}"
     end="${stop_time}"

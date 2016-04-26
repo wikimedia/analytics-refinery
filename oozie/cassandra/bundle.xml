@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <bundle-app xmlns="uri:oozie:bundle:0.2"
-    name="cassandra_load-bundle">
+    name="cassandra-bundle">
 
     <parameters>
 
@@ -260,7 +260,7 @@
                        Pageview Per Article Flat coordinators
         **************************************************-->
 
-    <coordinator name="cassandra_pageview_per_article_daily-coord">
+    <coordinator name="cassandra-coord-pageview-per-article-daily">
         <app-path>${coordinator_file_daily}</app-path>
         <configuration>
             <property>
@@ -331,7 +331,7 @@
                        Pageview Per Projects coordinators
         **************************************************-->
 
-    <coordinator name="cassandra_pageview_per_project_hourly-coord">
+    <coordinator name="cassandra-coord-pageview-per-project-hourly">
         <app-path>${coordinator_file_hourly}</app-path>
         <configuration>
             <property>
@@ -391,7 +391,7 @@
         </configuration>
     </coordinator>
 
-    <coordinator name="cassandra_pageview_per_project_daily-coord">
+    <coordinator name="cassandra-coord-pageview-per-project-daily">
         <app-path>${coordinator_file_daily}</app-path>
         <configuration>
             <property>
@@ -457,7 +457,7 @@
         </configuration>
     </coordinator>
 
-    <coordinator name="cassandra_pageview_per_project_monthly-coord">
+    <coordinator name="cassandra-coord-pageview-per-project-monthly">
         <app-path>${coordinator_file_monthly}</app-path>
         <configuration>
             <property>
@@ -528,7 +528,7 @@
                        Pageview Top Article coordinators
         **************************************************-->
 
-    <coordinator name="cassandra_pageview_top_articles_daily-coord">
+    <coordinator name="cassandra-coord-pageview-top-articles-daily">
         <app-path>${coordinator_file_daily}</app-path>
         <configuration>
             <property>
@@ -594,7 +594,7 @@
         </configuration>
     </coordinator>
 
-    <coordinator name="cassandra_pageview_top_articles_monthly-coord">
+    <coordinator name="cassandra-coord-pageview-top-articles-monthly">
         <app-path>${coordinator_file_monthly}</app-path>
         <configuration>
             <property>
@@ -665,7 +665,7 @@
                        Unique devices coordinators
         **************************************************-->
 
-    <coordinator name="cassandra_unique_devices_daily-coord">
+    <coordinator name="cassandra-coord-unique-devices-daily">
         <app-path>${coordinator_file_daily}</app-path>
         <configuration>
             <property>
@@ -731,7 +731,7 @@
         </configuration>
     </coordinator>
 
-    <coordinator name="cassandra_unique_devices_monthly-coord">
+    <coordinator name="cassandra-coord-unique-devices-monthly">
         <app-path>${coordinator_file_monthly}</app-path>
         <configuration>
             <property>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <bundle-app xmlns="uri:oozie:bundle:0.2"
-    name="webrequest_legacy_tsvs-bundle">
+    name="webrequest-legacy_tsvs-bundle">
 
     <parameters>
 
@@ -28,7 +28,8 @@
         <property><name>send_error_email_workflow_file</name></property>
     </parameters>
 
-    <coordinator name="webrequest_legacy_tsvs-sampled-1000">
+    <!-- -->
+    <coordinator name="webrequest-legacy_tsvs-coord-sampled-1000">
         <!--
         No 'misc', as the sampled-1000 was last produced on erbium's
         udp2log stream, which did not receive those two webrequest_sources.
@@ -50,7 +51,7 @@
         </configuration>
     </coordinator>
 
-    <coordinator name="webrequest_legacy_tsvs-api-usage">
+    <coordinator name="webrequest-legacy_tsvs-coord-api-usage">
         <app-path>${coordinator_text_file}</app-path>
         <configuration>
             <property>
@@ -68,7 +69,7 @@
         </configuration>
     </coordinator>
 
-    <coordinator name="webrequest_legacy_tsvs-glam_nara">
+    <coordinator name="webrequest-legacy_tsvs-coord-glam_nara">
         <app-path>${coordinator_text_upload_file}</app-path>
         <configuration>
             <property>
@@ -86,7 +87,7 @@
         </configuration>
     </coordinator>
 
-    <coordinator name="webrequest_legacy_tsvs-edits">
+    <coordinator name="webrequest-legacy_tsvs-coord-edits">
         <app-path>${coordinator_text_file}</app-path>
         <configuration>
             <property>
@@ -104,7 +105,7 @@
         </configuration>
     </coordinator>
 
-    <coordinator name="webrequest_legacy_tsvs-5xx">
+    <coordinator name="webrequest-legacy_tsvs-coord-5xx">
         <!--
         No 'upload', as that explicitly got excluded in the upd2log
         filters.
@@ -126,7 +127,7 @@
         </configuration>
     </coordinator>
 
-    <coordinator name="webrequest_legacy_tsvs-5xx-misc">
+    <coordinator name="webrequest-legacy_tsvs-coord-5xx-misc">
         <app-path>${coordinator_misc_file}</app-path>
         <configuration>
             <property>
@@ -144,7 +145,7 @@
         </configuration>
     </coordinator>
 
-    <coordinator name="webrequest_legacy_tsvs-5xx-text">
+    <coordinator name="webrequest-legacy_tsvs-coord-5xx-text">
         <app-path>${coordinator_text_file}</app-path>
         <configuration>
             <property>
@@ -162,7 +163,7 @@
         </configuration>
     </coordinator>
 
-    <coordinator name="webrequest_legacy_tsvs-5xx-upload">
+    <coordinator name="webrequest-legacy_tsvs-coord-5xx-upload">
         <app-path>${coordinator_upload_file}</app-path>
         <configuration>
             <property>

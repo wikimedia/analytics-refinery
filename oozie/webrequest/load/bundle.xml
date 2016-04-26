@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <bundle-app xmlns="uri:oozie:bundle:0.2"
-    name="load_webrequest-${table}-bundle">
+    name="webrequest-load-bundle">
 
     <parameters>
 
@@ -28,7 +28,7 @@
         <property><name>sla_alert_contact</name></property>
     </parameters>
 
-    <coordinator name="load_webrequest-maps-coord">
+    <coordinator name="webrequest-load-coord-maps">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property>
@@ -38,7 +38,7 @@
         </configuration>
     </coordinator>
 
-    <coordinator name="load_webrequest-misc-coord">
+    <coordinator name="webrequest-load-coord-misc">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property>
@@ -48,7 +48,7 @@
         </configuration>
     </coordinator>
 
-    <coordinator name="load_webrequest-text-coord">
+    <coordinator name="webrequest-load-coord-text">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property>
@@ -58,7 +58,7 @@
         </configuration>
     </coordinator>
 
-    <coordinator name="load_webrequest-upload-coord">
+    <coordinator name="webrequest-load-coord-upload">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property>

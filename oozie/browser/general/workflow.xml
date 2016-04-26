@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <workflow-app xmlns="uri:oozie:workflow:0.4"
-    name="browser_general-${output_timestamp}-wf">
+    name="browser-general-wf-${output_timestamp}">
 
     <parameters>
         <!-- Default values for inner oozie settings -->

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <workflow-app xmlns="uri:oozie:workflow:0.4"
-    name="pagecounts_all_sites_archive-${dataset_name}-${aspect_name}-${year}-${month}-${day}-${hour}-wf">
+    name="pagecounts-all-sites-archive-wf-${dataset_name}-${aspect_name}-${year}-${month}-${day}-${hour}">
 
     <parameters>
 

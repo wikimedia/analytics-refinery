@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <coordinator-app xmlns="uri:oozie:coordinator:0.4"
     xmlns:sla="uri:oozie:sla:0.2"
-    name="load_webrequest-${webrequest_source}-coord"
+    name="webrequest-load-coord-${webrequest_source}"
     frequency="${coord:hours(1)}"
     start="${start_time}"
     end="${stop_time}"

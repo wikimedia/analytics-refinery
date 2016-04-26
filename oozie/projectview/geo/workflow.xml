@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <workflow-app xmlns="uri:oozie:workflow:0.4"
-    name="projectview-geo-hourly-${source_table}->archive-${year},${month},${day},${hour}-wf">
+    name="projectview-geo-wf-${year}-${month}-${day}-${hour}">
 
     <parameters>
 

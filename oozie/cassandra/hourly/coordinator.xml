@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <coordinator-app xmlns="uri:oozie:coordinator:0.4"
-    name="cassandra_load_hourly-${cassandra_keyspace}-coord"
+    name="cassandra-hourly-coord-${cassandra_keyspace}"
     frequency="${coord:hours(1)}"
     start="${start_time}"
     end="${stop_time}"

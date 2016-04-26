@@ -1,4 +1,6 @@
-<workflow-app name="last_access_uniques_daily-${year}-${month}-${day}-wf" xmlns="uri:oozie:workflow:0.4">
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow-app xmlns="uri:oozie:workflow:0.4"
+    name="last_access_uniques-daily-wf-${year}-${month}-${day}">
     <parameters>
 
         <!-- Default values for oozie settings -->

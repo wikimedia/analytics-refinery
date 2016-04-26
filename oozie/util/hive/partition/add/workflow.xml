@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <workflow-app xmlns="uri:oozie:workflow:0.4"
-    name="hive_add_partition-${table}-${partition_spec}-wf">
+    name="hive-partition-add-wf">
 
     <parameters>
         <property>

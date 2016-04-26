@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <coordinator-app xmlns="uri:oozie:coordinator:0.4"
-    name="pagecounts_all_sites_archive-${dataset_name}-${aspect_name}-coord"
+    name="pagecounts-all-sites-archive-coord-${dataset_name}-${aspect_name}"
     frequency="${coord:hours(1)}"
     start="${start_time}"
     end="${stop_time}"

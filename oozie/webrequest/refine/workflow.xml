@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <workflow-app xmlns="uri:oozie:workflow:0.4"
-    name="refine_webrequest-${source_table}->${destination_table}-${webrequest_source},${year},${month},${day},${hour}-wf">
+    name="webrequest-refine-wf-${webrequest_source}-${year}-${month}-${day}-${hour}">
 
     <parameters>
 

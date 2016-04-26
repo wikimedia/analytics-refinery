@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <bundle-app xmlns="uri:oozie:bundle:0.2"
-    name="refine_webrequest-bundle">
+    name="webrequest-refine-bundle">
 
     <parameters>
 
@@ -29,7 +29,7 @@
         <property><name>record_version</name></property>
     </parameters>
 
-    <coordinator name="refine_webrequest-maps-coord">
+    <coordinator name="webrequest-refine-coord-maps">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property>
@@ -39,7 +39,7 @@
         </configuration>
     </coordinator>
 
-    <coordinator name="refine_webrequest-misc-coord">
+    <coordinator name="webrequest-refine-coord-misc">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property>
@@ -49,7 +49,7 @@
         </configuration>
     </coordinator>
 
-    <coordinator name="refine_webrequest-text-coord">
+    <coordinator name="webrequest-refine-coord-text">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property>
@@ -59,7 +59,7 @@
         </configuration>
     </coordinator>
 
-    <coordinator name="refine_webrequest-upload-coord">
+    <coordinator name="webrequest-refine-coord-upload">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property>

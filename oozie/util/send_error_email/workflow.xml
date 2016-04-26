@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <workflow-app xmlns="uri:oozie:workflow:0.4"
-    name="send-error-email-${parent_name}-wf">
+    name="send-error-email-wf">
 
     <!--
         This subworflow is a simple wrapper over the oozie email action

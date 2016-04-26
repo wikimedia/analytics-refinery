@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <workflow-app xmlns="uri:oozie:workflow:0.4"
-    name="cassandra_load-${cassandra_keyspace},${year},${month}-wf">
+    name="cassandra-monthly-wf-${cassandra_keyspace}-${year}-${month}">
 
     <parameters>
 

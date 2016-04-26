@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <bundle-app xmlns="uri:oozie:bundle:0.2"
-    name="app_session_metrics-bundle">
+    name="mobile_apps-session_metrics-bundle">
 
     <parameters>
         <property><name>name_node</name></property>
@@ -23,7 +23,7 @@
         <property><name>send_error_email_workflow_file</name></property>
     </parameters>
 
-    <coordinator name="app_session_metrics_global-coord">
+    <coordinator name="mobile_apps-session_metrics-coord-global-30days">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property>
@@ -41,7 +41,7 @@
         </configuration>
     </coordinator>
 
-    <coordinator name="app_session_metrics_split_by_os-coord">
+    <coordinator name="mobile_apps-session_metrics-coord-osSplit-7days">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property>

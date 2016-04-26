@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <workflow-app xmlns="uri:oozie:workflow:0.4"
-    name="aqs-hourly-${webrequest_table}->${aqs_hourly_table}-${year},${month},${day},${hour}-wf">
+    name="aqs-hourly-wf-${year}-${month}-${day}-${hour}">
 
     <parameters>
 

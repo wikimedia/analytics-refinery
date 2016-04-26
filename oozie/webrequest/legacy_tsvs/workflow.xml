@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <workflow-app xmlns="uri:oozie:workflow:0.4"
-    name="webrequest_legacy_tsvs-${aspect_name}-${year}-${month}-${day}-wf">
+    name="webrequest-legacy_tsvs-wf-${aspect_name}-${year}-${month}-${day}">
 
     <parameters>
 

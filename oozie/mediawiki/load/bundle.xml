@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <bundle-app xmlns="uri:oozie:bundle:0.2"
-    name="load_mediawiki-bundle">
+    name="mediawiki-load-bundle">
 
     <parameters>
         <!-- Required properties -->
@@ -17,7 +17,7 @@
         <property><name>common_error_to</name></property>
     </parameters>
 
-    <coordinator name="load_mediawiki_CirrusSearchRequestSet-coord">
+    <coordinator name="mediawiki-load-coord-CirrusSearchRequestSet">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property>
@@ -35,7 +35,7 @@
         </configuration>
     </coordinator>
 
-    <coordinator name="load_mediawiki_ApiAction-coord">
+    <coordinator name="mediawiki-load-coord-ApiAction">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property>

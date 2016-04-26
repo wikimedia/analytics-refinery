@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <bundle-app xmlns="uri:oozie:bundle:0.2"
-    name="pagecounts_all_sites_archive-bundle">
+    name="pagecounts-all-sites-archive-bundle">
 
     <parameters>
         <!-- Required properties -->
@@ -22,7 +22,7 @@
         <property><name>archive_job_output_workflow_file</name></property>
     </parameters>
 
-    <coordinator name="pagecounts_all_sites_archive-pagecounts_all_sites-pagecounts">
+    <coordinator name="pagecounts-all-sites-archive-coord-pagecounts_all_sites-pagecounts">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property>
@@ -44,7 +44,7 @@
         </configuration>
     </coordinator>
 
-    <coordinator name="pagecounts_all_sites_archive-pagecounts_all_sites-projectcounts">
+    <coordinator name="pagecounts-all-sites-archive-coord-pagecounts_all_sites-projectcounts">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property>
@@ -66,7 +66,7 @@
         </configuration>
     </coordinator>
 
-    <coordinator name="pagecounts_all_sites_archive-pagecounts_raw-pagecounts">
+    <coordinator name="pagecounts-all-sites-archive-coord-pagecounts_raw-pagecounts">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property>
@@ -92,7 +92,7 @@
         </configuration>
     </coordinator>
 
-    <coordinator name="pagecounts_all_sites_archive-pagecounts_raw-projectcounts">
+    <coordinator name="pagecounts-all-sites-archive-coord-pagecounts_raw-projectcounts">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property>
