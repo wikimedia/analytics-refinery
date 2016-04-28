@@ -12,14 +12,20 @@
         <property><name>workflow_file</name></property>
         <property><name>start_time</name></property>
         <property><name>stop_time</name></property>
-        <property><name>datasets_raw_file</name></property>
+        <property><name>webrequest_raw_datasets_file</name></property>
         <property><name>webrequest_raw_data_directory</name></property>
+        <property><name>webrequest_datasets_file</name></property>
+        <property><name>webrequest_data_directory</name></property>
 
         <property><name>hive_site_xml</name></property>
         <property><name>add_partition_workflow_file</name></property>
-        <property><name>table</name></property>
+        <property><name>refinery_jar_version</name></property>
+        <property><name>artifacts_directory</name></property>
+        <property><name>webrequest_raw_table</name></property>
+        <property><name>webrequest_table</name></property>
         <property><name>statistics_table</name></property>
         <property><name>statistics_hourly_table</name></property>
+        <property><name>record_version</name></property>
         <property><name>data_loss_check_directory_base</name></property>
         <property><name>error_data_loss_threshold</name></property>
         <property><name>warning_data_loss_threshold</name></property>

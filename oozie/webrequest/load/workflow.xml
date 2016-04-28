@@ -28,8 +28,20 @@
             <description>hive-site.xml file path in HDFS</description>
         </property>
         <property>
-            <name>table</name>
-            <description>Hive table to partition.</description>
+            <name>refinery_jar_version</name>
+            <description>Version of the refinery-hive jar file to import for UDFs</description>
+        </property>
+        <property>
+            <name>artifacts_directory</name>
+            <description>Path in HDFS to artifacts. refinery-hive.jar should be here.</description>
+        </property>
+        <property>
+            <name>webrequest_raw_table</name>
+            <description>Raw webrequests hive table</description>
+        </property>
+        <property>
+            <name>webrequest_table</name>
+            <description>Webrequests hive table</description>
         </property>
         <property>
             <name>webrequest_source</name>
@@ -52,8 +64,16 @@
             <description>The partition's hour</description>
         </property>
         <property>
-            <name>location</name>
-            <description>HDFS path(s) naming the input dataset.</description>
+            <name>record_version</name>
+            <description>The record_version at the given moment</description>
+        </property>
+        <property>
+            <name>webrequest_raw_location</name>
+            <description>HDFS path(s) naming the raw webrequest dataset</description>
+        </property>
+        <property>
+            <name>webrequest_location</name>
+            <description>HDFS path(s) naming the webrequest dataset</description>
         </property>
         <property>
             <name>statistics_table</name>
@@ -104,6 +124,14 @@
             <propagate-configuration/>
             <configuration>
                 <property>
+                    <name>table</name>
+                    <value>${webrequest_raw_table}</value>
+                </property>
+                <property>
+                    <name>location</name>
+                    <value>${webrequest_raw_location}</value>
+                </property>
+                <property>
                     <name>partition_spec</name>
                     <value>webrequest_source='${webrequest_source}',year=${year},month=${month},day=${day},hour=${hour}</value>
                 </property>
@@ -124,7 +152,7 @@
             <configuration>
                 <property>
                     <name>directory</name>
-                    <value>${location}</value>
+                    <value>${webrequest_raw_location}</value>
                 </property>
                 <property>
                     <name>done_file</name>
@@ -159,7 +187,7 @@
 
             <script>generate_sequence_statistics.hql</script>
 
-            <param>source_table=${table}</param>
+            <param>source_table=${webrequest_raw_table}</param>
             <param>destination_table=${statistics_table}</param>
             <param>year=${year}</param>
             <param>month=${month}</param>
@@ -229,17 +257,73 @@
                 </property>
             </configuration>
         </sub-workflow>
-        <ok to="mark_dataset_done"/>
+        <ok to="mark_raw_dataset_done"/>
         <error to="kill"/>
     </action>
 
-    <action name="mark_dataset_done">
+    <action name="mark_raw_dataset_done">
         <sub-workflow>
             <app-path>${mark_directory_done_workflow_file}</app-path>
             <configuration>
                 <property>
                     <name>directory</name>
-                    <value>${location}</value>
+                    <value>${webrequest_raw_location}</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="refine"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <action name="refine">
+        <hive xmlns="uri:oozie:hive-action:0.2">
+            <job-tracker>${job_tracker}</job-tracker>
+            <name-node>${name_node}</name-node>
+            <job-xml>${hive_site_xml}</job-xml>
+            <configuration>
+                <property>
+                    <name>mapreduce.job.queuename</name>
+                    <value>${queue_name}</value>
+                </property>
+                <!--make sure oozie:launcher runs in a low priority queue -->
+                <property>
+                    <name>oozie.launcher.mapred.job.queue.name</name>
+                    <value>${oozie_launcher_queue_name}</value>
+                </property>
+                <property>
+                    <name>oozie.launcher.mapreduce.map.memory.mb</name>
+                    <value>${oozie_launcher_memory}</value>
+                </property>
+                <property>
+                    <name>hive.exec.scratchdir</name>
+                    <value>/tmp/hive-webrequest-refine</value>
+                </property>
+            </configuration>
+
+            <script>refine_webrequest.hql</script>
+            <param>refinery_jar_version=${refinery_jar_version}</param>
+            <param>artifacts_directory=${artifacts_directory}</param>
+            <param>source_table=${webrequest_raw_table}</param>
+            <param>destination_table=${webrequest_table}</param>
+            <param>webrequest_source=${webrequest_source}</param>
+            <param>record_version=${record_version}</param>
+            <param>year=${year}</param>
+            <param>month=${month}</param>
+            <param>day=${day}</param>
+            <param>hour=${hour}</param>
+        </hive>
+
+        <ok to="mark_refined_dataset_done"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <action name="mark_refined_dataset_done">
+        <sub-workflow>
+            <app-path>${mark_directory_done_workflow_file}</app-path>
+            <configuration>
+                <property>
+                    <name>directory</name>
+                    <value>${webrequest_location}</value>
                 </property>
             </configuration>
         </sub-workflow>

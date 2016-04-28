@@ -16,6 +16,8 @@
 --         --database wmf_raw
 --
 
+ADD JAR /usr/lib/hive-hcatalog/share/hcatalog/hive-hcatalog-core.jar;
+
 CREATE EXTERNAL TABLE IF NOT EXISTS `webrequest` (
     `hostname`          string  COMMENT 'Source node hostname',
     `sequence`          bigint  COMMENT 'Per host sequence number',

@@ -16,15 +16,21 @@
         <property><name>workflow_file</name></property>
         <property><name>start_time</name></property>
         <property><name>stop_time</name></property>
-        <property><name>datasets_raw_file</name></property>
+        <property><name>webrequest_raw_datasets_file</name></property>
         <property><name>webrequest_raw_data_directory</name></property>
+        <property><name>webrequest_datasets_file</name></property>
+        <property><name>webrequest_data_directory</name></property>
 
         <property><name>hive_site_xml</name></property>
         <property><name>add_partition_workflow_file</name></property>
-        <property><name>table</name></property>
+        <property><name>refinery_jar_version</name></property>
+        <property><name>artifacts_directory</name></property>
+        <property><name>webrequest_raw_table</name></property>
+        <property><name>webrequest_table</name></property>
         <property><name>statistics_table</name></property>
         <property><name>statistics_hourly_table</name></property>
         <property><name>webrequest_source</name></property>
+        <property><name>record_version</name></property>
         <property><name>data_loss_check_directory_base</name></property>
         <property><name>error_data_loss_threshold</name></property>
         <property><name>warning_data_loss_threshold</name></property>
@@ -76,17 +82,29 @@
 
     <datasets>
         <!--
-        Include the given $datasets_raw_file file.  This should
-        define the "webrequest_*_raw" datasets for this coordinator.
+        Include the given datasets files.  This should
+        define the "webrequest_*_raw" and "webrequest_*" datasets
         -->
-        <include>${datasets_raw_file}</include>
+        <include>${webrequest_raw_datasets_file}</include>
+        <include>${webrequest_datasets_file}</include>
     </datasets>
 
     <input-events>
-        <data-in name="input" dataset="webrequest_${webrequest_source}_raw_unchecked">
+        <data-in name="raw_unchecked_input" dataset="webrequest_${webrequest_source}_raw_unchecked">
             <instance>${coord:current(0)}</instance>
         </data-in>
     </input-events>
+
+    <output-events>
+        <data-out name="raw_output" dataset="webrequest_${webrequest_source}_raw">
+            <instance>${coord:current(0)}</instance>
+        </data-out>
+
+        <data-out name="refined_output" dataset="webrequest_${webrequest_source}">
+            <instance>${coord:current(0)}</instance>
+        </data-out>
+    </output-events>
+
 
     <action>
         <workflow>
@@ -112,8 +130,12 @@
                     <value>${coord:formatTime(coord:nominalTime(), "H")}</value>
                 </property>
                 <property>
-                    <name>location</name>
-                    <value>${coord:dataIn('input')}</value>
+                    <name>webrequest_raw_location</name>
+                    <value>${coord:dataOut('raw_output')}</value>
+                </property>
+                <property>
+                    <name>webrequest_location</name>
+                    <value>${coord:dataOut('refined_output')}</value>
                 </property>
             </configuration>
         </workflow>
@@ -123,7 +145,7 @@
                 to compute timeout
             -->
             <sla:nominal-time>${coord:actualTime()}</sla:nominal-time>
-            <sla:should-end>${3 * HOURS}</sla:should-end>
+            <sla:should-end>${4 * HOURS}</sla:should-end>
             <sla:alert-events>end_miss</sla:alert-events>
             <sla:alert-contact>${sla_alert_contact}</sla:alert-contact>
         </sla:info>
