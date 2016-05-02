@@ -1,0 +1,331 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Note: You should make sure to put refinery/python on your PYTHONPATH.
+#   export PYTHONPATH=$PYTHONPATH:/path/to/refinery/python
+
+"""
+Automatically check for oozie jobs based on a folder hierarchy job definitions,
+with naming convention. Also provides a utily to restart a job based on its id.
+Classical usage would be:
+
+  refinery-oozie-rerun -v job JOB_ID     # To double check the changes
+  refinery-oozie-rerun -n job JOB_ID     # To actually restart the job
+
+  refinery-oozie-rerun -v                # To double check the global changes
+  refinery-oozie-rerun -n                # To actually restart all the jobs
+
+Usage:
+    refinery-oozie-rerun [options] [job <job_id>]
+
+
+Options:
+    --oozie-dir=<local>     The local path where oozie jobs are defined
+                            [default: /srv/deployment/analytics/refinery/oozie]
+    --oozie-url=<url>       The base oozie URL to access oozie server
+                            (defaults to the OOZIE_URL environment variable)
+    --refinery-dir=<hdfs>    The hdfs path where to find the refinery to use as
+                            configuration (defaults to the latest one)
+    -s --separator=<c>      Separator for oozie path-to-jobs convention
+                            [default: -]
+    -v --verbose            Turn on verbose debug logging.
+    -n --no-dry-run         Actually rerun jobs, don't only output the actions.
+    -h --help               Show this help message and exit.
+"""
+__author__ = "Joseph Allemandou <joal@wikimedia.org>"
+
+
+import sys
+import os
+import datetime
+import logging
+import requests
+import json
+import re
+import docopt
+import operator
+import subprocess
+
+
+logger = logging.getLogger(__name__)
+
+
+def _init_logging(lvl):
+    logging.basicConfig(
+        format="%(asctime)s %(levelname)s:%(name)s -- %(message)s"
+    )
+    logger.setLevel(lvl)
+
+
+def job_names_from_dir(oozie_dir, sep):
+    file_name_dic = {"bundle.properties": "bundle",
+                     "coordinator.properties": "coord"}
+    job_names = []
+    logger.info("Getting jobs names from jobs path {0}".format(oozie_dir))
+    for root, dirs, files in os.walk(oozie_dir):
+        for fname in files:
+            job_prefix = os.path.relpath(root, oozie_dir).replace("/", sep)
+            if fname in file_name_dic:
+                job_postfix = file_name_dic[fname]
+                job_name = job_prefix + sep + job_postfix
+                logger.debug("Found top-level job name {0}".format(job_name))
+                job_names.append(job_name)
+    logger.info("{0} top-level job names in path {1}".format(
+        len(job_names), oozie_dir))
+    return job_names
+
+
+def oozie_running_jobs(oozie_url, sep):
+    job_type_dic = {"bundle": "bundle",
+                    "coordinator": "coord"}
+    running_jobs = []
+    logger.info("Getting running jobs from oozie server {0}".format(oozie_url))
+    for job_type, job_postfix in job_type_dic.iteritems():
+        params = {"jobtype": job_type, "filter": "status=RUNNING;"}
+        url = oozie_url + "/v2/jobs"
+        resp = requests.get(url=url, params=params)
+        if not resp.status_code == requests.codes.ok:
+            raise RuntimeError(
+                "Failed to get running jobs (error {0} on url {1})"
+                .format(resp.status_code, url))
+        data = json.loads(resp.text)
+        # print(resp.text)
+        for job in data[job_type + "jobs"]:
+            job_name = job[job_postfix + "JobName"]
+            job_id = job[job_postfix + "JobId"]
+            if job_name.endswith(sep + job_postfix):
+                logger.debug("Found running job ({0}, {1})".format(
+                    job_name, job_id))
+                running_jobs.append((job_name, job_id))
+    logger.info("{0} running jobs in oozie server {1}".format(
+        len(running_jobs), oozie_url))
+    return running_jobs
+
+
+def jobs_to_restart(running_jobs, expected_jobs):
+    jobs_to_restart = []
+    logger.info("Getting jobs to restart from running jobs and jobs from path")
+    for name, id_ in running_jobs:
+        if name in expected_jobs:
+            jobs_to_restart.append((name, id_))
+        else:
+            logger.debug("Unexpected running job: {0} - {1}".format(name, id_))
+
+    logger.info("Checking expected jobs are running")
+    for name in expected_jobs:
+        if name not in [n for n, id_ in jobs_to_restart]:
+            logger.warn("Expected job not started: {0}".format(name))
+
+    return jobs_to_restart
+
+
+def json_from_job_id(oozie_url, job_id, params={}):
+    url = oozie_url + "/v2/job/" + job_id
+    resp = requests.get(url=url, params=params)
+    if not resp.status_code == requests.codes.ok:
+        raise RuntimeError("Failed to load job from id (error {0} on url {1})"
+                           .format(resp.status_code, url))
+    data = json.loads(resp.text)
+    return data
+
+
+def make_datetime(oozie_datetime):
+    return datetime.datetime.strptime(oozie_datetime,
+                                      "%a, %d %b %Y %H:%M:%S %Z")
+
+
+def coord_next_date(oozie_url, coord_id):
+    # get coord number of actions to initialise offset
+    coord_json = json_from_job_id(oozie_url, coord_id)
+    coord_num_actions = coord_json["total"]
+    # find date when to start new coord
+    # When looking at actions in descending index order (from now to
+    # previous actions), it is the date of the last action not having
+    # SUCCEEEDED status before the first action in SUCCEDED status, ot the
+    # next date to be materialized.
+    offset = coord_num_actions
+    len_ = 100
+    action_date = None
+    while not action_date and offset > 0:
+        offset = offset - len_ + 1
+        params = {"len": len_, "offset": offset}
+        json = json_from_job_id(oozie_url, coord_id, params=params)
+        actions_info = []
+        for action in json["actions"]:
+            succeeded = action["status"] == "SUCCEEDED"
+            date = make_datetime(action["nominalTime"])
+            actions_info.append((date, succeeded))
+        actions_info = sorted(actions_info, key=operator.itemgetter(0),
+                              reverse=True)
+        # If no action or every action has succeded
+        # set date to next date to materialize
+        if not actions_info or actions_info[0][1]:
+            action_date = make_datetime(json["nextMaterializedTime"])
+        # More than 1 action with some not yet succeeded
+        # Set date to the last one not yet succeded
+        # or let it loop to another offset (many waiting actions)
+        else:
+            prev_date = None
+            for date, succeeded in actions_info:
+                if prev_date and succeeded:
+                    action_date = prev_date
+                    break
+                else:
+                    prev_date = date
+
+    # if no action_date has been found
+    if not action_date:
+        # There could be only waiting actions in the list
+        if prev_date:
+            return prev_date
+        else:
+            raise RuntimeError("Could not determine next action to run" +
+                               "for coord {0}".format(coord_id))
+
+    return action_date
+
+
+def bundle_next_date(oozie_url, bundle_id):
+    # get smallest next action date from inner coords ids
+    bundle_json = json_from_job_id(oozie_url, bundle_id)
+    b_next_date = None
+    for coord_info in bundle_json["bundleCoordJobs"]:
+        coord_id = coord_info["coordJobId"]
+        c_next_date = coord_next_date(oozie_url, coord_id)
+        if not b_next_date or c_next_date < b_next_date:
+            b_next_date = c_next_date
+    if not b_next_date:
+        raise RuntimeError("Could not determine next action to run " +
+                           "for bundle {0}".format(bundle_id))
+    return b_next_date
+
+
+def job_next_date(oozie_url, job_id):
+    if job_id.endswith("-B"):
+        return bundle_next_date(oozie_url, job_id)
+    elif job_id.endswith("-C"):
+        return coord_next_date(oozie_url, job_id)
+    else:
+        raise RuntimeError("Wrong id format {0}".format(job_id))
+
+
+def new_job_conf(oozie_url, job_id, date, refinery):
+    json = json_from_job_id(oozie_url, job_id)
+    conf = json["conf"]
+    refinery_pattern = re.compile("hdfs://analytics-hadoop/wmf/" +
+                                  "refinery/[^/<]+")
+    new_conf = refinery_pattern.sub(refinery, conf)
+    start_date_pattern = re.compile("<name>start_time</name>\s*" +
+                                    "<value>.*</value>")
+    new_start = "<name>start_time</name><value>{0}</value>".format(
+        date.strftime("%Y-%m-%dT%H:%MZ"))
+    new_conf = start_date_pattern.sub(new_start, new_conf)
+    return new_conf
+
+
+def kill_job(oozie_url, job_id):
+    url = oozie_url + "/v2/job/" + job_id
+    params = {"action": "kill"}
+    resp = requests.put(url=url, params=params)
+    if not resp.status_code == requests.codes.ok:
+        raise RuntimeError("Failed to kill job {0} (error {1} on url {2})"
+                           .format(job_id, resp.status_code, url))
+
+
+def start_job(oozie_url, conf):
+    url = oozie_url + "/v2/jobs"
+    headers = {"content-type": "application/xml; charset=utf-8"}
+    resp = requests.post(url, data=conf, headers=headers)
+    if not resp.status_code == 201:
+        raise RuntimeError(
+            "Failed to start job (error {0} on url {1})\nConf:\n{2}"
+            .format(resp.status_code, url, conf))
+    return json.loads(resp.text)["id"]
+
+
+def restart_job(oozie_url, job_id, refinery_dir, dry_run, job_name=None):
+    if not job_name:
+        job_name = job_id
+
+    new_start = job_next_date(oozie_url, job_id)
+    logger.debug("Job {0} next date is: {1}".format(job_name, new_start))
+
+    new_conf = new_job_conf(oozie_url, job_id, new_start, refinery_dir)
+    logger.debug("Job {0} new conf is:\n {1}".format(job_name, new_conf))
+
+    if not dry_run:
+        kill_job(oozie_url, job_id)
+        logger.info("Job {0} has been killed".format(job_name))
+    else:
+        logger.info("Job {0} would have been killed".format(job_name))
+
+    if not dry_run:
+        new_id = start_job(oozie_url, new_conf)
+        logger.info("New job {0} started".format(new_id))
+    else:
+        logger.info("New job would have been started")
+
+
+def latest_hdfs_refinery():
+    refinery = "hdfs://analytics-hadoop"
+    current_year = datetime.date.today().year
+    cmd = ("hdfs dfs -ls -d /wmf/refinery/{0}* ".format(current_year))
+    process = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE)
+    flist = process.communicate()[0]
+    last = [s for s in flist.split("\n") if s][-1]
+    folder = [s for s in last.split() if s][7]
+    refinery += folder
+    return refinery
+
+
+def main(args):
+    if args["--verbose"]:
+        _init_logging(logging.DEBUG)
+    else:
+        _init_logging(logging.INFO)
+
+    oozie_dir = args["--oozie-dir"]
+    if args["--oozie-url"]:
+        oozie_url = (args["--oozie-url"][:-1]
+                     if args["--oozie-url"].endswith("/")
+                     else args["--oozie-url"])
+    else:
+        oozie_url = os.environ['OOZIE_URL']
+
+    refinery_dir = (args["--refinery-dir"] if args["--refinery-dir"]
+                    else latest_hdfs_refinery())
+    dry_run = not args["--no-dry-run"]
+    sep = args["--separator"]
+
+    if dry_run:
+        logger.info("Running in dry mode, no action will be performed")
+
+    if args["job"]:
+        job_id = args["<job_id>"]
+        restart_job(oozie_url, job_id, refinery_dir, dry_run)
+    else:
+        running_jobs = oozie_running_jobs(oozie_url, sep)
+        expected_jobs = job_names_from_dir(oozie_dir, sep)
+        to_restart = jobs_to_restart(running_jobs, expected_jobs)
+        for (name, id_) in to_restart:
+            restart_job(oozie_url, id_, refinery_dir, dry_run, job_name=name)
+
+
+if __name__ == "__main__":
+    try:
+        main(docopt.docopt(__doc__))
+    except RuntimeError as e:
+        logger.error(e)
+        sys.exit(1)
