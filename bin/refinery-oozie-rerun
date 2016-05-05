@@ -158,6 +158,7 @@ def coord_next_date(oozie_url, coord_id):
     offset = coord_num_actions
     len_ = 100
     action_date = None
+    prev_date = None
     while not action_date and offset > 0:
         offset = offset - len_ + 1
         params = {"len": len_, "offset": offset}
@@ -177,7 +178,6 @@ def coord_next_date(oozie_url, coord_id):
         # Set date to the last one not yet succeded
         # or let it loop to another offset (many waiting actions)
         else:
-            prev_date = None
             for date, succeeded in actions_info:
                 if prev_date and succeeded:
                     action_date = prev_date
@@ -187,9 +187,13 @@ def coord_next_date(oozie_url, coord_id):
 
     # if no action_date has been found
     if not action_date:
-        # There could be only waiting actions in the list
+        # If waiting actions but no yet succeeded ones
         if prev_date:
             return prev_date
+        elif coord_json["status"] == "PREP":
+            # if no waiting action and "Prep" mode
+            return make_datetime(coord_json["startTime"])
+            # Only waiting actions, return first one
         else:
             raise RuntimeError("Could not determine next action to run" +
                                "for coord {0}".format(coord_id))
