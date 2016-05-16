@@ -145,7 +145,7 @@
                 to compute timeout
             -->
             <sla:nominal-time>${coord:actualTime()}</sla:nominal-time>
-            <sla:should-end>${4 * HOURS}</sla:should-end>
+            <sla:should-end>${5 * HOURS}</sla:should-end>
             <sla:alert-events>end_miss</sla:alert-events>
             <sla:alert-contact>${sla_alert_contact}</sla:alert-contact>
         </sla:info>

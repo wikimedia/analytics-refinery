@@ -10,6 +10,20 @@
     <parameters>
 
         <property>
+            <name>parent_id</name>
+            <!-- Provide a default value for the job not to fail if not set-->
+            <value>UNSET</value>
+            <description>The id of the parent workflow in error.</description>
+        </property>
+
+        <property>
+            <name>hue_url</name>
+            <!-- Provide a default value for the job not to fail if not set-->
+            <value>https://hue.wikimedia.org/oozie/list_oozie_workflows</value>
+            <description>The id of the parent workflow in error (default to workflow list url).</description>
+        </property>
+
+        <property>
             <name>parent_name</name>
             <!-- Provide a default value for the job not to fail if not set-->
             <value>UNSET</value>
@@ -56,9 +70,11 @@
         <property>
             <name>body</name>
             <value>Error details:
+    - Job id: ${parent_id}
     - Failing action: ${parent_failed_action}
     - Error code: ${parent_error_code}
     - Error message: ${parent_error_message}
+    - Hue link: ${hue_url}
 
 Please have a look and take necessary action !
 Thanks :)

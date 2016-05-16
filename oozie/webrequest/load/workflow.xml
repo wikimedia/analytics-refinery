@@ -337,6 +337,10 @@
             <propagate-configuration/>
             <configuration>
                 <property>
+                    <name>parent_id</name>
+                    <value>${wf:id()}</value>
+                </property>
+                <property>
                     <name>parent_name</name>
                     <value>${wf:name()}</value>
                 </property>
@@ -351,6 +355,10 @@
                 <property>
                     <name>parent_error_message</name>
                     <value>${wf:errorMessage(wf:lastErrorNode())}</value>
+                </property>
+                <property>
+                    <name>parent_id</name>
+                    <value>https://hue.wikimedia.org/oozie/list_oozie_workflow/${wf:id()}</value>
                 </property>
             </configuration>
         </sub-workflow>
