@@ -357,7 +357,7 @@
                     <value>${wf:errorMessage(wf:lastErrorNode())}</value>
                 </property>
                 <property>
-                    <name>parent_id</name>
+                    <name>hue_url</name>
                     <value>https://hue.wikimedia.org/oozie/list_oozie_workflow/${wf:id()}</value>
                 </property>
             </configuration>
