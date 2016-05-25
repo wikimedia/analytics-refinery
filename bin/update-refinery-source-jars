@@ -81,8 +81,8 @@ git-fat init
 gitdir=$(git rev-parse --git-dir); scp -p -P 29418 ${GERRIT_USER}@gerrit.wikimedia.org:hooks/commit-msg ${gitdir}/hooks/
 git add ./artifacts/refinery-*.jar ./artifacts/org/wikimedia/analytics/refinery/refinery-*-$VERSION.jar
 git commit -m "Add refinery-source jars for v${VERSION} to artifacts"
-if [ "${MODE}" != "push" ] ; then
+if [ "${MODE}" = "push" ] ; then
   git push origin ${BRANCH}
-elif [ "${MODE}" != "review" ] ; then
+elif [ "${MODE}" = "review" ] ; then
   git push origin HEAD:refs/for/${BRANCH}
 fi
