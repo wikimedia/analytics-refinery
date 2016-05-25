@@ -10,9 +10,10 @@
 
 version="${1}"
 branch="${2}"
+gerrit_user="${3}"
 archiva_base_uri="https://archiva.wikimedia.org/repository/releases/org/wikimedia/analytics/refinery"
 
-if [ -z "${version}" ] && [ -z "${branch}" ] ; then
+if [ -z "${version}" ] && [ -z "${branch}" ] && [-z "${gerrit_user}"] ; then
     echo "Usage: $0 <version> <branch>"
     exit 1
 fi
@@ -25,6 +26,7 @@ done
 
 wait
 
+gitdir=$(git rev-parse --git-dir); scp -p -P 29418 ${gerrit_user}@gerrit.wikimedia.org:hooks/commit-msg ${gitdir}/hooks/
 git add ./artifacts/refinery-*.jar ./artifacts/org/wikimedia/analytics/refinery/refinery-*-$version.jar
 git commit -m "Add refinery-source jars for v${version} to artifacts"
 git push origin HEAD:refs/for/${branch}
