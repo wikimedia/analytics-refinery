@@ -27,4 +27,4 @@ wait
 
 git add ./artifacts/refinery-*.jar ./artifacts/org/wikimedia/analytics/refinery/refinery-*-$version.jar
 git commit -m "Add refinery-source jars for v${version} to artifacts"
-git review ${branch}
+git push origin HEAD:refs/for/${branch}
