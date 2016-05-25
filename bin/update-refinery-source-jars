@@ -3,30 +3,86 @@
 # Script to assist with refinery-source .jar updates.
 # Will be used by jenkins to commit refinery-source jars after release.
 # Usage:
-#   ./bin/download-refinery-source-jars <version>
+#   ./bin/update-refinery-source-jars  -v <version> -u <gerrit_user> [-b <branch>  -m <mode>]
 # This will download all refinery <version> jars from archiva,
 # symlink them in ./artifacts/, and add and commit jars to git
 #
 
-version="${1}"
-branch="${2}"
-gerrit_user="${3}"
-archiva_base_uri="https://archiva.wikimedia.org/repository/releases/org/wikimedia/analytics/refinery"
+#Initialize variables to default values.
+VERSION=
+BRANCH="master"
+GERRIT_USER=
+MODE="review"
 
-if [ -z "${version}" ] && [ -z "${branch}" ] && [-z "${gerrit_user}"] ; then
-    echo "Usage: $0 <version> <branch>"
-    exit 1
+function HELP {
+  echo "Usage: ./bin/update-refinery-source-jars  -v <version> -u <gerrit_user> [-b <branch>  -m <mode>]"
+  echo "Always run this script from refinery root"
+  echo "-v -- Refinery source version for which jars are to be updated. Eg. 0.0.26. Required"
+  echo "-u -- Gerrit user making the jar update commit. Required"
+  echo "-b -- Git branch in refinery to which the jar update commit should be pushed to. Default is master"
+  echo "-m -- Mode for sending updates to git remote. Values can be review or push. Defaut is review"
+  echo "-h -- Display help text"
+}
+
+NUMARGS=$#
+if [ $NUMARGS -eq 0 ]; then
+  HELP
 fi
 
+while getopts :v:u:b:m:h OPT; do
+  case $OPT in
+    v)  #set Version
+      VERSION=$OPTARG
+      ;;
+    u)  #set Gerrit User
+      GERRIT_USER=$OPTARG
+      ;;
+    b)  #set branch
+      BRANCH=$OPTARG
+      ;;
+    m)  #set mode
+      MODE=$OPTARG
+      ;;
+    h)  #show help
+      HELP
+      exit 0
+      ;;
+    \?) #unrecognized option - show help
+      echo "Option -$OPTARG not recognized."
+      echo "See ./bin/update-refinery-source-jars -h for help"
+      exit 1
+      ;;
+  esac
+done
+
+if [ -z "${VERSION}" ] || [ -z "${GERRIT_USER}" ] ; then
+  echo "Missing required parameters for VERSION(-v) or GERRIT_USER(-u)"
+  echo "See ./bin/update-refinery-source-jars -h for help"
+  exit 1
+fi
+
+if [ "${MODE}" != "push" ] && [ "${MODE}" != "review" ] ; then
+  echo "Value for mode parameter (-m) can only be push or review"
+  echo "See ./bin/update-refinery-source-jars -h for help"
+  exit 1
+fi
+
+archiva_base_uri="https://archiva.wikimedia.org/repository/releases/org/wikimedia/analytics/refinery"
+
 for j in camus core job cassandra hive; do
-    (wget "${archiva_base_uri}/$j/refinery-$j/$version/refinery-$j-$version.jar" \
-        -O ./artifacts/org/wikimedia/analytics/refinery/refinery-$j-$version.jar \
-        && ln -sfv org/wikimedia/analytics/refinery/refinery-$j-$version.jar ./artifacts/refinery-$j.jar) &
+    (wget "${archiva_base_uri}/$j/refinery-$j/$VERSION/refinery-$j-$VERSION.jar" \
+        -O ./artifacts/org/wikimedia/analytics/refinery/refinery-$j-$VERSION.jar \
+        && ln -sfv org/wikimedia/analytics/refinery/refinery-$j-$VERSION.jar ./artifacts/refinery-$j.jar) &
 done
 
 wait
 
-gitdir=$(git rev-parse --git-dir); scp -p -P 29418 ${gerrit_user}@gerrit.wikimedia.org:hooks/commit-msg ${gitdir}/hooks/
-git add ./artifacts/refinery-*.jar ./artifacts/org/wikimedia/analytics/refinery/refinery-*-$version.jar
-git commit -m "Add refinery-source jars for v${version} to artifacts"
-git push origin HEAD:refs/for/${branch}
+git-fat init
+gitdir=$(git rev-parse --git-dir); scp -p -P 29418 ${GERRIT_USER}@gerrit.wikimedia.org:hooks/commit-msg ${gitdir}/hooks/
+git add ./artifacts/refinery-*.jar ./artifacts/org/wikimedia/analytics/refinery/refinery-*-$VERSION.jar
+git commit -m "Add refinery-source jars for v${VERSION} to artifacts"
+if [ "${MODE}" != "push" ] ; then
+  git push origin ${BRANCH}
+elif [ "${MODE}" != "review" ] ; then
+  git push origin HEAD:refs/for/${BRANCH}
+fi
