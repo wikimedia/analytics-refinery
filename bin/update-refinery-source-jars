@@ -12,15 +12,17 @@
 VERSION=
 BRANCH="master"
 GERRIT_USER=
-MODE="review"
+MODE="dry-run"
+
+SCRIPT_NAME=$(basename $0)
 
 function HELP {
-  echo "Usage: ./bin/update-refinery-source-jars  -v <version> -u <gerrit_user> [-b <branch>  -m <mode>]"
+  echo "Usage: ${SCRIPT_NAME}  -v <version> -u <gerrit_user> [-b <branch>  -m <mode>]"
   echo "Always run this script from refinery root"
   echo "-v -- Refinery source version for which jars are to be updated. Eg. 0.0.26. Required"
   echo "-u -- Gerrit user making the jar update commit. Required"
   echo "-b -- Git branch in refinery to which the jar update commit should be pushed to. Default is master"
-  echo "-m -- Mode for sending updates to git remote. Values can be review or push. Defaut is review"
+  echo "-m -- Mode for sending updates to git remote. Values can be review, push, or dry-run. Default is dry-run"
   echo "-h -- Display help text"
 }
 
@@ -49,7 +51,7 @@ while getopts :v:u:b:m:h OPT; do
       ;;
     \?) #unrecognized option - show help
       echo "Option -$OPTARG not recognized."
-      echo "See ./bin/update-refinery-source-jars -h for help"
+      echo "See ${SCRIPT_NAME} -h for help"
       exit 1
       ;;
   esac
@@ -57,32 +59,50 @@ done
 
 if [ -z "${VERSION}" ] || [ -z "${GERRIT_USER}" ] ; then
   echo "Missing required parameters for VERSION(-v) or GERRIT_USER(-u)"
-  echo "See ./bin/update-refinery-source-jars -h for help"
+  echo "See ${SCRIPT_NAME} -h for help"
   exit 1
 fi
 
-if [ "${MODE}" != "push" ] && [ "${MODE}" != "review" ] ; then
-  echo "Value for mode parameter (-m) can only be push or review"
-  echo "See ./bin/update-refinery-source-jars -h for help"
+if [ "${MODE}" != "push" ] && [ "${MODE}" != "review" ] && [ "${MODE}" != "dry-run"]; then
+  echo "Value for mode parameter (-m) can only be push, review or dry-run"
+  echo "See ${SCRIPT_NAME} -h for help"
   exit 1
 fi
 
 archiva_base_uri="https://archiva.wikimedia.org/repository/releases/org/wikimedia/analytics/refinery"
 
+# This list is hardcoded now. TODO: Make this configurable
 for j in camus core job cassandra hive; do
     (wget "${archiva_base_uri}/$j/refinery-$j/$VERSION/refinery-$j-$VERSION.jar" \
-        -O ./artifacts/org/wikimedia/analytics/refinery/refinery-$j-$VERSION.jar \
-        && ln -sfv org/wikimedia/analytics/refinery/refinery-$j-$VERSION.jar ./artifacts/refinery-$j.jar) &
+        -O ./artifacts/org/wikimedia/analytics/refinery/refinery-$j-${VERSION}.jar \
+        && ln -sfv org/wikimedia/analytics/refinery/refinery-$j-${VERSION}.jar ./artifacts/refinery-$j.jar) &
 done
 
 wait
 
-git-fat init
-gitdir=$(git rev-parse --git-dir); scp -p -P 29418 ${GERRIT_USER}@gerrit.wikimedia.org:hooks/commit-msg ${gitdir}/hooks/
-git add ./artifacts/refinery-*.jar ./artifacts/org/wikimedia/analytics/refinery/refinery-*-$VERSION.jar
-git commit -m "Add refinery-source jars for v${VERSION} to artifacts"
+ADD_COMMAND="git add ./artifacts/refinery-*.jar ./artifacts/org/wikimedia/analytics/refinery/refinery-*-${VERSION}.jar"
+COMMIT COMMAND="git commit -m 'Add refinery-source jars for v${VERSION} to artifacts'"
+
+# If this is a dry run, just print the git commands to run and exit
+if [ "${MODE}" = "dry-run" ] ; then
+  echo "Run the following commands to commit the new jars"
+  echo $ADD_COMMAND
+  echo $COMMIT_COMMAND
+  exit 0
+fi
+
+# Set up git fat and gerrit commit message hook
+git fat init
+gitdir=$(git rev-parse --git-dir)
+scp -p -P 29418 ${GERRIT_USER}@gerrit.wikimedia.org:hooks/commit-msg ${gitdir}/hooks/
+
+# Run the git add and commit commands
+eval $ADD_COMMAND
+eval $COMMIT_COMMAND
+
+# Push to the remote git branch if on push mode, else submit for gerrit review
 if [ "${MODE}" = "push" ] ; then
-  git push origin ${BRANCH}
+   git push origin ${BRANCH}
 elif [ "${MODE}" = "review" ] ; then
   git push origin HEAD:refs/for/${BRANCH}
 fi
