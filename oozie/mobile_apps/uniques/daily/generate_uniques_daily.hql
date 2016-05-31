@@ -61,7 +61,8 @@ WITH mobile_apps_uuids_${year}_${month}_${day} AS
                  parse_url(concat('http://bla.org/woo/', uri_query), 'QUERY', 'appInstallID')) AS uuid
     FROM ${source_table}
     WHERE user_agent LIKE('WikipediaApp%')
-        AND parse_url(concat('http://bla.org/woo/', uri_query), 'QUERY', 'action') = 'mobileview'
+        AND ((parse_url(concat('http://bla.org/woo/', uri_query), 'QUERY', 'action') = 'mobileview' AND uri_path == '/w/api.php')
+            OR (uri_path LIKE '/api/rest_v1%' AND uri_query == ''))
         AND COALESCE(x_analytics_map['wmfuuid'],
                      parse_url(concat('http://bla.org/woo/', uri_query), 'QUERY', 'appInstallID')) IS NOT NULL
         AND webrequest_source IN ('text')
