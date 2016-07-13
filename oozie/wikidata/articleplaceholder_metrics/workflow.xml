@@ -44,8 +44,8 @@
             <description>Additional files for spark</description>
         </property>
         <property>
-            <name>pageview_table</name>
-            <description>The pageview table name</description>
+            <name>webrequest_table</name>
+            <description>The webrequest table name</description>
         </property>
         <property>
             <name>year</name>
@@ -117,8 +117,8 @@
             <arg>${graphite_port}</arg>
             <arg>--graphite-namespace</arg>
             <arg>${graphite_namespace}</arg>
-            <arg>--pageview-table</arg>
-            <arg>${pageview_table}</arg>
+            <arg>--webrequest-table</arg>
+            <arg>${webrequest_table}</arg>
         </spark>
         <ok to="end" />
         <error to="kill" />
