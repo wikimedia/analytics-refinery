@@ -36,27 +36,13 @@ import os
 import sys
 import logging
 from docopt import docopt
+from refinery.util import is_yarn_application_running
 
 
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s %(levelname)-6s %(message)s',
                     datefmt='%Y-%m-%dT%H:%M:%S')
-
-def is_yarn_application_running(job_name):
-    '''
-    Returns true if job_name is found in the output
-    of yarn application -list and has a status of
-    RUNNING or ACCEPTED.  Returns false otherwise.
-
-    Note:  Error checking on the yarn shell command is not good.
-    This command will return false on any command failure.
-    '''
-    command = '/usr/bin/yarn application -list 2>/dev/null | grep -q  "\({0}\).*\(RUNNING\|ACCEPTED\)"'.format(job_name)
-    logging.debug('Running: {0}'.format(command))
-
-    retval = os.system(command)
-    return retval == 0
 
 if __name__ == '__main__':
     # parse arguments

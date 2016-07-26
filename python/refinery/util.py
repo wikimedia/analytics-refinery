@@ -23,9 +23,29 @@ import os
 import subprocess
 import re
 import tempfile
-from urlparse import urlparse
+# Ugly but need python3 support
+try:
+    from urlparse import urlparse
+except ImportError:
+    from urllib.parse import urlparse
 
 logger = logging.getLogger('refinery-util')
+
+
+def is_yarn_application_running(job_name):
+    '''
+    Returns true if job_name is found in the output
+    of yarn application -list and has a status of
+    RUNNING or ACCEPTED.  Returns false otherwise.
+
+    Note:  Error checking on the yarn shell command is not good.
+    This command will return false on any command failure.
+    '''
+    command = '/usr/bin/yarn application -list 2>/dev/null | ' + \
+        'grep -q  "\({0}\).*\(RUNNING\|ACCEPTED\)"'.format(job_name)
+    logging.debug('Running: {0}'.format(command))
+    retval = os.system(command)
+    return retval == 0
 
 
 def sh(command, check_return_code=True, strip_output=True, return_stderr=False):

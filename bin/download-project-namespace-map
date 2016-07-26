@@ -1,0 +1,182 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Note: You should make sure to put refinery/python on your PYTHONPATH.
+#   export PYTHONPATH=$PYTHONPATH:/path/to/refinery/python
+#
+# Will be scheduled on a cron, every 7 days, as:
+#   download-project-namespace-map -c \
+#     --output-hdfs /wmf/data/raw/mediawiki/project_namespace_map
+
+"""
+Writes the WMF site matrix as projects with namespace information to a file
+
+Usage:
+  download-project-namespace-map.py (--output-file FILE|--output-hdfs PATH) [-c] [-v]
+
+Options:
+    -h --help                           Show this help message and exit.
+    -v --verbose                        Turn on verbose debug logging.
+    -c --include-closed                 Include wikis that are now closed.
+    -o FILE --output-file FILE          Output the results here
+                                        (default: ./project-namespace-map.csv).
+    -x PATH --output-hdfs PATH          Output the results to HDFS
+"""
+__author__ = 'Dan Andreesu <milimetric@wikimedia.org>'
+
+import requests
+import json
+import csv
+import logging
+import os
+
+from docopt import docopt
+from traceback import format_exc
+from tempfile import mkstemp
+from subprocess import check_call
+
+
+outfile = 'project_namespace_map.csv'
+
+headers = {
+    'User-Agent': 'Wikimedia Foundation Analytics Bot',
+    'From': 'dandreescu@wikimedia.org'
+}
+
+project_namespace_map_query = ''.join([
+    'https://www.mediawiki.org/w/api.php?action=sitematrix',
+    '&smsiteprop=url|dbname|code',
+    '&smstate=all',
+    '&format=json',
+])
+
+namespace_query = ''.join([
+    '/w/api.php?action=query',
+    '&format=json',
+    '&meta=siteinfo',
+    '&siprop=namespaces',
+])
+
+
+if __name__ == '__main__':
+    # parse arguments
+    arguments = docopt(__doc__)
+    verbose         = arguments['--verbose']
+    outfile         = arguments['--output-file']
+    outhdfs         = arguments['--output-hdfs']
+    closed          = arguments['--include-closed']
+
+    # If we're outputting to hdfs, output to a temp file and copy up
+    output_to_hdfs = outhdfs is not None
+    if output_to_hdfs:
+        outfile = mkstemp()[1]
+
+    log_level = logging.INFO
+    if verbose:
+        log_level = logging.DEBUG
+
+    logging.basicConfig(level=log_level,
+                        format='%(asctime)s %(levelname)-6s %(message)s',
+                        datefmt='%Y-%m-%dT%H:%M:%S')
+
+
+def get_wikis(closed):
+    matrix = requests.get(
+        project_namespace_map_query,
+        headers=headers,
+    ).json().get('sitematrix', {})
+
+    wikis = [
+
+        wiki
+
+        for language in matrix.values()
+        if type(language) is dict and 'site' in language
+
+        for wiki in language['site']
+    ] + [
+
+        wiki
+
+        for wiki in matrix.get('specials', [])
+    ]
+
+    return [
+        wiki
+        for wiki in wikis
+        if 'private' not in wiki and (closed or 'closed' not in wiki)
+    ]
+
+
+wikis = get_wikis(closed)
+namespaceDictionary = {}
+
+logging.info('Fetching namespace info for {} wikis'.format(len(wikis)))
+
+###
+# Writes mapping as: (hostname, dbname, ns integer, ns canonical, ns localized, content)
+# hostname      : ja.wikipedia.org
+# dbname        : jawiki
+# ns integer    : 2, 100, etc.
+# ns canonical  : the english prefix if exists, otherwise the localized prefix
+# ns localized  : the localized prefix
+# content       : whether or not this namespace is a content namespace
+###
+
+with open(outfile, 'wb') as w:
+    spamwriter = csv.writer(w)
+
+    for wiki in wikis:
+        site = wiki.get('url', '')
+        host = site.replace('https://', '')
+        dbname = wiki.get('dbname', host)
+        try:
+            r = requests.get(site + namespace_query, headers=headers)
+            ns = json.loads(r.text)['query']['namespaces']
+
+            for k, v in ns.items():
+                is_content = 0
+                if 'content' in v:
+                    is_content = 1
+
+                row = [
+                    host,
+                    dbname,
+                    k,
+                    v.get('canonical', ''),
+                    v.get('*', ''),
+                    is_content,
+                ]
+                spamwriter.writerow([unicode(s).encode("utf-8") for s in row])
+
+        except Exception:
+            logging.error(site + ' FAILED!!! with ' + format_exc())
+
+if output_to_hdfs:
+    check_call([
+        'hdfs', 'dfs', '-mkdir', '-p',
+        outhdfs,
+    ])
+    check_call([
+        'hdfs', 'dfs', '-put',
+        outfile,
+        outhdfs + '/project_namespace_map',
+    ])
+    check_call([
+        'hdfs', 'dfs', '-touchz',
+        outhdfs + '/_SUCCESS',
+    ])
+    # clean up the temp file
+    os.remove(outfile)

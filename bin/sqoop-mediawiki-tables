@@ -1,0 +1,364 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Note: needs python3 to run unless we backport concurrent and urllib.parse
+#
+# Will be scheduled on a cron, every 7 days, as:
+#   python3 sqoop-mediawiki-tables \
+#     --jdbc-host analytics-store.eqiad.wmnet \
+#     --output-dir /wmf/data/raw/mediawiki/tables \
+#     --wiki-file \
+# "/mnt/hdfs/wmf/refinery/current/static_data/mediawiki/grouped_wikis/grouped_wikis.csv" \
+#     --timestamp YYYYMMDD000000 \
+#     --user research \
+#     --password-file /user/hdfs/mysql-analytics-research-client-pw.txt
+
+"""
+Sqoops a list of tables from a list of wikis into a target HDFS location
+
+Usage:
+  sqoop-mediawiki-tables --jdbc-host HOST --output-dir HDFS_PATH
+          [--verbose] --wiki-file WIKIS --timestamp TIME
+          [--mappers NUM] --user NAME --password-file FILE
+          [--job-name HADOOP_JOB_NAME]
+
+Options:
+    -h --help                           Show this help message and exit.
+    -v --verbose                        Turn on verbose debug logging.
+
+    -H HOST --jdbc-host HOST            Domain name of the mysql db
+    -d HDFS_PATH --output-dir HDFS_PATH Target hdfs directory to write to
+
+    -w FILE --wiki-file FILE            File with list of wiki dbs to sqoop
+                                          A csv file of the form:
+
+                                          dbname,parallel-group,...
+
+                                          where all wiki dbs that will be
+                                          sqooped in parallel with this one
+                                          share the same parallel-group
+    -t TIME --timestamp TIME            Try to get revisions only before this
+                                        (not exact due to new data coming in with
+                                        old timestamps; also, this only applies to
+                                        the revision table, not other tables)
+
+    -u NAME --user NAME                 mysql user to use
+    -p FILE --password-file FILE        File with mysql password to use
+
+    -m NUM --mappers NUM                The number of mappers to use to sqoop
+                                        [optional] default is 1
+    -j JOB_NAME --job-name JOB_NAME     The yarn job name, only one job of a certain
+                                        name can run at a time.
+                                        [optional] default is sqoop-mediawiki-tables
+"""
+__author__ = 'Dan Andreesu <milimetric@wikimedia.org>'
+
+import csv
+import logging
+import sys
+
+from docopt import docopt
+from concurrent import futures
+from itertools import groupby
+from subprocess import check_call
+from traceback import format_exc
+
+from refinery.util import is_yarn_application_running
+
+
+queries = {}
+
+# NOTE: labsdb excludes fields according to:
+# https://github.com/wikimedia/operations-software-redactatron/blob/master/scripts/cols.txt
+# But it's more complicated, rows are also redacted, some reading and background:
+# https://wikitech.wikimedia.org/wiki/MariaDB/Sanitarium_and_Labsdbs
+# https://phabricator.wikimedia.org/T103011#2296587
+# https://phabricator.wikimedia.org/T138450
+# TODO: follow up with labs and DBAs to figure out how to redact this load
+
+
+def populate_queries(timestamp):
+
+    # NOTES on queries:
+    # convert(... using utf8) is used to decode varbinary fields into strings
+    # type mapping is used to handle some databases having booleans in
+    #   tinyint(1) and others in tinyint(3,4) (newer databases like wikivoyage)
+
+    queries['archive'] = {
+        'query': '''
+             select ar_id,
+                    ar_namespace,
+                    convert(ar_title using utf8) ar_title,
+                    convert(ar_text using utf8) ar_text,
+                    convert(ar_comment using utf8) ar_comment,
+                    ar_user,
+                    convert(ar_user_text using utf8) ar_user_text,
+                    convert(ar_timestamp using utf8) ar_timestamp,
+                    ar_minor_edit,
+                    convert(ar_flags using utf8) ar_flags,
+                    ar_rev_id,
+                    ar_text_id,
+                    ar_deleted,
+                    ar_len,
+                    ar_page_id,
+                    ar_parent_id,
+                    convert(ar_sha1 using utf8) ar_sha1,
+                    convert(ar_content_model using utf8) ar_content_model,
+                    convert(ar_content_format using utf8) ar_content_format
+
+               from archive
+              where $CONDITIONS
+        ''',
+        'map-types': '"{}"'.format(','.join([
+            'ar_minor_edit=Boolean',
+            'ar_deleted=Boolean',
+        ])),
+    }
+
+    queries['ipblocks'] = {
+        'query': '''
+             select ipb_id,
+                    convert(ipb_address using utf8) ipb_address,
+                    ipb_user,
+                    ipb_by,
+                    convert(ipb_by_text using utf8) ipb_by_text,
+                    convert(ipb_reason using utf8) ipb_reason,
+                    convert(ipb_timestamp using utf8) ipb_timestamp,
+                    ipb_auto,
+                    ipb_anon_only,
+                    ipb_create_account,
+                    ipb_enable_autoblock,
+                    convert(ipb_expiry using utf8) ipb_expiry,
+                    convert(ipb_range_start using utf8) ipb_range_start,
+                    convert(ipb_range_end using utf8) ipb_range_end,
+                    ipb_deleted,
+                    ipb_block_email,
+                    ipb_allow_usertalk,
+                    ipb_parent_block_id
+
+               from ipblocks
+              where $CONDITIONS
+        ''',
+        'map-types': '"{}"'.format(','.join([
+            'ipb_auto=Boolean',
+            'ipb_anon_only=Boolean',
+            'ipb_create_account=Boolean',
+            'ipb_enable_autoblock=Boolean',
+            'ipb_deleted=Boolean',
+            'ipb_block_email=Boolean',
+            'ipb_allow_usertalk=Boolean',
+        ])),
+    }
+
+    queries['logging'] = {
+        'query': '''
+             select log_id,
+                    convert(log_type using utf8) log_type,
+                    convert(log_action using utf8) log_action,
+                    convert(log_timestamp using utf8) log_timestamp,
+                    log_user,
+                    log_namespace,
+                    convert(log_title using utf8) log_title,
+                    convert(log_comment using utf8) log_comment,
+                    convert(log_params using utf8) log_params,
+                    log_deleted,
+                    convert(log_user_text using utf8) log_user_text,
+                    log_page
+
+               from logging
+              where $CONDITIONS
+        ''',
+    }
+
+    queries['page'] = {
+        'query': '''
+             select page_id,
+                    page_namespace,
+                    convert(page_title using utf8) page_title,
+                    convert(page_restrictions using utf8) page_restrictions,
+                    page_is_redirect,
+                    page_is_new,
+                    page_random,
+                    convert(page_touched using utf8) page_touched,
+                    convert(page_links_updated using utf8) page_links_updated,
+                    page_latest,
+                    page_len,
+                    convert(page_content_model using utf8) page_content_model
+
+               from page
+              where $CONDITIONS
+        ''',
+        'map-types': '"{}"'.format(','.join([
+            'page_is_redirect=Boolean',
+            'page_is_new=Boolean',
+        ])),
+    }
+
+    queries['revision'] = {
+        'query': '''
+             select rev_id,
+                    rev_page,
+                    rev_text_id,
+                    convert(rev_comment using utf8) rev_comment,
+                    rev_user,
+                    convert(rev_user_text using utf8) rev_user_text,
+                    convert(rev_timestamp using utf8) rev_timestamp,
+                    rev_minor_edit,
+                    rev_deleted,
+                    rev_len,
+                    rev_parent_id,
+                    convert(rev_sha1 using utf8) rev_sha1,
+                    convert(rev_content_model using utf8) rev_content_model,
+                    convert(rev_content_format using utf8) rev_content_format
+
+               from revision
+              where $CONDITIONS
+                and rev_timestamp <= '{t}'
+        '''.format(t=timestamp),
+        'map-types': '"{}"'.format(','.join([
+            'rev_minor_edit=Boolean',
+            'rev_deleted=Boolean',
+        ])),
+    }
+
+    queries['user'] = {
+        'query': '''
+             select user_id,
+                    convert(user_name using utf8) user_name,
+                    user_name user_name_binary,
+                    convert(user_real_name using utf8) user_real_name,
+                    convert(user_email using utf8) user_email,
+                    convert(user_touched using utf8) user_touched,
+                    convert(user_registration using utf8) user_registration,
+                    user_editcount,
+                    convert(user_password_expires using utf8) user_password_expires
+
+               from user
+              where $CONDITIONS
+        ''',
+    }
+
+    queries['user_groups'] = {
+        'query': '''
+             select ug_user,
+                    convert(ug_group using utf8) ug_group
+
+               from user_groups
+              where $CONDITIONS
+        ''',
+    }
+
+
+def sqoop_wiki(dbname):
+    """
+    TODO: pass global values in a config object
+    Imports a pre-determined list of tables from dbname
+
+    Parameters
+        dbname: Name of a mediawiki database from which to import data
+
+    Returns
+        True if the sqoop worked
+        False if the sqoop errored or failed in any way
+    """
+    logging.info('STARTING: {db}'.format(db=dbname))
+    try:
+        for table in queries.keys():
+            target_directory = '{hdfs}/{table}/wiki_db={db}'.format(
+                hdfs=target_hdfs_directory,
+                table=table,
+                db=dbname
+            )
+            sqoop_arguments = [
+                'sqoop',
+                'import',
+
+                '-D'                , "mapred.job.name='{}'".format(yarn_job_name),
+                '--username'        , user,
+                '--password-file'   , password_file,
+                '--connect'         , jdbc_host + dbname,
+                # NOTE: using columns/map/where doesn't let you properly decode varbinary
+                # '--table'           , table,
+                # '--columns'         , queries[table].get('columns') or '',
+                # '--where'           , queries[table].get('where') or '1=1',
+                '--query'           , queries[table].get('query'),
+                '--num-mappers'     , num_mappers,
+                '--target-dir'      , target_directory,
+                '--as-avrodatafile' ,
+            ]
+
+            if ('map-types' in queries[table]):
+                sqoop_arguments += ['--map-column-java', queries[table]['map-types']]
+
+            logging.info('Sqooping with: {}'.format(sqoop_arguments))
+            check_call(sqoop_arguments)
+        return True
+    except:
+        logging.error('ERROR, {}, {}'.format(dbname, format_exc()))
+        return False
+    finally:
+        logging.info('FINISHED: {db}'.format(db=dbname))
+
+
+if __name__ == '__main__':
+    # parse arguments
+    arguments = docopt(__doc__)
+    verbose                             = arguments.get('--verbose')
+    yarn_job_name                       = arguments.get('--job-name')
+
+    host                                = arguments.get('--jdbc-host')
+    target_hdfs_directory               = arguments.get('--output-dir')
+    db_list_file                        = arguments.get('--wiki-file')
+    timestamp                           = arguments.get('--timestamp')
+    user                                = arguments.get('--user')
+    password_file                       = arguments.get('--password-file')
+    num_mappers                         = arguments.get('--mappers') or '1'
+
+    yarn_job_name = yarn_job_name or 'sqoop-mediawiki-tables'
+    if is_yarn_application_running(yarn_job_name):
+        logging.warn('{} is already running, exiting.'.format(yarn_job_name))
+        sys.exit(1)
+
+    jdbc_host = 'jdbc:mysql://' + host + '/'
+
+    log_level = logging.INFO
+    if verbose:
+        log_level = logging.DEBUG
+
+    logging.basicConfig(level=log_level,
+                        format='%(asctime)s %(levelname)-6s %(message)s',
+                        datefmt='%Y-%m-%dT%H:%M:%S')
+
+    logging.info('Started Shell with with {}'.format(' '.join(arguments)))
+
+    populate_queries(timestamp)
+
+    # read in the wikis to process and sqoop each one
+    with open(db_list_file) as dbs_file:
+        flat_wikis = csv.reader(dbs_file)
+
+        groups_done = []
+        for group, wikis in groupby(flat_wikis, lambda w: w[1]):
+            # sqoop all wikis in this group and wait for them all to finish
+            with futures.ProcessPoolExecutor() as executor:
+                successes = executor.map(sqoop_wiki, [w[0] for w in wikis])
+                groups_done.append(all(successes) and any(successes))
+
+        # if there were no failures at all, write a success flag to this dataset
+        if all(groups_done) and any(groups_done):
+            check_call([
+                'hdfs', 'dfs', '-touchz',
+                target_hdfs_directory + '/_SUCCESS',
+            ])
