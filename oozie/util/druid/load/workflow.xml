@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow-app xmlns="uri:oozie:workflow:0.4"
+    name="load-druid-wf">
+
+    <parameters>
+
+        <!-- Default values for inner oozie settings -->
+        <property>
+            <name>oozie_launcher_queue_name</name>
+            <value>${queue_name}</value>
+        </property>
+        <property>
+            <name>oozie_launcher_memory</name>
+            <value>256</value>
+        </property>
+
+        <!-- Required properties -->
+        <property><name>queue_name</name></property>
+        <property><name>name_node</name></property>
+        <property><name>job_tracker</name></property>
+
+        <property>
+            <name>done_file</name>
+            <value>_SUCCESS</value>
+            <description>
+                The name of the file to flag a directory as “done”.
+            </description>
+        </property>
+        <property>
+            <name>druid_overlord_url</name>
+            <description>
+                The druid overlord url used for loading
+            </description>
+        </property>
+        <property>
+            <name>template_file</name>
+            <description>
+                File path for the json template to use.
+            </description>
+        </property>
+        <property>
+            <name>source_directory</name>
+            <description>
+                Directory in hdfs that contains the data that should
+                be loaded in druid.
+            </description>
+        </property>
+        <property>
+            <name>loaded_period</name>
+            <description>
+                Time period (yyyy-MM-dd/yyyy-MM-dd) of the loaded data.
+            </description>
+        </property>
+    </parameters>
+
+
+    <start to="check_source_directory"/>
+
+    <decision name="check_source_directory">
+        <switch>
+            <case to="source_directory_does_not_exist">
+                ${not fs:exists(source_directory)}
+            </case>
+            <case to="source_directory_is_not_a_directory">
+                ${not fs:isDir(source_directory)}
+            </case>
+            <case to="source_directory_is_not_done">
+                ${not fs:exists(concat(concat(source_directory,'/'),done_file))}
+            </case>
+            <default to="run_druid_loading"/>
+        </switch>
+    </decision>
+
+    <action name="run_druid_loading">
+        <!--
+        Druid loading is done through a python script that first launches the
+        task (POST call) the periodically polls (GET calls) for status until
+        success or failure.
+         -->
+        <shell xmlns="uri:oozie:shell-action:0.1">
+            <job-tracker>${job_tracker}</job-tracker>
+            <name-node>${name_node}</name-node>
+            <configuration>
+                <!--make sure oozie:launcher runs in a low priority queue -->
+                <property>
+                    <name>oozie.launcher.mapred.job.queue.name</name>
+                    <value>${oozie_launcher_queue_name}</value>
+                </property>
+                <property>
+                    <name>oozie.launcher.mapreduce.map.memory.mb</name>
+                    <value>${oozie_launcher_memory}</value>
+                </property>
+                <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queue_name}</value>
+                </property>
+            </configuration>
+            <exec>druid_loader.py</exec>
+            <argument>--overlord</argument>
+            <argument>${druid_overlord_url}</argument>
+            <argument>--hadoop-queue</argument>
+            <argument>${queue_name}</argument>
+            <argument>template_file</argument>
+            <argument>${source_directory}</argument>
+            <argument>${loaded_period}</argument>
+            <file>druid_loader.py#druid_loader.py</file>
+            <file>${template_file}#template_file</file>
+        </shell>
+        <ok to="end"/>
+        <error to="kill"/>
+    </action>
+
+    <kill name="source_directory_does_not_exist">
+        <message>The job output directory ${source_directory} does not exist</message>
+    </kill>
+
+    <kill name="source_directory_is_not_a_directory">
+        <message>The given source_directory ${source_directory} is not a directory</message>
+    </kill>
+
+    <kill name="source_directory_is_not_done">
+        <message>The job output directory ${source_directory} lacks the ${done_file} marker</message>
+    </kill>
+
+    <kill name="kill">
+        <message>error message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+    </kill>
+    <end name="end"/>
+
+</workflow-app>
