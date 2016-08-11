@@ -26,7 +26,7 @@ Options:
     -l --libjars=<jar-file(s)>          Comma separated paths to external jars to make available to Camus' Map Reduce jobs
     -f --force                          If set, job will be submitted without checking if it is already running.
     -c --check                          If set, a CamusPartitionChecker job will be submitted after the camus run if any (checking and flagging imported partitions).
-    -q --check-jar=<jar-file>           Path to refinery-job jar file. [default: /srv/deployment/analytics/refinery/artifacts/refinery-job.jar]
+    -q --check-jar=<jar-file>           Path to refinery-job jar file. [default: /srv/deployment/analytics/refinery/artifacts/refinery-camus.jar]
     -d --check-datetime=<datetime>      Camus run date to check (yyyy-mm-dd-HH-MM-SS format). Most recent run if not set.
     -m --check-dry-run                  Execute the check in dry-run mode.
 """
@@ -95,7 +95,7 @@ if __name__ == '__main__':
         # Spark classpath contains hadoop jars, no need to add them explicitely
         check_classpath = ':'.join([check_jar, '/usr/lib/spark/lib/spark-assembly.jar', '$(hadoop classpath | sed \'s@^[^:]*:@@\')', '/usr/share/java/*'])
         datetime_to_check = '-d %s' % arguments['--check-datetime'] if arguments['--check-datetime'] else ''
-        checker_command = '/usr/bin/java -cp "{0}" org.wikimedia.analytics.refinery.job.CamusPartitionChecker -c {1} {2}'.format(
+        checker_command = '/usr/bin/java -cp "{0}" org.wikimedia.analytics.refinery.camus.CamusPartitionChecker -c {1} {2}'.format(
             check_classpath,
             properties_file,
             datetime_to_check
