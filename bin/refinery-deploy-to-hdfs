@@ -25,9 +25,6 @@ DRY_RUN=yes
 VERBOSE=no
 CURRENT_TARGET_HDFSDIR_RELB="current"
 SKIP_UPDATING_CURRENT=no
-SKIP_OOZIES_HIVE_CONFIG_CHECK=no
-
-OOZIES_HIVE_CONFIG_FILE_RELR="oozie/util/hive/hive-site.xml"
 
 print_help() {
     cat <<EOF
@@ -43,8 +40,6 @@ directory.
 
 Options:
   --no-dry-run   - Do not dry-run, but really deploy to cluster.
-  --skip-oozie-hive-config-check
-                 - Skip sanity-check of Oozie's hive config.
   --skip-current - Skips updating '$CURRENT_TARGET_HDFSDIR_RELB' on the cluster.
   --base         - Absolute hdfs path to use a base for deployment
                      (Default: '$REFINERY_BASE_HDFSDIR_ABS')
@@ -172,53 +167,6 @@ $UNINITIALIZED_GIT_FAT_FILES
     fi
 }
 
-guard_against_obviously_fishy_hive_config_for_oozie() {
-    if [ "$SKIP_OOZIES_HIVE_CONFIG_CHECK" = "yes" ]
-    then
-        return
-    fi
-
-    if [ ! -e "$OOZIES_HIVE_CONFIG_FILE_RELR" ]
-    then
-        # If we cannot find Oozie's hive config, we bail out. This way, we de
-        # detect if the file gets moved around at some point.
-        error "Could not find oozie's hive config at '$OOZIES_HIVE_CONFIG_FILE_RELR'"
-    fi
-
-    # Since Oozie's hive config is typically a link to /etc/hive/... it might be
-    # that the below test for passwords fails because the config file is not
-    # readable. To provide a better error message for this case, we single it
-    # out.
-    if [ ! -r "$OOZIES_HIVE_CONFIG_FILE_RELR" ]
-    then
-        error "Oozie's hive config at '$OOZIES_HIVE_CONFIG_FILE_RELR' is not \
-readable"
-    fi
-
-    if grep -q -i 'password' "$OOZIES_HIVE_CONFIG_FILE_RELR"
-    then
-        error "Oozie's hive config at '$OOZIES_HIVE_CONFIG_FILE_RELR' matches \
-password. Aborting to avoid accidentally deploying passwords."
-    fi
-}
-
-monkey_patch_oozies_hive_config() {
-    local TARGET_HDFSFILE_ABS="$1"
-    shift
-
-    # We strip out references to
-    #   file:///srv/deployment/
-    # as they won't be around on all worker nodes. Currently, this
-    # addresses removing refinery-hive.jar from the plain filesystem
-    # location. When not removing it, Oozie's Hive jobs would try to
-    # pick it up, and consequently fail on the worker node, as they do
-    # not have that jar.
-    run_hdfs dfs -put -f <( \
-        run_hdfs --without-log dfs -cat "$TARGET_HDFSFILE_ABS" \
-        | sed -e 's@\(\(>\)\|,\)file:///srv/deployment/[^<,]*\([<,]\)@\2\3@'
-    ) "$TARGET_HDFSFILE_ABS"
-}
-
 describe_deployment() {
     local TARGET_HDFSFILE_ABS="$1"
     shift
@@ -247,9 +195,6 @@ parse_parameters() {
             "--no-dry-run" )
                 DRY_RUN=no
                 ;;
-            "--skip-oozie-hive-config-check" )
-                SKIP_OOZIES_HIVE_CONFIG_CHECK=yes
-                ;;
             "--skip-current" )
                 SKIP_UPDATING_CURRENT=yes
                 ;;
@@ -277,7 +222,6 @@ parse_parameters "$@"
 alert_dry_run
 
 guard_against_uninitialized_git_fat
-guard_against_obviously_fishy_hive_config_for_oozie
 
 GIT_DESCRIPTION="$(git describe $GIT_EXTRA_OPTION --always --dirty 2>/dev/null || true)"
 [[ ! -z "$GIT_DESCRIPTION" ]] || error "Cannot describe current version"
@@ -311,8 +255,6 @@ run_hdfs dfs -mkdir "$VERSIONED_TMP_TARGET_HDFSDIR_ABS"
 
 # Note that we only copy *, and not dot-files, hence excluding '.git'.
 run_hdfs dfs -put -f * "$VERSIONED_TMP_TARGET_HDFSDIR_ABS"
-
-monkey_patch_oozies_hive_config "$VERSIONED_TMP_TARGET_HDFSDIR_ABS/$OOZIES_HIVE_CONFIG_FILE_RELR"
 
 describe_deployment "$VERSIONED_TMP_TARGET_HDFSDIR_ABS/.deployment" "$@"
 

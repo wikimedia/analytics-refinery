@@ -15,6 +15,7 @@
         <property><name>raw_base_directory</name></property>
         <property><name>datasets_raw_file</name></property>
         <property><name>common_error_to</name></property>
+        <property><name>hive_site_xml</name></property>
     </parameters>
 
     <coordinator name="mediawiki-load-coord-CirrusSearchRequestSet">
