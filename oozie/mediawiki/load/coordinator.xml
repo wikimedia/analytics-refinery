@@ -16,6 +16,7 @@
         <property><name>start_time</name></property>
         <property><name>stop_time</name></property>
         <property><name>send_error_email_to</name></property>
+        <property><name>hive_site_xml</name></property>
         <property>
             <name>datasets_raw_file</name>
             <description>File that describes raw datasets</description>

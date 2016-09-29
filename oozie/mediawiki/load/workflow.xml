@@ -30,7 +30,6 @@
         </property>
         <property>
             <name>hive_site_xml</name>
-            <value>${oozie_directory}/util/hive/hive-site.xml</value>
             <description>hive-site.xml file path in HDFS</description>
         </property>
         <property>
