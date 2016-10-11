@@ -75,7 +75,7 @@
         </property>
         <property>
             <name>per_article_flat_parallel_loaders</name>
-            <value>3</value>
+            <value>6</value>
         </property>
         <property>
             <name>per_article_flat_keyspace</name>
@@ -91,7 +91,7 @@
         </property>
         <property>
             <name>per_article_flat_hive_fields_types</name>
-            <value>text,text,text,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int</value>
+            <value>text,text,text,int_nullable,int_nullable,int_nullable,int_nullable,int_nullable,int_nullable,int_nullable,int_nullable,int_nullable,int_nullable,int_nullable,int_nullable,int_nullable,int_nullable,int_nullable,int_nullable</value>
         </property>
         <property>
             <name>per_article_flat_cassandra_fields</name>
