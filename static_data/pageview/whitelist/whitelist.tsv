@@ -28,6 +28,7 @@ project	an.wikipedia	2015-10-12 00:00:00
 project	an.wiktionary	2015-10-12 00:00:00
 project	arc.wikipedia	2015-10-12 00:00:00
 project	ar.wikibooks	2015-10-12 00:00:00
+project	ar.wikimedia	2016-11-01 00:00:00
 project	ar.wikinews	2015-10-12 00:00:00
 project	ar.wikipedia	2015-10-12 00:00:00
 project	ar.wikiquote	2015-10-12 00:00:00
@@ -59,6 +60,7 @@ project	bat-smg.wikipedia	2015-10-12 00:00:00
 project	ba.wikibooks	2015-10-12 00:00:00
 project	ba.wikipedia	2015-10-12 00:00:00
 project	bcl.wikipedia	2015-10-12 00:00:00
+project	bd.wikimedia	2016-11-01 00:00:00
 project	be-tarask.wikipedia	2015-10-12 00:00:00
 project	beta.wikiversity	2015-10-12 00:00:00
 project	be.wikibooks	2015-10-12 00:00:00
@@ -92,6 +94,7 @@ project	bo.wikibooks	2015-10-12 00:00:00
 project	bo.wikipedia	2015-10-12 00:00:00
 project	bo.wiktionary	2015-10-12 00:00:00
 project	bpy.wikipedia	2015-10-12 00:00:00
+project	br.wikimedia	2016-11-01 00:00:00
 project	br.wikipedia	2015-10-12 00:00:00
 project	br.wikiquote	2015-10-12 00:00:00
 project	br.wikisource	2015-10-12 00:00:00
@@ -105,6 +108,7 @@ project	bs.wiktionary	2015-10-12 00:00:00
 project	bug.wikipedia	2015-10-12 00:00:00
 project	bxr.wikipedia	2015-10-12 00:00:00
 project	ca.wikibooks	2015-10-12 00:00:00
+project	ca.wikimedia	2016-11-01 00:00:00
 project	ca.wikinews	2015-10-12 00:00:00
 project	ca.wikipedia	2015-10-12 00:00:00
 project	ca.wikiquote	2015-10-12 00:00:00
@@ -122,8 +126,10 @@ project	ch.wikipedia	2015-10-12 00:00:00
 project	ch.wiktionary	2015-10-12 00:00:00
 project	chy.wikipedia	2015-10-12 00:00:00
 project	ckb.wikipedia	2015-10-12 00:00:00
+project	cn.wikimedia	2016-11-01 00:00:00
 project	commons.wikimedia	2015-10-12 00:00:00
 project	co.wikibooks	2015-10-12 00:00:00
+project	co.wikimedia	2016-11-01 00:00:00
 project	co.wikipedia	2015-10-12 00:00:00
 project	co.wikiquote	2015-10-12 00:00:00
 project	co.wiktionary	2015-10-12 00:00:00
@@ -162,11 +168,13 @@ project	de.wikiversity	2015-10-12 00:00:00
 project	de.wikivoyage	2015-10-12 00:00:00
 project	de.wiktionary	2015-10-12 00:00:00
 project	diq.wikipedia	2015-10-12 00:00:00
+project	dk.wikimedia	2016-11-01 00:00:00
 project	dsb.wikipedia	2015-10-12 00:00:00
 project	dv.wikipedia	2015-10-12 00:00:00
 project	dv.wiktionary	2015-10-12 00:00:00
 project	dz.wikipedia	2015-10-12 00:00:00
 project	dz.wiktionary	2015-10-12 00:00:00
+project	ee.wikimedia	2016-11-01 00:00:00
 project	ee.wikipedia	2015-10-12 00:00:00
 project	el.wikibooks	2015-10-12 00:00:00
 project	el.wikinews	2015-10-12 00:00:00
@@ -219,6 +227,7 @@ project	fa.wiktionary	2015-10-12 00:00:00
 project	ff.wikipedia	2015-10-12 00:00:00
 project	fiu-vro.wikipedia	2015-10-12 00:00:00
 project	fi.wikibooks	2015-10-12 00:00:00
+project	fi.wikimedia	2016-11-01 00:00:00
 project	fi.wikinews	2015-10-12 00:00:00
 project	fi.wikipedia	2015-10-12 00:00:00
 project	fi.wikiquote	2015-10-12 00:00:00
@@ -324,6 +333,7 @@ project	ig.wikipedia	2015-10-12 00:00:00
 project	ii.wikipedia	2015-10-12 00:00:00
 project	ik.wikipedia	2015-10-12 00:00:00
 project	ik.wiktionary	2015-10-12 00:00:00
+project	il.wikimedia	2016-11-01 00:00:00
 project	ilo.wikipedia	2015-10-12 00:00:00
 project	incubator.wikimedia	2015-10-12 00:00:00
 project	io.wikipedia	2015-10-12 00:00:00
@@ -458,6 +468,7 @@ project	mi.wikibooks	2015-10-12 00:00:00
 project	mi.wikipedia	2015-10-12 00:00:00
 project	mi.wiktionary	2015-10-12 00:00:00
 project	mk.wikibooks	2015-10-12 00:00:00
+project	mk.wikimedia	2016-11-01 00:00:00
 project	mk.wikipedia	2015-10-12 00:00:00
 project	mk.wikisource	2015-10-12 00:00:00
 project	mk.wiktionary	2015-10-12 00:00:00
@@ -484,6 +495,7 @@ project	mt.wikipedia	2015-10-12 00:00:00
 project	mt.wiktionary	2015-10-12 00:00:00
 project	mus.wikipedia	2015-10-12 00:00:00
 project	mwl.wikipedia	2015-10-12 00:00:00
+project	mx.wikimedia	2016-11-01 00:00:00
 project	myv.wikipedia	2015-10-12 00:00:00
 project	my.wikibooks	2015-10-12 00:00:00
 project	my.wikipedia	2015-10-12 00:00:00
@@ -521,6 +533,7 @@ project	nn.wiktionary	2015-10-12 00:00:00
 project	nostalgia.wikipedia	2015-10-12 00:00:00
 project	nov.wikipedia	2015-10-12 00:00:00
 project	no.wikibooks	2015-10-12 00:00:00
+project	no.wikimedia	2016-11-01 00:00:00
 project	no.wikinews	2015-10-12 00:00:00
 project	no.wikipedia	2015-10-12 00:00:00
 project	no.wikiquote	2015-10-12 00:00:00
@@ -530,6 +543,7 @@ project	nrm.wikipedia	2015-10-12 00:00:00
 project	nso.wikipedia	2015-10-12 00:00:00
 project	nv.wikipedia	2015-10-12 00:00:00
 project	ny.wikipedia	2015-10-12 00:00:00
+project	nz.wikimedia	2016-11-01 00:00:00
 project	oc.wikibooks	2015-10-12 00:00:00
 project	oc.wikipedia	2015-10-12 00:00:00
 project	oc.wiktionary	2015-10-12 00:00:00
@@ -554,6 +568,7 @@ project	pih.wikipedia	2015-10-12 00:00:00
 project	pi.wikipedia	2015-10-12 00:00:00
 project	pi.wiktionary	2015-10-12 00:00:00
 project	pl.wikibooks	2015-10-12 00:00:00
+project	pl.wikimedia	2016-11-01 00:00:00
 project	pl.wikinews	2015-10-12 00:00:00
 project	pl.wikipedia	2015-10-12 00:00:00
 project	pl.wikiquote	2015-10-12 00:00:00
@@ -596,6 +611,7 @@ project	ro.wikiquote	2015-10-12 00:00:00
 project	ro.wikisource	2015-10-12 00:00:00
 project	ro.wikivoyage	2015-10-12 00:00:00
 project	ro.wiktionary	2015-10-12 00:00:00
+project	rs.wikimedia	2016-11-01 00:00:00
 project	rue.wikipedia	2015-10-12 00:00:00
 project	ru.wikibooks	2015-10-12 00:00:00
 project	ru.wikinews	2015-10-12 00:00:00
@@ -624,6 +640,7 @@ project	sd.wikinews	2015-10-12 00:00:00
 project	sd.wikipedia	2015-10-12 00:00:00
 project	sd.wiktionary	2015-10-12 00:00:00
 project	se.wikibooks	2015-10-12 00:00:00
+project	se.wikimedia	2016-11-01 00:00:00
 project	se.wikipedia	2015-10-12 00:00:00
 project	sg.wikipedia	2015-10-12 00:00:00
 project	sg.wiktionary	2015-10-12 00:00:00
@@ -726,6 +743,7 @@ project	to.wiktionary	2015-10-12 00:00:00
 project	tpi.wikipedia	2015-10-12 00:00:00
 project	tpi.wiktionary	2015-10-12 00:00:00
 project	tr.wikibooks	2015-10-12 00:00:00
+project	tr.wikimedia	2016-11-01 00:00:00
 project	tr.wikinews	2015-10-12 00:00:00
 project	tr.wikipedia	2015-10-12 00:00:00
 project	tr.wikiquote	2015-10-12 00:00:00
@@ -742,6 +760,7 @@ project	tw.wikipedia	2015-10-12 00:00:00
 project	tw.wiktionary	2015-10-12 00:00:00
 project	tyv.wikipedia	2015-10-12 00:00:00
 project	ty.wikipedia	2015-10-12 00:00:00
+project	ua.wikimedia	2016-11-01 00:00:00
 project	udm.wikipedia	2015-10-12 00:00:00
 project	ug.wikibooks	2015-10-12 00:00:00
 project	ug.wikipedia	2015-10-12 00:00:00
