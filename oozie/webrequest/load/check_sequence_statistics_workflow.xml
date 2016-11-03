@@ -64,9 +64,22 @@
             </description>
         </property>
         <property>
+            <name>error_incomplete_data_threshold</name>
+            <description>If incomplete data (percent) is above this value
+                the job fails and the refine is not launched.
+            </description>
+        </property>
+        <property>
+            <name>warning_incomplete_data_threshold</name>
+            <description>If incomplete data (percent) is above this value
+                and less than error_incomplete_data_threshold an email is sent
+                but refine is still launched.
+            </description>
+        </property>
+        <property>
             <name>error_data_loss_threshold</name>
             <description>If data loss (percent) is above this value
-                the job is failed and refined not launched.
+                the job is failed and refine not launched.
             </description>
         </property>
         <property>
@@ -109,7 +122,8 @@
 
             <param>table=${statistics_hourly_table}</param>
             <param>target=${error_data_loss_directory}</param>
-            <param>threshold=${error_data_loss_threshold}</param>
+            <param>incomplete_data_threshold=${error_incomplete_data_threshold}</param>
+            <param>data_loss_threshold=${error_data_loss_threshold}</param>
             <param>webrequest_source=${webrequest_source}</param>
             <param>year=${year}</param>
             <param>month=${month}</param>
@@ -155,7 +169,8 @@
 
             <param>table=${statistics_hourly_table}</param>
             <param>target=${warning_data_loss_directory}</param>
-            <param>threshold=${warning_data_loss_threshold}</param>
+            <param>incomplete_data_threshold=${warning_incomplete_data_threshold}</param>
+            <param>data_loss_threshold=${warning_data_loss_threshold}</param>
             <param>webrequest_source=${webrequest_source}</param>
             <param>year=${year}</param>
             <param>month=${month}</param>
@@ -187,11 +202,13 @@
                 </property>
                 <property>
                     <name>body</name>
-                    <value>Please check ${statistics_hourly_table}.
-This is an ERROR.
-This job has failed, refine has not been launched.
+                    <value>This is an ERROR.
+This job has failed and refine jobs have been cancelled.
 
-Please have a look and take necessary action !
+Please, have a look at the error file ${error_data_loss_directory}/000000_0
+and the statistics table ${statistics_hourly_table} for a detailed explanation,
+and take necessary action!
+
 Thanks :)
 -- Oozie</value>
                 </property>
@@ -212,11 +229,13 @@ Thanks :)
                 </property>
                 <property>
                     <name>body</name>
-                    <value>Please check ${statistics_hourly_table}.
-This is a WARNING.
-Data Loss is small (less than ${error_data_loss_threshold}%), refine have been launched.
+                    <value>This is a WARNING.
+This job has had some issues, but refine jobs have been launched nevertheless.
 
-Please have a look and take necessary action !
+Please, have a look at the error file ${warning_data_loss_directory}/000000_0
+and the statistics table ${statistics_hourly_table} for a detailed explanation,
+and take necessary action!
+
 Thanks :)
 -- Oozie</value>
                 </property>

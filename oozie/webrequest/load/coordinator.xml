@@ -32,6 +32,8 @@
         <property><name>webrequest_source</name></property>
         <property><name>record_version</name></property>
         <property><name>data_loss_check_directory_base</name></property>
+        <property><name>error_incomplete_data_threshold</name></property>
+        <property><name>warning_incomplete_data_threshold</name></property>
         <property><name>error_data_loss_threshold</name></property>
         <property><name>warning_data_loss_threshold</name></property>
         <property><name>mark_directory_done_workflow_file</name></property>

@@ -1,13 +1,15 @@
 # Verify webrequest logs and refine them
 
-The basic verification analyzes each log line's sequence number and
-computes per host statistics. It detects holes, duplicates, and nulls
-in sequence numbers. But there is no check on new hosts arriving,
-hosts getting decommissioned, or on the amount of per host traffic.
+The basic verification analyzes each log line and checks that the
+timestamp and potentially other critical fields are present, also
+checks the request's sequence number and computes per host
+statistics. It detects holes, duplicates, and nulls in sequence
+numbers. But there is no check on new hosts arriving, hosts
+getting decommissioned, or on the amount of per host traffic.
 
 If a dataset (i.e.: webrequest_source per hour) does not have
-duplicates, holes, or nulls, the directory gets a ```_SUCCESS```
-marker.
+missing data, duplicates, holes, or nulls, the directory gets a
+```_SUCCESS``` marker.
 
 Then data get refined, meaning converted from raw JSON
 logs imported from Kafka into a clustered-bucketed table

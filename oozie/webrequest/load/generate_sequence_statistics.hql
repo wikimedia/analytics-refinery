@@ -16,6 +16,11 @@
 --   - If count_duplicate is > 0, there are that many duplicates.
 --   - If count_duplicate is < 0, something is broken :-)
 --
+-- Note that statistics do not consider records with a missing timestamp
+-- (dt='-'), because thay may break sequence numbers and cause false alarms.
+-- The column count_incomplete indicates how many records have an
+-- undefined timestamp (dt='-'), so that subsequent jobs can alert on that.
+--
 -- Parameters:
 --     source_table      -- Fully qualified table name to compute the
 --                          statistics for.
@@ -36,10 +41,10 @@
 -- [1] hive/webrequest/create_webrequest_sequence_stats_table.hql
 --
 -- Usage:
---     hive -f sequence_stats.hql                                 \
+--     hive -f generate_sequence_statistics.hql                   \
 --         -d source_table=wmf_raw.webrequest                     \
 --         -d destination_table=wmf_raw.webrequest_sequence_stats \
---         -d webrequest_source=bits                              \
+--         -d webrequest_source=misc                              \
 --         -d year=2014                                           \
 --         -d month=5                                             \
 --         -d day=12                                              \
@@ -47,22 +52,61 @@
 --
 
 ADD JAR /usr/lib/hive-hcatalog/share/hcatalog/hive-hcatalog-core.jar;
+
+WITH
+  statistics AS (
+    SELECT
+      hostname,
+      MIN(sequence)                                                  AS sequence_min,
+      MAX(sequence)                                                  AS sequence_max,
+      COUNT(*)                                                       AS count_actual,
+      MAX(sequence) - MIN(sequence) + 1                              AS count_expected,
+      MAX(sequence) - MIN(sequence) + 1 - COUNT(hostname)            AS count_different,
+      COUNT(*) - COUNT(DISTINCT sequence)                            AS count_duplicate,
+      SUM(if(sequence IS NULL,1,0))                                  AS count_null_sequence,
+      ((COUNT(*) / (MAX(sequence) - MIN(sequence) + 1)) - 1) * 100.0 AS percent_different
+    FROM
+      ${source_table}
+    WHERE
+      webrequest_source='${webrequest_source}' AND
+      year=${year} AND month=${month} AND day=${day} AND hour=${hour} AND
+      dt != '-'
+    GROUP BY
+      hostname, webrequest_source, year, month, day, hour
+  ),
+  undefined AS (
+    SELECT
+      hostname,
+      SUM(IF(dt='-',1,0)) AS count_incomplete
+    FROM
+      ${source_table}
+    WHERE
+      webrequest_source='${webrequest_source}' AND
+      year=${year} AND month=${month} AND day=${day} AND hour=${hour}
+    GROUP BY
+      hostname, webrequest_source, year, month, day, hour
+  )
+
 INSERT OVERWRITE TABLE ${destination_table}
-  PARTITION(webrequest_source='${webrequest_source}',year=${year},month=${month},day=${day},hour=${hour})
+  PARTITION (
+    webrequest_source='${webrequest_source}',
+    year=${year},
+    month=${month},
+    day=${day},
+    hour=${hour}
+  )
   SELECT
-    hostname,
-    MIN(sequence)                                                  AS sequence_min,
-    MAX(sequence)                                                  AS sequence_max,
-    COUNT(*)                                                       AS count_actual,
-    MAX(sequence) - MIN(sequence) + 1                              AS count_expected,
-    MAX(sequence) - MIN(sequence) + 1 - COUNT(hostname)            AS count_different,
-    COUNT(*) - COUNT(DISTINCT sequence)                            AS count_duplicate,
-    SUM(if(sequence IS NULL,1,0))                                  AS count_null_sequence,
-    ((COUNT(*) / (MAX(sequence) - MIN(sequence) + 1)) - 1) * 100.0 AS percent_different
+    undefined.hostname,
+    sequence_min,
+    sequence_max,
+    count_actual,
+    count_expected,
+    count_different,
+    count_duplicate,
+    count_null_sequence,
+    percent_different,
+    count_incomplete
   FROM
-    ${source_table}
-  WHERE
-    webrequest_source='${webrequest_source}' AND
-    year=${year} AND month=${month} AND day=${day} AND hour=${hour}
-  GROUP BY
-    hostname, webrequest_source, year, month, day, hour;
+    statistics RIGHT JOIN undefined
+      ON statistics.hostname = undefined.hostname
+;

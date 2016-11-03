@@ -16,7 +16,8 @@ CREATE TABLE `webrequest_sequence_stats_hourly`(
     `count_duplicate`        bigint COMMENT 'Number of duplicate sequences in this hour',
     `count_lost`             bigint COMMENT 'Number of (approximate) missing records in this hour',
     `percent_duplicate`      double COMMENT 'Percent duplicate records in this hour',
-    `percent_lost`           double COMMENT 'Percent lost records in this hour'
+    `percent_lost`           double COMMENT 'Percent lost records in this hour',
+    `count_incomplete`       bigint COMMENT 'Number of records missing critical fields, probably due to logging errors from the caching-traffic layer'
 )
 PARTITIONED BY (
     `webrequest_source`   string  COMMENT 'Source cluster',
