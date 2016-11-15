@@ -85,15 +85,43 @@ Thanks :)
             </description>
         </property>
 
+        <property>
+            <name>attachments</name>
+            <value>UNSET</value>
+            <description>
+                A comma separated list of file paths to attach
+            </description>
+        </property>
+
     </parameters>
 
-    <start to="send_email"/>
+    <start to="attach_or_not"/>
+
+    <decision name="attach_or_not">
+        <switch>
+            <case to="send_email">
+                ${attachments == "UNSET"}
+            </case>
+            <default to="send_email_with_attachments"/>
+        </switch>
+    </decision>
 
     <action name="send_email">
         <email xmlns="uri:oozie:email-action:0.1">
             <to>${to}</to>
             <subject>${subject}</subject>
             <body>${body}</body>
+        </email>
+        <ok to="end"/>
+        <error to="kill"/>
+    </action>
+
+    <action name="send_email_with_attachments">
+        <email xmlns="uri:oozie:email-action:0.2">
+            <to>${to}</to>
+            <subject>${subject}</subject>
+            <body>${body}</body>
+            <attachment>${attachments}</attachment>
         </email>
         <ok to="end"/>
         <error to="kill"/>

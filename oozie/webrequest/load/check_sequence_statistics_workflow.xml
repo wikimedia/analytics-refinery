@@ -205,12 +205,16 @@
                     <value>This is an ERROR.
 This job has failed and refine jobs have been cancelled.
 
-Please, have a look at the error file ${error_data_loss_directory}/000000_0
+Please, have a look at the error file attached to this email
 and the statistics table ${statistics_hourly_table} for a detailed explanation,
 and take necessary action!
 
 Thanks :)
 -- Oozie</value>
+                </property>
+                <property>
+                    <name>attachments</name>
+                    <value>${error_data_loss_directory}/000000_0</value>
                 </property>
             </configuration>
         </sub-workflow>
@@ -232,12 +236,16 @@ Thanks :)
                     <value>This is a WARNING.
 This job has had some issues, but refine jobs have been launched nevertheless.
 
-Please, have a look at the error file ${warning_data_loss_directory}/000000_0
+Please, have a look at the error file attached to this email
 and the statistics table ${statistics_hourly_table} for a detailed explanation,
 and take necessary action!
 
 Thanks :)
 -- Oozie</value>
+                </property>
+                <property>
+                    <name>attachments</name>
+                    <value>${warning_data_loss_directory}/000000_0</value>
                 </property>
             </configuration>
         </sub-workflow>
