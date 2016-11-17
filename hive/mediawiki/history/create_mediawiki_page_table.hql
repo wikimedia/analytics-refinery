@@ -1,6 +1,14 @@
-DROP TABLE `wmf.mediawiki_page`
-;
-CREATE EXTERNAL TABLE `wmf.mediawiki_page`(
+-- Creates table statement for raw mediawiki_page table.
+--
+-- Parameters:
+--     <none>
+--
+-- Usage
+--     hive -f create_mediawiki_page_table.hql \
+--         --database wmf_raw
+--
+
+CREATE EXTERNAL TABLE `wmf_raw.mediawiki_page`(
   `page_id`             bigint      COMMENT 'Uniquely identifying primary key along with wiki. This value is preserved across edits, renames, and, as of MediaWiki 1.27, deletions, via an analogous field in the archive table (introduced in MediaWiki 1.11). For example, for this page, page_id = 10501. [1][2] This field can be accessed by WikiPage::getId(), Title::getArticleID(), etc.',
   `page_namespace`      bigint      COMMENT 'A page name is broken into a namespace and a title. The namespace keys are UI-language-independent constants, defined in includes/Defines.php.  This field contains the number of the page\'s namespace. The values range from 0 to 15 for the standard namespaces, and from 100 to 2147483647 for custom namespaces.',
   `page_title`          string      COMMENT 'The sanitized page title, without the namespace, with a maximum of 255 characters (binary). It is stored as text, with spaces replaced by underscores. The real title shown in articles is just this title with underscores (_) converted to spaces ( ). For example, a page titled "Talk:Foo Bar" would have "Foo_Bar" in this field.',
@@ -16,8 +24,9 @@ CREATE EXTERNAL TABLE `wmf.mediawiki_page`(
 )
 COMMENT
   'See most up to date documentation at https://www.mediawiki.org/wiki/Manual:Page_table'
-PARTITIONED BY
-  (`wiki_db` string)
+PARTITIONED BY (
+  `snapshot` string COMMENT 'Versioning information to keep multiple datasets (YYYY-MM for regular labs imports)',
+  `wiki_db` string COMMENT 'The wiki_db project')
 ROW FORMAT SERDE
   'org.apache.hadoop.hive.serde2.avro.AvroSerDe'
 STORED AS INPUTFORMAT
@@ -26,8 +35,4 @@ OUTPUTFORMAT
   'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'
 LOCATION
   'hdfs://analytics-hadoop/wmf/data/raw/mediawiki/tables/page'
-;
-
--- find all partitons, per http://stackoverflow.com/a/35834372/180664
-MSCK REPAIR TABLE `wmf.mediawiki_page`
 ;

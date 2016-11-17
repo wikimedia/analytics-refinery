@@ -1,5 +1,13 @@
-DROP TABLE `wmf.mediawiki_user_history`
-;
+-- Creates table statement for mediawiki_user_history table.
+--
+-- Parameters:
+--     <none>
+--
+-- Usage
+--     hive -f create_mediawiki_user_history_table.hql \
+--         --database wmf
+--
+
 CREATE EXTERNAL TABLE `wmf.mediawiki_user_history`(
     wiki_db                         string          COMMENT 'enwiki, dewiki, eswiktionary, etc.',
     user_id                         bigint          COMMENT 'ID of the user, as in the user table.',
@@ -24,6 +32,8 @@ CREATE EXTERNAL TABLE `wmf.mediawiki_user_history`(
 )
 COMMENT
   'See most up to date documentation at https://wikitech.wikimedia.org/wiki/Analytics/Data_Lake/Mediawiki_user_history'
+PARTITIONED BY (
+  `snapshot` string COMMENT 'Versioning information to keep multiple datasets (YYYY-MM for regular labs imports)')
 ROW FORMAT SERDE
   'org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe'
 STORED AS INPUTFORMAT
@@ -32,8 +42,4 @@ OUTPUTFORMAT
   'org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat'
 LOCATION
   'hdfs://analytics-hadoop/wmf/data/wmf/mediawiki/user_history'
-;
-
--- find all partitons, per http://stackoverflow.com/a/35834372/180664
-MSCK REPAIR TABLE `wmf.mediawiki_user_history`
 ;

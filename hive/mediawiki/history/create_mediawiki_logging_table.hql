@@ -1,6 +1,14 @@
-DROP TABLE `wmf.mediawiki_logging`
-;
-CREATE EXTERNAL TABLE `wmf.mediawiki_logging`(
+-- Creates table statement for raw mediawiki_logging table.
+--
+-- Parameters:
+--     <none>
+--
+-- Usage
+--     hive -f create_mediawiki_logging_table.hql \
+--         --database wmf_raw
+--
+
+CREATE EXTERNAL TABLE `wmf_raw.mediawiki_logging`(
   `log_id`          bigint      COMMENT 'Primary key for the table along with wiki. rc_logid is a foreign key linking to this column.',
   `log_type`        string      COMMENT 'The type of the log action, or the "log type". You can filter by this type on Special:Log. Typical values are: block, delete, import, makebot, move, newusers, protect, renameuser, rights, upload ("uploaded" in example) Comparable to rc_log_type.',
   `log_action`      string      COMMENT 'The action performed. There may be multiple actions possible for a given type: for example, an entry with the type delete may have the action delete or restore, etc. Comparable to rc_log_action. See also API:Logevents#Parameters. See Manual:Log actions.',
@@ -16,8 +24,9 @@ CREATE EXTERNAL TABLE `wmf.mediawiki_logging`(
 )
 COMMENT
   'See most up to date documentation at https://www.mediawiki.org/wiki/Manual:Logging_table'
-PARTITIONED BY
-  (`wiki_db` string)
+PARTITIONED BY (
+  `snapshot` string COMMENT 'Versioning information to keep multiple datasets (YYYY-MM for regular labs imports)',
+  `wiki_db` string COMMENT 'The wiki_db project')
 ROW FORMAT SERDE
   'org.apache.hadoop.hive.serde2.avro.AvroSerDe'
 STORED AS INPUTFORMAT
@@ -26,8 +35,4 @@ OUTPUTFORMAT
   'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'
 LOCATION
   'hdfs://analytics-hadoop/wmf/data/raw/mediawiki/tables/logging'
-;
-
--- find all partitons, per http://stackoverflow.com/a/35834372/180664
-MSCK REPAIR TABLE `wmf.mediawiki_logging`
 ;

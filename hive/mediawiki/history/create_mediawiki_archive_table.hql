@@ -1,6 +1,14 @@
-DROP TABLE `wmf.mediawiki_archive`
-;
-CREATE EXTERNAL TABLE `wmf.mediawiki_archive`(
+-- Creates table statement for raw mediawiki_archive table.
+--
+-- Parameters:
+--     <none>
+--
+-- Usage
+--     hive -f create_mediawiki_archive_table.hql \
+--         --database wmf_raw
+--
+
+CREATE EXTERNAL TABLE `wmf_raw.mediawiki_archive`(
   `ar_id`               bigint      COMMENT 'Primary key along with wiki.',
   `ar_namespace`        bigint      COMMENT 'Basic page information: contains the namespace of the deleted revision. These contain the value in page_namespace.',
   `ar_title`            string      COMMENT 'Basic page information: contains the page title of the deleted page, which is the same as page_title.',
@@ -23,8 +31,9 @@ CREATE EXTERNAL TABLE `wmf.mediawiki_archive`(
 )
 COMMENT
   'See most up to date documentation at https://www.mediawiki.org/wiki/Manual:Archive_table'
-PARTITIONED BY
-  (`wiki_db` string)
+PARTITIONED BY (
+  `snapshot` string COMMENT 'Versioning information to keep multiple datasets (YYYY-MM for regular labs imports)',
+  `wiki_db` string COMMENT 'The wiki_db project')
 ROW FORMAT SERDE
   'org.apache.hadoop.hive.serde2.avro.AvroSerDe'
 STORED AS INPUTFORMAT
@@ -33,8 +42,4 @@ OUTPUTFORMAT
   'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'
 LOCATION
   'hdfs://analytics-hadoop/wmf/data/raw/mediawiki/tables/archive'
-;
-
--- find all partitons, per http://stackoverflow.com/a/35834372/180664
-MSCK REPAIR TABLE `wmf.mediawiki_archive`
 ;

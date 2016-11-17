@@ -1,5 +1,13 @@
-DROP TABLE `wmf.mediawiki_page_history`
-;
+-- Creates table statement for mediawiki_page_history table.
+--
+-- Parameters:
+--     <none>
+--
+-- Usage
+--     hive -f create_mediawiki_page_history_table.hql \
+--         --database wmf
+--
+
 CREATE EXTERNAL TABLE `wmf.mediawiki_page_history`(
     wiki_db                             string      COMMENT 'enwiki, dewiki, eswiktionary, etc.',
     page_id                             bigint      COMMENT 'Id of the page, as in the page table.',
@@ -11,6 +19,7 @@ CREATE EXTERNAL TABLE `wmf.mediawiki_page_history`(
     page_namespace_is_content           boolean     COMMENT 'Whether the historical namespace is categorized as content',
     page_namespace_latest               int         COMMENT 'Namespace as of today.',
     page_namespace_is_content_latest    boolean     COMMENT 'Whether the current namespace is categorized as content',
+    page_is_redirect_latest             boolean     COMMENT 'In revision/page events: whether the page is currently a redirect',
     start_timestamp                     string      COMMENT 'Timestamp from where this state applies (inclusive).',
     end_timestamp                       string      COMMENT 'Timestamp to where this state applies (exclusive).',
     caused_by_event_type                string      COMMENT 'Event that caused this state (create, move, delete or restore).',
@@ -19,6 +28,8 @@ CREATE EXTERNAL TABLE `wmf.mediawiki_page_history`(
 )
 COMMENT
   'See most up to date documentation at https://wikitech.wikimedia.org/wiki/Analytics/Data_Lake/Mediawiki_page_history'
+PARTITIONED BY (
+  `snapshot` string COMMENT 'Versioning information to keep multiple datasets (YYYY-MM for regular labs imports)')
 ROW FORMAT SERDE
   'org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe'
 STORED AS INPUTFORMAT
@@ -27,8 +38,4 @@ OUTPUTFORMAT
   'org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat'
 LOCATION
   'hdfs://analytics-hadoop/wmf/data/wmf/mediawiki/page_history'
-;
-
--- find all partitons, per http://stackoverflow.com/a/35834372/180664
-MSCK REPAIR TABLE `wmf.mediawiki_page_history`
 ;
