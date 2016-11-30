@@ -102,8 +102,8 @@
                 <property>
                     <!--
                     Doubling available heap for maps from cluster-wide default
-                    of 592MB to 1184MB, as otherwise the 5xx and glam_nara tsvs
-                    run out of heap space.
+                    of 592MB to 1184MB, as otherwise the 5xx tsvs run out of
+                    heap space.
                     -->
                     <name>mapreduce.map.java.opts</name>
                     <value>-Xmx1184m</value>

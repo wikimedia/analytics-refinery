@@ -69,24 +69,6 @@
         </configuration>
     </coordinator>
 
-    <coordinator name="webrequest-legacy_tsvs-coord-glam_nara">
-        <app-path>${coordinator_text_upload_file}</app-path>
-        <configuration>
-            <property>
-                <name>aspect_name</name>
-                <value>glam_nara</value>
-            </property>
-            <property>
-                <name>aspect_tsv_archive_directory</name>
-                <value>${webrequest_archive_directory}/glam_nara</value>
-            </property>
-            <property>
-                <name>hour_offset</name>
-                <value>6</value>
-            </property>
-        </configuration>
-    </coordinator>
-
     <coordinator name="webrequest-legacy_tsvs-coord-edits">
         <app-path>${coordinator_text_file}</app-path>
         <configuration>
