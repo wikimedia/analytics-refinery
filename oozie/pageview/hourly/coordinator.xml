@@ -37,6 +37,7 @@
 
         <property><name>mark_directory_done_workflow_file</name></property>
         <property><name>archive_job_output_workflow_file</name></property>
+        <property><name>sla_alert_contact</name></property>
     </parameters>
 
     <controls>
@@ -144,5 +145,17 @@
 
             </configuration>
         </workflow>
+        <sla:info>
+            <!--
+                Use action actual time as SLA base, since it's the time used
+                to compute timeout
+                Put six hours as SLA since webrequest has 5 and can take some
+                time to finish
+            -->
+            <sla:nominal-time>${coord:actualTime()}</sla:nominal-time>
+            <sla:should-end>${6 * HOURS}</sla:should-end>
+            <sla:alert-events>end_miss</sla:alert-events>
+            <sla:alert-contact>${sla_alert_contact}</sla:alert-contact>
+        </sla:info>
     </action>
 </coordinator-app>
