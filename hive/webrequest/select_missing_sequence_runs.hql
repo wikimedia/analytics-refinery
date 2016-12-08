@@ -2,11 +2,11 @@
 --
 -- Sample output:
 --
---    hostname            missing_start   missing_end  missing_count
---    --------            -------------   -----------  -------------
---    cp4003.ulsfo.wmnet     1302837053    1302837055              1
---    cp4003.ulsfo.wmnet     1302837059    1302837061              1
---    cp4003.ulsfo.wmnet     1302837066    1302837070              3
+--    hostname            before_missing   after_missing  missing_count
+--    --------            --------------   -------------  -------------
+--    cp4003.ulsfo.wmnet      1302837053      1302837055              1
+--    cp4003.ulsfo.wmnet      1302837059      1302837061              1
+--    cp4003.ulsfo.wmnet      1302837066      1302837070              3
 --
 -- Parameters:
 --     table_name        -- Fully qualified table name to look for missing
@@ -34,8 +34,8 @@
 
 SELECT
     hostname,
-    sequence + 1 AS missing_start,
-    next_sequence - 1 AS missing_end,
+    sequence AS before_missing,
+    next_sequence AS after_missing,
     next_sequence - sequence - 1 AS missing_count,
     dt dt_before_missing,
     next_dt dt_after_missing
