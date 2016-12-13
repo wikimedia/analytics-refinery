@@ -17,7 +17,6 @@ Options:
   --datasets DATASET1,DATASET2,...
                   -- Select the datasets to output data for.
                      The following datasets are available:
-                       legacy_tsvs          -- legacy webrequest TSVs (daily)
                        mediacounts          -- mediacounts (daily)
                        pagecounts-all-sites -- pagecounts-all-sites (hourly)
                        pagecounts-raw       -- pagecounts-raw (hourly)
@@ -75,7 +74,6 @@ add_dataset() {
     DATASET_VISIBILITIES["$DATASET"]=no
 }
 
-add_dataset "legacy_tsvs" "daily" "    5xx    | 5xx-misc  | 5xx-text  |5xx-upload |    api    |   edits   |  sampled  |"
 add_dataset "mediacounts" "daily" "   full  | top1000 |"
 add_dataset "pagecounts_all_sites" "hourly" " file name date  |  page   | project |"
 add_dataset "pagecounts_raw" "hourly" " file name date  |  page   | project |"
@@ -362,32 +360,6 @@ get_percent_different() {
     local QUERY="SELECT LPAD(ROUND(percent_lost, 1), 5, ' ') FROM wmf_raw.webrequest_sequence_stats_hourly WHERE $CONDITIONS;"
 
     echo "$(hive -S -e "$QUERY" 2>/dev/null | tail -n 1)%"
-}
-
-dump_dataset_legacy_tsvs() {
-    local DATE="$1"
-
-    local SUFFIX=".tsv.log-$(date --utc -d "$DATE 1 hour" +"%Y%m%d").gz"
-
-    local BASE
-    for BASE in \
-        5xx/5xx \
-        5xx-misc/5xx-misc \
-        5xx-text/5xx-text \
-        5xx-upload/5xx-upload \
-        api/api-usage \
-        edits/edits \
-        sampled/sampled-1000 \
-
-    do
-        local STATUS="X"
-        local FILE_ABS="$ARCHIVE_DATA_DIR_ABS/webrequest/$BASE$SUFFIX"
-        if [ -e "$FILE_ABS" ]
-        then
-            STATUS="_"
-        fi
-        log_no_lf "     $STATUS     |"
-    done
 }
 
 dump_dataset_mediacounts() {
