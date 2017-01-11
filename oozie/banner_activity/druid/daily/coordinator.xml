@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coordinator-app xmlns="uri:oozie:coordinator:0.4"
+    name="banner_activity-druid-daily-coord"
+    frequency="${coord:days(1)}"
+    start="${start_time}"
+    end="${stop_time}"
+    timezone="Universal">
+
+    <parameters>
+
+        <!-- Required properties. -->
+        <property><name>name_node</name></property>
+        <property><name>job_tracker</name></property>
+        <property><name>queue_name</name></property>
+
+        <property><name>hive_site_xml</name></property>
+        <property><name>workflow_file</name></property>
+        <property><name>webrequest_datasets_file</name></property>
+        <property><name>webrequest_data_directory</name></property>
+        <property><name>webrequest_table</name></property>
+
+        <property><name>start_time</name></property>
+        <property><name>stop_time</name></property>
+
+        <property><name>druid_template_file</name></property>
+        <property><name>druid_overlord_url</name></property>
+
+        <property><name>temporary_directory</name></property>
+
+        <property><name>load_druid_workflow_file</name></property>
+        <property><name>mark_directory_done_workflow_file</name></property>
+        <property><name>send_error_email_workflow_file</name></property>
+
+    </parameters>
+
+    <controls>
+        <!--(timeout is measured in minutes)-->
+        <timeout>-1</timeout>
+
+        <!-- Setting low concurrency cause the job is hungry in resources -->
+        <concurrency>1</concurrency>
+
+        <throttle>2</throttle>
+
+    </controls>
+
+    <datasets>
+        <include>${webrequest_datasets_file}</include>
+    </datasets>
+
+    <input-events>
+        <data-in name="webrequest_text_input" dataset="webrequest_text">
+            <start-instance>${coord:current(0)}</start-instance>
+            <end-instance>${coord:current(23)}</end-instance>
+        </data-in>
+    </input-events>
+
+    <action>
+        <workflow>
+            <app-path>${workflow_file}</app-path>
+            <configuration>
+                <property>
+                    <name>year</name>
+                    <value>${coord:formatTime(coord:nominalTime(), "y")}</value>
+                </property>
+                <property>
+                    <name>month</name>
+                    <value>${coord:formatTime(coord:nominalTime(), "M")}</value>
+                </property>
+                <property>
+                    <name>day</name>
+                    <value>${coord:formatTime(coord:nominalTime(), "d")}</value>
+                </property>
+                <property>
+                    <name>loaded_period</name>
+                    <value>${coord:formatTime(coord:nominalTime(), "yyyy-MM-dd")}/${coord:formatTime(coord:dateOffset(coord:nominalTime(), 1, "DAY"), "yyyy-MM-dd")}</value>
+                </property>
+            </configuration>
+        </workflow>
+    </action>
+</coordinator-app>
