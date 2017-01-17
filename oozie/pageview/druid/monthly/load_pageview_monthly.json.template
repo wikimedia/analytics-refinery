@@ -54,6 +54,7 @@
     },
     "tuningConfig" : {
       "type" : "hadoop",
+      "overwriteFiles": true,
       "ignoreInvalidRows" : false,
       "partitionsSpec" : {
         "type" : "hashed",
