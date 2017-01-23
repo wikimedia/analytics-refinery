@@ -20,7 +20,7 @@ DROP TABLE IF EXISTS tmp_daily_druid_pageviews_${year}_${month}_${day};
 
 
 CREATE EXTERNAL TABLE IF NOT EXISTS tmp_daily_druid_pageviews_${year}_${month}_${day} (
-    `ts`                  string,
+    `dt`                  string,
     `project`             string,
     `language_variant`    string,
     `access_method`       string,
@@ -52,7 +52,7 @@ SELECT
         LPAD(year, 4, '0'), '-',
         LPAD(month, 2, '0'), '-',
         LPAD(day, 2, '0'), 'T',
-        LPAD(hour, 2, '0'), ':00:00Z') AS ts,
+        LPAD(hour, 2, '0'), ':00:00Z') AS dt,
     project AS project,
     language_variant AS language_variant,
     access_method AS access_method,

@@ -43,7 +43,7 @@
           },
           "timestampSpec" : {
             "format" : "auto",
-            "column" : "ts"
+            "column" : "dt"
           }
         }
       },
