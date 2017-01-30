@@ -29,10 +29,10 @@ Options:
     -t --table=<table>                  Name of table.
     -l --location=<location>            Base HDFS location path of the table.  If not
                                         specified, this will be inferred from the table schema metadata.
-    -p --partition-type=<type>          Either 'raw' or 'hive'.  'raw' is expected to be of the form
+    -p --partition-type=<type>          Either 'camus' or 'hive'.  'camus' is expected to be of the form
                                         hourly/YYYY/MM/DD/HH.  'hive' has partitions keys in the directory
                                         paths without the 'hourly' prefix, like
-                                        year=YYYY/month=MM/day=DD/hour=HH.  [default: raw]
+                                        year=YYYY/month=MM/day=DD/hour=HH.  [default: camus]
     -o --hive-options=<options>         Any valid Hive CLI options you want to pass to Hive commands.
                                         Example: '--auxpath /path/to/hive-serdes-1.0-SNAPSHOT.jar'
     -v --verbose                        Turn on verbose debug logging.
@@ -62,8 +62,8 @@ if __name__ == '__main__':
     verbose         = arguments['--verbose']
     dry_run         = arguments['--dry-run']
 
-    if partition_type != 'raw' and partition_type != 'hive':
-        logging.error('--partition-type must either be \'raw\' or \'hive\'.')
+    if partition_type != 'camus' and partition_type != 'hive':
+        logging.error('--partition-type must either be \'camus\' or \'hive\'.')
         sys.exit(1)
 
     log_level = logging.INFO
@@ -99,7 +99,7 @@ if __name__ == '__main__':
 
     # These globs will be used to list out all partition paths in HDFS.
     partition_globs = {
-        'raw':      os.path.join(table_location, 'hourly', '*', '*', '*', '*'),
+        'camus':    os.path.join(table_location, '*', '*', '*', '*'),
         'hive':     os.path.join(table_location, '*', '*', '*', '*')
     }
 
@@ -108,13 +108,13 @@ if __name__ == '__main__':
     # The first match group will be passed to datetime.datetime.strptime
     # using one of the below date_formats.
     date_regexes = {
-        'raw':      re.compile(r'.*/hourly/(\d+\/\d+\/\d+\/\d+)$'),
+        'camus':    re.compile(r'.*/hourly/(\d+\/\d+\/\d+\/\d+)$'),
         'hive':     re.compile(r'.*/(year=\d+/month=\d+/day=\d+/hour=\d+)$')
     }
     # These will be used to extract a datetime object from the string
     # matched by date_regex in HiveUtils partition_datetime_from_path
     date_formats = {
-        'raw':       '%Y/%m/%d/%H',
+        'camus':     '%Y/%m/%d/%H',
         'hive':      'year=%Y/month=%m/day=%d/hour=%H'
     }
 
