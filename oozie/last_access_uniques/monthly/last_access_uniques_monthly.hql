@@ -18,6 +18,9 @@
 -- Set parquet compression codec
 SET parquet.compression              = SNAPPY;
 
+-- Allocate resources to almost all maps before starting reducers
+SET mapreduce.job.reduce.slowstart.completedmaps=0.99;
+
 WITH last_access_dates AS (
     SELECT
         year,

@@ -31,6 +31,9 @@
 SET hive.exec.compress.output=true;
 SET mapreduce.output.fileoutputformat.compress.codec=org.apache.hadoop.io.compress.GzipCodec;
 
+-- Allocate resources to almost all maps before starting reducers
+SET mapreduce.job.reduce.slowstart.completedmaps=0.99;
+
 
 -- Create a temporary table, then compute the new unique count
 -- and concatenate it to archived data.

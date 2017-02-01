@@ -51,6 +51,17 @@
             <start-instance>${coord:current(0)}</start-instance>
             <end-instance>${coord:current(coord:daysInMonth(0) * 24 - 1)}</end-instance>
         </data-in>
+
+        <!--
+        The following dataset is not required as input to the
+        workflow, but only helps to delay running it.
+
+        We start the job 12 hours after the new month starts, allowing
+        for the opther monthly jobs to have most of their work done
+        -->
+        <data-in name="delay" dataset="webrequest_text">
+            <instance>${coord:current(coord:daysInMonth(0) * 24 + 12)}</instance>
+        </data-in>
     </input-events>
 
 
