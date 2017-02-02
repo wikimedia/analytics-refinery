@@ -53,7 +53,8 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `webrequest`(
     `referer_class`     string  COMMENT 'Indicates if a referer is internal, external or unknown.',
     `normalized_host`   struct<project_class: string, project:string, qualifiers: array<string>, tld: String>  COMMENT 'struct containing project_class (such as wikipedia or wikidata for instance), project (such as en or commons), qualifiers (a list of in-between values, such as m and/or zero) and tld (org most often)',
     `pageview_info`     map<string, string>  COMMENT 'map containing project, language_variant and page_title values only when is_pageview = TRUE.',
-    `page_id`           int     COMMENT 'MediaWiki page_id for this page title. For redirects this could be the page_id of the redirect or the page_id of the target. This may not always be set, even if the page is actually a pageview.'
+    `page_id`           bigint  COMMENT 'MediaWiki page_id for this page title. For redirects this could be the page_id of the redirect or the page_id of the target. This may not always be set, even if the page is actually a pageview.',
+    `namespace_id`      int     COMMENT 'MediaWiki namespace_id for this page title. This may not always be set, even if the page is actually a pageview.'
 )
 PARTITIONED BY (
     `webrequest_source` string  COMMENT 'Source cluster',

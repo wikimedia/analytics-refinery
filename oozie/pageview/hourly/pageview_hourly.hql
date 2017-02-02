@@ -46,7 +46,8 @@ INSERT OVERWRITE TABLE ${destination_table}
         user_agent_map,
         '${record_version}' AS record_version,
         COUNT(1) AS view_count,
-        page_id
+        page_id,
+        namespace_id
     FROM
         ${source_table}
     WHERE webrequest_source IN ('text') AND
@@ -67,5 +68,6 @@ INSERT OVERWRITE TABLE ${destination_table}
         geocoded_data['subdivision'],
         geocoded_data['city'],
         user_agent_map,
-        page_id
+        page_id,
+        namespace_id
 ;
