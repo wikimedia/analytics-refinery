@@ -59,10 +59,6 @@
             <description>A directory in HDFS for temporary files</description>
         </property>
         <property>
-            <name>temporary_dataset_path</name>
-            <value>${temporary_directory}/${wf:id()}-daily-druid-pageviews-${year}-${month}-${day}</value>
-        </property>
-        <property>
             <name>load_druid_workflow_file</name>
             <description>Workflow for loading druid</description>
         </property>
@@ -111,7 +107,7 @@
             </configuration>
             <script>generate_daily_druid_pageviews.hql</script>
             <param>source_table=${pageview_table}</param>
-            <param>destination_directory=${temporary_dataset_path}</param>
+            <param>destination_directory=${temporary_directory}/${wf:id()}-daily-druid-pageviews-${year}-${month}-${day}</param>
             <param>year=${year}</param>
             <param>month=${month}</param>
             <param>day=${day}</param>
@@ -126,7 +122,7 @@
             <configuration>
                 <property>
                     <name>directory</name>
-                    <value>${temporary_dataset_path}</value>
+                    <value>${temporary_directory}/${wf:id()}-daily-druid-pageviews-${year}-${month}-${day}</value>
                 </property>
             </configuration>
         </sub-workflow>
@@ -142,7 +138,7 @@
             <configuration>
                 <property>
                     <name>source_directory</name>
-                    <value>${temporary_dataset_path}</value>
+                    <value>${temporary_directory}/${wf:id()}-daily-druid-pageviews-${year}-${month}-${day}</value>
                 </property>
                 <property>
                     <name>template_file</name>
@@ -164,7 +160,7 @@
 
     <action name="remove_temporary_data">
         <fs>
-            <delete path="${temporary_dataset_path}"/>
+            <delete path="${temporary_directory}/${wf:id()}-daily-druid-pageviews-${year}-${month}-${day}"/>
         </fs>
         <ok to="end"/>
         <error to="send_error_email"/>
