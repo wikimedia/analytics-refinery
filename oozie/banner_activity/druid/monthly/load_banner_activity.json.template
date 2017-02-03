@@ -1,0 +1,72 @@
+{
+  "type" : "index_hadoop",
+  "spec" : {
+    "ioConfig" : {
+      "type" : "hadoop",
+      "inputSpec" : {
+        "type" : "static",
+        "paths" : "*INPUT_PATH*"
+      }
+    },
+    "dataSchema" : {
+      "dataSource" : "banner_activity_minutely",
+      "granularitySpec" : {
+        "type" : "uniform",
+        "segmentGranularity" : "month",
+        "queryGranularity" : "minute",
+        "intervals" : *INTERVALS_ARRAY*
+      },
+      "parser" : {
+        "type" : "string",
+        "parseSpec" : {
+          "format" : "json",
+          "dimensionsSpec" : {
+            "dimensions" : [
+                "campaign",
+                "banner",
+                "project",
+                "uselang",
+                "bucket",
+                "anonymous",
+                "status_code",
+                "country",
+                "country_matches_geocode",
+                "region",
+                "device",
+                "sample_rate"
+            ]
+          },
+          "timestampSpec" : {
+            "format" : "auto",
+            "column" : "dt"
+          }
+        }
+      },
+      "metricsSpec" : [
+        {
+          "name" : "request_count",
+          "type" : "longSum",
+          "fieldName": "request_count"
+        },
+        {
+          "name" : "normalized_request_count",
+          "type" : "longSum",
+          "fieldName": "normalized_request_count"
+        }
+      ]
+    },
+    "tuningConfig" : {
+      "type" : "hadoop",
+      "ignoreInvalidRows" : false,
+      "partitionsSpec" : {
+        "type" : "hashed",
+        "numShards" : 8
+      },
+      "jobProperties" : {
+        "mapreduce.reduce.memory.mb" : "8192",
+        "mapreduce.output.fileoutputformat.compress": "org.apache.hadoop.io.compress.GzipCodec",
+        "mapreduce.job.queuename": "*HADOOP_QUEUE*"
+      }
+    }
+  }
+}
