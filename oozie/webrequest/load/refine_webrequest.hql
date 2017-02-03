@@ -107,7 +107,11 @@ INSERT OVERWRITE TABLE ${destination_table}
         CASE COALESCE(x_analytics, '-')
           WHEN '-' THEN NULL
           ELSE str_to_map(x_analytics, '\;', '=')['page_id']
-        END as page_id
+        END as page_id,
+        CASE COALESCE(x_analytics, '-')
+          WHEN '-' THEN NULL
+          ELSE str_to_map(x_analytics, '\;', '=')['ns']
+        END as namespace_id
     FROM
         ${source_table}
     WHERE
