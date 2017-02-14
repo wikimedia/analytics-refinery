@@ -29,6 +29,10 @@ Options:
     -t --table=<table>                  Name of table.
     -l --location=<location>            Base HDFS location path of the table.  If not
                                         specified, this will be inferred from the table schema metadata.
+    -p --partition-type=<type>          Either 'raw' or 'hive'.  'raw' is expected to be of the form
+                                        hourly/YYYY/MM/DD/HH.  'hive' has partitions keys in the directory
+                                        paths without the 'hourly' prefix, like
+                                        year=YYYY/month=MM/day=DD/hour=HH.  [default: raw]
     -o --hive-options=<options>         Any valid Hive CLI options you want to pass to Hive commands.
                                         Example: '--auxpath /path/to/hive-serdes-1.0-SNAPSHOT.jar'
     -v --verbose                        Turn on verbose debug logging.
@@ -44,10 +48,6 @@ import os
 import sys
 from refinery.util import HiveUtils, HdfsUtils
 
-# from pprint import pprint as pp
-
-
-
 
 if __name__ == '__main__':
     # parse arguments
@@ -57,12 +57,14 @@ if __name__ == '__main__':
     database        = arguments['--database']
     table           = arguments['--table']
     table_location  = arguments['--location']
+    partition_type  = arguments['--partition-type']
     hive_options    = arguments['--hive-options']
     verbose         = arguments['--verbose']
     dry_run         = arguments['--dry-run']
 
-    # Only raw for now
-    partition_type  = 'raw';
+    if partition_type != 'raw' and partition_type != 'hive':
+        logging.error('--partition-type must either be \'raw\' or \'hive\'.')
+        sys.exit(1)
 
     log_level = logging.INFO
     if verbose:
@@ -98,6 +100,7 @@ if __name__ == '__main__':
     # These globs will be used to list out all partition paths in HDFS.
     partition_globs = {
         'raw':      os.path.join(table_location, 'hourly', '*', '*', '*', '*'),
+        'hive':     os.path.join(table_location, '*', '*', '*', '*')
     }
 
     # These regexes tells HiveUtils partition_datetime_from_path
@@ -105,12 +108,14 @@ if __name__ == '__main__':
     # The first match group will be passed to datetime.datetime.strptime
     # using one of the below date_formats.
     date_regexes = {
-        'raw':      re.compile(r'.*/hourly/(.+)$'),
+        'raw':      re.compile(r'.*/hourly/(\d+\/\d+\/\d+\/\d+)$'),
+        'hive':     re.compile(r'.*/(year=\d+/month=\d+/day=\d+/hour=\d+)$')
     }
     # These will be used to extract a datetime object from the string
     # matched by date_regex in HiveUtils partition_datetime_from_path
     date_formats = {
         'raw':       '%Y/%m/%d/%H',
+        'hive':      'year=%Y/month=%m/day=%d/hour=%H'
     }
 
     # Delete partitions older than this.
@@ -140,7 +145,7 @@ if __name__ == '__main__':
         except ValueError as e:
             logging.error(
                 'hive.partition_datetime_from_path could not parse date found in {0} using pattern {1}. Skipping. ({2})'
-                .format(partition_path, date_regex.pattern, e)
+                .format(partition_path, date_regexes[partition_type].pattern, e)
             )
             continue
 
