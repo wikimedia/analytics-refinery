@@ -38,16 +38,16 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `webrequest`(
     `is_pageview`       boolean COMMENT 'Indicates if this record was marked as a pageview during refinement',
     `record_version`    string  COMMENT 'Keeps track of changes in the table content definition - https://wikitech.wikimedia.org/wiki/Analytics/Data/Webrequest',
     `client_ip`         string  COMMENT 'Client IP - DEPRECATED - Same as IP.',
-    `geocoded_data`     map<string, string>  COMMENT 'Geocoded map with continent, country_code, country, city, subdivision, postal_code, latitude, longitude, timezone keys  and associated values.',
+    `geocoded_data`     map<string, string>  COMMENT 'Geocoded map with continent, country_code, country, city, subdivision, postal_code, latitude, longitude, timezone keys and associated values.',
     -- Waiting for x_cache format to change before parsing into a map
     `x_cache`           string  COMMENT 'X-Cache header of response',
     -- Next two fields are to replace original ua and x_analytics ones.
     -- However such schema modification implies backward incompatibility.
     -- We will replace once we feel confident enough that 'every' backward incompatible change is done.
-    `user_agent_map`    map<string, string>  COMMENT 'User-agent map with browser_name, browser_major, device, os_name, os_major, os_minor and wmf_app_version keys and associated values',
+    `user_agent_map`    map<string, string>  COMMENT 'User-agent map with browser_family, browser_major, device_family, os_family, os_major, os_minor and wmf_app_version keys and associated values',
     `x_analytics_map`   map<string, string>  COMMENT 'X_analytics map view of the x_analytics field',
     `ts`                timestamp            COMMENT 'Unix timestamp in milliseconds extracted from dt',
-    `access_method`     string  COMMENT 'Method used to accessing the site (mobile app|mobile web|desktop)',
+    `access_method`     string  COMMENT 'Method used to access the site (mobile app|mobile web|desktop)',
     `agent_type`        string  COMMENT 'Categorise the agent making the webrequest as either user or spider (automatas to be added).',
     `is_zero`           boolean COMMENT 'Indicates if the webrequest is accessed through a zero provider',
     `referer_class`     string  COMMENT 'Indicates if a referer is internal, external or unknown.',
