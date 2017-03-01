@@ -103,7 +103,7 @@
             </configuration>
             <script>generate_monthly_druid_pageviews.hql</script>
             <param>source_table=${pageview_table}</param>
-            <param>destination_directory=>${temporary_directory}/${wf:id()}-monthly-druid-pageviews-${year}-${month}</param>
+            <param>destination_directory=${temporary_directory}/${wf:id()}-monthly-druid-pageviews-${year}-${month}</param>
             <param>year=${year}</param>
             <param>month=${month}</param>
         </hive>
@@ -117,7 +117,7 @@
             <configuration>
                 <property>
                     <name>directory</name>
-                    <value>>${temporary_directory}/${wf:id()}-monthly-druid-pageviews-${year}-${month}</value>
+                    <value>${temporary_directory}/${wf:id()}-monthly-druid-pageviews-${year}-${month}</value>
                 </property>
             </configuration>
         </sub-workflow>
@@ -133,7 +133,7 @@
             <configuration>
                 <property>
                     <name>source_directory</name>
-                    <value>>${temporary_directory}/${wf:id()}-monthly-druid-pageviews-${year}-${month}</value>
+                    <value>${temporary_directory}/${wf:id()}-monthly-druid-pageviews-${year}-${month}</value>
                 </property>
                 <property>
                     <name>template_file</name>
@@ -155,7 +155,7 @@
 
     <action name="remove_temporary_data">
         <fs>
-            <delete path=">${temporary_directory}/${wf:id()}-monthly-druid-pageviews-${year}-${month}"/>
+            <delete path="${temporary_directory}/${wf:id()}-monthly-druid-pageviews-${year}-${month}"/>
         </fs>
         <ok to="end"/>
         <error to="send_error_email"/>
