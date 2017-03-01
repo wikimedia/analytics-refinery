@@ -28,7 +28,7 @@ Classical usage would be:
   refinery-oozie-rerun -n                # To actually restart all the jobs
 
 Usage:
-    refinery-oozie-rerun [options] [job <job_id>]
+    refinery-oozie-rerun [options] [--replace=<var,val> ...] [job <job_id>]
 
 
 Options:
@@ -36,10 +36,12 @@ Options:
                             [default: /srv/deployment/analytics/refinery/oozie]
     --oozie-url=<url>       The base oozie URL to access oozie server
                             (defaults to the OOZIE_URL environment variable)
-    --refinery-dir=<hdfs>    The hdfs path where to find the refinery to use as
+    --refinery-dir=<hdfs>   The hdfs path where to find the refinery to use as
                             configuration (defaults to the latest one)
-    -s --separator=<c>      Separator for oozie path-to-jobs convention
+    --separator=<c>         Separator for oozie path-to-jobs convention
                             [default: -]
+    --replace=<var,val>     Reusable option expecting comma-separated
+                            variable,value for configuration updates
     -v --verbose            Turn on verbose debug logging.
     -n --no-dry-run         Actually rerun jobs, don't only output the actions.
     -h --help               Show this help message and exit.
@@ -225,7 +227,7 @@ def job_next_date(oozie_url, job_id):
         raise RuntimeError("Wrong id format {0}".format(job_id))
 
 
-def new_job_conf(oozie_url, job_id, date, refinery):
+def new_job_conf(oozie_url, job_id, date, refinery, replacements):
     json = json_from_job_id(oozie_url, job_id)
     conf = json["conf"]
     refinery_pattern = re.compile("hdfs://analytics-hadoop/wmf/" +
@@ -236,6 +238,10 @@ def new_job_conf(oozie_url, job_id, date, refinery):
     new_start = "<name>start_time</name><value>{0}</value>".format(
         date.strftime("%Y-%m-%dT%H:%MZ"))
     new_conf = start_date_pattern.sub(new_start, new_conf)
+    for var, val in replacements:
+        pattern = re.compile("<name>{}</name>\s*<value>.*</value>".format(var))
+        new_line = "<name>{0}</name><value>{1}</value>".format(var, val)
+        new_conf = pattern.sub(new_line, new_conf)
     return new_conf
 
 
@@ -259,14 +265,16 @@ def start_job(oozie_url, conf):
     return json.loads(resp.text)["id"]
 
 
-def restart_job(oozie_url, job_id, refinery_dir, dry_run, job_name=None):
+def restart_job(oozie_url, job_id, refinery_dir, replacements, dry_run,
+                job_name=None):
     if not job_name:
         job_name = job_id
 
     new_start = job_next_date(oozie_url, job_id)
     logger.debug("Job {0} next date is: {1}".format(job_name, new_start))
 
-    new_conf = new_job_conf(oozie_url, job_id, new_start, refinery_dir)
+    new_conf = new_job_conf(oozie_url, job_id, new_start, refinery_dir,
+                            replacements)
     logger.debug("Job {0} new conf is:\n {1}".format(job_name, new_conf))
 
     if not dry_run:
@@ -313,18 +321,27 @@ def main(args):
     dry_run = not args["--no-dry-run"]
     sep = args["--separator"]
 
+    replacements = []
+    for var_val in args["--replace"]:
+        split = var_val.split(",")
+        if len(split) != 2:
+            logger.error("Wrong format for replace option.")
+            sys.exit(1)
+        replacements.append((split[0], split[1]))
+
     if dry_run:
         logger.info("Running in dry mode, no action will be performed")
 
     if args["job"]:
         job_id = args["<job_id>"]
-        restart_job(oozie_url, job_id, refinery_dir, dry_run)
+        restart_job(oozie_url, job_id, refinery_dir, replacements, dry_run)
     else:
         running_jobs = oozie_running_jobs(oozie_url, sep)
         expected_jobs = job_names_from_dir(oozie_dir, sep)
         to_restart = jobs_to_restart(running_jobs, expected_jobs)
         for (name, id_) in to_restart:
-            restart_job(oozie_url, id_, refinery_dir, dry_run, job_name=name)
+            restart_job(oozie_url, id_, refinery_dir, replacements,
+                        dry_run, job_name=name)
 
 
 if __name__ == "__main__":
