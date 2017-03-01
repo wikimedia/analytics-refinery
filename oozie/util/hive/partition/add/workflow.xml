@@ -17,7 +17,7 @@
         </property>
         <property>
             <name>oozie_launcher_memory</name>
-            <value>256</value>
+            <value>2048</value>
         </property>
 
         <!-- Required properties -->
