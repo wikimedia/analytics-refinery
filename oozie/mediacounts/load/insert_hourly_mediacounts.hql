@@ -20,12 +20,9 @@ SET hive.enforce.bucketing           = true;
 -- table is clustered by.
 SET mapreduce.job.reduces            = 64;
 
-ADD JAR ${artifacts_directory}/org/wikimedia/analytics/refinery/refinery-hive-0.0.8.jar;
-CREATE TEMPORARY FUNCTION parse_media_file_url AS 'org.wikimedia.analytics.refinery.hive.MediaFileUrlParserUDF';
-
------------- WARNING -----------------
--- The RefererClassifierUDF has changed in refinery-hive-0.0.11.jar, returning a string instead of a map.
-CREATE TEMPORARY FUNCTION classify_referer AS 'org.wikimedia.analytics.refinery.hive.RefererClassifierUDF';
+ADD JAR ${artifacts_directory}/org/wikimedia/analytics/refinery/refinery-hive-0.0.41.jar;
+CREATE TEMPORARY FUNCTION parse_media_file_url AS 'org.wikimedia.analytics.refinery.hive.GetMediaFilePropertiesUDF';
+CREATE TEMPORARY FUNCTION classify_referer AS 'org.wikimedia.analytics.refinery.hive.GetRefererTypeUDF';
 
 
 INSERT OVERWRITE TABLE ${destination_table}
@@ -47,9 +44,9 @@ INSERT OVERWRITE TABLE ${destination_table}
         SUM(IF(parsed_url.is_transcoded_to_movie AND parsed_url.height BETWEEN 0 AND 239, 1, 0)) transcoded_movie_0_239,
         SUM(IF(parsed_url.is_transcoded_to_movie AND parsed_url.height BETWEEN 240 AND 479, 1, 0)) transcoded_movie_240_479,
         SUM(IF(parsed_url.is_transcoded_to_movie AND parsed_url.height >= 480, 1, 0)) transcoded_movie_480,
-        SUM(IF(classified_refererer.is_internal, 1, 0)) referer_internal,
-        SUM(IF(classified_refererer.is_external, 1, 0)) referer_external,
-        SUM(IF(classified_refererer.is_unknown, 1, 0)) referer_unknown
+        SUM(IF(classified_refererer = 'internal', 1, 0)) referer_internal,
+        SUM(IF(classified_refererer LIKE 'external%', 1, 0)) referer_external,
+        SUM(IF(classified_refererer = 'unknown' OR classified_refererer = 'none', 1, 0)) referer_unknown
     FROM (
         SELECT
             response_size,
