@@ -18,8 +18,6 @@ Options:
                   -- Select the datasets to output data for.
                      The following datasets are available:
                        mediacounts          -- mediacounts (daily)
-                       pagecounts-all-sites -- pagecounts-all-sites (hourly)
-                       pagecounts-raw       -- pagecounts-raw (hourly)
                        raw_webrequest       -- Raw webrequest (hourly)
                        webrequest           -- webrequest (refined tables) (hourly)
                        pageview             -- pageview aggregation (hourly)
@@ -75,8 +73,6 @@ add_dataset() {
 }
 
 add_dataset "mediacounts" "daily" "   full  | top1000 |"
-add_dataset "pagecounts_all_sites" "hourly" " file name date  |  page   | project |"
-add_dataset "pagecounts_raw" "hourly" " file name date  |  page   | project |"
 add_dataset "raw_webrequest" "hourly" "     maps    |     misc    |     text    |    upload   |"
 add_dataset "webrequest" "hourly" "  maps  |  misc  |  text  | upload |"
 add_dataset "pageview" "hourly" "  hourly  |"
@@ -382,48 +378,6 @@ dump_dataset_mediacounts() {
         fi
         log_no_lf "    $STATUS    |"
     done
-}
-
-dump_dataset_pagecounts_file() {
-    local DATASET="$1"
-    local KIND="$2"
-
-    local STATUS="X"
-
-    if [ "$KIND" = page ]
-    then
-        FILE_ENDING=".gz"
-    else
-        FILE_ENDING=""
-    fi
-
-    FILE_DATE_PART="$(date --utc -d "$DATE 1 hour" +"%Y/%Y-%m/${KIND}counts-%Y%m%d-%H0000")"
-
-    FILE_ABS="$ARCHIVE_DATA_DIR_ABS/${DATASET//_/-}/$FILE_DATE_PART$FILE_ENDING"
-
-    if [ -e "$FILE_ABS" ]
-    then
-        STATUS="_"
-    fi
-    log_no_lf "$STATUS"
-}
-
-dump_dataset_pagecounts_all_sites() {
-    local DATE="$1"
-    local DATASET="${2:-pagecounts_all_sites}"
-
-    log_no_lf " $(date --utc -d "$DATE 1 hour" +'%Y%m%d-%H0000') |"
-    for KIND in page project
-    do
-        log_no_lf "    "
-        dump_dataset_pagecounts_file "$DATASET" "$KIND"
-        log_no_lf "    |"
-    done
-}
-
-dump_dataset_pagecounts_raw() {
-    local DATE="$1"
-    dump_dataset_pagecounts_all_sites "$DATE" "pagecounts_raw"
 }
 
 dump_dataset_raw_webrequest_partition() {
