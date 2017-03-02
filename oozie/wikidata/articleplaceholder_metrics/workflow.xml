@@ -44,8 +44,8 @@
             <description>Additional files for spark</description>
         </property>
         <property>
-            <name>webrequest_table</name>
-            <description>The webrequest table name</description>
+            <name>webrequest_data_directory</name>
+            <description>The webrequest data directory</description>
         </property>
         <property>
             <name>year</name>
@@ -117,8 +117,8 @@
             <arg>${graphite_port}</arg>
             <arg>--graphite-namespace</arg>
             <arg>${graphite_namespace}</arg>
-            <arg>--webrequest-table</arg>
-            <arg>${webrequest_table}</arg>
+            <arg>--webrequest-base-path</arg>
+            <arg>${webrequest_data_directory}</arg>
         </spark>
         <ok to="end" />
         <error to="kill" />

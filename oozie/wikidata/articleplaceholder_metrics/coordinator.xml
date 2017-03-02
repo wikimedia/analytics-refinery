@@ -28,7 +28,6 @@
         <property><name>graphite_host</name></property>
         <property><name>graphite_port</name></property>
         <property><name>graphite_namespace</name></property>
-        <property><name>webrequest_table</name></property>
         <property><name>webrequest_data_directory</name></property>
 
         <property><name>error_emails_recipients</name></property>
