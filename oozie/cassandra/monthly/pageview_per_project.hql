@@ -28,7 +28,7 @@ INSERT OVERWRITE DIRECTORY "${destination_directory}"
         COALESCE(regexp_replace(project, ' ', '-'), 'all-projects'),
         COALESCE(regexp_replace(access_method, ' ', '-'), 'all-access'),
         COALESCE(agent_type, 'all-agents'),
-        CONCAT(LPAD(year, 4, "0"), LPAD(month, 2, "0"), "0000"),
+        CONCAT(LPAD(year, 4, "0"), LPAD(month, 2, "0"), "0100"),
         CAST(SUM(view_count) AS STRING))
     FROM
         ${source_table}
