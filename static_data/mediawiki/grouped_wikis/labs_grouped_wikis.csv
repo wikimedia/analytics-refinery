@@ -1,47 +1,48 @@
+# Labs wiki,group,edit size in 2016
 enwiki,1,675849233
-wikidatawiki,2,262672760
+# wikidatawiki,2,262672760
 commonswiki,3,186147553
-dewiki,4,143177459
-jawiki,4,57783456
-itwiki,5,76140013
-ruwiki,5,73060171
-frwiki,6,120965605
-eswiki,6,72672655
-nlwiki,7,43853157
-ptwiki,7,42513795
-plwiki,7,42509616
-zhwiki,8,38417198
-enwiktionary,8,37465364
-svwiki,8,35052902
+# dewiki,4,143177459
+# jawiki,4,57783456
+# itwiki,5,76140013
+# ruwiki,5,73060171
+# frwiki,6,120965605
+# eswiki,6,72672655
+# nlwiki,7,43853157
+# ptwiki,7,42513795
+# plwiki,7,42509616
+# zhwiki,8,38417198
+# enwiktionary,8,37465364
+# svwiki,8,35052902
 shwiki,8,33506101
 mgwiktionary,9,20228737
-frwiktionary,9,19881338
-viwiki,9,18401564
-nowiki,9,15727221
-trwiki,9,15595001
-huwiki,10,15247992
-metawiki,10,15182371
-fiwiki,10,15027822
-hewiki,10,14840945
-ukwiki,10,14787995
-arwiki,10,14550135
-fawiki,11,14071138
-cawiki,11,13685020
-cswiki,11,13115176
-kowiki,11,12427987
+# frwiktionary,9,19881338
+# viwiki,9,18401564
+# nowiki,9,15727221
+# trwiki,9,15595001
+# huwiki,10,15247992
+# metawiki,10,15182371
+# fiwiki,10,15027822
+# hewiki,10,14840945
+# ukwiki,10,14787995
+# arwiki,10,14550135
+# fawiki,11,14071138
+# cawiki,11,13685020
+# cswiki,11,13115176
+# kowiki,11,12427987
 srwiki,11,11368979
-idwiki,11,11033502
+# idwiki,11,11033502
 cebwiki,11,9638105
 dawiki,11,8194270
-rowiki,11,8167548
-bgwiki,11,6954448
+# rowiki,11,8167548
+# bgwiki,11,6954448
 ruwiktionary,11,6439760
 warwiki,11,6122929
 enwikisource,11,6038943
 skwiki,12,6021397
-thwiki,12,6021036
+# thwiki,12,6021036
 frwikisource,12,5773537
-eowiki,12,5763268
+# eowiki,12,5763268
 elwiki,12,5571574
 euwiki,12,5377713
 simplewiki,12,5021449
@@ -88,7 +89,7 @@ urwiki,12,2087080
 ptwiktionary,12,2042769
 huwiktionary,12,2023056
 tawiki,12,1995172
-enwikiquote,12,1979292
+# enwikiquote,12,1979292
 ocwiki,12,1941004
 mediawikiwiki,12,1940049
 ttwiki,12,1890270
@@ -116,7 +117,7 @@ mrwiki,12,1338674
 minwiki,12,1318116
 cewiki,12,1301776
 plwikisource,12,1162459
-bgwiktionary,12,1048991
+# bgwiktionary,12,1048991
 jvwiki,12,1035578
 zh_yuewiki,12,993496
 astwiki,12,977757
@@ -733,5 +734,5 @@ votewiki,13,721
 arwikimedia,13,224
 cnwikimedia,13,155
 loginwiki,13,17
-labtestwiki,13,0
-labswiki,13,0
+# labtestwiki,13,0
+# labswiki,13,0
