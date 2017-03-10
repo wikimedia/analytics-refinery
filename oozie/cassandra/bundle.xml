@@ -133,7 +133,7 @@
         </property>
         <property>
             <name>per_project_keyspace</name>
-            <value>local_group_default_T_pageviews_per_project</value>
+            <value>local_group_default_T_pageviews_per_project_v2</value>
         </property>
         <property>
             <name>per_project_cql</name>
