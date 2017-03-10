@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coordinator-app xmlns="uri:oozie:coordinator:0.4"
+    xmlns:sla="uri:oozie:sla:0.2"
+    name="mediawiki-history-metrics-coord"
+    frequency="${coord:months(1)}"
+    start="${start_time}"
+    end="${stop_time}"
+    timezone="Universal">
+
+    <parameters>
+        <!-- Required properties -->
+        <property><name>queue_name</name></property>
+        <property><name>name_node</name></property>
+        <property><name>job_tracker</name></property>
+        <property><name>workflow_file</name></property>
+        <property><name>start_time</name></property>
+        <property><name>stop_time</name></property>
+
+        <property><name>datasets_file</name></property>
+        <property><name>mw_directory</name></property>
+
+
+        <property><name>mw_denormalized_history_table</name></property>
+        <property><name>mw_metrics_table</name></property>
+
+        <property><name>start_timestamp</name></property>
+        <property><name>wiki_db</name></property>
+
+        <property><name>hive_site_xml</name></property>
+        <property><name>mark_directory_done_workflow_file</name></property>
+        <property><name>send_error_email_workflow_file</name></property>
+
+        <property><name>sla_alert_contact</name></property>
+    </parameters>
+
+    <controls>
+        <!--(timeout is measured in minutes)-->
+        <timeout>-1</timeout>
+
+        <!-- Setting low concurrency for resource sharing.
+             The job runs pretty fast (~1 minute) and increasing concurrency should not cause any problems-->
+        <concurrency>1</concurrency>
+
+        <throttle>2</throttle>
+
+    </controls>
+
+    <datasets>
+        <!--
+        Include refined datasets files.
+        $datasets_file will be used as the input events
+        -->
+        <include>${datasets_file}</include>
+    </datasets>
+
+    <input-events>
+        <data-in name="mw_denormalized_history_partitioned" dataset="mw_denormalized_history_partitioned">
+            <instance>${coord:current(0)}</instance>
+        </data-in>
+    </input-events>
+
+    <output-events>
+        <data-out name="mw_metrics" dataset="mw_metrics">
+            <instance>${coord:current(0)}</instance>
+        </data-out>
+    </output-events>
+
+    <action>
+        <workflow>
+            <app-path>${workflow_file}</app-path>
+            <configuration>
+                <property>
+                    <name>snapshot</name>
+                    <value>${coord:formatTime(coord:nominalTime(), "yyyy")}-${coord:formatTime(coord:nominalTime(), "MM")}</value>
+                </property>
+                <property>
+                    <name>end_timestamp</name>
+                    <value>${coord:formatTime(coord:nominalTime(), "yyyy")}${coord:formatTime(coord:nominalTime(), "MM")}01000000</value>
+                </property>
+                <property>
+                    <name>metrics_location</name>
+                    <value>${coord:dataOut('mw_metrics')}</value>
+                </property>
+            </configuration>
+        </workflow>
+
+        <sla:info>
+            <!--
+                Use action actual time as SLA base, since it's the time used
+                to compute timeout
+            -->
+            <sla:nominal-time>${coord:actualTime()}</sla:nominal-time>
+            <sla:should-end>${4 * DAYS}</sla:should-end>
+            <sla:alert-events>end_miss</sla:alert-events>
+            <sla:alert-contact>${sla_alert_contact}</sla:alert-contact>
+        </sla:info>
+
+    </action>
+</coordinator-app>

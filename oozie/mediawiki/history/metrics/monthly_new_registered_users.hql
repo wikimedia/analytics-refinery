@@ -19,6 +19,7 @@
 set hive.mapred.mode=nonstrict;
 set hive.exec.dynamic.partition=true;
 set hive.exec.dynamic.partition.mode=nonstrict;
+set hive.error.on.empty.partition=false;
 -- there are no more than 900 wikis, no matter how we import, usually less
 set hive.exec.max.dynamic.partitions=2000;
 -- and we only use one node
