@@ -1,0 +1,209 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Note: You should make sure to put refinery/python on your PYTHONPATH.
+#   export PYTHONPATH=$PYTHONPATH:/path/to/refinery/python
+#
+# Note: The resulting table is intended for the translation of historical
+#   data only. So it does not need to be updated with new changes to the
+#   site matrix and thus will not be run periodically.
+#
+# Adapted from Dan Andreescu's script:
+# https://github.com/wikimedia/analytics-refinery/blob/master/bin/download-project-namespace-map
+# Also, some structures and methods have been copied from:
+# https://github.com/wikimedia/analytics-aggregator/blob/master/aggregator/util.py
+
+"""
+Gets WMF's site matrix and outputs a TSV that maps webstatscollector
+abbreviations to their corresponding domain name and access site.
+
+Usage:
+  generate-domain-abbrev-map.py (--output-file FILE|--output-hdfs PATH)
+
+Options:
+    -h --help                           Show this help message and exit.
+    -o FILE --output-file FILE          Output the results here.
+    -x PATH --output-hdfs PATH          Output the results to HDFS here.
+"""
+
+import requests
+import json
+import csv
+import os
+
+from docopt import docopt
+from tempfile import mkstemp
+from subprocess import check_call
+
+
+WEBSTATSCOLLECTOR_WHITELISTED_WIKIMEDIA_WIKIS = [
+    'commons',
+    'meta',
+    'incubator',
+    'species',
+    'strategy',
+    'outreach',
+    'usability',
+    'quality',
+]
+
+WEBSTATSCOLLECTOR_SUFFIX_ABBREVIATIONS = [
+    # Using a list (not an object), as order is important, as we
+    # consider the first match a win.
+    ('foundationwiki', '.f'),
+    ('mediawikiwiki', '.w'),
+    ('wikidatawiki', '.wd'),
+    ('wikibooks', '.b'),
+    ('wiktionary', '.d'),
+    ('wikimedia', '.m'),
+    ('wikinews', '.n'),
+    ('wikiquote', '.q'),
+    ('wikisource', '.s'),
+    ('wikiversity', '.v'),
+    ('wikivoyage', '.voy'),
+    # Have generic wiki last
+    ('wiki', ''),
+]
+
+
+def get_wikis():
+    headers = {
+        'User-Agent': 'Wikimedia Foundation Analytics Bot',
+        'From': 'mforns@wikimedia.org'
+    }
+    site_matrix_query = ''.join([
+        'https://www.mediawiki.org/w/api.php?action=sitematrix',
+        '&smsiteprop=url|dbname|code',
+        '&smstate=all',
+        '&format=json',
+    ])
+
+    matrix = requests.get(
+        site_matrix_query,
+        headers=headers,
+    ).json().get('sitematrix', {})
+
+    wikis = [
+        wiki
+        for language in matrix.values()
+        if type(language) is dict and 'site' in language
+        for wiki in language['site']
+    ] + [
+        wiki
+        for wiki in matrix.get('specials', [])
+    ]
+
+    return [
+        wiki
+        for wiki in wikis
+        if 'private' not in wiki
+    ]
+
+def dbname_to_webstatscollector_abbreviation(dbname, site='desktop'):
+    """
+    Gets the webstatscollector abbreviation for a site's database name
+
+    If no webstatscollector abbreviation could be found, None is returned.
+
+    :param dbname: The data base name for the wiki (e.g.: 'enwiki')
+    :param site: The site to get the abbreviation for. Either 'desktop',
+        'mobile', or 'zero'. (Default: 'desktop')
+    """
+    for (dbname_ending, new_ending) in WEBSTATSCOLLECTOR_SUFFIX_ABBREVIATIONS:
+        if dbname.endswith(dbname_ending):
+            # replacing last occurrence of dbname's ending with new_ending
+            abbreviation = dbname.rsplit(dbname_ending, 1)[0] + new_ending
+
+            # dbnames use “_” where webstatscollector uses “-”.
+            abbreviation = abbreviation.replace('_', '-')
+
+            # prepend www if it is just the root project to catch things like
+            # wikidatawiki being served at www.wikidata.org
+            if abbreviation.startswith('.'):
+                abbreviation = "www" + abbreviation
+
+            # Fix-up for wikimedia.org wikis
+            if abbreviation in WEBSTATSCOLLECTOR_WHITELISTED_WIKIMEDIA_WIKIS:
+                abbreviation += ".m"
+
+            # Inject site modifier
+            if site != 'desktop':  # desktop has no modifier -> short-circuit
+                abbreviation_split = abbreviation.split('.')
+                if site == 'mobile':
+                    abbreviation_split.insert(1, 'm')
+                elif site == 'zero':
+                    abbreviation_split.insert(1, 'zero')
+
+                # fix-up mobile site where desktop site is www, like
+                # www.m.wd to m.wd
+                if abbreviation_split[0] == 'www':
+                    del abbreviation_split[0]
+
+                abbreviation = '.'.join(abbreviation_split)
+
+            return abbreviation
+    return None
+
+
+if __name__ == '__main__':
+    # Parse arguments
+    arguments = docopt(__doc__)
+    outfile = arguments['--output-file']
+    outhdfs = arguments['--output-hdfs']
+
+    # If we're outputting to hdfs, output to a temp file and copy up
+    output_to_hdfs = outhdfs is not None
+    if output_to_hdfs:
+        outfile = mkstemp()[1]
+
+    # Writes mapping as: (abbreviation, hostname, access_site)
+    # abbreviation  : en.m
+    # hostname      : en.wikipedia.org
+    # access_site   : mobile
+    with open(outfile, 'wb') as w:
+        tsvwriter = csv.writer(w, delimiter='\t')
+        access_sites = ['desktop', 'mobile', 'zero']
+
+        for wiki in get_wikis():
+            url = wiki.get('url', '')
+            hostname = url.replace('https://', '')
+            dbname = wiki.get('dbname', hostname)
+
+            for access_site in access_sites:
+                abbreviation = dbname_to_webstatscollector_abbreviation(dbname, access_site)
+                row = [
+                    abbreviation,
+                    hostname,
+                    access_site,
+                ]
+                tsvwriter.writerow([unicode(s).encode("utf-8") for s in row])
+
+    # Exports to HDFS if specified
+    if output_to_hdfs:
+        check_call([
+            'hdfs', 'dfs', '-mkdir', '-p',
+            outhdfs,
+        ])
+        check_call([
+            'hdfs', 'dfs', '-put', '-f',
+            outfile,
+            outhdfs + '/domain_abbrev_map.tsv',
+        ])
+        check_call([
+            'hdfs', 'dfs', '-touchz',
+            outhdfs + '/_SUCCESS',
+        ])
+        # clean up the temp file
+        os.remove(outfile)
