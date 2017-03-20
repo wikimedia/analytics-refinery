@@ -1,0 +1,521 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow-app xmlns="uri:oozie:workflow:0.4"
+    name="mediawiki-history-metrics-wf-${snapshot}">
+
+    <parameters>
+
+        <!-- Default values for inner oozie settings -->
+        <property>
+            <name>oozie_launcher_queue_name</name>
+            <value>${queue_name}</value>
+        </property>
+        <property>
+            <name>oozie_launcher_memory</name>
+            <value>2048</value>
+        </property>
+
+        <!-- Required properties -->
+        <property><name>queue_name</name></property>
+        <property><name>name_node</name></property>
+        <property><name>job_tracker</name></property>
+
+        <property>
+            <name>metrics_location</name>
+            <description>location to mark the metrics dataset done</description>
+        </property>
+
+        <!-- Hive tables-->
+        <property>
+            <name>mw_denormalized_history_table</name>
+            <description>Recomputed denormalized history table</description>
+        </property>
+        <property>
+            <name>mw_metrics_table</name>
+            <description>Mediawiki metrics table</description>
+        </property>
+
+        <property>
+            <name>start_timestamp</name>
+            <description>Start timestamp (YYYYMMDDHHMMSS format) to restrict metrics computation</description>
+        </property>
+        <property>
+            <name>end_timestamp</name>
+            <description>End timestamp (YYYYMMDDHHMMSS format) to restrict metrics computation</description>
+        </property>
+        <property>
+            <name>wiki_db</name>
+            <description>Wikis to compute metrics for (can be 'all')</description>
+        </property>
+
+        <property>
+            <name>snapshot</name>
+            <description>The snapshot partition used (usually YYYY-MM)</description>
+        </property>
+
+        <!-- Subworkflows -->
+        <property>
+            <name>mark_directory_done_workflow_file</name>
+            <description>Workflow for marking a directory done</description>
+        </property>
+        <property>
+            <name>send_error_email_workflow_file</name>
+            <description>Workflow for sending an email</description>
+        </property>
+    </parameters>
+
+    <start to="compute_daily_edits"/>
+
+    <action name="compute_daily_edits">
+        <hive xmlns="uri:oozie:hive-action:0.3">
+            <job-tracker>${job_tracker}</job-tracker>
+            <name-node>${name_node}</name-node>
+            <job-xml>${hive_site_xml}</job-xml>
+            <configuration>
+                <!--make sure oozie:launcher runs in a low priority queue -->
+                <property>
+                    <name>oozie.launcher.mapred.job.queue.name</name>
+                    <value>${oozie_launcher_queue_name}</value>
+                </property>
+                <property>
+                    <name>oozie.launcher.mapreduce.map.memory.mb</name>
+                    <value>${oozie_launcher_memory}</value>
+                </property>
+                <property>
+                    <name>mapreduce.job.queuename</name>
+                    <value>${queue_name}</value>
+                </property>
+            </configuration>
+
+            <script>daily_edits.hql</script>
+
+            <param>source_table=${mw_denormalized_history_table}</param>
+            <param>destination_table=${mw_metrics_table}</param>
+            <param>start_timestamp=${start_timestamp}</param>
+            <param>end_timestamp=${end_timestamp}</param>
+            <param>wiki_db=${wiki_db}</param>
+            <param>snapshot=${snapshot}</param>
+        </hive>
+        <ok to="compute_daily_edits_by_anonymous_users"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <action name="compute_daily_edits_by_anonymous_users">
+        <hive xmlns="uri:oozie:hive-action:0.3">
+            <job-tracker>${job_tracker}</job-tracker>
+            <name-node>${name_node}</name-node>
+            <job-xml>${hive_site_xml}</job-xml>
+            <configuration>
+                <!--make sure oozie:launcher runs in a low priority queue -->
+                <property>
+                    <name>oozie.launcher.mapred.job.queue.name</name>
+                    <value>${oozie_launcher_queue_name}</value>
+                </property>
+                <property>
+                    <name>oozie.launcher.mapreduce.map.memory.mb</name>
+                    <value>${oozie_launcher_memory}</value>
+                </property>
+                <property>
+                    <name>mapreduce.job.queuename</name>
+                    <value>${queue_name}</value>
+                </property>
+            </configuration>
+
+            <script>daily_edits_by_anonymous_users.hql</script>
+
+            <param>source_table=${mw_denormalized_history_table}</param>
+            <param>destination_table=${mw_metrics_table}</param>
+            <param>start_timestamp=${start_timestamp}</param>
+            <param>end_timestamp=${end_timestamp}</param>
+            <param>wiki_db=${wiki_db}</param>
+            <param>snapshot=${snapshot}</param>
+        </hive>
+        <ok to="compute_daily_edits_by_bot_users"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <action name="compute_daily_edits_by_bot_users">
+        <hive xmlns="uri:oozie:hive-action:0.3">
+            <job-tracker>${job_tracker}</job-tracker>
+            <name-node>${name_node}</name-node>
+            <job-xml>${hive_site_xml}</job-xml>
+            <configuration>
+                <!--make sure oozie:launcher runs in a low priority queue -->
+                <property>
+                    <name>oozie.launcher.mapred.job.queue.name</name>
+                    <value>${oozie_launcher_queue_name}</value>
+                </property>
+                <property>
+                    <name>oozie.launcher.mapreduce.map.memory.mb</name>
+                    <value>${oozie_launcher_memory}</value>
+                </property>
+                <property>
+                    <name>mapreduce.job.queuename</name>
+                    <value>${queue_name}</value>
+                </property>
+            </configuration>
+
+            <script>daily_edits_by_bot_users.hql</script>
+
+            <param>source_table=${mw_denormalized_history_table}</param>
+            <param>destination_table=${mw_metrics_table}</param>
+            <param>start_timestamp=${start_timestamp}</param>
+            <param>end_timestamp=${end_timestamp}</param>
+            <param>wiki_db=${wiki_db}</param>
+            <param>snapshot=${snapshot}</param>
+        </hive>
+        <ok to="compute_daily_edits_by_registered_users"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <action name="compute_daily_edits_by_registered_users">
+        <hive xmlns="uri:oozie:hive-action:0.3">
+            <job-tracker>${job_tracker}</job-tracker>
+            <name-node>${name_node}</name-node>
+            <job-xml>${hive_site_xml}</job-xml>
+            <configuration>
+                <!--make sure oozie:launcher runs in a low priority queue -->
+                <property>
+                    <name>oozie.launcher.mapred.job.queue.name</name>
+                    <value>${oozie_launcher_queue_name}</value>
+                </property>
+                <property>
+                    <name>oozie.launcher.mapreduce.map.memory.mb</name>
+                    <value>${oozie_launcher_memory}</value>
+                </property>
+                <property>
+                    <name>mapreduce.job.queuename</name>
+                    <value>${queue_name}</value>
+                </property>
+            </configuration>
+
+            <script>daily_edits_by_registered_users.hql</script>
+
+            <param>source_table=${mw_denormalized_history_table}</param>
+            <param>destination_table=${mw_metrics_table}</param>
+            <param>start_timestamp=${start_timestamp}</param>
+            <param>end_timestamp=${end_timestamp}</param>
+            <param>wiki_db=${wiki_db}</param>
+            <param>snapshot=${snapshot}</param>
+        </hive>
+        <ok to="compute_daily_unique_anonymous_editors"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <action name="compute_daily_unique_anonymous_editors">
+        <hive xmlns="uri:oozie:hive-action:0.3">
+            <job-tracker>${job_tracker}</job-tracker>
+            <name-node>${name_node}</name-node>
+            <job-xml>${hive_site_xml}</job-xml>
+            <configuration>
+                <!--make sure oozie:launcher runs in a low priority queue -->
+                <property>
+                    <name>oozie.launcher.mapred.job.queue.name</name>
+                    <value>${oozie_launcher_queue_name}</value>
+                </property>
+                <property>
+                    <name>oozie.launcher.mapreduce.map.memory.mb</name>
+                    <value>${oozie_launcher_memory}</value>
+                </property>
+                <property>
+                    <name>mapreduce.job.queuename</name>
+                    <value>${queue_name}</value>
+                </property>
+            </configuration>
+
+            <script>daily_unique_anonymous_editors.hql</script>
+
+            <param>source_table=${mw_denormalized_history_table}</param>
+            <param>destination_table=${mw_metrics_table}</param>
+            <param>start_timestamp=${start_timestamp}</param>
+            <param>end_timestamp=${end_timestamp}</param>
+            <param>wiki_db=${wiki_db}</param>
+            <param>snapshot=${snapshot}</param>
+        </hive>
+        <ok to="compute_daily_unique_bot_editors"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <action name="compute_daily_unique_bot_editors">
+        <hive xmlns="uri:oozie:hive-action:0.3">
+            <job-tracker>${job_tracker}</job-tracker>
+            <name-node>${name_node}</name-node>
+            <job-xml>${hive_site_xml}</job-xml>
+            <configuration>
+                <!--make sure oozie:launcher runs in a low priority queue -->
+                <property>
+                    <name>oozie.launcher.mapred.job.queue.name</name>
+                    <value>${oozie_launcher_queue_name}</value>
+                </property>
+                <property>
+                    <name>oozie.launcher.mapreduce.map.memory.mb</name>
+                    <value>${oozie_launcher_memory}</value>
+                </property>
+                <property>
+                    <name>mapreduce.job.queuename</name>
+                    <value>${queue_name}</value>
+                </property>
+            </configuration>
+
+            <script>daily_unique_bot_editors.hql</script>
+
+            <param>source_table=${mw_denormalized_history_table}</param>
+            <param>destination_table=${mw_metrics_table}</param>
+            <param>start_timestamp=${start_timestamp}</param>
+            <param>end_timestamp=${end_timestamp}</param>
+            <param>wiki_db=${wiki_db}</param>
+            <param>snapshot=${snapshot}</param>
+        </hive>
+        <ok to="compute_daily_unique_editors"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <action name="compute_daily_unique_editors">
+        <hive xmlns="uri:oozie:hive-action:0.3">
+            <job-tracker>${job_tracker}</job-tracker>
+            <name-node>${name_node}</name-node>
+            <job-xml>${hive_site_xml}</job-xml>
+            <configuration>
+                <!--make sure oozie:launcher runs in a low priority queue -->
+                <property>
+                    <name>oozie.launcher.mapred.job.queue.name</name>
+                    <value>${oozie_launcher_queue_name}</value>
+                </property>
+                <property>
+                    <name>oozie.launcher.mapreduce.map.memory.mb</name>
+                    <value>${oozie_launcher_memory}</value>
+                </property>
+                <property>
+                    <name>mapreduce.job.queuename</name>
+                    <value>${queue_name}</value>
+                </property>
+            </configuration>
+
+            <script>daily_unique_editors.hql</script>
+
+            <param>source_table=${mw_denormalized_history_table}</param>
+            <param>destination_table=${mw_metrics_table}</param>
+            <param>start_timestamp=${start_timestamp}</param>
+            <param>end_timestamp=${end_timestamp}</param>
+            <param>wiki_db=${wiki_db}</param>
+            <param>snapshot=${snapshot}</param>
+        </hive>
+        <ok to="compute_daily_unique_page_creators"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <action name="compute_daily_unique_page_creators">
+        <hive xmlns="uri:oozie:hive-action:0.3">
+            <job-tracker>${job_tracker}</job-tracker>
+            <name-node>${name_node}</name-node>
+            <job-xml>${hive_site_xml}</job-xml>
+            <configuration>
+                <!--make sure oozie:launcher runs in a low priority queue -->
+                <property>
+                    <name>oozie.launcher.mapred.job.queue.name</name>
+                    <value>${oozie_launcher_queue_name}</value>
+                </property>
+                <property>
+                    <name>oozie.launcher.mapreduce.map.memory.mb</name>
+                    <value>${oozie_launcher_memory}</value>
+                </property>
+                <property>
+                    <name>mapreduce.job.queuename</name>
+                    <value>${queue_name}</value>
+                </property>
+            </configuration>
+
+            <script>daily_unique_page_creators.hql</script>
+
+            <param>source_table=${mw_denormalized_history_table}</param>
+            <param>destination_table=${mw_metrics_table}</param>
+            <param>start_timestamp=${start_timestamp}</param>
+            <param>end_timestamp=${end_timestamp}</param>
+            <param>wiki_db=${wiki_db}</param>
+            <param>snapshot=${snapshot}</param>
+        </hive>
+        <ok to="compute_daily_unique_registered_editors"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <action name="compute_daily_unique_registered_editors">
+        <hive xmlns="uri:oozie:hive-action:0.3">
+            <job-tracker>${job_tracker}</job-tracker>
+            <name-node>${name_node}</name-node>
+            <job-xml>${hive_site_xml}</job-xml>
+            <configuration>
+                <!--make sure oozie:launcher runs in a low priority queue -->
+                <property>
+                    <name>oozie.launcher.mapred.job.queue.name</name>
+                    <value>${oozie_launcher_queue_name}</value>
+                </property>
+                <property>
+                    <name>oozie.launcher.mapreduce.map.memory.mb</name>
+                    <value>${oozie_launcher_memory}</value>
+                </property>
+                <property>
+                    <name>mapreduce.job.queuename</name>
+                    <value>${queue_name}</value>
+                </property>
+            </configuration>
+
+            <script>daily_unique_registered_editors.hql</script>
+
+            <param>source_table=${mw_denormalized_history_table}</param>
+            <param>destination_table=${mw_metrics_table}</param>
+            <param>start_timestamp=${start_timestamp}</param>
+            <param>end_timestamp=${end_timestamp}</param>
+            <param>wiki_db=${wiki_db}</param>
+            <param>snapshot=${snapshot}</param>
+        </hive>
+        <ok to="compute_monthly_new_editors"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <action name="compute_monthly_new_editors">
+        <hive xmlns="uri:oozie:hive-action:0.3">
+            <job-tracker>${job_tracker}</job-tracker>
+            <name-node>${name_node}</name-node>
+            <job-xml>${hive_site_xml}</job-xml>
+            <configuration>
+                <!--make sure oozie:launcher runs in a low priority queue -->
+                <property>
+                    <name>oozie.launcher.mapred.job.queue.name</name>
+                    <value>${oozie_launcher_queue_name}</value>
+                </property>
+                <property>
+                    <name>oozie.launcher.mapreduce.map.memory.mb</name>
+                    <value>${oozie_launcher_memory}</value>
+                </property>
+                <property>
+                    <name>mapreduce.job.queuename</name>
+                    <value>${queue_name}</value>
+                </property>
+            </configuration>
+
+            <script>monthly_new_editors.hql</script>
+
+            <param>source_table=${mw_denormalized_history_table}</param>
+            <param>destination_table=${mw_metrics_table}</param>
+            <param>start_timestamp=${start_timestamp}</param>
+            <param>end_timestamp=${end_timestamp}</param>
+            <param>wiki_db=${wiki_db}</param>
+            <param>snapshot=${snapshot}</param>
+        </hive>
+        <ok to="compute_monthly_new_registered_users"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <action name="compute_monthly_new_registered_users">
+        <hive xmlns="uri:oozie:hive-action:0.3">
+            <job-tracker>${job_tracker}</job-tracker>
+            <name-node>${name_node}</name-node>
+            <job-xml>${hive_site_xml}</job-xml>
+            <configuration>
+                <!--make sure oozie:launcher runs in a low priority queue -->
+                <property>
+                    <name>oozie.launcher.mapred.job.queue.name</name>
+                    <value>${oozie_launcher_queue_name}</value>
+                </property>
+                <property>
+                    <name>oozie.launcher.mapreduce.map.memory.mb</name>
+                    <value>${oozie_launcher_memory}</value>
+                </property>
+                <property>
+                    <name>mapreduce.job.queuename</name>
+                    <value>${queue_name}</value>
+                </property>
+            </configuration>
+
+            <script>monthly_new_registered_users.hql</script>
+
+            <param>source_table=${mw_denormalized_history_table}</param>
+            <param>destination_table=${mw_metrics_table}</param>
+            <param>start_timestamp=${start_timestamp}</param>
+            <param>end_timestamp=${end_timestamp}</param>
+            <param>wiki_db=${wiki_db}</param>
+            <param>snapshot=${snapshot}</param>
+        </hive>
+        <ok to="compute_monthly_surviving_new_editors"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <action name="compute_monthly_surviving_new_editors">
+        <hive xmlns="uri:oozie:hive-action:0.3">
+            <job-tracker>${job_tracker}</job-tracker>
+            <name-node>${name_node}</name-node>
+            <job-xml>${hive_site_xml}</job-xml>
+            <configuration>
+                <!--make sure oozie:launcher runs in a low priority queue -->
+                <property>
+                    <name>oozie.launcher.mapred.job.queue.name</name>
+                    <value>${oozie_launcher_queue_name}</value>
+                </property>
+                <property>
+                    <name>oozie.launcher.mapreduce.map.memory.mb</name>
+                    <value>${oozie_launcher_memory}</value>
+                </property>
+                <property>
+                    <name>mapreduce.job.queuename</name>
+                    <value>${queue_name}</value>
+                </property>
+            </configuration>
+
+            <script>monthly_surviving_new_editors.hql</script>
+
+            <param>source_table=${mw_denormalized_history_table}</param>
+            <param>destination_table=${mw_metrics_table}</param>
+            <param>start_timestamp=${start_timestamp}</param>
+            <param>end_timestamp=${end_timestamp}</param>
+            <param>wiki_db=${wiki_db}</param>
+            <param>snapshot=${snapshot}</param>
+        </hive>
+        <ok to="mark_metrics_dataset_done"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <action name="mark_metrics_dataset_done">
+        <sub-workflow>
+            <app-path>${mark_directory_done_workflow_file}</app-path>
+            <configuration>
+                <property>
+                    <name>directory</name>
+                    <value>${metrics_location}</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="end"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <action name="send_error_email">
+        <sub-workflow>
+            <app-path>${send_error_email_workflow_file}</app-path>
+            <propagate-configuration/>
+            <configuration>
+                <property>
+                    <name>parent_name</name>
+                    <value>${wf:name()}</value>
+                </property>
+                <property>
+                    <name>parent_failed_action</name>
+                    <value>${wf:lastErrorNode()}</value>
+                </property>
+                <property>
+                    <name>parent_error_code</name>
+                    <value>${wf:errorCode(wf:lastErrorNode())}</value>
+                </property>
+                <property>
+                    <name>parent_error_message</name>
+                    <value>${wf:errorMessage(wf:lastErrorNode())}</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="kill"/>
+        <error to="kill"/>
+    </action>
+
+    <kill name="kill">
+        <message>Action failed, error message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+    </kill>
+    <end name="end"/>
+</workflow-app>

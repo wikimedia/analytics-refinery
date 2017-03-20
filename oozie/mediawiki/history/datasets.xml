@@ -69,7 +69,6 @@ NOTE: user, page and denormalized history are bound to two datasets
     </dataset>
 
     <!-- History metrics datasets -->
-
     <dataset name="mw_metrics"
              frequency="${coord:months(1)}"
              initial-instance="${start_time}"
