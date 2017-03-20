@@ -6,4 +6,5 @@ Collection of jobs processing Mediawiki History:
    denormalized dataset. Updates a hive table with results.
  - druid  -- Load the newly generated denormalized data into druid (druid is
    setup to only keep the last 2 years of this data, but having it indexed
-   is interested in case we'd need to load more).
+   is interested in case we'd need to load more). The druid job only indexes
+   labs data.
