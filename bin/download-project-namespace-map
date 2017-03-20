@@ -24,7 +24,8 @@
 Writes the WMF site matrix as projects with namespace information to a file
 
 Usage:
-  download-project-namespace-map.py (--output-file FILE|--output-hdfs PATH) [-c] [-v]
+  download-project-namespace-map.py (--output-file FILE|--output-hdfs PATH)
+          [-c] [-v] [-s SNAPSHOT]
 
 Options:
     -h --help                           Show this help message and exit.
@@ -33,6 +34,9 @@ Options:
     -o FILE --output-file FILE          Output the results here
                                         (default: ./project-namespace-map.csv).
     -x PATH --output-hdfs PATH          Output the results to HDFS
+    -s SNAPSHOT --snapshot SNAPSHOT     The snapshot partition to load data
+                                        into (usually YYYY-MM) when writing
+                                        to HDFS
 """
 __author__ = 'Dan Andreesu <milimetric@wikimedia.org>'
 
@@ -77,6 +81,7 @@ if __name__ == '__main__':
     outfile         = arguments['--output-file']
     outhdfs         = arguments['--output-hdfs']
     closed          = arguments['--include-closed']
+    snapshot        = arguments['--snapshot']
 
     # If we're outputting to hdfs, output to a temp file and copy up
     output_to_hdfs = outhdfs is not None
@@ -165,12 +170,16 @@ with open(outfile, 'wb') as w:
             logging.error(site + ' FAILED!!! with ' + format_exc())
 
 if output_to_hdfs:
+    if (snapshot is not None):
+        outhdfs += '/snapshot=' + snapshot
+
     check_call([
         'hdfs', 'dfs', '-mkdir', '-p',
         outhdfs,
     ])
+
     check_call([
-        'hdfs', 'dfs', '-put',
+        'hdfs', 'dfs', '-put', '-f',
         outfile,
         outhdfs + '/project_namespace_map',
     ])

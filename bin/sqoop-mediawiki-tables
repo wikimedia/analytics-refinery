@@ -30,7 +30,7 @@ Sqoops a list of tables from a list of wikis into a target HDFS location
 
 Usage:
   sqoop-mediawiki-tables --jdbc-host HOST --output-dir HDFS_PATH
-          [--verbose] --wiki-file WIKIS --timestamp TIME
+          [--verbose] --wiki-file WIKIS --timestamp TIME --snapshot SNAPSHOT
           [--mappers NUM] [--processors NUM] --user NAME
           [--job-name HADOOP_JOB_NAME] [--labsdb] --password-file FILE
 
@@ -53,7 +53,8 @@ Options:
                                         (not exact due to new data coming in with
                                         old timestamps; also, this only applies to
                                         the revision table, not other tables)
-
+    -s SNAPSHOT --snapshot SNAPSHOT     The snapshot partition to load data
+                                        into (usually YYYY-MM)
     -u NAME --user NAME                 mysql user to use
     -p FILE --password-file FILE        File with mysql password to use
 
@@ -80,7 +81,6 @@ from subprocess import check_call
 from traceback import format_exc
 
 from refinery.util import is_yarn_application_running
-
 
 queries = {}
 
@@ -128,7 +128,7 @@ def populate_queries(timestamp, labsdb):
                    format="''" if labsdb else 'ar_content_format'),
         'map-types': '"{}"'.format(','.join([
             'ar_minor_edit=Boolean',
-            'ar_deleted=Boolean',
+            'ar_deleted=Integer',
         ])),
     }
 
@@ -233,7 +233,8 @@ def populate_queries(timestamp, labsdb):
                 and rev_timestamp <= '{t}'
         '''.format(t=timestamp),
         'map-types': '"{}"'.format(','.join([
-            'rev_minor_edit=Boolean'
+            'rev_minor_edit=Boolean',
+            'rev_deleted=Integer',
         ])),
     }
 
@@ -265,56 +266,67 @@ def populate_queries(timestamp, labsdb):
     }
 
 
-def sqoop_wiki(dbname_dbpostfix):
+class SqoopConfig:
+
+    def __init__(self, yarn_job_name, user, password_file, jdbc_host, num_mappers,
+                 table_path_template, dbname, dbpostfix, queries):
+        self.yarn_job_name = yarn_job_name
+        self.user = user
+        self.password_file = password_file
+        self.jdbc_host = jdbc_host
+        self.num_mappers, = num_mappers
+        self.table_path_template = table_path_template
+        self.dbname = dbname
+        self.dbpostfix = dbpostfix
+        self.queries = queries
+
+
+
+def sqoop_wiki(config):
     """
-    TODO: pass global values in a config object
     Imports a pre-determined list of tables from dbname
 
     Parameters
-        dbname: Name of a mediawiki database from which to import data
+        config: SqoopConfig object filed in with needed parameters
 
     Returns
         True if the sqoop worked
         False if the sqoop errored or failed in any way
     """
-    dbname, dbpostfix = dbname_dbpostfix
-    logging.info('STARTING: {db}'.format(db=dbname))
+    logging.info('STARTING: {db}'.format(db=config.dbname))
     try:
-        for table in queries.keys():
-            target_directory = '{hdfs}/{table}/wiki_db={db}'.format(
-                hdfs=target_hdfs_directory,
-                table=table,
-                db=dbname
-            )
+        for table in config.queries.keys():
+            target_directory = (config.table_path_template + '/wiki_db={db}').format(
+                table=table, db=config.dbname)
             sqoop_arguments = [
                 'sqoop',
                 'import',
 
-                '-D'                , "mapred.job.name='{}'".format(yarn_job_name),
-                '--username'        , user,
-                '--password-file'   , password_file,
-                '--connect'         , jdbc_host + dbname + dbpostfix,
+                '-D'                , "mapred.job.name='{}'".format(config.yarn_job_name),
+                '--username'        , config.user,
+                '--password-file'   , config.password_file,
+                '--connect'         , config.jdbc_host + config.dbname + config.dbpostfix,
                 # NOTE: using columns/map/where doesn't let you properly decode varbinary
                 # '--table'           , table,
                 # '--columns'         , queries[table].get('columns') or '',
                 # '--where'           , queries[table].get('where') or '1=1',
-                '--query'           , queries[table].get('query'),
-                '--num-mappers'     , num_mappers,
+                '--query'           , config.queries[table].get('query'),
+                '--num-mappers'     , config.num_mappers,
                 '--target-dir'      , target_directory,
                 '--as-avrodatafile' ,
             ]
 
-            if ('map-types' in queries[table]):
-                sqoop_arguments += ['--map-column-java', queries[table]['map-types']]
+            if ('map-types' in config.queries[table]):
+                sqoop_arguments += ['--map-column-java', config.queries[table]['map-types']]
 
             logging.info('Sqooping with: {}'.format(sqoop_arguments))
             check_call(sqoop_arguments)
         return True
     except:
-        logging.error('ERROR, {}, {}'.format(dbname, format_exc()))
+        logging.error('ERROR, {}, {}'.format(config.dbname, format_exc()))
         return False
     finally:
-        logging.info('FINISHED: {db}'.format(db=dbname))
+        logging.info('FINISHED: {db}'.format(db=config.dbname))
 
 
 if __name__ == '__main__':
@@ -328,10 +340,17 @@ if __name__ == '__main__':
     target_hdfs_directory               = arguments.get('--output-dir')
     db_list_file                        = arguments.get('--wiki-file')
     timestamp                           = arguments.get('--timestamp')
+    snapshot                            = arguments.get('--snapshot')
     user                                = arguments.get('--user')
     password_file                       = arguments.get('--password-file')
     num_mappers                         = arguments.get('--mappers') or '1'
     num_processors                      = int(arguments.get('--processors')) if arguments.get('--processors') else None
+
+    table_path_template = '{hdfs}/{table}/snapshot={snapshot}'.format(
+        hdfs=target_hdfs_directory,
+        table='{table}',
+        snapshot=snapshot,
+    )
 
     log_level = logging.INFO
     if verbose:
@@ -348,7 +367,6 @@ if __name__ == '__main__':
 
     jdbc_host = 'jdbc:mysql://' + host + '/'
 
-
     logging.info('Started Shell with with {}'.format(' '.join(arguments)))
 
     populate_queries(timestamp, labsdb)
@@ -356,18 +374,24 @@ if __name__ == '__main__':
 
     # read in the wikis to process and sqoop each one
     with open(db_list_file) as dbs_file:
-        flat_wikis = csv.reader(dbs_file)
+        # Remove lines starting with dashes
+        flat_wikis = [row for row in csv.reader(dbs_file) if not row[0].startswith('#')]
 
         groups_done = []
         for group, wikis in groupby(flat_wikis, lambda w: w[1]):
+            executor_config_list = [SqoopConfig(yarn_job_name, user, password_file, jdbc_host, num_mappers,
+                                                table_path_template, w[0], dbpostfix, queries) for w in wikis]
+
             # sqoop all wikis in this group and wait for them all to finish
             with futures.ProcessPoolExecutor(num_processors) as executor:
-                successes = executor.map(sqoop_wiki, [(w[0], dbpostfix) for w in wikis])
+                successes = list(executor.map(sqoop_wiki, executor_config_list))
                 groups_done.append(all(successes) and any(successes))
 
         # if there were no failures at all, write a success flag to this dataset
         if all(groups_done) and any(groups_done):
-            check_call([
-                'hdfs', 'dfs', '-touchz',
-                target_hdfs_directory + '/_SUCCESS',
-            ])
+            for table in queries.keys():
+                success_directory = table_path_template.format(table=table)
+                check_call([
+                    'hdfs', 'dfs', '-touchz',
+                    success_directory + '/_SUCCESS',
+                ])
