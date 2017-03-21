@@ -18,6 +18,7 @@ CREATE EXTERNAL TABLE `wmf_raw.mediawiki_project_namespace_map`(
 )
 PARTITIONED BY (
   `snapshot` string COMMENT 'Versioning information to keep multiple datasets (YYYY-MM for regular labs imports)'
+)
 ROW FORMAT DELIMITED
 FIELDS TERMINATED BY ','
 LINES TERMINATED BY '\n'
