@@ -108,7 +108,11 @@ def get_wikis():
     return [
         wiki
         for wiki in wikis
-        if 'private' not in wiki
+        if (
+            'private' not in wiki and
+            'dbname' in wiki and
+            not wiki['dbname'].endswith('wikimedia')
+        )
     ]
 
 def dbname_to_webstatscollector_abbreviation(dbname, site='desktop'):
