@@ -36,6 +36,10 @@
             <description>Secondary hive table to use</description>
         </property>
         <property>
+            <name>source_table_3</name>
+            <description>Tertiary hive table to use</description>
+        </property>
+        <property>
             <name>temporary_directory</name>
             <description>A temporary directory to store data.</description>
         </property>
@@ -165,6 +169,7 @@
             <script>${hive_script}</script>
             <param>source_table_1=${source_table_1}</param>
             <param>source_table_2=${source_table_2}</param>
+            <param>source_table_3=${source_table_3}</param>
             <param>separator=${hive_value_separator}</param>
             <param>destination_directory=${temporary_directory}/${wf:id()}-${cassandra_keyspace}</param>
         </hive>

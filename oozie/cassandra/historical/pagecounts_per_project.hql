@@ -1,14 +1,16 @@
 -- Parameters:
 --     destination_directory -- HDFS path to write output files
---     source_table_1        -- Fully qualified projectcounts table
---     source_table_2        -- Fully qualified abbreviation map table
+--     source_table_1        -- Fully qualified projectcounts_raw table
+--     source_table_2        -- Fully qualified projectcounts_all_sites table
+--     source_table_3        -- Fully qualified domain_abbrev_map table
 --     separator             -- Separator for values
 --
 -- Usage:
 --     hive -f pagecounts_per_project.hql \
 --         -d destination_directory=/tmp/pagecounts_per_project \
 --         -d source_table_1=wmf.projectcounts_raw \
---         -d source_table_2=wmf.domain_abbrev_map \
+--         -d source_table_2=wmf.projectcounts_all_sites \
+--         -d source_table_3=wmf.domain_abbrev_map \
 --         -d separator=\t
 --
 
@@ -16,6 +18,40 @@
 SET hive.exec.compress.output=true;
 SET mapreduce.output.fileoutputformat.compress.codec=org.apache.hadoop.io.compress.GzipCodec;
 
+WITH
+    -- This CTE combines projectcounts_raw and projectcounts_all_sites.
+    -- projectcounts_raw has data since 2007 but not mobile counts.
+    -- projectcounts_all_sites has mobile counts, but only starts on Nov 2014.
+    combined_projectcounts AS (
+        SELECT *
+        FROM ${source_table_1}
+        WHERE
+            year <= 2013 OR
+            (year = 2014 AND month <= 9)
+        UNION ALL
+        SELECT *
+        FROM ${source_table_2}
+        WHERE
+            (year = 2014 AND month >= 10) OR
+            year >= 2015
+    ),
+    formatted_projectcounts AS (
+        SELECT
+            REGEXP_REPLACE(hostname, '\.org', '') AS hostname,
+            -- The formatting of the access_site final value needs to be done here in
+            -- this previous step, otherwise the subsequent grouping sets won't work
+            -- properly. Note that because of the inner join, the only possible values
+            -- are 'desktop', 'mobile' or 'zero': 'mobile' + 'zero' = 'mobile-site'.
+            IF(access_site = 'desktop', 'desktop-site', 'mobile-site') AS access_site,
+            year,
+            month,
+            day,
+            hour,
+            view_count
+        FROM combined_projectcounts as pc
+        INNER JOIN ${source_table_3} as ab
+        ON pc.domain_abbrev = ab.domain_abbrev
+    )
 
 INSERT OVERWRITE DIRECTORY '${destination_directory}'
     -- Since "ROW FORMAT DELIMITED DELIMITED FIELDS TERMINATED BY ' '" only
@@ -23,12 +59,8 @@ INSERT OVERWRITE DIRECTORY '${destination_directory}'
     -- prepare the lines by hand through concatenation :-(
     SELECT
         CONCAT_WS('${separator}',
-            COALESCE(REGEXP_REPLACE(hostname, '\.org', ''), 'all-projects'),
-            CASE
-                WHEN access_site = 'desktop' THEN 'desktop-site'
-                WHEN access_site IN ('mobile', 'zero') THEN 'mobile-site'
-                ELSE 'all-sites'
-            END,
+            COALESCE(hostname, 'all-projects'),
+            COALESCE(access_site, 'all-sites'),
             IF(day IS NULL, 'monthly', IF(hour IS NULL, 'daily', 'hourly')),
             CONCAT(
                 LPAD(year, 4, '0'),
@@ -38,14 +70,7 @@ INSERT OVERWRITE DIRECTORY '${destination_directory}'
             ),
             CAST(SUM(view_count) AS STRING)
         )
-    FROM
-        ${source_table_1} AS pc
-    INNER JOIN
-        ${source_table_2} AS ab
-    ON
-        pc.domain_abbrev = ab.domain_abbrev
-    WHERE
-        year >= 2007 AND year <= 2016
+    FROM formatted_projectcounts
     GROUP BY
         hostname,
         access_site,
