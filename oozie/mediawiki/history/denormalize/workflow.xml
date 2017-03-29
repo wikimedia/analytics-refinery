@@ -37,8 +37,16 @@
             <description>Memory to allocate for each spark executor</description>
         </property>
         <property>
+            <name>spark_executor_memory_overhead</name>
+            <description>Overhead of memory for spark executor to work</description>
+        </property>
+        <property>
             <name>spark_driver_memory</name>
             <description>Memory to allocate for spark driver process</description>
+        </property>
+        <property>
+            <name>spark_max_executors</name>
+            <description>Maximum concurrent number of executors for spark dynamic allocation</description>
         </property>
 
         <property>
@@ -229,7 +237,7 @@
             <name>${spark_job_name}-${snapshot}</name>
             <class>${spark_job_class}</class>
             <jar>${spark_job_jar}</jar>
-            <spark-opts>--conf spark.yarn.jar=${spark_assembly_jar} --executor-memory ${spark_executor_memory} --driver-memory ${spark_driver_memory} --queue ${queue_name}</spark-opts>
+            <spark-opts>--conf spark.yarn.jar=${spark_assembly_jar} --executor-memory ${spark_executor_memory} --driver-memory ${spark_driver_memory} --queue ${queue_name} --conf spark.dynamicAllocation.enabled=true --conf spark.shuffle.service.enabled=true --conf spark.dynamicAllocation.maxExecutors=${spark_max_executors} --conf spark.yarn.executor.memoryOverhead=${spark_executor_memory_overhead}</spark-opts>
             <arg>--mediawiki-base-path</arg>
             <arg>${mw_raw_directory}</arg>
             <arg>--output-base-path</arg>
@@ -269,7 +277,7 @@
                 </property>
                 <property>
                     <name>done_file</name>
-                    <value>_HIVE_SUCCESS</value>
+                    <value>_PARTITIONED</value>
                 </property>
             </configuration>
         </sub-workflow>
@@ -299,7 +307,7 @@
                 </property>
                 <property>
                     <name>done_file</name>
-                    <value>_HIVE_SUCCESS</value>
+                    <value>_PARTITIONED</value>
                 </property>
             </configuration>
         </sub-workflow>
@@ -329,7 +337,7 @@
                 </property>
                 <property>
                     <name>done_file</name>
-                    <value>_HIVE_SUCCESS</value>
+                    <value>_PARTITIONED</value>
                 </property>
             </configuration>
         </sub-workflow>
