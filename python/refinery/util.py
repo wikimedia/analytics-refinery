@@ -456,7 +456,7 @@ class HdfsUtils(object):
                 # Not checking return code here so we don't
                 # fail paths do not exist.
                 check_return_code=False
-            ).splitlines() if not line.startswith('Found ')
+            ).splitlines() if not line.startswith(b'Found ')
         ]
 
 
