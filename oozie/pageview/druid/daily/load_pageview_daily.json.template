@@ -27,6 +27,7 @@
                 "access_method",
                 "agent_type",
                 "referer_class",
+                "zero",
                 "continent",
                 "country_code",
                 "country",
