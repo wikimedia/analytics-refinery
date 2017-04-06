@@ -78,8 +78,7 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `tmp_druid_mediawiki_history` (
   `revision_deleted_timestamp`                    string        COMMENT 'In revision events: the timestamp when the revision was deleted',
   `revision_is_identity_reverted`                 int           COMMENT 'In revision events: whether this revision was reverted by another future revision',
   `revision_first_identity_reverting_revision_id` bigint        COMMENT 'In revision events: id of the revision that reverted this revision',
-  `revision_first_identity_revert_timestamp`      string        COMMENT 'In revision events: timestamp of the revision that reverted this revision',
-  `revision_is_productive`                        int           COMMENT 'In revision events: whether this revision was reverted within 1 day',
+  `revision_seconds_to_identity_revert`              bigint     COMMENT 'In revision events: seconds elapsed between revision posting and its revert (if there was one)',
   `revision_is_identity_revert`                   int           COMMENT 'In revision events: whether this revision reverts other revisions'
 )
 ROW FORMAT SERDE 'org.apache.hive.hcatalog.data.JsonSerDe'
@@ -144,8 +143,7 @@ SELECT
     revision_deleted_timestamp,
     CASE WHEN revision_is_identity_reverted THEN 1 ELSE 0 END AS revision_is_identity_reverted,
     revision_first_identity_reverting_revision_id,
-    revision_first_identity_revert_timestamp,
-    CASE WHEN revision_is_productive THEN 1 ELSE 0 END AS revision_is_productive,
+    revision_seconds_to_identity_revert,
     CASE WHEN revision_is_identity_revert THEN 1 ELSE 0 END AS revision_is_identity_revert
 FROM ${source_table}
 WHERE TRUE

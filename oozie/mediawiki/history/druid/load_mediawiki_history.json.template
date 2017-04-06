@@ -75,8 +75,7 @@
               "revision_deleted_timestamp",
               "revision_is_identity_reverted",
               "revision_first_identity_reverting_revision_id",
-              "revision_first_identity_revert_timestamp",
-              "revision_is_productive",
+              "revision_seconds_to_identity_revert",
               "revision_is_identity_revert"
             ]
           },
@@ -190,11 +189,6 @@
           "name" : "identity_reverted_revisions",
           "type" : "longSum",
           "fieldName": "revision_is_identity_reverted"
-        },
-        {
-          "name" : "productive_revisions",
-          "type" : "longSum",
-          "fieldName": "revision_is_productive"
         },
         {
           "name" : "identity_reverting_revisions",
