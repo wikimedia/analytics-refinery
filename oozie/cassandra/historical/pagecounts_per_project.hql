@@ -22,22 +22,23 @@ WITH
     -- This CTE combines projectcounts_raw and projectcounts_all_sites.
     -- projectcounts_raw has data since 2007 but not mobile counts.
     -- projectcounts_all_sites has mobile counts, but only starts on Nov 2014.
+    -- see https://phabricator.wikimedia.org/T162157 meta projectcounts had major issues with quality
     combined_projectcounts AS (
         SELECT *
         FROM ${source_table_1}
         WHERE
             year <= 2013 OR
-            (year = 2014 AND month <= 9)
+            (year = 2014 AND month <= 9) and domain_abbrev not like '%meta%'
         UNION ALL
         SELECT *
         FROM ${source_table_2}
         WHERE
             (year = 2014 AND month >= 10) OR
-            year >= 2015
+            year >= 2015 and domain_abbrev not like '%meta%'
     ),
     formatted_projectcounts AS (
         SELECT
-            REGEXP_REPLACE(hostname, '\.org', '') AS hostname,
+            REGEXP_REPLACE(hostname, 'www\.|\.org', '') AS hostname,
             -- The formatting of the access_site final value needs to be done here in
             -- this previous step, otherwise the subsequent grouping sets won't work
             -- properly. Note that because of the inner join, the only possible values
