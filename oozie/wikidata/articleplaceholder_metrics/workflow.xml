@@ -121,7 +121,7 @@
             <arg>${webrequest_data_directory}</arg>
         </spark>
         <ok to="end" />
-        <error to="kill" />
+        <error to="send_error_email" />
     </action>
 
     <action name="send_error_email">
