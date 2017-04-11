@@ -66,6 +66,7 @@ class DruidLoader(object):
             self.task_id = req.json()['task']
             logger.debug('Indexation launched using url {0}'.format(url))
         else:
+            logger.error(req.text)
             raise RuntimeError('Druid indexation start returned bad status')
 
     def _update_status(self):
@@ -76,6 +77,7 @@ class DruidLoader(object):
             logger.debug('Indexation status update to {0}'.format(
                 self.current_status))
         else:
+            logger.error(req.text)
             raise RuntimeError('Druid indexation check returned bad status ' +
                                'for task Id {0}'.format(self.task_id))
 
