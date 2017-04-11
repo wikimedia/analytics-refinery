@@ -15,9 +15,8 @@
 
         <property><name>hive_site_xml</name></property>
         <property><name>workflow_file</name></property>
-        <property><name>webrequest_datasets_file</name></property>
-        <property><name>webrequest_data_directory</name></property>
-        <property><name>webrequest_table</name></property>
+        <property><name>banner_activity_datasets_file</name></property>
+        <property><name>banner_activity_directory</name></property>
 
         <property><name>start_time</name></property>
         <property><name>stop_time</name></property>
@@ -28,7 +27,6 @@
         <property><name>temporary_directory</name></property>
 
         <property><name>load_druid_workflow_file</name></property>
-        <property><name>mark_directory_done_workflow_file</name></property>
         <property><name>send_error_email_workflow_file</name></property>
 
     </parameters>
@@ -45,24 +43,17 @@
     </controls>
 
     <datasets>
-        <include>${webrequest_datasets_file}</include>
+        <include>${banner_activity_datasets_file}</include>
     </datasets>
 
     <input-events>
-        <data-in name="webrequest_text_input" dataset="webrequest_text">
+        <data-in name="banner_activity_daily_input" dataset="banner_activity_daily">
             <start-instance>${coord:current(0)}</start-instance>
-            <end-instance>${coord:current(coord:daysInMonth(0) * 24 - 1)}</end-instance>
+            <end-instance>${coord:current(coord:daysInMonth(0) - 1)}</end-instance>
         </data-in>
-
-        <!--
-        The following dataset is not required as input to the
-        workflow, but only helps to delay running it.
-
-        We start the job 24 hours after the new month starts, allowing
-        for the other monthly jobs to have most of their work done.
-        -->
-        <data-in name="delay" dataset="webrequest_text">
-            <instance>${coord:current(coord:daysInMonth(0) * 24 + 24)}</instance>
+        <!-- Wait 90 days to sanitize data (89 days because index starts at 0) -->
+        <data-in name="banner_activity_daily_delay" dataset="banner_activity_daily">
+            <instance>${coord:current(89)}</instance>
         </data-in>
     </input-events>
 
@@ -81,6 +72,15 @@
                 <property>
                     <name>loaded_period</name>
                     <value>${coord:formatTime(coord:nominalTime(), "yyyy-MM-dd")}/${coord:formatTime(coord:dateOffset(coord:nominalTime(), 1, "MONTH"), "yyyy-MM-dd")}</value>
+                </property>
+                <property>
+                    <!--
+                        We need an existing directory having the _SUCCESS file
+                        for the druid indexing subworflow to kick in (even if the
+                        folder is not read, as it is the case here).
+                    -->
+                    <name>banner_activity_daily_directory</name>
+                    <value>${coord:dataIn('banner_activity_daily_delay')}</value>
                 </property>
             </configuration>
         </workflow>

@@ -4,8 +4,11 @@
     "ioConfig" : {
       "type" : "hadoop",
       "inputSpec" : {
-        "type" : "static",
-        "paths" : "*INPUT_PATH*"
+        "type" : "dataSource",
+        "ingestionSpec" : {
+          "dataSource": "banner_activity_minutely",
+          "intervals": *INTERVALS_ARRAY*
+    }
       }
     },
     "dataSchema" : {
@@ -31,8 +34,6 @@
                 "status_code",
                 "country",
                 "country_matches_geocode",
-                "region",
-                "device",
                 "sample_rate"
             ]
           },
