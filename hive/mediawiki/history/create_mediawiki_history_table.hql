@@ -64,8 +64,7 @@ CREATE EXTERNAL TABLE `wmf.mediawiki_history`(
   `revision_deleted_timestamp`                    string        COMMENT 'In revision events: the timestamp when the revision was deleted',
   `revision_is_identity_reverted`                 boolean       COMMENT 'In revision events: whether this revision was reverted by another future revision',
   `revision_first_identity_reverting_revision_id` bigint        COMMENT 'In revision events: id of the revision that reverted this revision',
-  `revision_first_identity_revert_timestamp`      string        COMMENT 'In revision events: timestamp of the revision that reverted this revision',
-  `revision_is_productive`                        boolean       COMMENT 'In revision events: whether this revision was reverted within 1 day',
+  `revision_seconds_to_identity_revert`              bigint     COMMENT 'In revision events: seconds elapsed between revision posting and its revert (if there was one)',
   `revision_is_identity_revert`                   boolean       COMMENT 'In revision events: whether this revision reverts other revisions'
 )
 COMMENT
