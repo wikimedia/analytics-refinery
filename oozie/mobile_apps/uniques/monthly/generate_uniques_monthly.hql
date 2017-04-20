@@ -55,7 +55,7 @@ WITH mobile_apps_uuids_${year}_${month} AS
     SELECT
         year,
         month,
-        CASE WHEN user_agent LIKE('%iPhone%') THEN 'iOS' ELSE 'Android' END AS platform,
+        CASE WHEN (user_agent LIKE '%iOS%' OR user_agent LIKE '%iPhone%') THEN 'iOS' ELSE 'Android' END AS platform,
         COALESCE(x_analytics_map['wmfuuid'],
                  parse_url(concat('http://bla.org/woo/', uri_query), 'QUERY', 'appInstallID')) AS uuid
     FROM ${source_table}
