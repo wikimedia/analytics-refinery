@@ -24,6 +24,7 @@
 --
 -- Usage:
 --     hive -f select_missing_sequence_runs.hql   \
+--         -d table_name=wmf_raw.webrequest       \
 --         -d webrequest_source=bits              \
 --         -d year=2014                           \
 --         -d month=7                             \
@@ -31,6 +32,7 @@
 --         -d hour=14
 --
 
+ADD JAR /usr/lib/hive-hcatalog/share/hcatalog/hive-hcatalog-core.jar;
 
 SELECT
     hostname,
@@ -50,7 +52,7 @@ FROM (
         LEAD(dt) OVER (
             PARTITION BY hostname ORDER BY sequence ASC
         ) AS next_dt
-    FROM wmf_raw.webrequest
+    FROM ${table_name}
     WHERE webrequest_source = '${webrequest_source}'
         AND year=${year}
         AND month=${month}
@@ -63,6 +65,6 @@ WHERE
         -- for those.
     AND next_sequence != sequence + 1 -- This condition drops the rows
         -- for which the next sequence number is as expected.
-ORDER BY hostname, missing_start
+ORDER BY hostname, before_missing
 LIMIT 10000000
 ;
