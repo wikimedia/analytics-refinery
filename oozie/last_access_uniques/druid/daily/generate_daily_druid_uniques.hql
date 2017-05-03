@@ -33,6 +33,20 @@ STORED AS TEXTFILE
 LOCATION '${destination_directory}';
 
 
+WITH filtered_hosts AS (
+    SELECT
+        uri_host as filtered_host,
+        SUM(uniques_estimate) as checked_uniques_estimate
+    FROM ${source_table}
+    WHERE year=${year}
+      AND month=${month}
+      AND day=${day}
+    GROUP BY
+        uri_host
+    HAVING
+        SUM(uniques_estimate) >= 1000
+)
+
 INSERT OVERWRITE TABLE tmp_daily_druid_uniques_${year}_${month}_${day}
 SELECT
     CONCAT(
@@ -46,6 +60,8 @@ SELECT
     uniques_offset AS uniques_offset,
     uniques_estimate AS uniques_estimate
 FROM ${source_table}
+    INNER JOIN filtered_hosts
+        ON uri_host = filtered_host
 WHERE year = ${year}
     AND month = ${month}
     AND day = ${day};
