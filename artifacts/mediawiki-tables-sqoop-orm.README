@@ -1,0 +1,10 @@
+mediawiki-tables-sqoop-orm.jar was created using the bin/sqoop-mediawiki-tables --generate-jar
+option in production.  It is then manually uploaded to Archiva and thus made available
+in the remote git-fat artifacts repository by following the instructions at
+https://wikitech.wikimedia.org/wiki/Archiva#Uploading_dependency_artifacts, with
+
+Group ID: org.wikimedia.analytics
+Artifact ID: mediawiki-tables-sqooop-orm
+Version: 0.0.1 (bump this when you generate a new jar)
+Packaging: jar
+
