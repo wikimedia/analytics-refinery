@@ -28,10 +28,16 @@ INSERT OVERWRITE DIRECTORY "${destination_directory}"
     -- prepare the lines by hand through concatenation :-(
     -- Set 0 as volume column since we don't use it.
     SELECT
-        CONCAT_WS('\t', uri_host, cast(uniques_estimate AS string)) line
+        CONCAT_WS('\t',
+          uri_host,
+          cast(uniques_underestimate AS string),
+          cast(uniques_offset AS string),
+          cast(uniques_estimate AS string)) line
     FROM (
         SELECT
             uri_host,
+            SUM(uniques_underestimate) as uniques_underestimate,
+            SUM(uniques_offset) as uniques_offset,
             SUM(uniques_estimate) as uniques_estimate
         FROM ${source_table}
         WHERE year=${year}
