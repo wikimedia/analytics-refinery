@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow-app xmlns="uri:oozie:workflow:0.4"
+    name="unique_devices-project_wide-druid-daily-wf-${year}-${month}-${day}">
+
+    <parameters>
+
+        <!-- Default values for inner oozie settings -->
+        <property>
+            <name>oozie_launcher_queue_name</name>
+            <value>${queue_name}</value>
+        </property>
+        <property>
+            <name>oozie_launcher_memory</name>
+            <value>2048</value>
+        </property>
+
+        <!-- Required properties -->
+        <property><name>name_node</name></property>
+        <property><name>job_tracker</name></property>
+        <property><name>queue_name</name></property>
+
+        <property>
+            <name>hive_site_xml</name>
+            <description>hive-site.xml file path in HDFS</description>
+        </property>
+
+        <property>
+            <name>unique_devices_project_wide_daily_table</name>
+            <description>The hive unique devices daily table to use</description>
+        </property>
+
+        <property>
+            <name>year</name>
+            <description>The partition's year</description>
+        </property>
+        <property>
+            <name>month</name>
+            <description>The partition's month</description>
+        </property>
+        <property>
+            <name>day</name>
+            <description>The partition's day</description>
+        </property>
+
+        <property>
+            <name>loaded_period</name>
+            <description>Period of the data loaded in interval format (yyyy-MM-dd/yyy-MM-dd)</description>
+        </property>
+        <property>
+            <name>druid_template_file</name>
+            <description>File to use as a template to define druid loading (absolute since used by load_druid sub-workflow)</description>
+        </property>
+        <property>
+            <name>druid_overlord_url</name>
+            <description>The druid overlord url used for loading</description>
+        </property>
+        <property>
+            <name>temporary_directory</name>
+            <description>A directory in HDFS for temporary files</description>
+        </property>
+        <property>
+            <name>load_druid_workflow_file</name>
+            <description>Workflow for loading druid</description>
+        </property>
+        <property>
+            <name>mark_directory_done_workflow_file</name>
+            <description>Workflow for marking a directory done</description>
+        </property>
+        <property>
+            <name>send_error_email_workflow_file</name>
+            <description>Workflow for sending an email</description>
+        </property>
+
+    </parameters>
+
+    <start to="generate_json_unique_devices_project_wide_daily"/>
+
+    <action name="generate_json_unique_devices_project_wide_daily">
+        <hive xmlns="uri:oozie:hive-action:0.2">
+            <job-tracker>${job_tracker}</job-tracker>
+            <name-node>${name_node}</name-node>
+            <job-xml>${hive_site_xml}</job-xml>
+            <configuration>
+                <!--make sure oozie:launcher runs in a low priority queue -->
+                <property>
+                    <name>oozie.launcher.mapred.job.queue.name</name>
+                    <value>${oozie_launcher_queue_name}</value>
+                </property>
+                <property>
+                    <name>oozie.launcher.mapreduce.map.memory.mb</name>
+                    <value>${oozie_launcher_memory}</value>
+                </property>
+
+                <property>
+                    <name>mapreduce.job.queuename</name>
+                    <value>${queue_name}</value>
+                </property>
+                <!--Let hive decide on the number of reducers -->
+                <property>
+                    <name>mapred.reduce.tasks</name>
+                    <value>-1</value>
+                </property>
+                <property>
+                    <name>hive.exec.scratchdir</name>
+                    <value>/tmp/hive-${user}</value>
+                </property>
+            </configuration>
+            <script>generate_druid_unique_devices_project_wide_daily.hql</script>
+            <param>source_table=${unique_devices_project_wide_daily_table}</param>
+            <param>destination_directory=${temporary_directory}/${wf:id()}-druid-unique_devices-project_wide-daily-${year}-${month}-${day}</param>
+            <param>year=${year}</param>
+            <param>month=${month}</param>
+            <param>day=${day}</param>
+        </hive>
+        <ok to="mark_json_unique_devices_project_wide_daily_dataset_done" />
+        <error to="send_error_email" />
+    </action>
+
+    <action name="mark_json_unique_devices_project_wide_daily_dataset_done">
+        <sub-workflow>
+            <app-path>${mark_directory_done_workflow_file}</app-path>
+            <configuration>
+                <property>
+                    <name>directory</name>
+                    <value>${temporary_directory}/${wf:id()}-druid-unique_devices-project_wide-daily-${year}-${month}-${day}</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="index_druid"/>
+        <error to="send_error_email"/>
+    </action>
+
+
+    <action name="index_druid">
+        <sub-workflow>
+            <app-path>${load_druid_workflow_file}</app-path>
+            <propagate-configuration/>
+            <configuration>
+                <property>
+                    <name>source_directory</name>
+                    <value>${temporary_directory}/${wf:id()}-druid-unique_devices-project_wide-daily-${year}-${month}-${day}</value>
+                </property>
+                <property>
+                    <name>template_file</name>
+                    <value>${druid_template_file}</value>
+                </property>
+                <property>
+                    <name>loaded_period</name>
+                    <value>${loaded_period}</value>
+                </property>
+                <property>
+                    <name>druid_overlord_url</name>
+                    <value>${druid_overlord_url}</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="remove_temporary_data"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <action name="remove_temporary_data">
+        <fs>
+            <delete path="${temporary_directory}/${wf:id()}-druid-unique_devices-project_wide-daily-${year}-${month}-${day}"/>
+        </fs>
+        <ok to="end"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <action name="send_error_email">
+        <sub-workflow>
+            <app-path>${send_error_email_workflow_file}</app-path>
+            <propagate-configuration/>
+            <configuration>
+                <property>
+                    <name>parent_name</name>
+                    <value>${wf:name()}</value>
+                </property>
+                <property>
+                    <name>parent_failed_action</name>
+                    <value>${wf:lastErrorNode()}</value>
+                </property>
+                <property>
+                    <name>parent_error_code</name>
+                    <value>${wf:errorCode(wf:lastErrorNode())}</value>
+                </property>
+                <property>
+                    <name>parent_error_message</name>
+                    <value>${wf:errorMessage(wf:lastErrorNode())}</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="kill"/>
+        <error to="kill"/>
+    </action>
+
+    <kill name="kill">
+        <message>Action failed, error message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+    </kill>
+    <end name="end"/>
+</workflow-app>
