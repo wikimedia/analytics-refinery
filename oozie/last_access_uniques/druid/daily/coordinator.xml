@@ -51,8 +51,7 @@
     <input-events>
         <data-in name="uniques_daily_input" dataset="last_access_uniques_daily">
             <!-- Dataset uses day as frequency -->
-            <start-instance>${coord:current(0)}</start-instance>
-            <end-instance>${coord:current(1)}</end-instance>
+            <instance>${coord:current(0)}</instance>
         </data-in>
     </input-events>
 
