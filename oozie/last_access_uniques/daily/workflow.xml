@@ -48,6 +48,10 @@
             <description>Directory where the hive data is stored</description>
         </property>
         <property>
+            <name>uniques_archive_directory</name>
+            <description>Directory where the archived data is stored</description>
+        </property>
+        <property>
             <name>mark_directory_done_workflow_file</name>
             <description>Workflow for marking a directory done</description>
         </property>

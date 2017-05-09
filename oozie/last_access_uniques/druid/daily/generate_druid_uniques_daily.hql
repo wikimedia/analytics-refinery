@@ -1,7 +1,7 @@
 -- Extracts one day of json formatted daily uniques to be loaded in Druid
 --
 -- Usage:
---     hive -f generate_daily_druid_uniques.hql \
+--     hive -f generate_druid_uniques_daily.hql \
 --         -d source_table=wmf.last_access_uniques_daily \
 --         -d destination_directory=/tmp/druid/daily_json_uniques \
 --         -d year=2016 \
@@ -16,10 +16,10 @@ SET mapreduce.output.fileoutputformat.compress.codec=org.apache.hadoop.io.compre
 ADD JAR /usr/lib/hive-hcatalog/share/hcatalog/hive-hcatalog-core.jar;
 
 
-DROP TABLE IF EXISTS tmp_daily_druid_uniques_${year}_${month}_${day};
+DROP TABLE IF EXISTS tmp_druid_uniques_daily_${year}_${month}_${day};
 
 
-CREATE EXTERNAL TABLE IF NOT EXISTS tmp_daily_druid_uniques_${year}_${month}_${day} (
+CREATE EXTERNAL TABLE IF NOT EXISTS tmp_druid_uniques_daily_${year}_${month}_${day} (
     `dt`                     string,
     `host`                   string,
     `country`                string,
@@ -47,7 +47,7 @@ WITH filtered_hosts AS (
         SUM(uniques_estimate) >= 1000
 )
 
-INSERT OVERWRITE TABLE tmp_daily_druid_uniques_${year}_${month}_${day}
+INSERT OVERWRITE TABLE tmp_druid_uniques_daily_${year}_${month}_${day}
 SELECT
     CONCAT(
         LPAD(year, 4, '0'), '-',
@@ -67,4 +67,4 @@ WHERE year = ${year}
     AND day = ${day};
 
 
-DROP TABLE IF EXISTS tmp_daily_druid_uniques_${year}_${month}_${day};
+DROP TABLE IF EXISTS tmp_druid_uniques_daily_${year}_${month}_${day};
