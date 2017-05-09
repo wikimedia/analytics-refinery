@@ -35,8 +35,8 @@ LOCATION '${destination_directory}';
 
 WITH filtered_hosts AS (
     SELECT
-        uri_host as filtered_host,
-        SUM(uniques_estimate) as checked_uniques_estimate
+        uri_host AS filtered_host,
+        SUM(uniques_estimate) AS checked_uniques_estimate
     FROM ${source_table}
     WHERE year=${year}
       AND month=${month}
@@ -56,7 +56,7 @@ SELECT
     uri_host AS host,
     country AS country,
     country_code AS country_code,
-    uniques_underestimate as uniques_underestimate,
+    uniques_underestimate AS uniques_underestimate,
     uniques_offset AS uniques_offset,
     uniques_estimate AS uniques_estimate
 FROM ${source_table}

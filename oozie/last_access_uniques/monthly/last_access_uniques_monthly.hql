@@ -2,7 +2,7 @@
 --
 -- Parameters:
 --     source_table        -- Table containing source data
---     destination_table   -- Table where to right newly computed data
+--     destination_table   -- Table where to write newly computed data
 --     year                -- year of the to-be-generated
 --     month               -- month of the to-be-generated
 --
@@ -25,7 +25,7 @@ WITH last_access_dates AS (
     SELECT
         year,
         month,
-        lower(uri_host) as uri_host,
+        lower(uri_host) AS uri_host,
         geocoded_data['country'] AS country,
         geocoded_data['country_code'] AS country_code,
         unix_timestamp(x_analytics_map['WMF-Last-Access'], 'dd-MMM-yyyy') AS last_access,

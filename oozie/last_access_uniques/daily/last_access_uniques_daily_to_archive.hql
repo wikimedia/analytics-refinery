@@ -3,7 +3,7 @@
 --
 -- Parameters:
 --     source_table           -- Table containing source data
---     destination_directory  -- Table where to right newly computed data
+--     destination_directory  -- Table where to write newly computed data
 --     year                   -- year of the to-be-generated
 --     month                  -- month of the to-be-generated
 --     day                   -- day of the to-be-generated
@@ -32,13 +32,13 @@ INSERT OVERWRITE DIRECTORY "${destination_directory}"
           uri_host,
           cast(uniques_underestimate AS string),
           cast(uniques_offset AS string),
-          cast(uniques_estimate AS string)) line
+          cast(uniques_estimate AS string)) AS line
     FROM (
         SELECT
             uri_host,
-            SUM(uniques_underestimate) as uniques_underestimate,
-            SUM(uniques_offset) as uniques_offset,
-            SUM(uniques_estimate) as uniques_estimate
+            SUM(uniques_underestimate) AS uniques_underestimate,
+            SUM(uniques_offset) AS uniques_offset,
+            SUM(uniques_estimate) AS uniques_estimate
         FROM ${source_table}
         WHERE year=${year}
             AND month=${month}
