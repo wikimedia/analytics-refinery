@@ -47,12 +47,14 @@ WITH last_access_dates AS (
 fresh_sessions_aggregated AS (
     SELECT
         uri_host,
+        country,
         country_code,
         COUNT(1) AS uniques_offset
     FROM (
         SELECT
             hash(ip, user_agent, accept_language, uri_host) AS id,
             uri_host,
+            country,
             country_code,
             SUM(CASE WHEN (nocookies IS NOT NULL) THEN 1 ELSE 0 END),
             SUM(CASE WHEN (nocookies IS NULL) THEN 1 ELSE 0 END)
@@ -61,6 +63,7 @@ fresh_sessions_aggregated AS (
         GROUP BY
             hash(ip, user_agent, accept_language, uri_host),
             uri_host,
+            country,
             country_code
         -- Only keeping clients having done
         --    1 event without cookies
@@ -70,28 +73,31 @@ fresh_sessions_aggregated AS (
         ) fresh_sessions
     GROUP BY
         uri_host,
+        country,
         country_code
 )
 
 INSERT OVERWRITE TABLE ${destination_table}
     PARTITION(year = ${year}, month = ${month})
 SELECT
-    la.uri_host,
-    la.country,
-    la.country_code,
+    COALESCE(la.uri_host, fresh.uri_host) AS uri_host,
+    COALESCE(la.country, fresh.country) AS country,
+    COALESCE(la.country_code, fresh.country_code) AS country_code,
     SUM(CASE
+        -- uri_host defined (not null from outer join)
         -- Last access not set and client accept cookies --> first visit, count
-        WHEN (la.last_access IS NULL AND la.nocookies is NULL) THEN 1
+        WHEN (la.uri_host IS NOT NULL AND la.last_access IS NULL AND la.nocookies is NULL) THEN 1
         -- Last access set and date before today --> First visit today, count
         WHEN ((la.last_access IS NOT NULL)
             AND (la.last_access < unix_timestamp(CONCAT('${year}-', LPAD(${month}, 2, '0'), '-01'), 'yyyy-MM-dd'))) THEN 1
         -- Other cases, don't
         ELSE 0
     END) AS uniques_underestimate,
-    fresh.uniques_offset AS uniques_offset,
+    COALESCE(fresh.uniques_offset, 0) AS uniques_offset,
     SUM(CASE
+        -- uri_host defined (not null from outer join)
         -- Last access not set and client accept cookies --> first visit, count
-        WHEN (la.last_access IS NULL AND la.nocookies is NULL) THEN 1
+        WHEN (la.uri_host IS NOT NULL AND la.last_access IS NULL AND la.nocookies is NULL) THEN 1
         -- Last access set and date before today --> First visit today, count
         WHEN ((la.last_access IS NOT NULL)
             AND (la.last_access < unix_timestamp(CONCAT('${year}-', LPAD('${month}', 2, '0'), '-01'), 'yyyy-MM-dd'))) THEN 1
@@ -100,14 +106,14 @@ SELECT
     END) + fresh.uniques_offset AS uniques_estimate
 FROM
     last_access_dates AS la
-    INNER JOIN fresh_sessions_aggregated AS fresh
+    FULL OUTER JOIN fresh_sessions_aggregated AS fresh
         ON (fresh.uri_host = la.uri_host
             AND fresh.country_code = la.country_code)
 GROUP BY
-    la.uri_host,
-    la.country,
-    la.country_code,
-    fresh.uniques_offset
+    COALESCE(la.uri_host, fresh.uri_host),
+    COALESCE(la.country, fresh.country),
+    COALESCE(la.country_code, fresh.country_code),
+    COALESCE(fresh.uniques_offset, 0),
 -- TODO
 -- Add HAVING clause to restrict on long tail (maybe ?)
 --
