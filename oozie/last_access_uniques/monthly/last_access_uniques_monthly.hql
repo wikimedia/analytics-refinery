@@ -103,7 +103,7 @@ SELECT
             AND (la.last_access < unix_timestamp(CONCAT('${year}-', LPAD('${month}', 2, '0'), '-01'), 'yyyy-MM-dd'))) THEN 1
         -- Other cases, don't
         ELSE 0
-    END) + fresh.uniques_offset AS uniques_estimate
+    END) + COALESCE(fresh.uniques_offset, 0) AS uniques_estimate
 FROM
     last_access_dates AS la
     FULL OUTER JOIN fresh_sessions_aggregated AS fresh
