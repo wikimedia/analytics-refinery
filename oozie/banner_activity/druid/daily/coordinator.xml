@@ -18,6 +18,8 @@
         <property><name>webrequest_datasets_file</name></property>
         <property><name>webrequest_data_directory</name></property>
         <property><name>webrequest_table</name></property>
+        <property><name>banner_activity_datasets_file</name></property>
+        <property><name>banner_activity_directory</name></property>
 
         <property><name>start_time</name></property>
         <property><name>stop_time</name></property>
@@ -46,6 +48,7 @@
 
     <datasets>
         <include>${webrequest_datasets_file}</include>
+        <include>${banner_activity_datasets_file}</include>
     </datasets>
 
     <input-events>
@@ -54,6 +57,12 @@
             <end-instance>${coord:current(23)}</end-instance>
         </data-in>
     </input-events>
+
+    <output-events>
+        <data-out name="banner_activity_daily_output" dataset="banner_activity_daily">
+            <instance>${coord:current(0)}</instance>
+        </data-out>
+    </output-events>
 
     <action>
         <workflow>
@@ -74,6 +83,10 @@
                 <property>
                     <name>loaded_period</name>
                     <value>${coord:formatTime(coord:nominalTime(), "yyyy-MM-dd")}/${coord:formatTime(coord:dateOffset(coord:nominalTime(), 1, "DAY"), "yyyy-MM-dd")}</value>
+                </property>
+                <property>
+                    <name>banner_activity_daily_directory</name>
+                    <value>${coord:dataOut('banner_activity_daily_output')}</value>
                 </property>
             </configuration>
         </workflow>

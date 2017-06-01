@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Defines reusable datasets for druid loaded data.
+Thoses datasets provide ways to synchronise oozie jobs
+but doesn't link to folders with real data. The folders only
+contain _SUCCESS file to corrdinate jobs.
+Use this datasets in your coordinator.xml files by setting:
+
+    ${start_time}     - the initial instance of your data.
+                        Example: 2014-04-01T00:00Z
+    ${druid_banner_directory} - Path to directory where _SUCCESS file is time bucketed.
+                        Example: /wmf/data/wmf/banner_activity
+-->
+
+<datasets>
+
+    <!--
+    To unpad MONTH, DAY, and HOUR, we force coercion to a number by
+    adding 0.
+
+    Note that we do not use “${...}” but “${"$"}{...}", as dataset files are
+    passed to EL twice in cascade, and in the first EL level, ${MONTH}
+    evaluates to the string “${MONTH}”. Hence, we escape the dollar sign in
+    “${....}" to “${"$"}{...}”. At the first EL level, “${"$"}” gets turned
+    into a dollar sign, and “{...}”  is just passed along. Hence, we arrive
+    at “${...}” as input for the second EL level. There, the variables hold
+    their expected values, and we can start unpadding them.
+    -->
+    <dataset name="banner_activity_daily"
+             frequency="${coord:days(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${banner_activity_directory}/daily/year=${YEAR}/month=${"$"}{MONTH + 0}/day=${"$"}{DAY + 0}</uri-template>
+        <done-flag>_SUCCESS</done-flag>
+    </dataset>
+
+</datasets>
