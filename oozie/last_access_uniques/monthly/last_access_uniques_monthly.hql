@@ -113,7 +113,7 @@ GROUP BY
     COALESCE(la.uri_host, fresh.uri_host),
     COALESCE(la.country, fresh.country),
     COALESCE(la.country_code, fresh.country_code),
-    COALESCE(fresh.uniques_offset, 0),
+    COALESCE(fresh.uniques_offset, 0)
 -- TODO
 -- Add HAVING clause to restrict on long tail (maybe ?)
 --
