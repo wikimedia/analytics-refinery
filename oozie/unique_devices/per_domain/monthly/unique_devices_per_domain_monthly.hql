@@ -42,8 +42,8 @@ WITH last_access_dates AS (
       AND month = ${month}
 ),
 
--- Only keeping clients having 1 event without cookies and 0 with cookies
--- (fresh sessions not already counted with last_access method)
+-- Only keeping clients having 1 event without cookies
+-- (fresh sessions are not counted when calculating the underestimate via last_access_cookie setting)
 fresh_sessions_aggregated AS (
     SELECT
         domain,
@@ -56,8 +56,7 @@ fresh_sessions_aggregated AS (
             domain,
             country,
             country_code,
-            SUM(CASE WHEN (nocookies IS NOT NULL) THEN 1 ELSE 0 END),
-            SUM(CASE WHEN (nocookies IS NULL) THEN 1 ELSE 0 END)
+            SUM(CASE WHEN (nocookies IS NOT NULL) THEN 1 ELSE 0 END)
         FROM
             last_access_dates
         GROUP BY
@@ -65,11 +64,8 @@ fresh_sessions_aggregated AS (
             domain,
             country,
             country_code
-        -- Only keeping clients having done
-        --    1 event without cookies
-        --    0 with cookies (if > 0, already counted with last_access method)
+        -- Only keeping clients having done 1 event without cookies
         HAVING SUM(CASE WHEN (nocookies IS NOT NULL) THEN 1 ELSE 0 END) = 1
-            AND SUM(CASE WHEN (nocookies IS NULL) THEN 1 ELSE 0 END) = 0
         ) fresh_sessions
     GROUP BY
         domain,

@@ -70,14 +70,26 @@
               <!-- Pass these properties through to the workflow -->
               <property>
                   <name>year</name>
-                  <value>${coord:formatTime(coord:nominalTime(), "yyyy")}</value>
+                  <value>${coord:formatTime(coord:nominalTime(), "y")}</value>
               </property>
               <property>
                   <name>month</name>
-                  <value>${coord:formatTime(coord:nominalTime(), "MM")}</value>
+                  <value>${coord:formatTime(coord:nominalTime(), "M")}</value>
               </property>
               <property>
                   <name>day</name>
+                  <value>${coord:formatTime(coord:nominalTime(), "d")}</value>
+              </property>
+              <property>
+                  <name>padded_year</name>
+                  <value>${coord:formatTime(coord:nominalTime(), "yyyy")}</value>
+              </property>
+              <property>
+                  <name>padded_month</name>
+                  <value>${coord:formatTime(coord:nominalTime(), "MM")}</value>
+              </property>
+              <property>
+                  <name>padded_day</name>
                   <value>${coord:formatTime(coord:nominalTime(), "dd")}</value>
               </property>
               <property>

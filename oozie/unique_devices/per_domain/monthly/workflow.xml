@@ -40,6 +40,14 @@
             <description>The partition's month</description>
         </property>
         <property>
+            <name>padded_year</name>
+            <description>The padded-partition's year - for archive filename format</description>
+        </property>
+        <property>
+            <name>padded_month</name>
+            <description>The padded-partition's month - for archive filename format</description>
+        </property>
+        <property>
             <name>unique_devices_per_domain_monthly_current_directory</name>
             <description>Directory where the currently computed data is stored</description>
         </property>
@@ -193,7 +201,7 @@
                     timestamp in the filename. To not break scripts of people,
                     we also name files that way.
                     -->
-                    <value>${unique_devices_per_domain_archive_directory}/${year}/${year}-${month}/unique_devices_per_domain_monthly-${year}-${month}.gz</value>
+                    <value>${unique_devices_per_domain_archive_directory}/${padded_year}/${padded_year}-${padded_month}/unique_devices_per_domain_monthly-${padded_year}-${padded_month}.gz</value>
                 </property>
             </configuration>
         </sub-workflow>
