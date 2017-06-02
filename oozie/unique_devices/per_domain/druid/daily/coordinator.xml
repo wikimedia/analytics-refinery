@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <coordinator-app xmlns="uri:oozie:coordinator:0.4"
-    name="last_access_uniques-druid-daily-coord"
+    name="unique_devices-per_domain-druid-daily-coord"
     frequency="${coord:days(1)}"
     start="${start_time}"
     end="${stop_time}"
@@ -15,9 +15,10 @@
 
         <property><name>hive_site_xml</name></property>
         <property><name>workflow_file</name></property>
-        <property><name>last_access_uniques_datasets_file</name></property>
-        <property><name>last_access_uniques_data_directory</name></property>
-        <property><name>last_access_uniques_daily_table</name></property>
+
+        <property><name>unique_devices_datasets_file</name></property>
+        <property><name>unique_devices_data_directory</name></property>
+        <property><name>unique_devices_per_domain_daily_table</name></property>
 
         <property><name>start_time</name></property>
         <property><name>stop_time</name></property>
@@ -45,11 +46,11 @@
     </controls>
 
     <datasets>
-        <include>${last_access_uniques_datasets_file}</include>
+        <include>${unique_devices_datasets_file}</include>
     </datasets>
 
     <input-events>
-        <data-in name="uniques_daily_input" dataset="last_access_uniques_daily">
+        <data-in name="unique_devices_per_domain_daily_input" dataset="unique_devices_per_domain_daily">
             <!-- Dataset uses day as frequency -->
             <instance>${coord:current(0)}</instance>
         </data-in>

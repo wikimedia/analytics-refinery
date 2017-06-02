@@ -1,31 +1,31 @@
--- Generates daily uniques based on WMF-Last-Access cookie
+-- Generates monthly per-domain unique devices based on WMF-Last-Access cookie
 --
 -- Parameters:
 --     source_table        -- Table containing source data
 --     destination_table   -- Table where to write newly computed data
 --     year                -- year of the to-be-generated
 --     month               -- month of the to-be-generated
---     day                 -- day of the to-be-generated
 --
--- Usage:
---     hive -f last_access_uniques_daily.hql \
+-- Usage
+--     hive -f unique_devices_per_domain_monthly.hql \
 --         -d source_table=wmf.webrequest \
---         -d destination_table=wmf.last_access_uniques_daily \
+--         -d destination_table=wmf.unique_devices_per_domain_monthly \
 --         -d year=2016 \
---         -d month=1 \
---         -d day=1
+--         -d month=1
 
 
 
 -- Set parquet compression codec
 SET parquet.compression              = SNAPPY;
 
+-- Allocate resources to almost all maps before starting reducers
+SET mapreduce.job.reduce.slowstart.completedmaps=0.99;
+
 WITH last_access_dates AS (
     SELECT
         year,
         month,
-        day,
-        lower(uri_host) AS uri_host,
+        lower(uri_host) AS domain,
         geocoded_data['country'] AS country,
         geocoded_data['country_code'] AS country_code,
         unix_timestamp(x_analytics_map['WMF-Last-Access'], 'dd-MMM-yyyy') AS last_access,
@@ -40,21 +40,20 @@ WITH last_access_dates AS (
       AND webrequest_source = 'text'
       AND year = ${year}
       AND month = ${month}
-      AND day = ${day}
 ),
 
 -- Only keeping clients having 1 event without cookies and 0 with cookies
 -- (fresh sessions not already counted with last_access method)
 fresh_sessions_aggregated AS (
     SELECT
-        uri_host,
+        domain,
         country,
         country_code,
         COUNT(1) AS uniques_offset
     FROM (
         SELECT
-            hash(ip, user_agent, accept_language, uri_host) AS id,
-            uri_host,
+            hash(ip, user_agent, accept_language, domain) AS id,
+            domain,
             country,
             country_code,
             SUM(CASE WHEN (nocookies IS NOT NULL) THEN 1 ELSE 0 END),
@@ -62,8 +61,8 @@ fresh_sessions_aggregated AS (
         FROM
             last_access_dates
         GROUP BY
-            hash(ip, user_agent, accept_language, uri_host),
-            uri_host,
+            hash(ip, user_agent, accept_language, domain),
+            domain,
             country,
             country_code
         -- Only keeping clients having done
@@ -73,45 +72,45 @@ fresh_sessions_aggregated AS (
             AND SUM(CASE WHEN (nocookies IS NULL) THEN 1 ELSE 0 END) = 0
         ) fresh_sessions
     GROUP BY
-        uri_host,
+        domain,
         country,
         country_code
 )
 
 INSERT OVERWRITE TABLE ${destination_table}
-    PARTITION(year = ${year}, month = ${month}, day = ${day})
+    PARTITION(year = ${year}, month = ${month})
 SELECT
-    COALESCE(la.uri_host, fresh.uri_host) AS uri_host,
+    COALESCE(la.domain, fresh.domain) AS domain,
     COALESCE(la.country, fresh.country) AS country,
     COALESCE(la.country_code, fresh.country_code) AS country_code,
     SUM(CASE
-        -- uri_host defined (not null from outer join)
+        -- domain defined (not null from outer join)
         -- Last access not set and client accept cookies --> first visit, count
-        WHEN (la.uri_host IS NOT NULL AND la.last_access IS NULL AND la.nocookies is NULL) THEN 1
+        WHEN (la.domain IS NOT NULL AND la.last_access IS NULL AND la.nocookies is NULL) THEN 1
         -- Last access set and date before today --> First visit today, count
         WHEN ((la.last_access IS NOT NULL)
-            AND (la.last_access < unix_timestamp(CONCAT('${year}-', LPAD('${month}', 2, '0'), '-', LPAD('${day}', 2, '0')), 'yyyy-MM-dd'))) THEN 1
+            AND (la.last_access < unix_timestamp(CONCAT('${year}-', LPAD(${month}, 2, '0'), '-01'), 'yyyy-MM-dd'))) THEN 1
         -- Other cases, don't
         ELSE 0
     END) AS uniques_underestimate,
     COALESCE(fresh.uniques_offset, 0) AS uniques_offset,
     SUM(CASE
-        -- uri_host defined (not null from outer join)
+        -- domain defined (not null from outer join)
         -- Last access not set and client accept cookies --> first visit, count
-        WHEN (la.uri_host IS NOT NULL AND la.last_access IS NULL AND la.nocookies is NULL) THEN 1
+        WHEN (la.domain IS NOT NULL AND la.last_access IS NULL AND la.nocookies is NULL) THEN 1
         -- Last access set and date before today --> First visit today, count
         WHEN ((la.last_access IS NOT NULL)
-            AND (la.last_access < unix_timestamp(CONCAT('${year}-', LPAD('${month}', 2, '0'), '-', LPAD('${day}', 2, '0')), 'yyyy-MM-dd'))) THEN 1
+            AND (la.last_access < unix_timestamp(CONCAT('${year}-', LPAD('${month}', 2, '0'), '-01'), 'yyyy-MM-dd'))) THEN 1
         -- Other cases, don't
         ELSE 0
     END) + COALESCE(fresh.uniques_offset, 0) AS uniques_estimate
 FROM
     last_access_dates AS la
     FULL OUTER JOIN fresh_sessions_aggregated AS fresh
-        ON (fresh.uri_host = la.uri_host
+        ON (fresh.domain = la.domain
             AND fresh.country_code = la.country_code)
 GROUP BY
-    COALESCE(la.uri_host, fresh.uri_host),
+    COALESCE(la.domain, fresh.domain),
     COALESCE(la.country, fresh.country),
     COALESCE(la.country_code, fresh.country_code),
     COALESCE(fresh.uniques_offset, 0)

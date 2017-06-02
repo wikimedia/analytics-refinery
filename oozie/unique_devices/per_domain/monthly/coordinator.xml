@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <coordinator-app xmlns="uri:oozie:coordinator:0.4"
-    name="last_access_uniques-daily-coord"
-    frequency="${coord:days(1)}"
+    name="unique_devices-per_domain-monthly-coord"
+    frequency="${coord:months(1)}"
     start="${start_time}"
     end="${stop_time}"
     timezone="Universal">
@@ -18,15 +18,15 @@
         <property><name>stop_time</name></property>
 
         <property><name>webrequest_table</name></property>
-        <property><name>last_access_uniques_daily_table</name></property>
-
         <property><name>webrequest_data_directory</name></property>
         <property><name>webrequest_datasets_file</name></property>
-        <property><name>last_access_uniques_data_directory</name></property>
-        <property><name>last_access_uniques_datasets_file</name></property>
+
+        <property><name>unique_devices_per_domain_monthly_table</name></property>
+        <property><name>unique_devices_data_directory</name></property>
+        <property><name>unique_devices_datasets_file</name></property>
+        <property><name>unique_devices_per_domain_archive_directory</name></property>
 
         <property><name>temporary_directory</name></property>
-        <property><name>uniques_archive_directory</name></property>
     </parameters>
 
     <controls>
@@ -41,7 +41,7 @@
 
     <datasets>
         <include>${webrequest_datasets_file}</include>
-        <include>${last_access_uniques_datasets_file}</include>
+        <include>${unique_devices_datasets_file}</include>
     </datasets>
 
     <input-events>
@@ -51,16 +51,15 @@
         -->
         <data-in name="text" dataset="webrequest_text">
             <start-instance>${coord:current(0)}</start-instance>
-            <end-instance>${coord:current(23)}</end-instance>
+            <end-instance>${coord:current(coord:daysInMonth(0) * 24 - 1)}</end-instance>
         </data-in>
     </input-events>
 
     <output-events>
-        <data-out name="last_access_uniques_daily_output" dataset="last_access_uniques_daily">
+        <data-out name="unique_devices_per_domain_monthly_output" dataset="unique_devices_per_domain_monthly">
             <instance>${coord:current(0)}</instance>
         </data-out>
     </output-events>
-
 
    <action>
       <workflow>
@@ -77,12 +76,8 @@
                   <value>${coord:formatTime(coord:nominalTime(), "MM")}</value>
               </property>
               <property>
-                  <name>day</name>
-                  <value>${coord:formatTime(coord:nominalTime(), "dd")}</value>
-              </property>
-              <property>
-                    <name>uniques_dataset_directory</name>
-                    <value>${coord:dataOut('last_access_uniques_daily_output')}</value>
+                    <name>unique_devices_per_domain_monthly_current_directory</name>
+                    <value>${coord:dataOut('unique_devices_per_domain_monthly_output')}</value>
                 </property>
           </configuration>
       </workflow>

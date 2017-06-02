@@ -1,9 +1,9 @@
--- Extracts one day of json formatted daily uniques to be loaded in Druid
+-- Extracts one day of json formatted daily per-domain unique devices to be loaded in Druid
 --
 -- Usage:
---     hive -f generate_druid_uniques_daily.hql \
---         -d source_table=wmf.last_access_uniques_daily \
---         -d destination_directory=/tmp/druid/daily_json_uniques \
+--     hive -f generate_druid_unique_devices_per_domain_daily.hql \
+--         -d source_table=wmf.unique_devices_per_domain_daily \
+--         -d destination_directory=/tmp/druid/unique_devices_per_domain_daily_json \
 --         -d year=2016 \
 --         -d month=7 \
 --         -d day=10
@@ -16,12 +16,12 @@ SET mapreduce.output.fileoutputformat.compress.codec=org.apache.hadoop.io.compre
 ADD JAR /usr/lib/hive-hcatalog/share/hcatalog/hive-hcatalog-core.jar;
 
 
-DROP TABLE IF EXISTS tmp_druid_uniques_daily_${year}_${month}_${day};
+DROP TABLE IF EXISTS tmp_druid_unique_devices_per_domain_daily_${year}_${month}_${day};
 
 
-CREATE EXTERNAL TABLE IF NOT EXISTS tmp_druid_uniques_daily_${year}_${month}_${day} (
+CREATE EXTERNAL TABLE IF NOT EXISTS tmp_druid_unique_devices_per_domain_daily_${year}_${month}_${day} (
     `dt`                     string,
-    `host`                   string,
+    `domain`                 string,
     `country`                string,
     `country_code`           string,
     `uniques_underestimate`  bigint,
@@ -33,27 +33,27 @@ STORED AS TEXTFILE
 LOCATION '${destination_directory}';
 
 
-WITH filtered_hosts AS (
+WITH filtered_domains AS (
     SELECT
-        uri_host AS filtered_host,
+        domain AS filtered_domain,
         SUM(uniques_estimate) AS checked_uniques_estimate
     FROM ${source_table}
     WHERE year=${year}
       AND month=${month}
       AND day=${day}
     GROUP BY
-        uri_host
+        domain
     HAVING
         SUM(uniques_estimate) >= 1000
 )
 
-INSERT OVERWRITE TABLE tmp_druid_uniques_daily_${year}_${month}_${day}
+INSERT OVERWRITE TABLE tmp_druid_unique_devices_per_domain_daily_${year}_${month}_${day}
 SELECT
     CONCAT(
         LPAD(year, 4, '0'), '-',
         LPAD(month, 2, '0'), '-',
         LPAD(day, 2, '0'), 'T00:00:00Z') AS dt,
-    uri_host AS host,
+    domain AS domain,
     country AS country,
     country_code AS country_code,
     uniques_underestimate AS uniques_underestimate,
@@ -61,10 +61,10 @@ SELECT
     uniques_estimate AS uniques_estimate
 FROM ${source_table}
     INNER JOIN filtered_hosts
-        ON uri_host = filtered_host
+        ON domain = filtered_domains
 WHERE year = ${year}
     AND month = ${month}
     AND day = ${day};
 
 
-DROP TABLE IF EXISTS tmp_druid_uniques_daily_${year}_${month}_${day};
+DROP TABLE IF EXISTS tmp_druid_unique_devices_per_domain_daily_${year}_${month}_${day};

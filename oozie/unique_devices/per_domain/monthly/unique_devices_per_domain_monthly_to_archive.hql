@@ -1,4 +1,4 @@
--- Aggregate monthly uniques on uri_host and
+-- Aggregate monthly per-domain unique devices on domain and
 -- keep only hosts having more than 1000 uniques monthly.
 --
 -- Parameters:
@@ -8,9 +8,9 @@
 --     month                  -- month of the to-be-generated
 --
 -- Usage:
---     hive -f last_access_uniques_monthly_to_archive.hql \
---         -d source_table=wmf.last_access_uniques_monthly \
---         -d destination_directory=/tmp/archive/last_access_uniques_monthly \
+--     hive -f unique_devices_per_domain_monthly_to_archive.hql \
+--         -d source_table=wmf.unique_devices_per_domain_monthly \
+--         -d destination_directory=/tmp/archive/unique_devices_per_domain_monthly \
 --         -d year=2016 \
 --         -d month=1
 
@@ -27,13 +27,13 @@ INSERT OVERWRITE DIRECTORY "${destination_directory}"
     -- Set 0 as volume column since we don't use it.
     SELECT
         CONCAT_WS('\t',
-          uri_host,
+          domain,
           cast(uniques_underestimate AS string),
           cast(uniques_offset AS string),
           cast(uniques_estimate AS string)) AS line
     FROM (
         SELECT
-            uri_host,
+            domain,
             SUM(uniques_underestimate) AS uniques_underestimate,
             SUM(uniques_offset) AS uniques_offset,
             SUM(uniques_estimate) AS uniques_estimate
@@ -41,7 +41,7 @@ INSERT OVERWRITE DIRECTORY "${destination_directory}"
         WHERE year=${year}
             AND month=${month}
         GROUP BY
-            uri_host
+            domain
         HAVING
             SUM(uniques_estimate) >= 1000
         ORDER BY
