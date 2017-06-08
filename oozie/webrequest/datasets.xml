@@ -28,14 +28,6 @@ Use this dataset in your coordinator.xml files by setting:
     at “${...}” as input for the second EL level. There, the variables hold
     their expected values, and we can start unpadding them.
     -->
-    <dataset name="webrequest_maps"
-             frequency="${coord:hours(1)}"
-             initial-instance="${start_time}"
-             timezone="Universal">
-        <uri-template>${webrequest_data_directory}/webrequest_source=maps/year=${YEAR}/month=${"$"}{MONTH + 0}/day=${"$"}{DAY + 0}/hour=${"$"}{HOUR + 0}</uri-template>
-        <done-flag>_SUCCESS</done-flag>
-    </dataset>
-
     <dataset name="webrequest_misc"
              frequency="${coord:hours(1)}"
              initial-instance="${start_time}"

@@ -73,8 +73,8 @@ add_dataset() {
 }
 
 add_dataset "mediacounts" "daily" "   full  | top1000 |"
-add_dataset "raw_webrequest" "hourly" "     maps    |     misc    |     text    |    upload   |"
-add_dataset "webrequest" "hourly" "  maps  |  misc  |  text  | upload |"
+add_dataset "raw_webrequest" "hourly" "     misc    |     text    |    upload   |"
+add_dataset "webrequest" "hourly" "  misc  |  text  | upload |"
 add_dataset "pageview" "hourly" "  hourly  |"
 add_dataset "projectview" "hourly" "   hourly    |"
 
@@ -414,11 +414,11 @@ dump_dataset_raw_webrequest() {
 
     local DATE_HDFS_PADDED="$(date --utc -d "$DATE" +'%Y/%m/%d/%H')"
 
-    for SOURCE in maps misc text upload
+    for SOURCE in misc text upload
     do
-        log_no_lf "    "
+        log_no_lf " "
         dump_dataset_raw_webrequest_partition "$DATE_HDFS_PADDED" "$SOURCE"
-        log_no_lf "   |"
+        log_no_lf "      |"
     done
 }
 
@@ -428,7 +428,7 @@ dump_dataset_webrequest() {
     local DATE_DIRS_REL="$(date --utc -d "$DATE" +'year=%Y/month=%m/day=%d/hour=%H')"
     DATE_DIRS_REL="${DATE_DIRS_REL//=0/=}"
 
-    for SOURCE in maps misc text upload
+    for SOURCE in misc text upload
     do
         local STATUS="X"
         SUCCESS_FILE_ABS="$WEBREQUEST_DATA_DIR_ABS/webrequest_source=$SOURCE/$DATE_DIRS_REL/_SUCCESS"
