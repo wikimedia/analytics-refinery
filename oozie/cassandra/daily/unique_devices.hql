@@ -9,7 +9,7 @@
 -- Usage:
 --     hive -f unique_devices.hql                                 \
 --         -d destination_directory=/tmp/unique_devices           \
---         -d source_table=wmf.last_access_uniques_daily          \
+--         -d source_table=wmf.unique_devices_per_domain_daily    \
 --         -d separator=\t                                        \
 --         -d year=2016                                           \
 --         -d month=1                                             \
@@ -24,10 +24,10 @@ SET mapreduce.output.fileoutputformat.compress.codec=org.apache.hadoop.io.compre
 WITH unique_devices AS (
     SELECT
         CONCAT(
-            regexp_extract(uri_host, '^((?!www)([a-z0-9-_]+)\\.)(m\\.)?\\w+\\.org$'),
-            regexp_extract(uri_host, '([a-z0-9-_]+)\\.org$')
+            regexp_extract(domain, '^((?!www)([a-z0-9-_]+)\\.)(m\\.)?\\w+\\.org$'),
+            regexp_extract(domain, '([a-z0-9-_]+)\\.org$')
             ) AS project,
-        CASE WHEN uri_host RLIKE '(^(m)\\.)|\\.m\\.'
+        CASE WHEN domain RLIKE '(^(m)\\.)|\\.m\\.'
             THEN 'mobile-site'
             ELSE 'desktop-site'
             END AS access_site,
@@ -41,10 +41,10 @@ WITH unique_devices AS (
         AND day = ${day}
     GROUP BY
         CONCAT(
-            regexp_extract(uri_host, '^((?!www)([a-z0-9-_]+)\\.)(m\\.)?\\w+\\.org$'),
-            regexp_extract(uri_host, '([a-z0-9-_]+)\\.org$')
+            regexp_extract(domain, '^((?!www)([a-z0-9-_]+)\\.)(m\\.)?\\w+\\.org$'),
+            regexp_extract(domain, '([a-z0-9-_]+)\\.org$')
             ),
-        CASE WHEN uri_host RLIKE '(^(m)\\.)|\\.m\\.'
+        CASE WHEN domain RLIKE '(^(m)\\.)|\\.m\\.'
             THEN 'mobile-site'
             ELSE 'desktop-site'
             END,

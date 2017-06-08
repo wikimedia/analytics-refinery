@@ -1,10 +1,13 @@
-# Cassandra loader for pageview API
+# Cassandra loader for AQS
 
 The bundle is responsible for data transformation and load
-into cassandra for the pageview API. It has three main datasets:
+into cassandra for the Analytics Query Service. It has 5 main datasets:
 * pageview per article
 * pageview per project
 * pageview top articles
+* Unique devices
+* Historical pagecounts per project
+
 First data is written in TSV files with aggregates computed
 in a cube fashion for some dimensions, then those flat files are
 loaded into cassandra, and fianlly removed if the job ends correctly.

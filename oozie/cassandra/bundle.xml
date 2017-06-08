@@ -216,7 +216,7 @@
 
         <property>
             <name>unique_devices_datasets_file</name>
-            <value>${last_access_uniques_datasets_file}</value>
+            <value>${unique_devices_datasets_file}</value>
         </property>
         <property>
             <name>unique_devices_hive_script</name>
@@ -680,7 +680,7 @@
             </property>
             <property>
                 <name>dataset_name</name>
-                <value>last_access_uniques_daily</value>
+                <value>unique_devices_per_domain_daily</value>
             </property>
             <!-- frequency of the dataset to manage different datasets
                  correctly in coordinator -->
@@ -696,7 +696,7 @@
             </property>
             <property>
                 <name>source_table</name>
-                <value>wmf.last_access_uniques_daily</value>
+                <value>wmf.unique_devices_per_domain_daily</value>
             </property>
 
             <!-- cassandra loader job stuff -->
@@ -746,7 +746,7 @@
             </property>
             <property>
                 <name>dataset_name</name>
-                <value>last_access_uniques_monthly</value>
+                <value>unique_devices_per_domain_monthly</value>
             </property>
             <!-- frequency of the dataset to manage different datasets
                  correctly in coordinator -->
@@ -762,7 +762,7 @@
             </property>
             <property>
                 <name>source_table</name>
-                <value>wmf.last_access_uniques_monthly</value>
+                <value>wmf.unique_devices_per_domain_monthly</value>
             </property>
 
             <!-- cassandra loader job stuff -->
