@@ -22,7 +22,7 @@
           "format" : "json",
           "dimensionsSpec" : {
             "dimensions" : [
-                "host",
+                "domain",
                 "country",
                 "country_code"
             ]
