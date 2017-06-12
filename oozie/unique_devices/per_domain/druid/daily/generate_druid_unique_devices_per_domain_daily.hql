@@ -60,8 +60,8 @@ SELECT
     uniques_offset AS uniques_offset,
     uniques_estimate AS uniques_estimate
 FROM ${source_table}
-    INNER JOIN filtered_hosts
-        ON domain = filtered_domains
+    INNER JOIN filtered_domains
+        ON domain = filtered_domain
 WHERE year = ${year}
     AND month = ${month}
     AND day = ${day};
