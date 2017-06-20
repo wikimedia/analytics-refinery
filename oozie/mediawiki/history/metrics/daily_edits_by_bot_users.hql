@@ -11,8 +11,8 @@
 --     hive -f daily_edits_by_bot_users.hql             \
 --         -d source_table=wmf.mediawiki_history        \
 --         -d destination_table=wmf.mediawiki_metrics   \
---         -d start_timestamp=20010101000000            \
---         -d end_timestamp=20170101000000              \
+--         -d start_timestamp=2001-01-01 00:00:00       \
+--         -d end_timestamp=2017-01-01 00:00:00         \
 --         -d wiki_db=all                               \
 --         -d snapshot=2017-03
 
@@ -28,11 +28,7 @@ set hive.exec.max.dynamic.partitions.pernode=2000;
 -- dynamic partitions must be specified here
  insert overwrite table ${destination_table} partition (snapshot='${snapshot}', metric, wiki_db)
 -- dynamic partitions must be selected in order and at the end
- select concat_ws('-',
-            substring(event_timestamp, 0, 4),
-            substring(event_timestamp, 5, 2),
-            substring(event_timestamp, 7, 2)
-        ) as dt,
+ select substring(event_timestamp, 0, 10) as dt,
         count(*) as value,
         'daily_edits_by_bot_users' as metric,
         wiki_db
@@ -47,9 +43,7 @@ set hive.exec.max.dynamic.partitions.pernode=2000;
     and snapshot = '${snapshot}'
 
   group by wiki_db,
-        substring(event_timestamp, 0, 4),
-        substring(event_timestamp, 5, 2),
-        substring(event_timestamp, 7, 2)
+        substring(event_timestamp, 0, 10)
   order by wiki_db,
         dt
 ;

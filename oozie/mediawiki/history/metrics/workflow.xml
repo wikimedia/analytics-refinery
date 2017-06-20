@@ -36,11 +36,11 @@
 
         <property>
             <name>start_timestamp</name>
-            <description>Start timestamp (YYYYMMDDHHMMSS format) to restrict metrics computation</description>
+            <description>Start timestamp (YYYY-MM-DD HH:MM:SS format) to restrict metrics computation</description>
         </property>
         <property>
             <name>end_timestamp</name>
-            <description>End timestamp (YYYYMMDDHHMMSS format) to restrict metrics computation</description>
+            <description>End timestamp (YYYY-MM-DD HH:MM:SS format) to restrict metrics computation</description>
         </property>
         <property>
             <name>wiki_db</name>

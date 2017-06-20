@@ -11,8 +11,8 @@
 --     hive -f monthly_surviving_new_editors.hql        \
 --         -d source_table=wmf.mediawiki_history        \
 --         -d destination_table=wmf.mediawiki_metrics   \
---         -d start_timestamp=20010101000000            \
---         -d end_timestamp=20170101000000              \
+--         -d start_timestamp=2001-01-01 00:00:00       \
+--         -d end_timestamp=2017-01-01 00:00:00         \
 --         -d wiki_db=all                               \
 --         -d snapshot=2017-03
 
@@ -28,25 +28,21 @@ set hive.exec.max.dynamic.partitions.pernode=2000;
 -- dynamic partitions must be specified here
  insert overwrite table ${destination_table} partition (snapshot='${snapshot}', metric, wiki_db)
 -- dynamic partitions must be selected in order and at the end
- select concat_ws('-',
-            substring(surviving_editors.month, 0, 4),
-            substring(surviving_editors.month, 5, 2),
-            '01'
-        ) as dt,
+ select concat(surviving_editors.month, '-01') as dt,
         count(*) as value,
         'monthly_surviving_new_editors' as metric,
         surviving_editors.wiki_db
 
    from (select wiki_db,
-                substring(event_user_creation_timestamp, 0, 6) month,
+                substring(event_user_creation_timestamp, 0, 7) as month,
                 event_user_id
            from ${source_table}
           where event_entity = 'revision'
             and event_type = 'create'
             and event_user_id is not null
             and event_user_is_created_by_self
-            and unix_timestamp(event_timestamp, 'yyyyMMddHHmmss') -
-                unix_timestamp(event_user_creation_timestamp, 'yyyyMMddHHmmss')
+            and unix_timestamp(event_timestamp) -
+                unix_timestamp(event_user_creation_timestamp)
                 <= 86400
             and ('${wiki_db}' = 'all' or wiki_db = '${wiki_db}')
             and event_user_creation_timestamp >= '${start_timestamp}'
@@ -54,7 +50,7 @@ set hive.exec.max.dynamic.partitions.pernode=2000;
             and snapshot = '${snapshot}'
 
           group by wiki_db,
-                substring(event_user_creation_timestamp, 0, 6),
+                substring(event_user_creation_timestamp, 0, 7),
                 event_user_id
 
         ) new_editors
@@ -62,13 +58,13 @@ set hive.exec.max.dynamic.partitions.pernode=2000;
             inner join
 
         (select wiki_db,
-                substring(event_user_creation_timestamp, 0, 6) month,
+                substring(event_user_creation_timestamp, 0, 7) as month,
                 event_user_id
            from ${source_table}
           where event_entity = 'revision'
             and event_type = 'create'
-            and unix_timestamp(event_timestamp, 'yyyyMMddHHmmss') -
-                unix_timestamp(event_user_creation_timestamp, 'yyyyMMddHHmmss')
+            and unix_timestamp(event_timestamp) -
+                unix_timestamp(event_user_creation_timestamp)
                 between 2592000 and 5184000
             and ('${wiki_db}' = 'all' or wiki_db = '${wiki_db}')
             and event_user_creation_timestamp >= '${start_timestamp}'
@@ -76,7 +72,7 @@ set hive.exec.max.dynamic.partitions.pernode=2000;
             and snapshot = '${snapshot}'
 
           group by wiki_db,
-                substring(event_user_creation_timestamp, 0, 6),
+                substring(event_user_creation_timestamp, 0, 7),
                 event_user_id
 
         ) surviving_editors     on surviving_editors.event_user_id = new_editors.event_user_id
@@ -84,8 +80,7 @@ set hive.exec.max.dynamic.partitions.pernode=2000;
                                 and surviving_editors.wiki_db = new_editors.wiki_db
 
   group by surviving_editors.wiki_db,
-        substring(surviving_editors.month, 0, 4),
-        substring(surviving_editors.month, 5, 2)
+        surviving_editors.month
   order by wiki_db,
         dt
 ;

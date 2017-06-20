@@ -21,6 +21,7 @@
         <property><name>datasets_file</name></property>
         <property><name>mw_directory</name></property>
 
+        <property><name>mw_project_namespace_map_table</name></property>
         <property><name>mw_archive_table</name></property>
         <property><name>mw_logging_table</name></property>
         <property><name>mw_page_table</name></property>
