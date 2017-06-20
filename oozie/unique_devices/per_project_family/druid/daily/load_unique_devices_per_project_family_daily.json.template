@@ -9,7 +9,7 @@
       }
     },
     "dataSchema" : {
-      "dataSource" : "unique-devices-project-wide-daily",
+      "dataSource" : "unique-devices-per_project_family-daily",
       "granularitySpec" : {
         "type" : "uniform",
         "segmentGranularity" : "day",
@@ -22,7 +22,7 @@
           "format" : "json",
           "dimensionsSpec" : {
             "dimensions" : [
-                "project",
+                "project_family",
                 "country",
                 "country_code"
             ]

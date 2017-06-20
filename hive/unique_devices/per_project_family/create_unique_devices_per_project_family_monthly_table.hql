@@ -1,14 +1,14 @@
--- Creates table statement for unique devices project-wide daily table.
+-- Creates table statement for unique devices per project-family monthly table.
 --
 -- Parameters:
 --     <none>
 --
 -- Usage
---     hive -f create_unique_devices_project_wide_daily_table.hql --database wmf
+--     hive -f create_unique_devices_per_project_family_monthly_table.hql --database wmf
 
 
-CREATE EXTERNAL TABLE IF NOT EXISTS `unique_devices_project_wide_daily`(
-    `project`              string  COMMENT 'The lower cased project (wikipedia for instance)',
+CREATE EXTERNAL TABLE IF NOT EXISTS `unique_devices_per_project_family_monthly`(
+    `project_family`        string  COMMENT 'The lower cased project-family (wikipedia for instance)',
     `country`              string  COMMENT 'Country name of the accessing agents (computed using maxmind GeoIP database)',
     `country_code`         string  COMMENT '2 letter country code',
     `uniques_underestimate` int    COMMENT 'Under estimation of unique devices seen based on last-access-global cookie, and the nocookies header',
@@ -17,9 +17,8 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `unique_devices_project_wide_daily`(
 )
 PARTITIONED BY (
     `year`                  int    COMMENT 'Unpadded year of requests',
-    `month`                 int    COMMENT 'Unpadded month of requests',
-    `day`                   int    COMMENT 'Unpadded day of requests'
+    `month`                 int    COMMENT 'Unpadded month of requests'
 )
 STORED AS PARQUET
-LOCATION '/wmf/data/wmf/unique_devices/project_wide/daily'
+LOCATION '/wmf/data/wmf/unique_devices/per_project_family/monthly'
 ;

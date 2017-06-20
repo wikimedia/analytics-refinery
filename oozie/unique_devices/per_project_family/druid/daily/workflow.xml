@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <workflow-app xmlns="uri:oozie:workflow:0.4"
-    name="unique_devices-project_wide-druid-daily-wf-${year}-${month}-${day}">
+    name="unique_devices-per_project_family-druid-daily-wf-${year}-${month}-${day}">
 
     <parameters>
 
@@ -25,7 +25,7 @@
         </property>
 
         <property>
-            <name>unique_devices_project_wide_daily_table</name>
+            <name>unique_devices_per_project_family_daily_table</name>
             <description>The hive unique devices daily table to use</description>
         </property>
 
@@ -73,9 +73,9 @@
 
     </parameters>
 
-    <start to="generate_json_unique_devices_project_wide_daily"/>
+    <start to="generate_json_unique_devices_per_project_family_daily"/>
 
-    <action name="generate_json_unique_devices_project_wide_daily">
+    <action name="generate_json_unique_devices_per_project_family_daily">
         <hive xmlns="uri:oozie:hive-action:0.2">
             <job-tracker>${job_tracker}</job-tracker>
             <name-node>${name_node}</name-node>
@@ -105,24 +105,24 @@
                     <value>/tmp/hive-${user}</value>
                 </property>
             </configuration>
-            <script>generate_druid_unique_devices_project_wide_daily.hql</script>
-            <param>source_table=${unique_devices_project_wide_daily_table}</param>
-            <param>destination_directory=${temporary_directory}/${wf:id()}-druid-unique_devices-project_wide-daily-${year}-${month}-${day}</param>
+            <script>generate_druid_unique_devices_per_project_family_daily.hql</script>
+            <param>source_table=${unique_devices_per_project_family_daily_table}</param>
+            <param>destination_directory=${temporary_directory}/${wf:id()}-druid-unique_devices-per_project_family-daily-${year}-${month}-${day}</param>
             <param>year=${year}</param>
             <param>month=${month}</param>
             <param>day=${day}</param>
         </hive>
-        <ok to="mark_json_unique_devices_project_wide_daily_dataset_done" />
+        <ok to="mark_json_unique_devices_per_project_family_daily_dataset_done" />
         <error to="send_error_email" />
     </action>
 
-    <action name="mark_json_unique_devices_project_wide_daily_dataset_done">
+    <action name="mark_json_unique_devices_per_project_family_daily_dataset_done">
         <sub-workflow>
             <app-path>${mark_directory_done_workflow_file}</app-path>
             <configuration>
                 <property>
                     <name>directory</name>
-                    <value>${temporary_directory}/${wf:id()}-druid-unique_devices-project_wide-daily-${year}-${month}-${day}</value>
+                    <value>${temporary_directory}/${wf:id()}-druid-unique_devices-per_project_family-daily-${year}-${month}-${day}</value>
                 </property>
             </configuration>
         </sub-workflow>
@@ -138,7 +138,7 @@
             <configuration>
                 <property>
                     <name>source_directory</name>
-                    <value>${temporary_directory}/${wf:id()}-druid-unique_devices-project_wide-daily-${year}-${month}-${day}</value>
+                    <value>${temporary_directory}/${wf:id()}-druid-unique_devices-per_project_family-daily-${year}-${month}-${day}</value>
                 </property>
                 <property>
                     <name>template_file</name>
@@ -160,7 +160,7 @@
 
     <action name="remove_temporary_data">
         <fs>
-            <delete path="${temporary_directory}/${wf:id()}-druid-unique_devices-project_wide-daily-${year}-${month}-${day}"/>
+            <delete path="${temporary_directory}/${wf:id()}-druid-unique_devices-per_project_family-daily-${year}-${month}-${day}"/>
         </fs>
         <ok to="end"/>
         <error to="send_error_email"/>

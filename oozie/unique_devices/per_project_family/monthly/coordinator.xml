@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <coordinator-app xmlns="uri:oozie:coordinator:0.4"
-    name="unique_devices-project_wide-daily-coord"
-    frequency="${coord:days(1)}"
+    name="unique_devices-per_project_family-monthly-coord"
+    frequency="${coord:months(1)}"
     start="${start_time}"
     end="${stop_time}"
     timezone="Universal">
@@ -22,10 +22,10 @@
         <property><name>webrequest_data_directory</name></property>
         <property><name>webrequest_datasets_file</name></property>
 
-        <property><name>unique_devices_project_wide_daily_table</name></property>
+        <property><name>unique_devices_per_project_family_monthly_table</name></property>
         <property><name>unique_devices_data_directory</name></property>
         <property><name>unique_devices_datasets_file</name></property>
-        <property><name>unique_devices_project_wide_archive_directory</name></property>
+        <property><name>unique_devices_per_project_family_archive_directory</name></property>
 
         <property><name>temporary_directory</name></property>
 
@@ -53,16 +53,15 @@
         -->
         <data-in name="text" dataset="webrequest_text">
             <start-instance>${coord:current(0)}</start-instance>
-            <end-instance>${coord:current(23)}</end-instance>
+            <end-instance>${coord:current(coord:daysInMonth(0) * 24 - 1)}</end-instance>
         </data-in>
     </input-events>
 
     <output-events>
-        <data-out name="unique_devices_project_wide_daily_output" dataset="unique_devices_project_wide_daily">
+        <data-out name="unique_devices_per_project_family_monthly_output" dataset="unique_devices_per_project_family_monthly">
             <instance>${coord:current(0)}</instance>
         </data-out>
     </output-events>
-
 
    <action>
       <workflow>
@@ -79,10 +78,6 @@
                   <value>${coord:formatTime(coord:nominalTime(), "M")}</value>
               </property>
               <property>
-                  <name>day</name>
-                  <value>${coord:formatTime(coord:nominalTime(), "d")}</value>
-              </property>
-              <property>
                   <name>padded_year</name>
                   <value>${coord:formatTime(coord:nominalTime(), "yyyy")}</value>
               </property>
@@ -91,12 +86,8 @@
                   <value>${coord:formatTime(coord:nominalTime(), "MM")}</value>
               </property>
               <property>
-                  <name>padded_day</name>
-                  <value>${coord:formatTime(coord:nominalTime(), "dd")}</value>
-              </property>
-              <property>
-                    <name>unique_devices_project_wide_daily_current_directory</name>
-                    <value>${coord:dataOut('unique_devices_project_wide_daily_output')}</value>
+                    <name>unique_devices_per_project_family_monthly_current_directory</name>
+                    <value>${coord:dataOut('unique_devices_per_project_family_monthly_output')}</value>
                 </property>
           </configuration>
       </workflow>

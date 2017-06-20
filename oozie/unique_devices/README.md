@@ -1,9 +1,9 @@
-Contains jobs computing per-domain and project-wide unique devices
+Contains jobs computing per-domain and per-project-family unique devices
 based on last-access cookies.
 Also contains jobs to load druid with hive-computed values.
 
 
-Project-wide jobs are currently launched as:
+Per-project-family jobs are currently launched as:
 
 ```
 # Daily computation
@@ -13,7 +13,7 @@ sudo -u hdfs oozie job --oozie $OOZIE_URL \
   -Doozie_launcher_queue_name=production \
   -Doozie_launcher_memory=2048 \
   -Dstart_time=2015-12-01T00:00Z \
-  -config project_wide/daily/coordinator.properties \
+  -config per_project_family/daily/coordinator.properties \
   -run
 
 # Monthly computation
@@ -23,7 +23,7 @@ sudo -u hdfs oozie job --oozie $OOZIE_URL \
   -Doozie_launcher_queue_name=production \
   -Doozie_launcher_memory=2048 \
   -Dstart_time=2015-12-01T00:00Z \
-  -config project_wide/monthly/coordinator.properties \
+  -config per_project_family/monthly/coordinator.properties \
   -run
 
 # Daily druid loading
@@ -33,7 +33,7 @@ sudo -u hdfs oozie job --oozie $OOZIE_URL \
   -Doozie_launcher_queue_name=production \
   -Doozie_launcher_memory=2048 \
   -Dstart_time=2015-12-01T00:00Z \
-  -config project_wide/druid/daily/coordinator.properties \
+  -config per_project_family/druid/daily/coordinator.properties \
   -run
 ```
 

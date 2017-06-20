@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <coordinator-app xmlns="uri:oozie:coordinator:0.4"
-    name="unique_devices-project_wide-druid-daily-coord"
+    name="unique_devices-per_project_family-druid-daily-coord"
     frequency="${coord:days(1)}"
     start="${start_time}"
     end="${stop_time}"
@@ -17,7 +17,7 @@
         <property><name>workflow_file</name></property>
         <property><name>unique_devices_datasets_file</name></property>
         <property><name>unique_devices_data_directory</name></property>
-        <property><name>unique_devices_project_wide_daily_table</name></property>
+        <property><name>unique_devices_per_project_family_daily_table</name></property>
 
         <property><name>start_time</name></property>
         <property><name>stop_time</name></property>
@@ -49,7 +49,7 @@
     </datasets>
 
     <input-events>
-        <data-in name="unique_devices_project_wide_daily_input" dataset="unique_devices_project_wide_daily">
+        <data-in name="unique_devices_per_project_family_daily_input" dataset="unique_devices_per_project_family_daily">
             <!-- Dataset uses day as frequency -->
             <instance>${coord:current(0)}</instance>
         </data-in>

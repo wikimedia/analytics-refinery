@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <workflow-app xmlns="uri:oozie:workflow:0.4"
-    name="unique_devices-project_wide-monthly-wf-${year}-${month}">
+    name="unique_devices-per_project_family-daily-wf-${year}-${month}-${day}">
     <parameters>
 
         <!-- Default values for oozie settings -->
@@ -23,13 +23,13 @@
             <description>hive-site.xml file path in HDFS</description>
         </property>
         <!-- specifying parameter values in file to test running -->
-         <property>
+        <property>
             <name>webrequest_table</name>
             <description>Hive table to read data from.</description>
         </property>
         <property>
-            <name>unique_devices_project_wide_monthly_table</name>
-            <description>The table to store project-wide monthly unique devices data in.</description>
+            <name>unique_devices_per_project_family_daily_table</name>
+            <description>The table to store project-wide daily unique devices data in.</description>
         </property>
         <property>
             <name>year</name>
@@ -40,6 +40,10 @@
             <description>The partition's month</description>
         </property>
         <property>
+            <name>day</name>
+            <description>The partition's day</description>
+        </property>
+        <property>
             <name>padded_year</name>
             <description>The padded-partition's year - for archive filename format</description>
         </property>
@@ -48,18 +52,21 @@
             <description>The padded-partition's month - for archive filename format</description>
         </property>
         <property>
+            <name>padded_day</name>
+            <description>The padded-partition's day - for archive filename format</description>
+        </property>
+        <property>
             <name>refinery_hive_jar</name>
             <description>Path to refinery-hive jar containing UDFs</description>
         </property>
         <property>
-            <name>unique_devices_project_wide_monthly_current_directory</name>
+            <name>unique_devices_per_project_family_daily_current_directory</name>
             <description>Directory where the currently computed data is stored</description>
         </property>
         <property>
-            <name>unique_devices_project_wide_archive_directory</name>
+            <name>unique_devices_per_project_family_archive_directory</name>
             <description>Directory where the archived data is stored</description>
         </property>
-
         <property>
             <name>mark_directory_done_workflow_file</name>
             <description>Workflow for marking a directory done</description>
@@ -74,9 +81,9 @@
         </property>
     </parameters>
 
-    <start to="compute_unique_devices_project_wide_monthly"/>
+    <start to="compute_unique_devices_per_project_family_daily"/>
 
-    <action name="compute_unique_devices_project_wide_monthly">
+    <action name="compute_unique_devices_per_project_family_daily">
         <hive xmlns="uri:oozie:hive-action:0.2">
             <job-tracker>${job_tracker}</job-tracker>
             <name-node>${name_node}</name-node>
@@ -105,11 +112,12 @@
                     <value>/tmp/hive-${user}</value>
                 </property>
             </configuration>
-            <script>unique_devices_project_wide_monthly.hql</script>
+            <script>unique_devices_per_project_family_daily.hql</script>
             <param>source_table=${webrequest_table}</param>
-            <param>destination_table=${unique_devices_project_wide_monthly_table}</param>
+            <param>destination_table=${unique_devices_per_project_family_daily_table}</param>
             <param>year=${year}</param>
             <param>month=${month}</param>
+            <param>day=${day}</param>
             <param>refinery_hive_jar=${refinery_hive_jar}</param>
         </hive>
         <ok to="mark_dataset_done"/>
@@ -122,12 +130,11 @@
             <configuration>
                 <property>
                     <name>directory</name>
-                    <value>${unique_devices_project_wide_monthly_current_directory}</value>
+                    <value>${unique_devices_per_project_family_daily_current_directory}</value>
                 </property>
             </configuration>
         </sub-workflow>
         <ok to="transform_to_archive"/>
-        <!-- <ok to="transform_to_archive"/> -->
         <error to="send_error_email"/>
     </action>
 
@@ -161,12 +168,13 @@
                 </property>
             </configuration>
 
-            <script>unique_devices_project_wide_monthly_to_archive.hql</script>
+            <script>unique_devices_per_project_family_daily_to_archive.hql</script>
             <!-- Here, the source for archive is the
                  destination of the previous job -->
-            <param>source_table=${unique_devices_project_wide_monthly_table}</param>
+            <param>source_table=${unique_devices_per_project_family_daily_table}</param>
             <param>year=${year}</param>
             <param>month=${month}</param>
+            <param>day=${day}</param>
             <param>destination_directory=${temporary_directory}/${wf:id()}</param>
         </hive>
 
@@ -203,7 +211,7 @@
                 </property>
                 <property>
                     <name>archive_file</name>
-                    <value>${unique_devices_project_wide_archive_directory}/${padded_year}/${padded_year}-${padded_month}/unique_devices_project_wide_monthly-${padded_year}-${padded_month}.gz</value>
+                    <value>${unique_devices_per_project_family_archive_directory}/${padded_year}/${padded_year}-${padded_month}/unique_devices_per_project_family_daily-${padded_year}-${padded_month}-${padded_day}.gz</value>
                 </property>
             </configuration>
         </sub-workflow>
@@ -241,6 +249,7 @@
     <kill name="kill">
         <message>Action failed, error message[${wf:errorMessage(wf:lastErrorNode())}]</message>
     </kill>
+
 
     <end name="end"/>
 </workflow-app>

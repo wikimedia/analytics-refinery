@@ -1,10 +1,10 @@
 -- Extracts one day of json formatted daily unique devices
--- project-wide to be loaded in Druid
+-- per-project-family to be loaded in Druid
 --
 -- Usage:
---     hive -f generate_druid_unique_devices_project_wide_daily.hql \
---         -d source_table=wmf.unique_devices_project_wide_daily \
---         -d destination_directory=/tmp/druid/unique_devices_project_wide_daily_json \
+--     hive -f generate_druid_unique_devices_per_project_family_daily.hql \
+--         -d source_table=wmf.unique_devices_per_project_family_daily \
+--         -d destination_directory=/tmp/druid/unique_devices_per_project_family_daily_json \
 --         -d year=2017 \
 --         -d month=4 \
 --         -d day=1
@@ -17,12 +17,12 @@ SET mapreduce.output.fileoutputformat.compress.codec=org.apache.hadoop.io.compre
 ADD JAR /usr/lib/hive-hcatalog/share/hcatalog/hive-hcatalog-core.jar;
 
 
-DROP TABLE IF EXISTS tmp_druid_unique_devices_project_wide_daily_${year}_${month}_${day};
+DROP TABLE IF EXISTS tmp_druid_unique_devices_per_project_family_daily_${year}_${month}_${day};
 
 
-CREATE EXTERNAL TABLE IF NOT EXISTS tmp_druid_unique_devices_project_wide_daily_${year}_${month}_${day} (
+CREATE EXTERNAL TABLE IF NOT EXISTS tmp_druid_unique_devices_per_project_family_daily_${year}_${month}_${day} (
     `dt`                     string,
-    `project`                string,
+    `project_family`          string,
     `country`                string,
     `country_code`           string,
     `uniques_underestimate`  bigint,
@@ -34,13 +34,13 @@ STORED AS TEXTFILE
 LOCATION '${destination_directory}';
 
 
-INSERT OVERWRITE TABLE tmp_druid_unique_devices_project_wide_daily_${year}_${month}_${day}
+INSERT OVERWRITE TABLE tmp_druid_unique_devices_per_project_family_daily_${year}_${month}_${day}
 SELECT
     CONCAT(
         LPAD(year, 4, '0'), '-',
         LPAD(month, 2, '0'), '-',
         LPAD(day, 2, '0'), 'T00:00:00Z') AS dt,
-    project AS project,
+    project_family AS project_family,
     country AS country,
     country_code AS country_code,
     uniques_underestimate AS uniques_underestimate,
@@ -52,4 +52,4 @@ WHERE year = ${year}
     AND day = ${day};
 
 
-DROP TABLE IF EXISTS tmp_druid_unique_devices_project_wide_daily_${year}_${month}_${day};
+DROP TABLE IF EXISTS tmp_druid_unique_devices_per_project_family_daily_${year}_${month}_${day};

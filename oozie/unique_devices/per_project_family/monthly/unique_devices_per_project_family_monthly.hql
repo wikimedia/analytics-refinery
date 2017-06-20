@@ -1,4 +1,4 @@
--- Generates unique devices project-wide monthly based on WMF-Last-Access-global cookie
+-- Generates unique devices per-project-family monthly based on WMF-Last-Access-global cookie
 --
 -- Parameters:
 --     source_table        -- Table containing source data
@@ -8,9 +8,9 @@
 --     refinery_hive_jar   -- The path to refinery-hive jar for UDF
 --
 -- Usage
---     hive -f unique_devices_project_wide_monthly.hql \
+--     hive -f unique_devices_per_project_family_monthly.hql \
 --         -d source_table=wmf.webrequest \
---         -d destination_table=wmf.unique_devices_project_wide_monthly \
+--         -d destination_table=wmf.unique_devices_per_project_family_monthly \
 --         -d year=2017 \
 --         -d month=4  \
 --         -d refinery_hive_jar=/wmf/refinery/current/artifacts/refinery-hive.jar
@@ -29,7 +29,7 @@ WITH last_access_dates AS (
     SELECT
         year,
         month,
-        normalized_host.project_class AS project,
+        normalized_host.project_class AS project_family,
         geocoded_data['country'] AS country,
         geocoded_data['country_code'] AS country_code,
         unix_timestamp(x_analytics_map['WMF-Last-Access-Global'], 'dd-MMM-yyyy') AS last_access_global,
@@ -51,29 +51,29 @@ WITH last_access_dates AS (
 -- (fresh sessions are not counted with last_access method)
 fresh_sessions_aggregated AS (
     SELECT
-        project,
+        project_family,
         country,
         country_code,
         COUNT(1) AS uniques_offset
     FROM (
         SELECT
-            hash(ip, user_agent, accept_language, project) AS id,
-            project,
+            hash(ip, user_agent, accept_language, project_family) AS id,
+            project_family,
             country,
             country_code,
             SUM(CASE WHEN (nocookies IS NOT NULL) THEN 1 ELSE 0 END)
         FROM
             last_access_dates
         GROUP BY
-            hash(ip, user_agent, accept_language, project),
-            project,
+            hash(ip, user_agent, accept_language, project_family),
+            project_family,
             country,
             country_code
         -- Only keeping clients having done 1 event without cookies
         HAVING SUM(CASE WHEN (nocookies IS NOT NULL) THEN 1 ELSE 0 END) = 1
         ) fresh_sessions
     GROUP BY
-        project,
+        project_family,
         country,
         country_code
 )
@@ -82,12 +82,12 @@ INSERT OVERWRITE TABLE ${destination_table}
     PARTITION(year = ${year}, month = ${month})
 
 SELECT
-    COALESCE(la.project, fresh.project) as project,
+    COALESCE(la.project_family, fresh.project_family) as project_family,
     COALESCE(la.country, fresh.country) as country,
     COALESCE(la.country_code, fresh.country_code) as country_code,
     SUM(CASE
-        -- project set, last-access-global not set and client accept cookies --> first visit, count
-        WHEN (la.project IS NOT NULL AND la.last_access_global IS NULL AND la.nocookies is NULL) THEN 1
+        -- project_family set, last-access-global not set and client accept cookies --> first visit, count
+        WHEN (la.project_family IS NOT NULL AND la.last_access_global IS NULL AND la.nocookies is NULL) THEN 1
         -- last-access-global set and its date is before today --> First visit today, count
         WHEN ((la.last_access_global IS NOT NULL)
             AND (la.last_access_global < unix_timestamp(CONCAT('${year}-', LPAD('${month}', 2, '0'), '-','01'), 'yyyy-MM-dd'))) THEN 1
@@ -96,8 +96,8 @@ SELECT
     END) AS uniques_underestimate,
     COALESCE(fresh.uniques_offset, 0) AS uniques_offset,
     SUM(CASE
-        -- project set, last-access-global not set and client accept cookies --> first visit, count
-        WHEN (la.project IS NOT NULL AND la.last_access_global IS NULL AND la.nocookies is NULL) THEN 1
+        -- project_family set, last-access-global not set and client accept cookies --> first visit, count
+        WHEN (la.project_family IS NOT NULL AND la.last_access_global IS NULL AND la.nocookies is NULL) THEN 1
         -- last-access-global set and its date is before today --> First visit today, count
         WHEN ((la.last_access_global IS NOT NULL)
             AND (la.last_access_global < unix_timestamp(CONCAT('${year}-', LPAD('${month}', 2, '0'), '-','01'), 'yyyy-MM-dd'))) THEN 1
@@ -108,9 +108,9 @@ FROM
     last_access_dates AS la
      -- Outer join to keep every row from both table
     FULL OUTER JOIN fresh_sessions_aggregated AS fresh
-        ON (la.project = fresh.project AND la.country_code = fresh.country_code)
+        ON (la.project_family = fresh.project_family AND la.country_code = fresh.country_code)
 GROUP BY
-    COALESCE(la.project, fresh.project),
+    COALESCE(la.project_family, fresh.project_family),
     COALESCE(la.country, fresh.country),
     COALESCE(la.country_code, fresh.country_code),
     COALESCE(fresh.uniques_offset, 0)

@@ -1,19 +1,17 @@
--- Aggregate unique devices project-wide daily by project and remove wikimedia.
+-- Aggregate unique devices per-project-family monthly by project and remove wikimedia.
 --
 -- Parameters:
 --     source_table           -- Table containing source data
 --     destination_directory  -- Table where to write newly computed data
 --     year                   -- year of the to-be-generated
 --     month                  -- month of the to-be-generated
---     day                    -- day of the to-be-generated
 --
 -- Usage:
---     hive -f unique_devices_project_wide_daily_to_archive.hql \
---         -d source_table=wmf.unique_devices_project_wide_daily \
---         -d destination_directory=/tmp/archive/unique_devices/project_wide_daily \
+--     hive -f unique_devices_per_project_family_monthly_to_archive.hql \
+--         -d source_table=wmf.unique_devices_per_project_family_monthly \
+--         -d destination_directory=/tmp/archive/unique_devices/per_project_family \
 --         -d year=2017 \
---         -d month=4 \
---         -d day=1
+--         -d month=4
 
 
 -- Set compression codec to gzip to provide asked format
@@ -28,23 +26,22 @@ INSERT OVERWRITE DIRECTORY "${destination_directory}"
     -- Set 0 as volume column since we don't use it.
     SELECT
         CONCAT_WS('\t',
-          project,
+          project_family,
           cast(uniques_underestimate AS string),
           cast(uniques_offset AS string),
           cast(uniques_estimate AS string)) AS line
     FROM (
         SELECT
-            project,
+            project_family,
             SUM(uniques_underestimate) AS uniques_underestimate,
             SUM(uniques_offset) AS uniques_offset,
             SUM(uniques_estimate) AS uniques_estimate
         FROM ${source_table}
         WHERE year=${year}
             AND month=${month}
-            AND day=${day}
-            AND project != 'wikimedia'
+            AND project_family != 'wikimedia'
         GROUP BY
-            project
+            project_family
         ORDER BY
             uniques_estimate DESC
         LIMIT 100000000
