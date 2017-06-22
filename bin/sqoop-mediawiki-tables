@@ -227,6 +227,31 @@ def populate_queries(timestamp, labsdb):
         ])),
     }
 
+    queries['pagelinks'] = {
+        'query': '''
+             select pl_from,
+                    pl_namespace,
+                    convert(pl_title using utf8) pl_title,
+                    pl_from_namespace
+
+               from pagelinks
+              where $CONDITIONS
+        ''',
+    }
+
+    queries['redirect'] = {
+        'query': '''
+             select rd_from,
+                    rd_namespace,
+                    convert(rd_title using utf8) rd_title,
+                    convert(rd_interwiki using utf8) rd_interwiki,
+                    convert(rd_fragment using utf8) rd_fragment
+
+               from redirect
+              where $CONDITIONS
+        ''',
+    }
+
     queries['revision'] = {
         'query': '''
              select rev_id,
