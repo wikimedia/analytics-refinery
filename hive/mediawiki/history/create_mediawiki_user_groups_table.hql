@@ -8,7 +8,7 @@
 --         --database wmf_raw
 --
 
-CREATE EXTERNAL TABLE `wmf_raw.mediawiki_user_groups`(
+CREATE EXTERNAL TABLE `mediawiki_user_groups`(
   `ug_user`                     bigint      COMMENT 'This field links to a given user\'s user_id. It is a foreign key used to link accounts with their assigned privileges.',
   `ug_group`                    string      COMMENT 'This field stores the user\'s permissions, which are stored as groups. At runtime, $wgGroupPermissions will associate group keys with particular permissions\; a user will have the combined permissions of any group they\'re explicitly in, plus the implicit \'*\' and \'user\' groups. Example ug_group values: \'bot\', \'bureaucrat\', \'sysop\'.  There is one row for each (explicit) group the user is in.'
 )

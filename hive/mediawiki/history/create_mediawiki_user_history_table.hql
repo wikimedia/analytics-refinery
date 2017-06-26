@@ -8,7 +8,7 @@
 --         --database wmf
 --
 
-CREATE EXTERNAL TABLE `wmf.mediawiki_user_history`(
+CREATE EXTERNAL TABLE `mediawiki_user_history`(
     wiki_db                         string          COMMENT 'enwiki, dewiki, eswiktionary, etc.',
     user_id                         bigint          COMMENT 'ID of the user, as in the user table.',
     user_name                       string          COMMENT 'Historical user name.',

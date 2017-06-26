@@ -8,7 +8,7 @@
 --         --database wmf_raw
 --
 
-CREATE EXTERNAL TABLE `wmf_raw.mediawiki_archive`(
+CREATE EXTERNAL TABLE `mediawiki_archive`(
   `ar_id`               bigint      COMMENT 'Primary key along with wiki.',
   `ar_namespace`        bigint      COMMENT 'Basic page information: contains the namespace of the deleted revision. These contain the value in page_namespace.',
   `ar_title`            string      COMMENT 'Basic page information: contains the page title of the deleted page, which is the same as page_title.',

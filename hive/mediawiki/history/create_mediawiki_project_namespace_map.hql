@@ -8,7 +8,7 @@
 --         --database wmf_raw
 --
 
-CREATE EXTERNAL TABLE `wmf_raw.mediawiki_project_namespace_map`(
+CREATE EXTERNAL TABLE `mediawiki_project_namespace_map`(
     `hostname`                  string  COMMENT 'Canonical URL for the project, for example ja.wikipedia.org',
     `dbname`                    string  COMMENT 'Database name for the project, for example jawiki',
     `namespace`                 int     COMMENT 'for example 0, 100, etc.',

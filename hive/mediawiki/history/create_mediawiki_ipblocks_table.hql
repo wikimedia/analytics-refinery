@@ -8,7 +8,7 @@
 --         --database wmf_raw
 --
 
-CREATE EXTERNAL TABLE `wmf_raw.mediawiki_ipblocks`(
+CREATE EXTERNAL TABLE `mediawiki_ipblocks`(
   `ipb_id`                  bigint  COMMENT 'Primary key, introduced for privacy.',
   `ipb_address`             string  COMMENT 'Blocked IP address in dotted-quad form or user name.',
   `ipb_user`                bigint  COMMENT 'Blocked user ID or 0 for IP blocks.',

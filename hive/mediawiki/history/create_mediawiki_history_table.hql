@@ -8,7 +8,7 @@
 --         --database wmf
 --
 
-CREATE EXTERNAL TABLE `wmf.mediawiki_history`(
+CREATE EXTERNAL TABLE `mediawiki_history`(
   `wiki_db`                                       string        COMMENT 'enwiki, dewiki, eswiktionary, etc.',
   `event_entity`                                  string        COMMENT 'revision, user or page',
   `event_type`                                    string        COMMENT 'create, move, delete, etc.  Detailed explanation in the docs under #Event_types',

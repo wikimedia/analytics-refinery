@@ -8,7 +8,7 @@
 --         --database wmf_raw
 --
 
-CREATE EXTERNAL TABLE `wmf_raw.mediawiki_logging`(
+CREATE EXTERNAL TABLE `mediawiki_logging`(
   `log_id`          bigint      COMMENT 'Primary key for the table along with wiki. rc_logid is a foreign key linking to this column.',
   `log_type`        string      COMMENT 'The type of the log action, or the "log type". You can filter by this type on Special:Log. Typical values are: block, delete, import, makebot, move, newusers, protect, renameuser, rights, upload ("uploaded" in example) Comparable to rc_log_type.',
   `log_action`      string      COMMENT 'The action performed. There may be multiple actions possible for a given type: for example, an entry with the type delete may have the action delete or restore, etc. Comparable to rc_log_action. See also API:Logevents#Parameters. See Manual:Log actions.',
