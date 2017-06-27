@@ -1,0 +1,127 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Note: You should make sure to put refinery/python on your PYTHONPATH.
+#   export PYTHONPATH=$PYTHONPATH:/path/to/refinery/python
+
+"""
+Automatically deletes the old druid deep-storage data from HDFS.
+
+Usage: refinery-drop-druid-deep-storage-data [options] <datasource>
+
+Options:
+    -h --help                           Show this help message and exit.
+    -d --older-than-days=<days>         Drop data older than this number of days.  [default: 60]
+    -b --beginning-of-time=<day>        Day from which we drop data. [default: 2001-01-01]
+    -s --druid-host=<host>              Druid host to request [default: druid1001.eqiad.wmnet]
+    -c --druid-coord-port=<port>        Port for druid coordinator [default: 8081]
+    -o --druid-overlord-port=<port>     Port for druid overlord [default: 8090]
+    -v --verbose                        Turn on verbose debug logging.
+    -n --dry-run                        Don't actually delete any data. Just log the http request
+                                        sent to druid
+"""
+__author__ = 'Joseph Allemandou <joal@wikimedia.org>'
+
+import datetime
+from   docopt   import docopt
+import logging
+import requests
+from requests import RequestException
+import re
+import os
+import sys
+
+if __name__ == '__main__':
+
+    check_datasource_url_pattern = 'http://{0}:{1}/druid/coordinator/v1/metadata/datasources/{2}'
+    drop_url_pattern = 'http://{0}:{1}/druid/indexer/v1/task'
+    drop_payload_pattern = '{{"type":"kill","id":"{0}","dataSource":"{1}","interval":"{2}/{3}"}}'
+    day_pattern = '%Y-%m-%d'
+
+    # Parse arguments
+    arguments       = docopt(__doc__)
+    datasource      = arguments['<datasource>']
+    host            = arguments['--druid-host']
+    coord_port      = int(arguments['--druid-coord-port'])
+    overlord_port   = int(arguments['--druid-overlord-port'])
+    days            = int(arguments['--older-than-days'])
+    drop_start      = arguments['--beginning-of-time']
+    verbose         = arguments['--verbose']
+    dry_run         = arguments['--dry-run']
+
+    log_level = logging.INFO
+    if verbose:
+        log_level = logging.DEBUG
+
+    logging.basicConfig(level=log_level,
+                        format='%(asctime)s %(levelname)-6s %(message)s',
+                        datefmt='%Y-%m-%dT%H:%M:%S')
+
+    # Check for datasource segments
+    check_datasource_url = check_datasource_url_pattern.format(host, coord_port, datasource)
+    try:
+        check_req = requests.get(check_datasource_url)
+        if check_req.status_code != requests.codes.ok:
+          logging.error('Couldn\'t get datasource metadata for datasource {0}.  Aborting.'.format(datasource))
+          sys.exit(1)
+        else:
+            logging.info('Datasource {0} exists in druid.'.format(datasource))
+    except RequestException:
+        logging.exception('Error trying to check druid datasource. Aborting.')
+        sys.exit(1)
+
+    # reused constants
+    now = datetime.datetime.utcnow()
+    dt_day_postfix = 'T00:00:00.000Z'
+
+    # Drop task id: drop_{datasource}_{now}
+    task_id = 'drop_{0}_{1}'.format(datasource, now.strftime('%Y-%m-%dT%H:%M:%S'))
+    logging.debug('Computed task_id: {0}'.format(task_id))
+
+    # Enforce valid start day by parsing it, and make itv_start
+    drop_start_datetime = datetime.datetime.strptime(drop_start, day_pattern)
+    drop_start_day = datetime.datetime.strftime(drop_start_datetime, day_pattern)
+    itv_start = drop_start_day + dt_day_postfix
+    logging.debug('Computed itv_start: {0}'.format(itv_start))
+
+    # Compute itc_end from days
+    oldest_accepted_datetime = now - datetime.timedelta(days=days)
+    oldest_accepted_day = datetime.datetime.strftime(oldest_accepted_datetime, day_pattern)
+    itv_end = oldest_accepted_day + dt_day_postfix
+    logging.debug('Computed itv_end: {0}'.format(itv_end))
+
+    # Prepare drop url and payload
+    drop_url = drop_url_pattern.format(host, overlord_port)
+    logging.debug('Computed drop_url: {0}'.format(drop_url))
+    drop_payload = drop_payload_pattern.format(task_id, datasource, itv_start, itv_end)
+    logging.debug('Computed drop_payload: {0}'.format(drop_payload))
+
+    if dry_run:
+        logging.info('URL to request: {0}'.format(drop_url))
+        logging.info('Payload to post: {0}'.format(drop_payload))
+    else:
+        try:
+            headers = {'Content-type': 'application/json'}
+            drop_req = requests.post(drop_url, data=drop_payload, headers=headers)
+            logging.debug('Drop request sent.')
+            if drop_req.status_code == requests.codes.ok:
+                received_task_id = drop_req.json()['task']
+                logging.debug('Drop task successfully sent with id {0}'.format(received_task_id))
+            else:
+                logging.error('Drop task error for id {0}'.format(task_id))
+                sys.exit(1)
+        except RequestException:
+            logging.exception('Error trying to drop druid data. Aborting.')
+            sys.exit(1)
