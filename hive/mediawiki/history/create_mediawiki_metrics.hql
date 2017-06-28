@@ -8,7 +8,7 @@
 --         --database wmf
 --
 
-CREATE EXTERNAL TABLE `wmf.mediawiki_metrics`(
+CREATE EXTERNAL TABLE `mediawiki_metrics`(
   `dt`      string  COMMENT 'The date of this measurement, as YYYY-MM-DD',
   `value`   bigint  COMMENT 'The measurement'
 )

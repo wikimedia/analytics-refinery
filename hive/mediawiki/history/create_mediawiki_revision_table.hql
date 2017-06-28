@@ -8,7 +8,7 @@
 --         --database wmf_raw
 --
 
-CREATE EXTERNAL TABLE `wmf_raw.mediawiki_revision` (
+CREATE EXTERNAL TABLE `mediawiki_revision` (
   `rev_id`              bigint      COMMENT 'This field, along with wiki, holds the primary key for each revision. page_latest is a foreign key to this field.',
   `rev_page`            bigint      COMMENT 'This field holds a reference to the page to which this revision pertains. The number in this field is equal to the page_id field of said page. This should never be invalid\; if it is, that revision won\'t show up in the page history. If page.page_latest links to a revision with an invalid rev_page, this will cause the "The revision #0 of the page named \'Foo\' does not exist" error.',
   `rev_text_id`         bigint      COMMENT 'This is a foreign key to old_id in the text table. (The text table is where the actual bulk text is stored.) It\'s possible for multiple revisions to use the same text—for instance, revisions where only metadata is altered, or where a rollback is done to a previous version.',

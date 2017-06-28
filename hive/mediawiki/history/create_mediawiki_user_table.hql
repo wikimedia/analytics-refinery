@@ -8,7 +8,7 @@
 --         --database wmf_raw
 --
 
-CREATE EXTERNAL TABLE `wmf_raw.mediawiki_user`(
+CREATE EXTERNAL TABLE `mediawiki_user`(
   `user_id`                     bigint      COMMENT 'the primary key along with wiki, used to uniquely identify a user',
   `user_name`                   string      COMMENT 'Usernames must be unique, and must not be in the form of an IP address. Shouldn\'t allow slashes or case conflicts. See also Manual:$wgInvalidUsernameCharacters. Spaces are allowed, and underscores are converted to spaces (the opposite than with page names).',
   `user_name_binary`            string      COMMENT 'Same as user_name but sqooped unmodified from mediawiki because some user names do not decode properly as utf8 from the varbinary user_name field there.',

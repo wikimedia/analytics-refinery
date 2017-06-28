@@ -8,7 +8,7 @@
 --         --database wmf
 --
 
-CREATE EXTERNAL TABLE `wmf.mediawiki_page_history`(
+CREATE EXTERNAL TABLE `mediawiki_page_history`(
     wiki_db                             string      COMMENT 'enwiki, dewiki, eswiktionary, etc.',
     page_id                             bigint      COMMENT 'Id of the page, as in the page table.',
     page_id_artificial                  string      COMMENT 'Generated Id for deleted pages without real Id.',
