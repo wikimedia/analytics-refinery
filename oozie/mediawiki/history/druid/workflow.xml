@@ -119,7 +119,6 @@
         <error to="send_error_email"/>
     </action>
 
-
     <action name="index_druid">
         <sub-workflow>
             <app-path>${load_druid_workflow_file}</app-path>

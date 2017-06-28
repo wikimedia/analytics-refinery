@@ -11,8 +11,8 @@
 --     hive -f monthly_new_editors.hql                  \
 --         -d source_table=wmf.mediawiki_history        \
 --         -d destination_table=wmf.mediawiki_metrics   \
---         -d start_timestamp=20010101000000            \
---         -d end_timestamp=20170101000000              \
+--         -d start_timestamp=2001-01-01 00:00:00       \
+--         -d end_timestamp=2017-01-01 00:00:00         \
 --         -d wiki_db=all                               \
 --         -d snapshot=2017-03
 
@@ -28,25 +28,21 @@ set hive.exec.max.dynamic.partitions.pernode=2000;
 -- dynamic partitions must be specified here
  insert overwrite table ${destination_table} partition (snapshot='${snapshot}', metric, wiki_db)
 -- dynamic partitions must be selected in order and at the end
- select concat_ws('-',
-            substring(month, 0, 4),
-            substring(month, 5, 2),
-            '01'
-        ) as dt,
+ select concat(month, '-01') as dt,
         count(*) as value,
         'monthly_new_editors' as metric,
         wiki_db
 
    from (select wiki_db,
-                substring(event_user_creation_timestamp, 0, 6) month,
+                substring(event_user_creation_timestamp, 0, 7) month,
                 event_user_id
            from ${source_table}
           where event_entity = 'revision'
             and event_type = 'create'
             and event_user_id is not null
             and event_user_is_created_by_self
-            and unix_timestamp(event_timestamp, 'yyyyMMddHHmmss') -
-                unix_timestamp(event_user_creation_timestamp, 'yyyyMMddHHmmss')
+            and unix_timestamp(event_timestamp) -
+                unix_timestamp(event_user_creation_timestamp)
                 <= 86400
             and ('${wiki_db}' = 'all' or wiki_db = '${wiki_db}')
             and event_user_creation_timestamp >= '${start_timestamp}'
@@ -54,14 +50,13 @@ set hive.exec.max.dynamic.partitions.pernode=2000;
             and snapshot = '${snapshot}'
 
           group by wiki_db,
-                substring(event_user_creation_timestamp, 0, 6),
+                substring(event_user_creation_timestamp, 0, 7),
                 event_user_id
 
         ) new_editors
 
   group by wiki_db,
-        substring(month, 0, 4),
-        substring(month, 5, 2)
+        month
   order by wiki_db,
         dt
 ;

@@ -12,7 +12,8 @@ CREATE EXTERNAL TABLE `mediawiki_history`(
   `wiki_db`                                       string        COMMENT 'enwiki, dewiki, eswiktionary, etc.',
   `event_entity`                                  string        COMMENT 'revision, user or page',
   `event_type`                                    string        COMMENT 'create, move, delete, etc.  Detailed explanation in the docs under #Event_types',
-  `event_timestamp`                               string        COMMENT 'When this event ocurred, in YYYYMMDDHHmmss format',
+  `event_timestamp`                               string        COMMENT 'When this event ocurred',
+  --`event_timestamp`                               timestamp     COMMENT 'When this event ocurred',
   `event_comment`                                 string        COMMENT 'Comment related to this event, sourced from log_comment, rev_comment, etc.',
   `event_user_id`                                 bigint        COMMENT 'Id of the user that caused the event',
   `event_user_text`                               string        COMMENT 'Historical text of the user that caused the event',
@@ -27,6 +28,10 @@ CREATE EXTERNAL TABLE `mediawiki_history`(
   `event_user_is_anonymous`                       boolean       COMMENT 'Whether the event_user is not registered',
   `event_user_is_bot_by_name`                     boolean       COMMENT 'Whether the event_user\'s name matches patterns we use to identify bots',
   `event_user_creation_timestamp`                 string        COMMENT 'Registration timestamp of the user that caused the event',
+  --`event_user_creation_timestamp`                 timestamp     COMMENT 'Registration timestamp of the user that caused the event',
+  `event_user_revision_count`                     bigint        COMMENT 'Cumulative revision count per user for the current event_user_id (only available in revision-create events so far)',
+  `event_user_seconds_to_previous_revision`       bigint        COMMENT 'In revision events: seconds elapsed since the previous revision made by the current event_user_id (only available in revision-create events so far)',
+
 
   `page_id`                                       bigint        COMMENT 'In revision/page events: id of the page',
   `page_title`                                    string        COMMENT 'In revision/page events: historical title of the page',
@@ -37,6 +42,9 @@ CREATE EXTERNAL TABLE `mediawiki_history`(
   `page_namespace_is_content_latest`              boolean       COMMENT 'In revision/page events: current namespace of the page is categorized as content',
   `page_is_redirect_latest`                       boolean       COMMENT 'In revision/page events: whether the page is currently a redirect',
   `page_creation_timestamp`                       string        COMMENT 'In revision/page events: creation timestamp of the page',
+  --`page_creation_timestamp`                       timestamp     COMMENT 'In revision/page events: creation timestamp of the page',
+  `page_revision_count`                           bigint        COMMENT 'In revision/page events: Cumulative revision count per page for the current page_id (only available in revision-create events so far)',
+  `page_seconds_to_previous_revision`             bigint        COMMENT 'In revision/page events: seconds elapsed since the previous revision made on the current page_id (only available in revision-create events so far)',
 
   `user_id`                                       bigint        COMMENT 'In user events: id of the user',
   `user_text`                                     string        COMMENT 'In user events: historical user text',
@@ -51,6 +59,7 @@ CREATE EXTERNAL TABLE `mediawiki_history`(
   `user_is_anonymous`                             boolean       COMMENT 'In user events: whether the user is not registered',
   `user_is_bot_by_name`                           boolean       COMMENT 'In user events: whether the user\'s name matches patterns we use to identify bots',
   `user_creation_timestamp`                       string        COMMENT 'In user events: registration timestamp of the user.',
+  --`user_creation_timestamp`                       timestamp     COMMENT 'In user events: registration timestamp of the user.',
 
   `revision_id`                                   bigint        COMMENT 'In revision events: id of the revision',
   `revision_parent_id`                            bigint        COMMENT 'In revision events: id of the parent revision',
@@ -62,9 +71,10 @@ CREATE EXTERNAL TABLE `mediawiki_history`(
   `revision_content_format`                       string        COMMENT 'In revision events: content format of revision',
   `revision_is_deleted`                           boolean       COMMENT 'In revision events: whether this revision has been deleted (moved to archive table)',
   `revision_deleted_timestamp`                    string        COMMENT 'In revision events: the timestamp when the revision was deleted',
+  --`revision_deleted_timestamp`                    timestamp     COMMENT 'In revision events: the timestamp when the revision was deleted',
   `revision_is_identity_reverted`                 boolean       COMMENT 'In revision events: whether this revision was reverted by another future revision',
   `revision_first_identity_reverting_revision_id` bigint        COMMENT 'In revision events: id of the revision that reverted this revision',
-  `revision_seconds_to_identity_revert`              bigint     COMMENT 'In revision events: seconds elapsed between revision posting and its revert (if there was one)',
+  `revision_seconds_to_identity_revert`           bigint        COMMENT 'In revision events: seconds elapsed between revision posting and its revert (if there was one)',
   `revision_is_identity_revert`                   boolean       COMMENT 'In revision events: whether this revision reverts other revisions'
 )
 COMMENT

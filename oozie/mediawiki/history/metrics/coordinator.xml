@@ -75,7 +75,7 @@
                 </property>
                 <property>
                     <name>end_timestamp</name>
-                    <value>${coord:formatTime(coord:nominalTime(), "yyyy")}${coord:formatTime(coord:nominalTime(), "MM")}01000000</value>
+                    <value>${coord:formatTime(coord:nominalTime(), "yyyy")}-${coord:formatTime(coord:nominalTime(), "MM")}-01 00:00:00</value>
                 </property>
                 <property>
                     <name>metrics_location</name>
