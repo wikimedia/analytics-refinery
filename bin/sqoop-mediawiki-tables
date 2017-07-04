@@ -389,6 +389,12 @@ def sqoop_wiki(config):
                 '--map-column-java' , config.map_types
             ]
 
+        # Force deletion of possibly existing dir in case of retry
+        if config.current_try > 1:
+          sqoop_arguments += [
+                '--delete-target-dir'
+            ]
+
         logging.info('Sqooping with: {}'.format(sqoop_arguments))
         check_call(sqoop_arguments)
         logging.info('FINISHED: {}'.format(log_message))
