@@ -84,7 +84,7 @@
             ]
           },
           "timestampSpec" : {
-            "format" : "auto",
+            "format" : "yyyy-MM-dd HH:mm:ss.S",
             "column" : "event_timestamp"
           }
         }
