@@ -357,6 +357,9 @@ class SqoopConfig:
         self.jar_file = jar_file
         self.current_try = current_try
 
+    def __str__(self):
+        return self.dbname + ':' + self.table
+
 
 def sqoop_wiki(config):
     """
@@ -561,10 +564,10 @@ if __name__ == '__main__':
             ])
             logging.info('Generated ORM jar at {}'.format(jar_path))
     else:
-        to_rerun = ','.join(failed_jobs)
+        to_rerun = ', '.join(map(str, failed_jobs))
         logging.error('*' * 50)
         logging.error('*  Jobs to re-run: {}'.format(to_rerun))
         for c in failed_jobs:
-            logging.error('*    - {}.{}'.format(c.dbname, c.table))
+            logging.error('*    - {}'.format(str(c)))
         logging.error('*' * 50)
         sys.exit(1)
