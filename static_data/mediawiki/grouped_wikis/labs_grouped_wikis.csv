@@ -7,7 +7,7 @@ jawiki,4,57783456
 itwiki,5,76140013
 ruwiki,5,73060171
 frwiki,6,120965605
-# eswiki,6,72672655
+eswiki,6,72672655
 nlwiki,7,43853157
 ptwiki,7,42513795
 plwiki,7,42509616
@@ -16,25 +16,25 @@ enwiktionary,8,37465364
 svwiki,8,35052902
 shwiki,8,33506101
 mgwiktionary,9,20228737
-# frwiktionary,9,19881338
-# viwiki,9,18401564
+frwiktionary,9,19881338
+viwiki,9,18401564
 nowiki,9,15727221
 trwiki,9,15595001
-# huwiki,10,15247992
-# metawiki,10,15182371
+huwiki,10,15247992
+metawiki,10,15182371
 fiwiki,10,15027822
-# hewiki,10,14840945
-# ukwiki,10,14787995
-# arwiki,10,14550135
-# fawiki,11,14071138
-# cawiki,11,13685020
+hewiki,10,14840945
+ukwiki,10,14787995
+arwiki,10,14550135
+fawiki,11,14071138
+cawiki,11,13685020
 cswiki,11,13115176
-# kowiki,11,12427987
+kowiki,11,12427987
 srwiki,11,11368979
 idwiki,11,11033502
 cebwiki,11,9638105
 dawiki,11,8194270
-# rowiki,11,8167548
+rowiki,11,8167548
 bgwiki,11,6954448
 ruwiktionary,11,6439760
 warwiki,11,6122929
@@ -734,5 +734,3 @@ votewiki,13,721
 arwikimedia,13,224
 cnwikimedia,13,155
 loginwiki,13,17
-# labtestwiki,13,0
-# labswiki,13,0
