@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <coordinator-app xmlns="uri:oozie:coordinator:0.4"
     xmlns:sla="uri:oozie:sla:0.2"
-    name="mediawiki-history-denormalize-coord"
+    name="mediawiki-history-load-coord"
     frequency="${coord:months(1)}"
     start="${start_time}"
     end="${stop_time}"
@@ -18,23 +18,17 @@
 
         <property><name>datasets_raw_file</name></property>
         <property><name>mw_raw_directory</name></property>
-        <property><name>datasets_file</name></property>
-        <property><name>mw_directory</name></property>
 
-        <property><name>mw_user_history_table</name></property>
-        <property><name>mw_page_history_table</name></property>
-        <property><name>mw_denormalized_history_table</name></property>
-
-        <property><name>spark_master</name></property>
-        <property><name>spark_job_jar</name></property>
-        <property><name>spark_job_class</name></property>
-        <property><name>spark_executor_memory</name></property>
-        <property><name>spark_executor_memory_overhead</name></property>
-        <property><name>spark_driver_memory</name></property>
-        <property><name>spark_max_executors</name></property>
-
-        <property><name>spark_partitions_number</name></property>
-        <property><name>tmp_path</name></property>
+        <property><name>mw_project_namespace_map_table</name></property>
+        <property><name>mw_archive_table</name></property>
+        <property><name>mw_ipblocks_table</name></property>
+        <property><name>mw_logging_table</name></property>
+        <property><name>mw_page_table</name></property>
+        <property><name>mw_pagelinks_table</name></property>
+        <property><name>mw_redirect_table</name></property>
+        <property><name>mw_revision_table</name></property>
+        <property><name>mw_user_table</name></property>
+        <property><name>mw_user_groups_table</name></property>
 
         <property><name>hive_site_xml</name></property>
         <property><name>repair_partitions_workflow_file</name></property>
@@ -61,11 +55,8 @@
         Include raw and history datasets files.
         -->
         <include>${datasets_raw_file}</include>
-        <include>${datasets_file}</include>
     </datasets>
 
-    <!-- Reminder: This job doesn't depend on hive partitions being created
-         over its data since it reads files. -->
     <input-events>
         <data-in name="mw_project_namespace_map" dataset="mw_project_namespace_map">
             <instance>${coord:current(0)}</instance>
@@ -73,10 +64,19 @@
         <data-in name="mw_archive_table" dataset="mw_archive_table">
             <instance>${coord:current(0)}</instance>
         </data-in>
+        <data-in name="mw_ipblocks_table" dataset="mw_ipblocks_table">
+            <instance>${coord:current(0)}</instance>
+        </data-in>
         <data-in name="mw_logging_table" dataset="mw_logging_table">
             <instance>${coord:current(0)}</instance>
         </data-in>
         <data-in name="mw_page_table" dataset="mw_page_table">
+            <instance>${coord:current(0)}</instance>
+        </data-in>
+        <data-in name="mw_pagelinks_table" dataset="mw_pagelinks_table">
+            <instance>${coord:current(0)}</instance>
+        </data-in>
+        <data-in name="mw_redirect_table" dataset="mw_redirect_table">
             <instance>${coord:current(0)}</instance>
         </data-in>
         <data-in name="mw_revision_table" dataset="mw_revision_table">
@@ -91,25 +91,35 @@
     </input-events>
 
     <output-events>
-        <!-- Datasets for data synchronisation-->
-        <data-out name="mw_user_history" dataset="mw_user_history">
-            <instance>${coord:current(0)}</instance>
-        </data-out>
-        <data-out name="mw_page_history" dataset="mw_page_history">
-            <instance>${coord:current(0)}</instance>
-        </data-out>
-        <data-out name="mw_denormalized_history" dataset="mw_denormalized_history">
-            <instance>${coord:current(0)}</instance>
-        </data-out>
-
         <!-- Datasets for hive partitions synchronisation-->
-        <data-out name="mw_user_history_partitioned" dataset="mw_user_history_partitioned">
+        <data-out name="mw_project_namespace_map_partitioned" dataset="mw_project_namespace_map_partitioned">
             <instance>${coord:current(0)}</instance>
         </data-out>
-        <data-out name="mw_page_history_partitioned" dataset="mw_page_history_partitioned">
+        <data-out name="mw_archive_table_partitioned" dataset="mw_archive_table_partitioned">
             <instance>${coord:current(0)}</instance>
         </data-out>
-        <data-out name="mw_denormalized_history_partitioned" dataset="mw_denormalized_history_partitioned">
+        <data-out name="mw_ipblocks_table_partitioned" dataset="mw_ipblocks_table_partitioned">
+            <instance>${coord:current(0)}</instance>
+        </data-out>
+        <data-out name="mw_logging_table_partitioned" dataset="mw_logging_table_partitioned">
+            <instance>${coord:current(0)}</instance>
+        </data-out>
+        <data-out name="mw_page_table_partitioned" dataset="mw_page_table_partitioned">
+            <instance>${coord:current(0)}</instance>
+        </data-out>
+        <data-out name="mw_pagelinks_table_partitioned" dataset="mw_pagelinks_table_partitioned">
+            <instance>${coord:current(0)}</instance>
+        </data-out>
+        <data-out name="mw_redirect_table_partitioned" dataset="mw_redirect_table_partitioned">
+            <instance>${coord:current(0)}</instance>
+        </data-out>
+        <data-out name="mw_revision_table_partitioned" dataset="mw_revision_table_partitioned">
+            <instance>${coord:current(0)}</instance>
+        </data-out>
+        <data-out name="mw_user_table_partitioned" dataset="mw_user_table_partitioned">
+            <instance>${coord:current(0)}</instance>
+        </data-out>
+        <data-out name="mw_user_groups_table_partitioned" dataset="mw_user_groups_table_partitioned">
             <instance>${coord:current(0)}</instance>
         </data-out>
     </output-events>
@@ -123,16 +133,44 @@
                     <value>${coord:formatTime(coord:nominalTime(), "yyyy")}-${coord:formatTime(coord:nominalTime(), "MM")}</value>
                 </property>
                 <property>
-                    <name>user_history_location</name>
-                    <value>${coord:dataOut('mw_user_history')}</value>
+                    <name>mw_project_namespace_map_location</name>
+                    <value>${coord:dataIn('mw_project_namespace_map')}</value>
                 </property>
                 <property>
-                    <name>page_history_location</name>
-                    <value>${coord:dataOut('mw_page_history')}</value>
+                    <name>mw_archive_table_location</name>
+                    <value>${coord:dataIn('mw_archive_table')}</value>
                 </property>
                 <property>
-                    <name>denormalized_history_location</name>
-                    <value>${coord:dataOut('mw_denormalized_history')}</value>
+                    <name>mw_ipblocks_table_location</name>
+                    <value>${coord:dataIn('mw_ipblocks_table')}</value>
+                </property>
+                <property>
+                    <name>mw_logging_table_location</name>
+                    <value>${coord:dataIn('mw_logging_table')}</value>
+                </property>
+                <property>
+                    <name>mw_page_table_location</name>
+                    <value>${coord:dataIn('mw_page_table')}</value>
+                </property>
+                <property>
+                    <name>mw_pagelinks_table_location</name>
+                    <value>${coord:dataIn('mw_pagelinks_table')}</value>
+                </property>
+                <property>
+                    <name>mw_redirect_table_location</name>
+                    <value>${coord:dataIn('mw_redirect_table')}</value>
+                </property>
+                <property>
+                    <name>mw_revision_table_location</name>
+                    <value>${coord:dataIn('mw_revision_table')}</value>
+                </property>
+                <property>
+                    <name>mw_user_table_location</name>
+                    <value>${coord:dataIn('mw_user_table')}</value>
+                </property>
+                <property>
+                    <name>mw_user_groups_table_location</name>
+                    <value>${coord:dataIn('mw_user_groups_table')}</value>
                 </property>
             </configuration>
         </workflow>

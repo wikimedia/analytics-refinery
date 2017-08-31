@@ -11,7 +11,7 @@ Use this dataset in your coordinator.xml files by setting:
 
 <datasets>
 
-    <!-- Namespace-map and tables datasets -->
+    <!-- Namespace-map and tables datasets - Data only -->
 
     <dataset name="mw_project_namespace_map"
              frequency="${coord:months(1)}"
@@ -29,6 +29,14 @@ Use this dataset in your coordinator.xml files by setting:
         <done-flag>_SUCCESS</done-flag>
     </dataset>
 
+    <dataset name="mw_ipblocks_table"
+             frequency="${coord:months(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${mw_raw_directory}/tables/ipblocks/snapshot=${YEAR}-${MONTH}</uri-template>
+        <done-flag>_SUCCESS</done-flag>
+    </dataset>
+
     <dataset name="mw_logging_table"
              frequency="${coord:months(1)}"
              initial-instance="${start_time}"
@@ -42,6 +50,22 @@ Use this dataset in your coordinator.xml files by setting:
              initial-instance="${start_time}"
              timezone="Universal">
         <uri-template>${mw_raw_directory}/tables/page/snapshot=${YEAR}-${MONTH}</uri-template>
+        <done-flag>_SUCCESS</done-flag>
+    </dataset>
+
+    <dataset name="mw_pagelinks_table"
+             frequency="${coord:months(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${mw_raw_directory}/tables/pagelinks/snapshot=${YEAR}-${MONTH}</uri-template>
+        <done-flag>_SUCCESS</done-flag>
+    </dataset>
+
+    <dataset name="mw_redirect_table"
+             frequency="${coord:months(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${mw_raw_directory}/tables/redirect/snapshot=${YEAR}-${MONTH}</uri-template>
         <done-flag>_SUCCESS</done-flag>
     </dataset>
 
@@ -68,4 +92,87 @@ Use this dataset in your coordinator.xml files by setting:
         <uri-template>${mw_raw_directory}/tables/user_groups/snapshot=${YEAR}-${MONTH}</uri-template>
         <done-flag>_SUCCESS</done-flag>
     </dataset>
+
+    <!-- Namespace-map and tables datasets - Hive partitions -->
+
+    <dataset name="mw_project_namespace_map_partitioned"
+             frequency="${coord:months(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${mw_raw_directory}/project_namespace_map/snapshot=${YEAR}-${MONTH}</uri-template>
+        <done-flag>_PARTITIONED</done-flag>
+    </dataset>
+
+    <dataset name="mw_archive_table_partitioned"
+             frequency="${coord:months(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${mw_raw_directory}/tables/archive/snapshot=${YEAR}-${MONTH}</uri-template>
+        <done-flag>_PARTITIONED</done-flag>
+    </dataset>
+
+    <dataset name="mw_ipblocks_table_partitioned"
+             frequency="${coord:months(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${mw_raw_directory}/tables/ipblocks/snapshot=${YEAR}-${MONTH}</uri-template>
+        <done-flag>_PARTITIONED</done-flag>
+    </dataset>
+
+    <dataset name="mw_logging_table_partitioned"
+             frequency="${coord:months(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${mw_raw_directory}/tables/logging/snapshot=${YEAR}-${MONTH}</uri-template>
+        <done-flag>_PARTITIONED</done-flag>
+    </dataset>
+
+    <dataset name="mw_page_table_partitioned"
+             frequency="${coord:months(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${mw_raw_directory}/tables/page/snapshot=${YEAR}-${MONTH}</uri-template>
+        <done-flag>_PARTITIONED</done-flag>
+    </dataset>
+
+    <dataset name="mw_pagelinks_table_partitioned"
+             frequency="${coord:months(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${mw_raw_directory}/tables/pagelinks/snapshot=${YEAR}-${MONTH}</uri-template>
+        <done-flag>_PARTITIONED</done-flag>
+    </dataset>
+
+    <dataset name="mw_redirect_table_partitioned"
+             frequency="${coord:months(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${mw_raw_directory}/tables/redirect/snapshot=${YEAR}-${MONTH}</uri-template>
+        <done-flag>_PARTITIONED</done-flag>
+    </dataset>
+
+    <dataset name="mw_revision_table_partitioned"
+             frequency="${coord:months(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${mw_raw_directory}/tables/revision/snapshot=${YEAR}-${MONTH}</uri-template>
+        <done-flag>_PARTITIONED</done-flag>
+    </dataset>
+
+    <dataset name="mw_user_table_partitioned"
+             frequency="${coord:months(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${mw_raw_directory}/tables/user/snapshot=${YEAR}-${MONTH}</uri-template>
+        <done-flag>_PARTITIONED</done-flag>
+    </dataset>
+
+    <dataset name="mw_user_groups_table_partitioned"
+             frequency="${coord:months(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${mw_raw_directory}/tables/user_groups/snapshot=${YEAR}-${MONTH}</uri-template>
+        <done-flag>_PARTITIONED</done-flag>
+    </dataset>
+
 </datasets>

@@ -86,34 +86,6 @@
 
         <!-- Hive tables-->
         <property>
-            <name>mw_project_namespace_map_table</name>
-            <description>Project_namespace_map table built from Mediawiki</description>
-        </property>
-        <property>
-            <name>mw_archive_table</name>
-            <description>Archive table imported from Mediawiki</description>
-        </property>
-        <property>
-            <name>mw_logging_table</name>
-            <description>Logging table imported from Mediawiki</description>
-        </property>
-        <property>
-            <name>mw_page_table</name>
-            <description>Page table imported from Mediawiki</description>
-        </property>
-        <property>
-            <name>mw_revision_table</name>
-            <description>Revision table imported from Mediawiki</description>
-        </property>
-        <property>
-            <name>mw_user_table</name>
-            <description>User table imported from Mediawiki</description>
-        </property>
-        <property>
-            <name>mw_user_groups_table</name>
-            <description>User groups table imported from Mediawiki</description>
-        </property>
-        <property>
             <name>mw_user_history_table</name>
             <description>Recomputed user history table</description>
         </property>
@@ -141,94 +113,7 @@
         </property>
     </parameters>
 
-    <start to="repair_project_namespace_map_table_partitions"/>
-
-    <!-- Add MW tables partitions -->
-
-    <action name="repair_project_namespace_map_table_partitions">
-        <sub-workflow>
-            <app-path>${repair_partitions_workflow_file}</app-path>
-            <propagate-configuration/>
-            <configuration>
-                <property><name>table</name><value>${mw_project_namespace_map_table}</value></property>
-            </configuration>
-        </sub-workflow>
-        <ok to="repair_archive_table_partitions"/>
-        <error to="send_error_email"/>
-    </action>
-
-    <action name="repair_archive_table_partitions">
-        <sub-workflow>
-            <app-path>${repair_partitions_workflow_file}</app-path>
-            <propagate-configuration/>
-            <configuration>
-                <property><name>table</name><value>${mw_archive_table}</value></property>
-            </configuration>
-        </sub-workflow>
-        <ok to="repair_logging_table_partitions"/>
-        <error to="send_error_email"/>
-    </action>
-
-    <action name="repair_logging_table_partitions">
-        <sub-workflow>
-            <app-path>${repair_partitions_workflow_file}</app-path>
-            <propagate-configuration/>
-            <configuration>
-                <property><name>table</name><value>${mw_logging_table}</value></property>
-            </configuration>
-        </sub-workflow>
-        <ok to="repair_page_table_partitions"/>
-        <error to="send_error_email"/>
-    </action>
-
-    <action name="repair_page_table_partitions">
-        <sub-workflow>
-            <app-path>${repair_partitions_workflow_file}</app-path>
-            <propagate-configuration/>
-            <configuration>
-                <property><name>table</name><value>${mw_page_table}</value></property>
-            </configuration>
-        </sub-workflow>
-        <ok to="repair_revision_table_partitions"/>
-        <error to="send_error_email"/>
-    </action>
-
-    <action name="repair_revision_table_partitions">
-        <sub-workflow>
-            <app-path>${repair_partitions_workflow_file}</app-path>
-            <propagate-configuration/>
-            <configuration>
-                <property><name>table</name><value>${mw_revision_table}</value></property>
-            </configuration>
-        </sub-workflow>
-        <ok to="repair_user_table_partitions"/>
-        <error to="send_error_email"/>
-    </action>
-
-    <action name="repair_user_table_partitions">
-        <sub-workflow>
-            <app-path>${repair_partitions_workflow_file}</app-path>
-            <propagate-configuration/>
-            <configuration>
-                <property><name>table</name><value>${mw_user_table}</value></property>
-            </configuration>
-        </sub-workflow>
-        <ok to="repair_user_groups_table_partitions"/>
-        <error to="send_error_email"/>
-    </action>
-
-    <action name="repair_user_groups_table_partitions">
-        <sub-workflow>
-            <app-path>${repair_partitions_workflow_file}</app-path>
-            <propagate-configuration/>
-            <configuration>
-                <property><name>table</name><value>${mw_user_groups_table}</value></property>
-            </configuration>
-        </sub-workflow>
-        <ok to="denormalize_history"/>
-        <error to="send_error_email"/>
-    </action>
-
+    <start to="denormalize_history"/>
 
     <!-- Compute user, page and denormalized history -->
 
