@@ -27,7 +27,7 @@
                 "access_method",
                 "agent_type",
                 "referer_class",
-                "zero",
+                "zero_carrier",
                 "continent",
                 "country_code",
                 "country",
