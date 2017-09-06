@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bundle-app xmlns="uri:oozie:bundle:0.2"
+    name="webrequest-sample-${sample_rate}-bundle">
+
+    <parameters>
+
+        <!-- Required properties -->
+        <property><name>queue_name</name></property>
+        <property><name>coordinator_file</name></property>
+        <property><name>name_node</name></property>
+        <property><name>job_tracker</name></property>
+        <property><name>workflow_file</name></property>
+        <property><name>start_time</name></property>
+        <property><name>stop_time</name></property>
+        <property><name>webrequest_datasets_file</name></property>
+
+        <property><name>hive_site_xml</name></property>
+
+        <property><name>webrequest_table</name></property>
+        <property><name>webrequest_data_directory</name></property>
+
+        <property><name>sample_rate</name></property>
+        <property><name>webrequest_sampled_table</name></property>
+        <property><name>webrequest_sampled_directory</name></property>
+
+    </parameters>
+
+    <coordinator name="webrequest-sample-${sample_rate}-coord-misc">
+        <app-path>${coordinator_file}</app-path>
+        <configuration>
+            <property>
+                <name>webrequest_source</name>
+                <value>misc</value>
+            </property>
+        </configuration>
+    </coordinator>
+
+    <coordinator name="webrequest-sample-${sample_rate}-coord-text">
+        <app-path>${coordinator_file}</app-path>
+        <configuration>
+            <property>
+                <name>webrequest_source</name>
+                <value>text</value>
+            </property>
+        </configuration>
+    </coordinator>
+
+    <coordinator name="webrequest-sample-${sample_rate}-coord-upload">
+        <app-path>${coordinator_file}</app-path>
+        <configuration>
+            <property>
+                <name>webrequest_source</name>
+                <value>upload</value>
+            </property>
+        </configuration>
+    </coordinator>
+
+</bundle-app>
