@@ -1,0 +1,83 @@
+{
+  "type" : "index_hadoop",
+  "spec" : {
+    "ioConfig" : {
+      "type" : "hadoop",
+      "inputSpec" : {
+        "type" : "static",
+        "paths" : "*INPUT_PATH*"
+      }
+    },
+    "dataSchema" : {
+      "dataSource" : "mediawiki_history_reduced",
+      "granularitySpec" : {
+        "type" : "uniform",
+        "segmentGranularity" : "month",
+        "queryGranularity" : "day",
+        "intervals" : *INTERVALS_ARRAY*
+      },
+      "parser" : {
+        "type" : "string",
+        "parseSpec" : {
+          "format" : "json",
+          "dimensionsSpec" : {
+            "dimensions" : [
+              "project",
+              "event_entity",
+              "event_type",
+              "event_user_id",
+              "event_user_text",
+              "event_user_is_anonymous",
+              "event_user_is_bot_by_name",
+              "event_user_is_bot_by_group",
+              "event_user_creation_is_within_one_day",
+              "event_user_month_activity_level",
+              "page_id",
+              "page_title",
+              "page_namespace",
+              "page_namespace_is_content",
+              "page_is_redirect_latest",
+              "page_month_activity_level"
+            ]
+          },
+          "timestampSpec" : {
+            "format" : "yyyy-MM-dd HH:mm:ss.S",
+            "column" : "event_timestamp"
+          }
+        }
+      },
+      "metricsSpec" : [
+        {
+          "type" : "count",
+          "name" : "events"
+        },
+
+        {
+          "name" : "text_bytes_diff",
+          "type" : "longSum",
+          "fieldName": "revision_text_bytes_diff"
+        },
+        {
+          "name" : "text_bytes_diff_abs",
+          "type" : "longSum",
+          "fieldName": "revision_text_bytes_diff_absolute"
+        }
+      ]
+    },
+    "tuningConfig" : {
+      "type" : "hadoop",
+      "overwriteFiles": true,
+      "ignoreInvalidRows" : false,
+      "partitionsSpec" : {
+        "type" : "hashed",
+        "numShards" : 1
+      },
+      "jobProperties" : {
+        "mapreduce.reduce.memory.mb" : "16384",
+        "mapreduce.output.fileoutputformat.compress": "org.apache.hadoop.io.compress.GzipCodec",
+        "mapreduce.job.queuename": "*HADOOP_QUEUE*"
+      }
+    }
+  }
+}
+
