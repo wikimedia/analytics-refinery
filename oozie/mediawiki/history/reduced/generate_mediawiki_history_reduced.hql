@@ -94,7 +94,7 @@ WITH
         SELECT DISTINCT
             dbname AS wiki_db,
             -- Compatibility with exisitng AQS project hostnames
-            REGEXP_REPLACE(hostname, '\\.org', '') AS hostname
+            REGEXP_REPLACE(hostname, '(www\\.|\\.org)', '') AS hostname
         FROM ${mw_project_namespace_map_table}
         WHERE TRUE
             AND snapshot = '${snapshot}'
