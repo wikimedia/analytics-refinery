@@ -1,0 +1,469 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow-app xmlns="uri:oozie:workflow:0.4"
+    name="mediawiki-history-load-wf-${snapshot}">
+
+    <parameters>
+
+        <!-- Default values for inner oozie settings -->
+        <property>
+            <name>oozie_launcher_queue_name</name>
+            <value>${queue_name}</value>
+        </property>
+        <property>
+            <name>oozie_launcher_memory</name>
+            <value>2048</value>
+        </property>
+
+        <!-- Required properties -->
+        <property><name>queue_name</name></property>
+        <property><name>name_node</name></property>
+        <property><name>job_tracker</name></property>
+
+        <property>
+            <name>snapshot</name>
+            <description>The snapshot partition used (usually YYYY-MM)</description>
+        </property>
+
+        <!-- Hive tables-->
+        <property>
+            <name>mw_project_namespace_map_table</name>
+            <description>Project_namespace_map table built from Mediawiki</description>
+        </property>
+        <property>
+            <name>mw_archive_table</name>
+            <description>Archive table imported from Mediawiki</description>
+        </property>
+        <property>
+            <name>mw_ipblocks_table</name>
+            <description>Ipblocks table imported from Mediawiki</description>
+        </property>
+        <property>
+            <name>mw_logging_table</name>
+            <description>Logging table imported from Mediawiki</description>
+        </property>
+        <property>
+            <name>mw_page_table</name>
+            <description>Page table imported from Mediawiki</description>
+        </property>
+        <property>
+            <name>mw_pagelinks_table</name>
+            <description>Pagelinks table imported from Mediawiki</description>
+        </property>
+        <property>
+            <name>mw_redirect_table</name>
+            <description>Redirect table imported from Mediawiki</description>
+        </property>
+        <property>
+            <name>mw_revision_table</name>
+            <description>Revision table imported from Mediawiki</description>
+        </property>
+        <property>
+            <name>mw_user_table</name>
+            <description>User table imported from Mediawiki</description>
+        </property>
+        <property>
+            <name>mw_user_groups_table</name>
+            <description>User groups table imported from Mediawiki</description>
+        </property>
+
+        <!-- Dataset locations to mark as done-->
+        <property>
+            <name>mw_project_namespace_map_location</name>
+            <description>Path to project_namespace_map data on hdfs</description>
+        </property>
+        <property>
+            <name>mw_archive_table_location</name>
+            <description>Path to archive table data on HDFS</description>
+        </property>
+        <property>
+            <name>mw_ipblocks_table_location</name>
+            <description>Path to ipblocks table data on HDFS</description>
+        </property>
+        <property>
+            <name>mw_logging_table_location</name>
+            <description>Path to logging table data on HDFS</description>
+        </property>
+        <property>
+            <name>mw_page_table_location</name>
+            <description>Path to page table data on HDFS</description>
+        </property>
+        <property>
+            <name>mw_pagelinks_table_location</name>
+            <description>Path to pagelinks table data on HDFS</description>
+        </property>
+        <property>
+            <name>mw_redirect_table_location</name>
+            <description>Path to redirect table data on HDFS</description>
+        </property>
+        <property>
+            <name>mw_revision_table_location</name>
+            <description>Path to revision table data on HDFS</description>
+        </property>
+        <property>
+            <name>mw_user_table_location</name>
+            <description>Path to user table data on HDFS</description>
+        </property>
+        <property>
+            <name>mw_user_groups_table_location</name>
+            <description>Path to user groups table data on HDFS</description>
+        </property>
+
+        <!-- Subworkflows -->
+        <property>
+            <name>repair_partitions_workflow_file</name>
+            <description>Workflow definition for repairing partitions</description>
+        </property>
+        <property>
+            <name>mark_directory_done_workflow_file</name>
+            <description>Workflow for marking a directory done</description>
+        </property>
+        <property>
+            <name>send_error_email_workflow_file</name>
+            <description>Workflow for sending an email</description>
+        </property>
+    </parameters>
+
+    <start to="repair_mw_project_namespace_map_partitions"/>
+
+    <!-- Project_namespace_map -->
+    <action name="repair_mw_project_namespace_map_partitions">
+        <sub-workflow>
+            <app-path>${repair_partitions_workflow_file}</app-path>
+            <propagate-configuration/>
+            <configuration>
+                <property><name>table</name><value>${mw_project_namespace_map_table}</value></property>
+            </configuration>
+        </sub-workflow>
+        <ok to="mark_mw_project_namespace_map_hive_done"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <action name="mark_mw_project_namespace_map_hive_done">
+        <sub-workflow>
+            <app-path>${mark_directory_done_workflow_file}</app-path>
+            <configuration>
+                <property>
+                    <name>directory</name>
+                    <value>${mw_project_namespace_map_location}</value>
+                </property>
+                <property>
+                    <name>done_file</name>
+                    <value>_PARTITIONED</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="repair_mw_archive_table_partitions"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <!-- archive -->
+    <action name="repair_mw_archive_table_partitions">
+        <sub-workflow>
+            <app-path>${repair_partitions_workflow_file}</app-path>
+            <propagate-configuration/>
+            <configuration>
+                <property><name>table</name><value>${mw_archive_table}</value></property>
+            </configuration>
+        </sub-workflow>
+        <ok to="mark_mw_archive_table_hive_done"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <action name="mark_mw_archive_table_hive_done">
+        <sub-workflow>
+            <app-path>${mark_directory_done_workflow_file}</app-path>
+            <configuration>
+                <property>
+                    <name>directory</name>
+                    <value>${mw_archive_table_location}</value>
+                </property>
+                <property>
+                    <name>done_file</name>
+                    <value>_PARTITIONED</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="repair_mw_ipblocks_table_partitions"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <!-- ipblocks -->
+    <action name="repair_mw_ipblocks_table_partitions">
+        <sub-workflow>
+            <app-path>${repair_partitions_workflow_file}</app-path>
+            <propagate-configuration/>
+            <configuration>
+                <property><name>table</name><value>${mw_ipblocks_table}</value></property>
+            </configuration>
+        </sub-workflow>
+        <ok to="mark_mw_ipblocks_table_hive_done"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <action name="mark_mw_ipblocks_table_hive_done">
+        <sub-workflow>
+            <app-path>${mark_directory_done_workflow_file}</app-path>
+            <configuration>
+                <property>
+                    <name>directory</name>
+                    <value>${mw_ipblocks_table_location}</value>
+                </property>
+                <property>
+                    <name>done_file</name>
+                    <value>_PARTITIONED</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="repair_mw_logging_table_partitions"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <!-- logging -->
+    <action name="repair_mw_logging_table_partitions">
+        <sub-workflow>
+            <app-path>${repair_partitions_workflow_file}</app-path>
+            <propagate-configuration/>
+            <configuration>
+                <property><name>table</name><value>${mw_logging_table}</value></property>
+            </configuration>
+        </sub-workflow>
+        <ok to="mark_mw_logging_table_hive_done"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <action name="mark_mw_logging_table_hive_done">
+        <sub-workflow>
+            <app-path>${mark_directory_done_workflow_file}</app-path>
+            <configuration>
+                <property>
+                    <name>directory</name>
+                    <value>${mw_logging_table_location}</value>
+                </property>
+                <property>
+                    <name>done_file</name>
+                    <value>_PARTITIONED</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="repair_mw_page_table_partitions"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <!-- page -->
+    <action name="repair_mw_page_table_partitions">
+        <sub-workflow>
+            <app-path>${repair_partitions_workflow_file}</app-path>
+            <propagate-configuration/>
+            <configuration>
+                <property><name>table</name><value>${mw_page_table}</value></property>
+            </configuration>
+        </sub-workflow>
+        <ok to="mark_mw_page_table_hive_done"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <action name="mark_mw_page_table_hive_done">
+        <sub-workflow>
+            <app-path>${mark_directory_done_workflow_file}</app-path>
+            <configuration>
+                <property>
+                    <name>directory</name>
+                    <value>${mw_page_table_location}</value>
+                </property>
+                <property>
+                    <name>done_file</name>
+                    <value>_PARTITIONED</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="repair_mw_pagelinks_table_partitions"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <!-- pagelinks -->
+    <action name="repair_mw_pagelinks_table_partitions">
+        <sub-workflow>
+            <app-path>${repair_partitions_workflow_file}</app-path>
+            <propagate-configuration/>
+            <configuration>
+                <property><name>table</name><value>${mw_pagelinks_table}</value></property>
+            </configuration>
+        </sub-workflow>
+        <ok to="mark_mw_pagelinks_table_hive_done"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <action name="mark_mw_pagelinks_table_hive_done">
+        <sub-workflow>
+            <app-path>${mark_directory_done_workflow_file}</app-path>
+            <configuration>
+                <property>
+                    <name>directory</name>
+                    <value>${mw_pagelinks_table_location}</value>
+                </property>
+                <property>
+                    <name>done_file</name>
+                    <value>_PARTITIONED</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="repair_mw_redirect_table_partitions"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <!-- redirect -->
+    <action name="repair_mw_redirect_table_partitions">
+        <sub-workflow>
+            <app-path>${repair_partitions_workflow_file}</app-path>
+            <propagate-configuration/>
+            <configuration>
+                <property><name>table</name><value>${mw_redirect_table}</value></property>
+            </configuration>
+        </sub-workflow>
+        <ok to="mark_mw_redirect_table_hive_done"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <action name="mark_mw_redirect_table_hive_done">
+        <sub-workflow>
+            <app-path>${mark_directory_done_workflow_file}</app-path>
+            <configuration>
+                <property>
+                    <name>directory</name>
+                    <value>${mw_redirect_table_location}</value>
+                </property>
+                <property>
+                    <name>done_file</name>
+                    <value>_PARTITIONED</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="repair_mw_revision_table_partitions"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <!-- revision -->
+    <action name="repair_mw_revision_table_partitions">
+        <sub-workflow>
+            <app-path>${repair_partitions_workflow_file}</app-path>
+            <propagate-configuration/>
+            <configuration>
+                <property><name>table</name><value>${mw_revision_table}</value></property>
+            </configuration>
+        </sub-workflow>
+        <ok to="mark_mw_revision_table_hive_done"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <action name="mark_mw_revision_table_hive_done">
+        <sub-workflow>
+            <app-path>${mark_directory_done_workflow_file}</app-path>
+            <configuration>
+                <property>
+                    <name>directory</name>
+                    <value>${mw_revision_table_location}</value>
+                </property>
+                <property>
+                    <name>done_file</name>
+                    <value>_PARTITIONED</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="repair_mw_user_table_partitions"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <!-- user -->
+    <action name="repair_mw_user_table_partitions">
+        <sub-workflow>
+            <app-path>${repair_partitions_workflow_file}</app-path>
+            <propagate-configuration/>
+            <configuration>
+                <property><name>table</name><value>${mw_user_table}</value></property>
+            </configuration>
+        </sub-workflow>
+        <ok to="mark_mw_user_table_hive_done"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <action name="mark_mw_user_table_hive_done">
+        <sub-workflow>
+            <app-path>${mark_directory_done_workflow_file}</app-path>
+            <configuration>
+                <property>
+                    <name>directory</name>
+                    <value>${mw_user_table_location}</value>
+                </property>
+                <property>
+                    <name>done_file</name>
+                    <value>_PARTITIONED</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="repair_mw_user_groups_table_partitions"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <!-- user_groups -->
+    <action name="repair_mw_user_groups_table_partitions">
+        <sub-workflow>
+            <app-path>${repair_partitions_workflow_file}</app-path>
+            <propagate-configuration/>
+            <configuration>
+                <property><name>table</name><value>${mw_user_groups_table}</value></property>
+            </configuration>
+        </sub-workflow>
+        <ok to="mark_mw_user_groups_table_hive_done"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <action name="mark_mw_user_groups_table_hive_done">
+        <sub-workflow>
+            <app-path>${mark_directory_done_workflow_file}</app-path>
+            <configuration>
+                <property>
+                    <name>directory</name>
+                    <value>${mw_user_groups_table_location}</value>
+                </property>
+                <property>
+                    <name>done_file</name>
+                    <value>_PARTITIONED</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="end"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <action name="send_error_email">
+        <sub-workflow>
+            <app-path>${send_error_email_workflow_file}</app-path>
+            <propagate-configuration/>
+            <configuration>
+                <property>
+                    <name>parent_name</name>
+                    <value>${wf:name()}</value>
+                </property>
+                <property>
+                    <name>parent_failed_action</name>
+                    <value>${wf:lastErrorNode()}</value>
+                </property>
+                <property>
+                    <name>parent_error_code</name>
+                    <value>${wf:errorCode(wf:lastErrorNode())}</value>
+                </property>
+                <property>
+                    <name>parent_error_message</name>
+                    <value>${wf:errorMessage(wf:lastErrorNode())}</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="kill"/>
+        <error to="kill"/>
+    </action>
+
+    <kill name="kill">
+        <message>Action failed, error message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+    </kill>
+    <end name="end"/>
+</workflow-app>

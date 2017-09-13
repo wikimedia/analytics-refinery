@@ -1,6 +1,7 @@
 Collection of jobs processing Mediawiki History:
- - denormalize  -- Add hive partitions, run spark job rebuilding a denormalized
-   version of history from imported raw data and finally add hive patitions
+ - load  -- Add hive partitions for sqooped raw_data
+ - denormalize  -- run spark job rebuilding a denormalized version of history
+   from imported raw data and finally add hive patitions
    for those (for a single snapshot).
  - metrics  -- Multiple Hive queries generating metrics out of the
    denormalized dataset. Updates a hive table with results.
