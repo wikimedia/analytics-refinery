@@ -69,7 +69,7 @@
                 </property>
                 <property>
                     <name>loaded_period</name>
-                    <value>${druid_period_start}/${coord:formatTime(coord:nominalTime(), "yyyy-MM-dd")}</value>
+                    <value>${druid_period_start}/${coord:formatTime(coord:dateOffset(coord:nominalTime(), 1, "MONTH"), "yyyy-MM-dd")}</value>
                 </property>
             </configuration>
         </workflow>

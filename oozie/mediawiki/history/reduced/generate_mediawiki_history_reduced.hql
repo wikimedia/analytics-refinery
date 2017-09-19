@@ -1,4 +1,4 @@
--- Generate json formatted mediawiki history to be loaded in Druid
+-- Generate json formatted mediawiki history reduced to be loaded in Druid
 --
 -- REMARK: Booleans are converted to 0/1 integers to allow
 -- using them both AS dimensions and metrics in druid (having
@@ -10,40 +10,29 @@
 --         -d mw_denormalized_history_table=wmf.mediawiki_history \
 --         -d mw_project_namespace_map_table=wmf_raw.project_namespace_map \
 --         -d destination_directory=/tmp/druid/mediawiki_history \
---         -d snapshot=2017-03
+--         -d snapshot=2017-08
 --
 
 SET hive.exec.compress.output=true;
 SET mapreduce.output.fileoutputformat.compress.codec=org.apache.hadoop.io.compress.GzipCodec;
 
-
 ADD JAR /usr/lib/hive-hcatalog/share/hcatalog/hive-hcatalog-core.jar;
 
-
 DROP TABLE IF EXISTS `tmp_druid_mediawiki_history_reduced`;
-
-
 CREATE EXTERNAL TABLE IF NOT EXISTS `tmp_druid_mediawiki_history_reduced` (
   `project`                                       string,
   `event_entity`                                  string,
-  -- Needed for page and user create / delete
   `event_type`                                    string,
   `event_timestamp`                               string,
-  `event_user_id`                                 bigint,
-  `event_user_text`                               string,
-  `event_user_is_anonymous`                       int,
-  `event_user_is_bot_by_name`                     int,
-  `event_user_is_bot_by_group`                    int,
-  `event_user_creation_is_within_one_day`         int,
-  `event_user_month_activity_level`               int,
+  `user_id`                                       string,
+  `user_type`                                     string,
   `page_id`                                       bigint,
-  `page_title`                                    string,
-  `page_namespace`                                int,
-  `page_namespace_is_content`                     int,
-  `page_is_redirect_latest`                       int,
-  `page_month_activity_level`                     int,
-  `revision_text_bytes_diff`                      bigint,
-  `revision_text_bytes_diff_absolute`             bigint
+  `page_namespace`                                string,
+  `page_type`                                     string,
+  `other_tags`                                    array<string>,
+  `text_bytes_diff`                               bigint,
+  `text_bytes_diff_abs`                           bigint,
+  `revisions`                                     bigint
 )
 ROW FORMAT SERDE 'org.apache.hive.hcatalog.data.JsonSerDe'
 STORED AS TEXTFILE
@@ -51,45 +40,6 @@ LOCATION '${destination_directory}';
 
 
 WITH
-    event_user_month_activity_level AS (
-        SELECT
-            wiki_db,
-            SUBSTRING(event_timestamp, 0, 7) AS event_month,
-            event_user_id,
-            COUNT(1) AS activity_level
-        FROM ${mw_denormalized_history_table}
-        WHERE TRUE
-            AND snapshot = '${snapshot}'
-            AND event_entity = 'revision'
-            AND event_type = 'create'
-            AND event_timestamp IS NOT NULL
-            AND NOT event_user_is_anonymous
-        GROUP BY
-            wiki_db,
-            SUBSTRING(event_timestamp, 0, 7),
-            event_user_id
-    ),
-
-    page_month_activity_level AS (
-        SELECT
-            wiki_db,
-            SUBSTRING(event_timestamp, 0, 7) AS event_month,
-            page_id,
-            COUNT(1) AS activity_level
-        FROM ${mw_denormalized_history_table}
-        WHERE TRUE
-            AND snapshot = '${snapshot}'
-            AND event_entity = 'revision'
-            AND event_type = 'create'
-            AND event_timestamp IS NOT NULL
-            AND page_id IS NOT NULL
-            AND page_id > 0
-        GROUP BY
-            wiki_db,
-            SUBSTRING(event_timestamp, 0, 7),
-            page_id
-    ),
-
     project_map AS (
         SELECT DISTINCT
             dbname AS wiki_db,
@@ -98,51 +48,188 @@ WITH
         FROM ${mw_project_namespace_map_table}
         WHERE TRUE
             AND snapshot = '${snapshot}'
+    ),
+    digest_base AS (
+        SELECT
+            pm.hostname AS project,
+            CONCAT(SUBSTRING(event_timestamp, 0, 10), ' 00:00:00.0') AS event_timestamp_day,
+            CONCAT(SUBSTRING(event_timestamp, 0, 7), '-01 00:00:00.0') AS event_timestamp_month,
+            page_id,
+            -- Build a user-id from real id or text (only used for distinct aggregation)
+            CASE WHEN event_user_id IS NOT NULL AND event_user_id > 0
+                THEN CAST(event_user_id AS string)
+                ELSE COALESCE(event_user_text_latest, event_user_text)
+            END AS user_id,
+            page_namespace,
+            IF (page_namespace_is_content, 'content', 'non_content') AS page_type,
+            page_is_redirect_latest,
+            CASE
+                -- Using sequence to prevent writing NOT
+                WHEN event_user_is_anonymous THEN 'anonymous'
+                WHEN array_contains(event_user_groups, 'bot') THEN 'group_bot'
+                WHEN event_user_is_bot_by_name THEN 'name_bot'
+                ELSE 'user'
+            END AS user_type,
+            revision_deleted_timestamp,
+            revision_text_bytes_diff
+        FROM ${mw_denormalized_history_table} mw
+            INNER JOIN project_map pm
+                ON (mw.wiki_db = pm.wiki_db)
+        WHERE TRUE
+            AND snapshot = '${snapshot}'
+            AND event_entity = 'revision'
+            AND event_type = 'create'
+            AND event_timestamp IS NOT NULL
+    ),
+
+    user_digests AS (
+        SELECT
+            project,
+            'user' AS event_entity,
+            IF (event_timestamp_day IS NULL, 'monthly_digest', 'daily_digest') AS event_type,
+            COALESCE(event_timestamp_day, event_timestamp_month) AS event_timestamp,
+            NULL AS user_id,
+            COALESCE(user_type, 'all') AS user_type,
+            NULL AS page_id,
+            NULL AS page_namespace,
+            COALESCE(page_type, 'all') AS page_type,
+            ARRAY() AS other_tags,
+            SUM(revision_text_bytes_diff) AS text_bytes_diff,
+            SUM(ABS(revision_text_bytes_diff)) AS text_bytes_diff_abs,
+            COUNT(1) as revisions
+        FROM digest_base
+        GROUP BY
+            project,
+            event_timestamp_day,
+            event_timestamp_month,
+            user_id,
+            user_type,
+            page_type
+        GROUPING SETS(
+            (project, event_timestamp_day, user_id, user_type, page_type),
+            (project, event_timestamp_day, user_id, user_type),
+            (project, event_timestamp_day, user_id, page_type),
+            (project, event_timestamp_day, user_id),
+            (project, event_timestamp_month, user_id, user_type, page_type),
+            (project, event_timestamp_month, user_id, user_type),
+            (project, event_timestamp_month, user_id, page_type),
+            (project, event_timestamp_month, user_id)
+        )
+    ),
+    page_digests AS (
+        SELECT
+            project,
+            'page' AS event_entity,
+            IF (event_timestamp_day IS NULL, 'monthly_digest', 'daily_digest') AS event_type,
+            COALESCE(event_timestamp_day, event_timestamp_month) AS event_timestamp,
+            NULL AS user_id,
+            COALESCE(user_type, 'all') AS user_type,
+            NULL AS page_id,
+            NULL AS page_namespace,
+            COALESCE(page_type, 'all') AS page_type,
+            ARRAY() AS other_tags,
+            SUM(revision_text_bytes_diff) AS text_bytes_diff,
+            SUM(ABS(revision_text_bytes_diff)) AS text_bytes_diff_abs,
+            COUNT(1) as revisions
+        FROM digest_base
+        GROUP BY
+            project,
+            event_timestamp_day,
+            event_timestamp_month,
+            page_id,
+            user_type,
+            page_type
+        GROUPING SETS(
+            (project, event_timestamp_day, page_id, user_type, page_type),
+            (project, event_timestamp_day, page_id, user_type),
+            (project, event_timestamp_day, page_id, page_type),
+            (project, event_timestamp_day, page_id),
+            (project, event_timestamp_month, page_id, user_type, page_type),
+            (project, event_timestamp_month, page_id, user_type),
+            (project, event_timestamp_month, page_id, page_type),
+            (project, event_timestamp_month, page_id)
+        )
+    ),
+
+    core_data AS (
+        SELECT
+            pm.hostname AS project,
+            event_entity,
+            event_type,
+            event_timestamp,
+            -- Build a user-id from real id or text (only used for distinct aggregation)
+            IF (event_user_id IS NOT NULL AND event_user_id > 0,
+                CAST(event_user_id AS string),
+                COALESCE(event_user_text_latest, event_user_text)) AS user_id,
+            CASE
+                -- Using sequence to prevent writing NOT
+                WHEN event_user_is_anonymous THEN 'anonymous'
+                WHEN array_contains(event_user_groups, 'bot') THEN 'group_bot'
+                WHEN event_user_is_bot_by_name THEN 'name_bot'
+                ELSE 'user'
+            END AS user_type,
+            page_id,
+            page_namespace,
+            CASE
+                WHEN page_namespace_is_content THEN 'content'
+                ELSE 'non_content'
+            END AS page_type,
+            -- Trick to get an array of values without nulls
+            SPLIT(CONCAT_WS('|',
+                    IF (unix_timestamp(event_timestamp) - unix_timestamp(event_user_creation_timestamp) <= 86400,
+                        'user_first_24_hours', NULL),
+                    IF (page_is_redirect_latest, 'redirect_latest', NULL),
+                    IF (revision_is_deleted, 'deleted', NULL),
+                    CASE
+                        WHEN SUBSTRING(event_timestamp, 0, 10) = SUBSTRING(revision_deleted_timestamp, 0, 10) THEN 'deleted_day'
+                        WHEN SUBSTRING(event_timestamp, 0, 7) = SUBSTRING(revision_deleted_timestamp, 0, 7) THEN 'deleted_month'
+                        WHEN SUBSTRING(event_timestamp, 0, 4) = SUBSTRING(revision_deleted_timestamp, 0, 4) THEN 'deleted_year'
+                        ELSE NULL
+                    END,
+                    IF (revision_is_identity_reverted, 'reverted', NULL),
+                    -- Not needed as of now - Keeping for possible future
+                    -- CASE
+                    --     WHEN revision_seconds_to_identity_revert <= 60 THEN 'reverted_minute'
+                    --     WHEN revision_seconds_to_identity_revert <= 5 * 60 THEN 'reverted_5_minutes'
+                    --     WHEN revision_seconds_to_identity_revert <= 10 * 60 THEN 'reverted_10_minutes'
+                    --     WHEN revision_seconds_to_identity_revert <= 30 * 60 THEN 'reverted_30_minutes'
+                    --     WHEN revision_seconds_to_identity_revert <= 60 * 60 THEN 'reverted_hour'
+                    --     WHEN revision_seconds_to_identity_revert <= 12 * 60 * 60 THEN 'reverted_12_hours'
+                    --     WHEN revision_seconds_to_identity_revert <= 24 * 60 * 60 THEN 'reverted_day'
+                    --     WHEN revision_seconds_to_identity_revert <= 3 * 24 * 60 * 60 THEN 'reverted_3_days'
+                    --     WHEN revision_seconds_to_identity_revert <= 7 * 24 * 60 * 60 THEN 'reverted_week'
+                    --     WHEN revision_seconds_to_identity_revert <= 2 * 7 * 24 * 60 * 60 THEN 'reverted_2_weeks'
+                    --     WHEN revision_seconds_to_identity_revert <= 30 * 24 * 60 * 60 THEN 'reverted_month'
+                    --     WHEN revision_seconds_to_identity_revert <= 3 * 30 * 24 * 60 * 60 THEN 'reverted_3_months'
+                    --     WHEN revision_seconds_to_identity_revert <= 6 * 30 * 24 * 60 * 60 THEN 'reverted_6_months'
+                    --     WHEN revision_seconds_to_identity_revert <= 365 * 24 * 60 * 60 THEN 'reverted_year'
+                    --     ELSE NULL
+                    --END,
+                    IF (revision_is_identity_revert, 'revert', NULL),
+                    IF (user_is_created_by_self, 'self_created', NULL)
+            ), '\\|') AS other_tags,
+            revision_text_bytes_diff AS text_bytes_diff,
+            ABS(revision_text_bytes_diff) AS text_bytes_diff_abs,
+            IF (event_entity = 'revision', 1, 0) AS revisions
+        FROM ${mw_denormalized_history_table} mw
+            INNER JOIN project_map pm
+                ON (mw.wiki_db = pm.wiki_db)
+        WHERE TRUE
+            AND snapshot = '${snapshot}'
+            -- Only export rows with valid timestamp format
+            AND event_timestamp IS NOT NULL
     )
 
 INSERT OVERWRITE TABLE tmp_druid_mediawiki_history_reduced
-SELECT
-    pm.hostname,
-    event_entity,
-    event_type,
-    event_timestamp,
-    mw.event_user_id,
-    COALESCE(event_user_text_latest, event_user_text) AS event_user_text,
-    CASE WHEN event_user_is_anonymous THEN 1 ELSE 0 END AS event_user_is_anonymous,
-    CASE WHEN array_contains(event_user_groups, 'bot') THEN 1 ELSE 0 END AS event_user_is_bot_by_group,
-    CASE WHEN event_user_is_bot_by_name THEN 1 ELSE 0 END AS event_user_is_bot_by_name,
-    CASE WHEN unix_timestamp(event_timestamp) - unix_timestamp(event_user_creation_timestamp) <= 86400 THEN 1 ELSE 0 END AS event_user_creation_is_within_one_day,
-    ual.activity_level AS event_user_month_activity_level,
-    mw.page_id,
-    COALESCE(page_title_latest, page_title) AS page_title,
-    page_namespace,
-    CASE WHEN page_namespace_is_content THEN 1 ELSE 0 END AS page_namespace_is_content,
-    CASE WHEN page_is_redirect_latest THEN 1 ELSE 0 END AS page_is_redirect_latest,
-    pal.activity_level AS page_month_activity_level,
-    revision_text_bytes_diff,
-    ABS(revision_text_bytes_diff) AS revision_text_bytes_diff_absolute
-FROM ${mw_denormalized_history_table} mw
-    LEFT JOIN event_user_month_activity_level ual
-        ON ((mw.wiki_db = ual.wiki_db)
-            AND (SUBSTRING(mw.event_timestamp, 0, 7) = ual.event_month)
-            AND (mw.event_user_id = ual.event_user_id))
-    LEFT JOIN page_month_activity_level pal
-        ON ((mw.wiki_db = pal.wiki_db)
-            AND (SUBSTRING(mw.event_timestamp, 0, 7) = pal.event_month)
-            AND (mw.page_id = pal.page_id))
-    LEFT JOIN project_map pm
-        ON (mw.wiki_db = pm.wiki_db)
 
-WHERE TRUE
-    AND snapshot = '${snapshot}'
-    -- Only export rows with valid timestamp format
-    AND event_timestamp IS NOT NULL
-    AND ((event_entity = 'revision')
-      -- keep page create, delete and restore for meASure and adjustments
-      OR ((event_entity = 'page') AND (event_type != 'move'))
-      -- keep user created by self for measure
-      OR ((event_entity = 'user') AND (event_type == 'create') AND (user_is_created_by_self)))
+SELECT * FROM core_data
+  UNION ALL
+SELECT * FROM user_digests
+  UNION ALL
+SELECT * FROM page_digests
 ;
 
-
 DROP TABLE IF EXISTS tmp_druid_mediawiki_history_reduced;
+
+
+

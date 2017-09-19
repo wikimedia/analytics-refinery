@@ -16,7 +16,7 @@
         "queryGranularity" : "day",
         "intervals" : *INTERVALS_ARRAY*
       },
-      "parser" : {
+            "parser" : {
         "type" : "string",
         "parseSpec" : {
           "format" : "json",
@@ -25,19 +25,15 @@
               "project",
               "event_entity",
               "event_type",
-              "event_user_id",
-              "event_user_text",
-              "event_user_is_anonymous",
-              "event_user_is_bot_by_name",
-              "event_user_is_bot_by_group",
-              "event_user_creation_is_within_one_day",
-              "event_user_month_activity_level",
+              "user_id",
+              "user_type",
               "page_id",
-              "page_title",
               "page_namespace",
-              "page_namespace_is_content",
-              "page_is_redirect_latest",
-              "page_month_activity_level"
+              "page_type",
+              "other_tags",
+              "revisions",
+              "text_bytes_diff",
+              "text_bytes_diff_abs"
             ]
           },
           "timestampSpec" : {
@@ -48,19 +44,23 @@
       },
       "metricsSpec" : [
         {
-          "type" : "count",
-          "name" : "events"
-        },
-
-        {
-          "name" : "text_bytes_diff",
-          "type" : "longSum",
-          "fieldName": "revision_text_bytes_diff"
+          "name" : "events",
+          "type" : "count"
         },
         {
-          "name" : "text_bytes_diff_abs",
+          "name" : "revisions_sum",
           "type" : "longSum",
-          "fieldName": "revision_text_bytes_diff_absolute"
+          "fieldName": "revisions"
+        },
+        {
+          "name" : "text_bytes_diff_sum",
+          "type" : "longSum",
+          "fieldName": "text_bytes_diff"
+        },
+        {
+          "name" : "text_bytes_diff_abs_sum",
+          "type" : "longSum",
+          "fieldName": "text_bytes_diff_abs"
         }
       ]
     },
@@ -70,10 +70,10 @@
       "ignoreInvalidRows" : false,
       "partitionsSpec" : {
         "type" : "hashed",
-        "numShards" : 1
+        "numShards" : 4
       },
       "jobProperties" : {
-        "mapreduce.reduce.memory.mb" : "16384",
+        "mapreduce.reduce.memory.mb" : "8192",
         "mapreduce.output.fileoutputformat.compress": "org.apache.hadoop.io.compress.GzipCodec",
         "mapreduce.job.queuename": "*HADOOP_QUEUE*"
       }
