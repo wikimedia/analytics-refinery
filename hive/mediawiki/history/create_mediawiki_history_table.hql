@@ -28,7 +28,7 @@ CREATE EXTERNAL TABLE `mediawiki_history`(
   `event_user_is_bot_by_name`                     boolean       COMMENT 'Whether the event_user\'s name matches patterns we use to identify bots',
   `event_user_creation_timestamp`                 timestamp     COMMENT 'Registration timestamp of the user that caused the event',
   `event_user_revision_count`                     bigint        COMMENT 'Cumulative revision count per user for the current event_user_id (only available in revision-create events so far)',
-  `event_user_seconds_from_previous_revision`     bigint        COMMENT 'In revision events: seconds elapsed since the previous revision made by the current event_user_id (only available in revision-create events so far)',
+  `event_user_seconds_since_previous_revision`    bigint        COMMENT 'In revision events: seconds elapsed since the previous revision made by the current event_user_id (only available in revision-create events so far)',
 
   `page_id`                                       bigint        COMMENT 'In revision/page events: id of the page',
   `page_title`                                    string        COMMENT 'In revision/page events: historical title of the page',
@@ -40,7 +40,7 @@ CREATE EXTERNAL TABLE `mediawiki_history`(
   `page_is_redirect_latest`                       boolean       COMMENT 'In revision/page events: whether the page is currently a redirect',
   `page_creation_timestamp`                       timestamp     COMMENT 'In revision/page events: creation timestamp of the page',
   `page_revision_count`                           bigint        COMMENT 'In revision/page events: Cumulative revision count per page for the current page_id (only available in revision-create events so far)',
-  `page_seconds_from_previous_revision`           bigint        COMMENT 'In revision/page events: seconds elapsed since the previous revision made on the current page_id (only available in revision-create events so far)',
+  `page_seconds_since_previous_revision`          bigint        COMMENT 'In revision/page events: seconds elapsed since the previous revision made on the current page_id (only available in revision-create events so far)',
 
   `user_id`                                       bigint        COMMENT 'In user events: id of the user',
   `user_text`                                     string        COMMENT 'In user events: historical user text',
