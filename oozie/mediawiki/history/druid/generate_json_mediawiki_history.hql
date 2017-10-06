@@ -116,7 +116,7 @@ SELECT
     CASE WHEN event_user_is_bot_by_name THEN 1 ELSE 0 END AS event_user_is_bot_by_name,
     event_user_creation_timestamp,
     event_user_revision_count,
-    event_user_seconds_to_previous_revision,
+    event_user_seconds_since_previous_revision,
 
     page_id,
     page_title,
@@ -128,7 +128,7 @@ SELECT
     CASE WHEN page_is_redirect_latest THEN 1 ELSE 0 END AS page_is_redirect_latest,
     page_creation_timestamp,
     page_revision_count,
-    page_seconds_to_previous_revision,
+    page_seconds_since_previous_revision,
 
     user_id,
     user_text,
