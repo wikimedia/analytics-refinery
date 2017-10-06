@@ -67,6 +67,9 @@ WHERE
     AND uri_path = '/beacon/impression'
     AND agent_type = 'user'
     AND uri_param_value('debug', uri_query) = 'false'
+    -- sample_rate can be infinity, leading to Druid indexation failing.
+    -- We remove those rows from the data
+    AND cast(uri_param_value('recordImpressionSampleRate', uri_query) AS float) != 'Infinity'
     -- TODO: add once added to webrequest
     -- AND x_analytics_map['proxy'] IS NULL
 GROUP BY
