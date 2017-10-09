@@ -49,7 +49,8 @@ SELECT
 FROM ${source_table}
 WHERE year = ${year}
     AND month = ${month}
-    AND day = ${day};
+    AND day = ${day}
+    AND project_family != 'wikimedia';
 
 
 DROP TABLE IF EXISTS tmp_druid_unique_devices_per_project_family_daily_${year}_${month}_${day};

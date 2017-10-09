@@ -46,7 +46,8 @@ SELECT
     uniques_estimate AS uniques_estimate
 FROM ${source_table}
 WHERE year = ${year}
-    AND month = ${month};
+    AND month = ${month}
+    AND project_family != 'wikimedia';
 
 
 DROP TABLE IF EXISTS tmp_druid_unique_devices_per_project_family_monthly_${year}_${month};
