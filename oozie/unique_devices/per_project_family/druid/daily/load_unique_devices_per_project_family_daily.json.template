@@ -9,7 +9,7 @@
       }
     },
     "dataSchema" : {
-      "dataSource" : "unique-devices-per_project_family-daily",
+      "dataSource" : "unique_devices_per_project_family_daily",
       "granularitySpec" : {
         "type" : "uniform",
         "segmentGranularity" : "day",

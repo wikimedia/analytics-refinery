@@ -9,7 +9,7 @@
       }
     },
     "dataSchema" : {
-      "dataSource" : "unique-devices-per-domain-monthly",
+      "dataSource" : "unique_devices_per_domain_monthly",
       "granularitySpec" : {
         "type" : "uniform",
         "segmentGranularity" : "month",
