@@ -41,7 +41,7 @@ SET hive.exec.dynamic.partition.mode=nonstrict;
     -- bucketed on hostname,sequence.
 INSERT OVERWRITE TABLE ${destination_table} PARTITION (webrequest_source, year, month, day, hour)
     SELECT *
-    FROM ${source_table} TABLESAMPLE(BUCKET 1 OUT OF ${sample_rate} ON hostname,sequence)
+    FROM ${source_table} TABLESAMPLE(BUCKET 1 OUT OF ${sample_rate} ON rand())
     WHERE
         webrequest_source='${webrequest_source}' AND
         year=${year} AND month=${month} AND day=${day} AND hour=${hour}
