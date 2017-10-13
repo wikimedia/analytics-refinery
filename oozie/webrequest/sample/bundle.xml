@@ -25,7 +25,7 @@
 
     </parameters>
 
-    <coordinator name="webrequest-sample-${sample_rate}-coord-misc">
+    <coordinator name="webrequest-sample-${sample_rate}-misc-coord">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property>
@@ -35,7 +35,7 @@
         </configuration>
     </coordinator>
 
-    <coordinator name="webrequest-sample-${sample_rate}-coord-text">
+    <coordinator name="webrequest-sample-${sample_rate}-text-coord">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property>
@@ -45,7 +45,7 @@
         </configuration>
     </coordinator>
 
-    <coordinator name="webrequest-sample-${sample_rate}-coord-upload">
+    <coordinator name="webrequest-sample-${sample_rate}-upload-coord">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property>
