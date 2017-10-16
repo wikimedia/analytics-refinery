@@ -41,19 +41,46 @@ import sys
 import os
 
 
+# Set up logging to be split:
+#   INFO+DEBUG+WARNING -> stdout
+#   ERROR              -> stderr
+# Thanks to zoey-greer for their solution:
+# https://stackoverflow.com/questions/2302315/how-can-info-and-debug-logging-message-be-sent-to-stdout-and-higher-level-messag/31459386#31459386
+class LessThanFilter(logging.Filter):
+    def __init__(self, exclusive_maximum, name=""):
+        super(LessThanFilter, self).__init__(name)
+        self.max_level = exclusive_maximum
+
+    def filter(self, record):
+        #non-zero return means we log this message
+        return 1 if record.levelno < self.max_level else 0
+
+logger = logging.getLogger()
+logger.setLevel(logging.NOTSET)
+
+formatter = logging.Formatter(
+    fmt='%(asctime)s %(levelname)-6s %(message)s',
+    datefmt='%Y-%m-%dT%H:%M:%S',
+)
+
+handler_out = logging.StreamHandler(sys.stdout)
+handler_out.setLevel(logging.DEBUG)
+handler_out.addFilter(LessThanFilter(logging.ERROR))
+handler_out.setFormatter(formatter)
+logger.addHandler(handler_out)
+
+handler_err = logging.StreamHandler(sys.stderr)
+handler_err.setLevel(logging.ERROR)
+handler_err.setFormatter(formatter)
+logger.addHandler(handler_err)
+
+
 if __name__ == '__main__':
     # parse arguments
     arguments = docopt(__doc__)
     days            = int(arguments['--older-than-days'])
     location        = arguments['--location']
     dry_run         = arguments['--dry-run']
-
-    # configure logging
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s %(levelname)-6s %(message)s',
-        datefmt='%Y-%m-%dT%H:%M:%S'
-    )
 
     # files or folders older than this date should be deleted
     threshold_datetime = datetime.now() - relativedelta.relativedelta(days=days)
@@ -94,11 +121,11 @@ if __name__ == '__main__':
                             paths_to_delete.append(day_path)
 
     if dry_run:
-        logging.info('Listing {0} directories from {1} ...'.format(len(paths_to_delete), location))
+        logger.info('Listing {0} directories from {1} ...'.format(len(paths_to_delete), location))
         for path_to_delete in paths_to_delete:
             print path_to_delete
-        logging.info('Dry run finished!')
+        logger.info('Dry run finished!')
     else:
-        logging.info('Removing {0} directories from {1} ...'.format(len(paths_to_delete), location))
+        logger.info('Removing {0} directories from {1} ...'.format(len(paths_to_delete), location))
         HdfsUtils.rm(' '.join(paths_to_delete))
-        logging.info('Done!')
+        logger.info('Done!')
