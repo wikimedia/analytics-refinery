@@ -9,25 +9,25 @@
 --
 
 CREATE EXTERNAL TABLE `mediawiki_page_history`(
-    wiki_db                             string      COMMENT 'enwiki, dewiki, eswiktionary, etc.',
-    page_id                             bigint      COMMENT 'Id of the page, as in the page table.',
-    page_id_artificial                  string      COMMENT 'Generated Id for deleted pages without real Id.',
-    page_creation_timestamp             string      COMMENT 'Timestamp of the page\'s first revision.',
-    --page_creation_timestamp             timestamp   COMMENT 'Timestamp of the page\'s first revision.',
-    page_title                          string      COMMENT 'Historical page title.',
-    page_title_latest                   string      COMMENT 'Page title as of today.',
-    page_namespace                      int         COMMENT 'Historical namespace.',
-    page_namespace_is_content           boolean     COMMENT 'Whether the historical namespace is categorized as content',
-    page_namespace_latest               int         COMMENT 'Namespace as of today.',
-    page_namespace_is_content_latest    boolean     COMMENT 'Whether the current namespace is categorized as content',
-    page_is_redirect_latest             boolean     COMMENT 'In revision/page events: whether the page is currently a redirect',
-    start_timestamp                     string      COMMENT 'Timestamp from where this state applies (inclusive).',
-    end_timestamp                       string      COMMENT 'Timestamp to where this state applies (exclusive).',
-    --start_timestamp                     timestamp   COMMENT 'Timestamp from where this state applies (inclusive).',
-    --end_timestamp                       timestamp   COMMENT 'Timestamp to where this state applies (exclusive).',
-    caused_by_event_type                string      COMMENT 'Event that caused this state (create, move, delete or restore).',
-    caused_by_user_id                   bigint      COMMENT 'ID from the user that caused this state.',
-    inferred_from                       string      COMMENT 'If non-NULL, some fields have been inferred from an inconsistency in the source data.'
+    wiki_db                               string      COMMENT 'enwiki, dewiki, eswiktionary, etc.',
+    page_id                               bigint      COMMENT 'Id of the page, as in the page table.',
+    page_id_artificial                    string      COMMENT 'Generated Id for deleted pages without real Id.',
+    page_creation_timestamp               string      COMMENT 'Timestamp of the page\'s first revision.',
+    --page_creation_timestamp               timestamp   COMMENT 'Timestamp of the page\'s first revision.',
+    page_title_historical                 string      COMMENT 'Historical page title.',
+    page_title                            string      COMMENT 'Page title as of today.',
+    page_namespace_historical             int         COMMENT 'Historical namespace.',
+    page_namespace_is_content_historical  boolean     COMMENT 'Whether the historical namespace is categorized as content',
+    page_namespace                        int         COMMENT 'Namespace as of today.',
+    page_namespace_is_content             boolean     COMMENT 'Whether the current namespace is categorized as content',
+    page_is_redirect                      boolean     COMMENT 'In revision/page events: whether the page is currently a redirect',
+    start_timestamp                       string      COMMENT 'Timestamp from where this state applies (inclusive).',
+    end_timestamp                         string      COMMENT 'Timestamp to where this state applies (exclusive).',
+    --start_timestamp                       timestamp   COMMENT 'Timestamp from where this state applies (inclusive).',
+    --end_timestamp                         timestamp   COMMENT 'Timestamp to where this state applies (exclusive).',
+    caused_by_event_type                  string      COMMENT 'Event that caused this state (create, move, delete or restore).',
+    caused_by_user_id                     bigint      COMMENT 'ID from the user that caused this state.',
+    inferred_from                         string      COMMENT 'If non-NULL, some fields have been inferred from an inconsistency in the source data.'
 )
 COMMENT
   'See most up to date documentation at https://wikitech.wikimedia.org/wiki/Analytics/Data_Lake/Mediawiki_page_history'

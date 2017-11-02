@@ -58,11 +58,11 @@ WITH
             -- Build a user-id from real id or text (only used for distinct aggregation)
             CASE WHEN event_user_id IS NOT NULL AND event_user_id > 0
                 THEN CAST(event_user_id AS string)
-                ELSE COALESCE(event_user_text_latest, event_user_text)
+                ELSE COALESCE(event_user_text, event_user_text_historical)
             END AS user_id,
-            page_namespace,
-            IF (page_namespace_is_content, 'content', 'non_content') AS page_type,
-            page_is_redirect_latest,
+            COALESCE(page_namespace_historical, page_namespace),
+            IF (COLEASCE(page_namespace_is_content_historical, page_namespace_is_content), 'content', 'non_content') AS page_type,
+            page_is_redirect,
             CASE
                 -- Using sequence to prevent writing NOT
                 WHEN event_user_is_anonymous THEN 'anonymous'
@@ -160,7 +160,7 @@ WITH
             -- Build a user-id from real id or text (only used for distinct aggregation)
             IF (event_user_id IS NOT NULL AND event_user_id > 0,
                 CAST(event_user_id AS string),
-                COALESCE(event_user_text_latest, event_user_text)) AS user_id,
+                COALESCE(event_user_text, event_user_text_historical)) AS user_id,
             CASE
                 -- Using sequence to prevent writing NOT
                 WHEN event_user_is_anonymous THEN 'anonymous'
@@ -178,7 +178,7 @@ WITH
             SPLIT(CONCAT_WS('|',
                     IF (unix_timestamp(event_timestamp) - unix_timestamp(event_user_creation_timestamp) <= 86400,
                         'user_first_24_hours', NULL),
-                    IF (page_is_redirect_latest, 'redirect_latest', NULL),
+                    IF (page_is_redirect, 'redirect', NULL),
                     IF (revision_is_deleted, 'deleted', NULL),
                     CASE
                         WHEN SUBSTRING(event_timestamp, 0, 10) = SUBSTRING(revision_deleted_timestamp, 0, 10) THEN 'deleted_day'

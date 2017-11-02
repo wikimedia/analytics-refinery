@@ -26,12 +26,12 @@
               "event_entity",
               "event_type",
               "event_user_id",
+              "event_user_text_historical",
               "event_user_text",
-              "event_user_text_latest",
+              "event_user_blocks_historical",
               "event_user_blocks",
-              "event_user_blocks_latest",
+              "event_user_groups_historical",
               "event_user_groups",
-              "event_user_groups_latest",
               "event_user_is_created_by_self",
               "event_user_is_created_by_system",
               "event_user_is_created_by_peer",
@@ -42,24 +42,24 @@
               "event_user_seconds_since_previous_revision",
 
               "page_id",
+              "page_title_historical",
               "page_title",
-              "page_title_latest",
+              "page_namespace_historical",
+              "page_namespace_is_content_historical",
               "page_namespace",
               "page_namespace_is_content",
-              "page_namespace_latest",
-              "page_namespace_is_content_latest",
-              "page_is_redirect_latest",
+              "page_is_redirect",
               "page_creation_timestamp",
               "page_revision_count",
               "page_seconds_since_previous_revision",
 
               "user_id",
+              "user_text_historical",
               "user_text",
-              "user_text_latest",
+              "user_blocks_historical",
               "user_blocks",
-              "user_blocks_latest",
+              "user_groups_historical",
               "user_groups",
-              "user_groups_latest",
               "user_is_created_by_self",
               "user_is_created_by_system",
               "user_is_created_by_peer",
@@ -125,18 +125,18 @@
 
 
         {
+          "name" : "content_namespace_pages_historical",
+          "type" : "longSum",
+          "fieldName": "page_namespace_is_content_historical"
+        },{
           "name" : "content_namespace_pages",
           "type" : "longSum",
           "fieldName": "page_namespace_is_content"
-        },{
-          "name" : "content_namespace_pages_latest",
-          "type" : "longSum",
-          "fieldName": "page_namespace_is_content_latest"
         },
         {
-          "name" : "redirect_pages_latest",
+          "name" : "redirect_pages",
           "type" : "longSum",
-          "fieldName": "page_is_redirect_latest"
+          "fieldName": "page_is_redirect"
         },
 
 
