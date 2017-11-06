@@ -60,14 +60,14 @@ WITH
                 THEN CAST(event_user_id AS string)
                 ELSE COALESCE(event_user_text, event_user_text_historical)
             END AS user_id,
-            COALESCE(page_namespace_historical, page_namespace),
-            IF (COLEASCE(page_namespace_is_content_historical, page_namespace_is_content), 'content', 'non_content') AS page_type,
+            COALESCE(page_namespace, page_namespace_historical),
+            IF (COALESCE(page_namespace_is_content, page_namespace_is_content_historical), 'content', 'non_content') AS page_type,
             page_is_redirect,
             CASE
                 -- Using sequence to prevent writing NOT
                 WHEN event_user_is_anonymous THEN 'anonymous'
                 WHEN array_contains(event_user_groups, 'bot') THEN 'group_bot'
-                WHEN event_user_is_bot_by_name THEN 'name_bot'
+                WHEN COALESCE(event_user_text, event_user_text_historical) RLIKE '(?i)^.*bot([^a-z].*$|$)' THEN 'name_bot'
                 ELSE 'user'
             END AS user_type,
             revision_deleted_timestamp,
@@ -132,6 +132,7 @@ WITH
             SUM(ABS(revision_text_bytes_diff)) AS text_bytes_diff_abs,
             COUNT(1) as revisions
         FROM digest_base
+        WHERE NOT page_is_redirect
         GROUP BY
             project,
             event_timestamp_day,
@@ -165,7 +166,7 @@ WITH
                 -- Using sequence to prevent writing NOT
                 WHEN event_user_is_anonymous THEN 'anonymous'
                 WHEN array_contains(event_user_groups, 'bot') THEN 'group_bot'
-                WHEN event_user_is_bot_by_name THEN 'name_bot'
+                WHEN COALESCE(event_user_text, event_user_text_historical) RLIKE '(?i)^.*bot([^a-z].*$|$)' THEN 'name_bot'
                 ELSE 'user'
             END AS user_type,
             page_id,
