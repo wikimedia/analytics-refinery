@@ -62,9 +62,9 @@ HDFS_CONTENTS=$(
         | (grep -v ^Found || true) \
         | sed -e 's@^.*/\([^/]*\)$@\1@' )
 
-if [ "2" != "$(wc -l <<<"$HDFS_CONTENTS")" ]
+if [ "2" -lt "$(wc -l <<<"$HDFS_CONTENTS")" ]
 then
-    error "Source path '$SOURCE_HDFS_PATH_ABS' does not contain exactly 2 files"
+    error "Source path '$SOURCE_HDFS_PATH_ABS' contains more than 2 files"
 fi
 
 CONTENTS_FILE_RELS=

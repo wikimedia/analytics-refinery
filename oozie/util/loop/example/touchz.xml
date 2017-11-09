@@ -1,0 +1,17 @@
+<workflow-app name="touchz_${loop_value}" xmlns="uri:oozie:workflow:0.4">
+    <start to="touchz"/>
+    
+    <action name="touchz">
+        <fs>
+            <touchz path='${name_node}/your/path/to/output/${loop_value}.empty'/>
+        </fs>
+        <ok to="end"/>
+        <error to="error"/>
+    </action>
+
+    <kill name="error">
+        <message>Oops!</message>
+    </kill>
+
+    <end name="end"/>
+</workflow-app>
