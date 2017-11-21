@@ -37,6 +37,7 @@
         <property><name>cassandra_port</name></property>
         <property><name>cassandra_username</name></property>
         <property><name>cassandra_password</name></property>
+        <property><name>cassandra_write_consistency</name></property>
 
         <property><name>hive_fields</name></property>
         <property><name>hive_fields_types</name></property>

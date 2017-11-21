@@ -79,6 +79,11 @@
             <name>cassandra_password</name>
             <description>The cassandra password for load</description>
         </property>
+        <property>
+            <name>cassandra_write_consistency</name>
+            <description>The cassandra write consistency level</description>
+        </property>
+
 
         <!-- Cassandra load job parameters-->
         <property>
@@ -322,6 +327,11 @@
                 <property>
                     <name>cassandra.password</name>
                     <value>${cassandra_password}</value>
+                </property>
+                <property>
+                    <!--Write consistency level -->
+                    <name>cassandra.consistencylevel.write</name>
+                    <value>${cassandra_write_consistency}</value>
                 </property>
                 <property>
                     <!--Quoted on purpose -->
