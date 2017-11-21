@@ -127,7 +127,7 @@ if __name__ == '__main__':
     partition_paths_to_delete = []
 
     # Loop through all partitions for this table and drop anything that is too old.
-    for partition_spec in hive.partitions(table):
+    for partition_spec in hive.partition_specs(table):
         partition_datetime = hive.partition_datetime_from_spec(
             partition_spec,
             partition_spec_regex

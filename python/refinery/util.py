@@ -17,6 +17,7 @@
 Wikimedia Anaytics Refinery python utilities.
 """
 
+from collections import OrderedDict
 import datetime
 import logging
 import os
@@ -154,6 +155,12 @@ class HiveUtils(object):
         self.tables = {}
 
 
+    def get_tables(self):
+        """Returns the list of tables in the database"""
+        self._tables_init()
+        return self.tables.keys()
+
+
     def table_exists(self, table): # ,force=False
         """Returns true if the table exists in the current database."""
         self._tables_init()
@@ -206,7 +213,7 @@ class HiveUtils(object):
         return table_location
 
 
-    def partitions(self, table):
+    def partition_specs(self, table):
         """
         Returns a list of partitions for the given Hive table in partition spec format.
 
@@ -226,6 +233,19 @@ class HiveUtils(object):
             ]
 
         return self.tables[table]['partitions']
+
+
+    def partitions(self, table):
+        """
+        Returns a list of HivePartitions for the given Hive table.
+
+        Returns:
+            A list of HivePartition dicts
+        """
+
+        # Cache results for later.
+        # If we don't know the partitions yet, get them now.
+        return [HivePartition(p) for p in self.partition_specs(table)]
 
 
     def drop_partitions(self, table, partition_specs):
@@ -425,6 +445,116 @@ class HiveUtils(object):
         """
         cmd = self.hivecmd + args
         return sh(cmd, check_return_code)
+
+
+class HivePartition(OrderedDict):
+    partition_regex          = re.compile(r'(\w+)=["\']?(\w+)["\']?')
+    camus_regex              = re.compile(r'.*/hourly/(?P<year>\d+)\/(?P<month>\d+)\/(?P<day>\d+)\/(?P<hour>\d+)')
+
+    desc_separator = '/'
+    spec_separator = ','
+
+    zfill_keys = {
+        'year': 4,
+        'month': 2,
+        'day': 2,
+        'hour': 2
+    }
+
+    def __init__(self, partition_string):
+
+        # If we see an '=', assume this is a Hive style partition desc or spec.
+        if '=' in partition_string:
+            partitions = HivePartition.partition_regex.findall(partition_string)
+        # Else assume this is a time bucketed camus imported path.
+        # This only works with hourly camus data.
+        else:
+            match = HivePartition.camus_regex.search(partition_string)
+            if match:
+                partitions = []
+                for key in ('year', 'month', 'day', 'hour'):
+                    partitions.append((key, str(int(match.group(key)))))
+            else:
+                raise Exception(
+                    'No path matching {0} was found in {1}.'.format(
+                        HivePartition.camus_regex.pattern, partition_string
+                    )
+                )
+
+        super(HivePartition, self).__init__(partitions)
+
+
+    def datetime(self):
+        """
+        Returns a datetime.datetime for this partition.
+        """
+        return datetime.datetime(
+            int(self.get('year')),
+            int(self.get('month', 1)),
+            int(self.get('day',   1)),
+            int(self.get('hour',  0))
+        )
+
+
+    def list(self, quote=False):
+        """
+        Returns a list of Hive partition key=value strings.
+        IF quote=True, string values will be quoted.
+        """
+        l = []
+        # Loop through each partition,
+        # adding quotes around strings if quote=True
+        for k, v in self.items():
+            if quote and not v.isdigit():
+                v = '\'{}\''.format(v)
+            l.append('{}={}'.format(k, v))
+        return l
+
+
+    def desc(self):
+        """
+        Returns a Hive desc string, e.g. datacenter=eqiad/year=2017/month=11/day=21/hour=0
+        """
+        return HivePartition.desc_separator.join(self.list())
+
+
+    def spec(self):
+        """
+        Returns a Hive spec string, e.g. datacenter='eqiad',year=2017,month=11,day=21,hour=0
+        """
+        return HivePartition.spec_separator.join(self.list(quote=True))
+
+
+    def path(self, base_path=None):
+        """
+        Returns a path to the partition.  If base_path is given, it will be prefixed.
+        """
+        dirs = self.list()
+        if base_path is not None:
+            dirs = [base_path] + dirs
+        return os.path.join(*dirs)
+
+
+    def camus_path(self, base_path=None):
+        """
+        Returns a path to a keyless camus partition, e.g. 2017/02/05/00.
+        If base_path is given, it will be prefixed.
+        """
+        dirs = [v.zfill(HivePartition.zfill_keys.get(k, 0)) for k, v in self.items()]
+        if base_path is not None:
+            dirs = [base_path] + dirs
+        return os.path.join(*dirs)
+
+    def glob(self, base_path=None):
+        """
+        Returns a file glob that would have matched this partition.
+        This is just a handy way to build a file glob to match other partitions
+        as deep as this one.  If base_path is given, it will be prefixed.
+        """
+        globs = ['*'] * len(self)
+        if base_path is not None:
+            globs = [base_path] + globs
+        return os.path.join(*globs)
 
 
 class HdfsUtils(object):

@@ -103,7 +103,7 @@ def webrequest_add_partition_statements(database='wmf_raw', table='webrequest', 
         sys.exit(1)
 
     statements = []
-    for spec in hive.partitions(table):
+    for spec in hive.partition_specs(table):
         if webrequest_type == 'raw':
             path = webrequest_raw_partition_path_from_spec(location, spec)
         else:

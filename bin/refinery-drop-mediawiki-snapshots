@@ -139,7 +139,7 @@ def get_partition_age(hive):
 # Returns the partitions to be dropped given a hive table
 def get_partitions_to_drop(hive, table, keep_snapshots):
     logger.debug('Getting partitions to drop...')
-    partitions = hive.partitions(table)
+    partitions = hive.partition_specs(table)
     spec_separator = HiveUtils.partition_spec_separator
 
     # For tables partitioned by dimensions other than snapshot

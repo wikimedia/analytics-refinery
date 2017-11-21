@@ -1,6 +1,6 @@
 from unittest import TestCase
 from datetime import datetime, timedelta
-from refinery.util import HiveUtils, HdfsUtils, sh
+from refinery.util import HiveUtils, HivePartition, HdfsUtils, sh
 import os
 
 
@@ -18,6 +18,84 @@ class TestReinferyUtil(TestCase):
         command = '/bin/echo hi_there | /usr/bin/env sed -e \'s@_there@_you@\''
         output = sh(command)
         self.assertEqual(output, 'hi_you')
+
+class TestHivePartition(TestCase):
+    def setUp(self):
+        self.partition_desc = 'datacenter=eqiad/year=2017/month=11/day=2/hour=16'
+        self.hive_partition = HivePartition(self.partition_desc)
+
+    def test_init_from_hive_desc(self):
+        should_be = [
+            ('datacenter', 'eqiad'),
+            ('year', '2017'),
+            ('month', '11'),
+            ('day', '2'),
+            ('hour', '16')
+        ]
+        self.assertEqual(self.hive_partition.items(), should_be)
+
+    def test_init_from_hive_spec(self):
+        partition_spec = HiveUtils.partition_spec_from_partition_desc(self.partition_desc)
+        hive_partition = HivePartition(partition_spec)
+        should_be = [
+            ('datacenter', 'eqiad'),
+            ('year', '2017'),
+            ('month', '11'),
+            ('day', '2'),
+            ('hour', '16')
+        ]
+        self.assertEqual(hive_partition.items(), should_be)
+
+    def test_init_from_hive_path(self):
+        hive_path = '/path/to/data/datacenter=eqiad/year=2017/month=11/day=2/hour=16'
+        hive_partition = HivePartition(hive_path)
+        should_be = [
+            ('datacenter', 'eqiad'),
+            ('year', '2017'),
+            ('month', '11'),
+            ('day', '2'),
+            ('hour', '16')
+        ]
+        self.assertEqual(hive_partition.items(), should_be)
+
+    def test_init_from_camus_path(self):
+        camus_path     = '/path/to/eqiad_data/hourly/2017/11/02/16'
+        hive_partition = HivePartition(camus_path)
+
+        should_be = [
+            ('year', '2017'),
+            ('month', '11'),
+            ('day', '2'),
+            ('hour', '16')
+        ]
+        self.assertEqual(hive_partition.items(), should_be)
+
+    def test_datetime(self):
+        d = self.hive_partition.datetime()
+        should_be = datetime(2017,11,2,16)
+        self.assertEqual(d, should_be)
+
+    def test_list(self):
+        self.assertEqual(self.partition_desc.split('/'), self.hive_partition.list())
+
+    def test_desc(self):
+        self.assertEqual(self.hive_partition.desc(), self.partition_desc)
+
+    def test_spec(self):
+        should_be = 'datacenter=\'eqiad\',year=2017,month=11,day=2,hour=16'
+        self.assertEqual(self.hive_partition.spec(), should_be)
+
+    def test_path(self):
+        self.assertEqual(self.hive_partition.path(), self.partition_desc)
+
+    def test_camus_path(self):
+        should_be = '/path/to/data/hourly/eqiad/2017/11/02/16'
+        self.assertEqual(self.hive_partition.camus_path('/path/to/data/hourly'), should_be)
+
+    def test_glob(self):
+        should_be = '*/*/*/*/*'
+        self.assertEqual(self.hive_partition.glob(), should_be)
+
 
 class TestHiveUtil(TestCase):
     def setUp(self):
