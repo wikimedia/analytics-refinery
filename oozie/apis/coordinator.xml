@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <coordinator-app xmlns="uri:oozie:coordinator:0.4"
-    name="restbase-coord"
+    name="apis-coord"
     frequency="${coord:hours(1)}"
     start="${start_time}"
     end="${stop_time}"
@@ -27,7 +27,8 @@
         <property><name>spark_max_executors</name></property>
         <property><name>graphite_host</name></property>
         <property><name>graphite_port</name></property>
-        <property><name>graphite_namespace</name></property>
+        <property><name>restbase_namespace</name></property>
+        <property><name>mwapi_namespace</name></property>
         <property><name>webrequest_data_directory</name></property>
 
         <property><name>send_error_email_workflow_file</name></property>
