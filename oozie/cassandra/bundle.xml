@@ -212,6 +212,59 @@
         </property>
 
         <!--**************************************************
+                       Pageviews top by country parameters
+        **************************************************-->
+
+        <property>
+            <name>top_bycountry_datasets_file</name>
+            <value>${projectview_datasets_file}</value>
+        </property>
+        <property>
+            <name>top_bycountry_dataset_name</name>
+            <value>projectview_hourly</value>
+        </property>
+        <property>
+            <name>top_bycountry_dataset_freq</name>
+            <value>hour</value>
+        </property>
+        <property>
+            <name>top_bycountry_hive_script</name>
+            <value>pageview_top_bycountry.hql</value>
+        </property>
+        <property>
+            <name>top_bycountry_source_table</name>
+            <value>wmf.projectview_hourly</value>
+        </property>
+        <property>
+            <name>top_bycountry_parallel_loaders</name>
+            <value>1</value>
+        </property>
+        <property>
+            <name>top_bycountry_keyspace</name>
+            <value>local_group_default_T_top_bycountry</value>
+        </property>
+        <property>
+            <name>top_bycountry_cql</name>
+            <value>UPDATE "${top_bycountry_keyspace}"."data" SET "countriesJSON" = ?</value>
+        </property>
+        <property>
+            <name>top_bycountry_hive_fields</name>
+            <value>project,access,year,month,countriesJSON</value>
+        </property>
+        <property>
+            <name>top_bycountry_hive_fields_types</name>
+            <value>text,text,text,text,text</value>
+        </property>
+        <property>
+            <name>top_bycountry_cassandra_fields</name>
+            <value>countriesJSON</value>
+        </property>
+        <property>
+            <name>top_bycountry_cassandra_primary_keys</name>
+            <value>_domain,project,access,year,month,_tid</value>
+        </property>
+
+        <!--**************************************************
                        Unique devices parameters
         **************************************************-->
 
@@ -657,6 +710,76 @@
             <property>
                 <name>cassandra_primary_keys</name>
                 <value>${top_articles_cassandra_primary_keys}</value>
+            </property>
+        </configuration>
+    </coordinator>
+
+    <!--**************************************************
+                       Pageviews top by country coordinators
+        **************************************************-->
+
+    <coordinator name="cassandra-coord-pageview-top-bycountry-monthly">
+        <app-path>${coordinator_file_monthly}</app-path>
+        <configuration>
+            <property>
+                <name>workflow_file</name>
+                <value>${workflow_file_monthly}</value>
+            </property>
+
+            <!-- Dataset the job depends on -->
+            <property>
+                <name>datasets_file</name>
+                <value>${top_bycountry_datasets_file}</value>
+            </property>
+            <property>
+                <name>dataset_name</name>
+                <value>${top_bycountry_dataset_name}</value>
+            </property>
+            <!-- frequency of the dataset to manage different datasets
+                 correctly in coordinator -->
+            <property>
+                <name>dataset_freq</name>
+                <value>${top_bycountry_dataset_freq}</value>
+            </property>
+
+            <!-- Hive data preparation job stuff -->
+            <property>
+                <name>hive_script</name>
+                <value>${top_bycountry_hive_script}</value>
+            </property>
+            <property>
+                <name>source_table</name>
+                <value>${top_bycountry_source_table}</value>
+            </property>
+
+            <!-- cassandra loader job stuff -->
+            <property>
+                <name>cassandra_parallel_loaders</name>
+                <value>${top_bycountry_parallel_loaders}</value>
+            </property>
+            <property>
+                <name>cassandra_cql</name>
+                <value>${top_bycountry_cql}</value>
+            </property>
+            <property>
+                <name>cassandra_keyspace</name>
+                <value>${top_bycountry_keyspace}</value>
+            </property>
+            <property>
+                <name>hive_fields</name>
+                <value>${top_bycountry_hive_fields}</value>
+            </property>
+            <property>
+                <name>hive_fields_types</name>
+                <value>${top_bycountry_hive_fields_types}</value>
+            </property>
+            <property>
+                <name>cassandra_fields</name>
+                <value>${top_bycountry_cassandra_fields}</value>
+            </property>
+            <property>
+                <name>cassandra_primary_keys</name>
+                <value>${top_bycountry_cassandra_primary_keys}</value>
             </property>
         </configuration>
     </coordinator>

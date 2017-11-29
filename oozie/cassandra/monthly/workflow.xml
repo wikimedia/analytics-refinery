@@ -171,6 +171,7 @@
             <script>${hive_script}</script>
             <param>source_table=${source_table}</param>
             <param>separator=${hive_value_separator}</param>
+            <param>refinery_hive_jar_path=${refinery_hive_jar_path}</param>
             <param>destination_directory=${temporary_directory}/${wf:id()}-${cassandra_keyspace}</param>
             <param>year=${year}</param>
             <param>month=${month}</param>
