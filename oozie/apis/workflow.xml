@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <workflow-app xmlns="uri:oozie:workflow:0.4"
-    name="restbase-wf-${year}-${month}-${day}-${hour}">
+    name="apis-wf-${year}-${month}-${day}-${hour}">
 
     <parameters>
 
@@ -68,8 +68,12 @@
             <description>Graphite port</description>
         </property>
         <property>
-            <name>graphite_namespace</name>
-            <description>Namespace/prefix for metric in Graphite</description>
+            <name>restbase_namespace</name>
+            <description>Namespace/prefix for restbase in Graphite</description>
+        </property>
+        <property>
+            <name>mwapi_namespace</name>
+            <description>Namespace/prefix for mw-api in Graphite</description>
         </property>
         <property>
             <name>webrequest_data_directory</name>
@@ -118,8 +122,10 @@
             <arg>${graphite_host}</arg>
             <arg>--graphite-port</arg>
             <arg>${graphite_port}</arg>
-            <arg>--namespace</arg>
-            <arg>${graphite_namespace}</arg>
+            <arg>--restbaseNamespace</arg>
+            <arg>${restbase_namespace}</arg>
+            <arg>--mwAPINamespace</arg>
+            <arg>${mwapi_namespace}</arg>
             <arg>--webrequest-base-path</arg>
             <arg>${webrequest_data_directory}</arg>
         </spark>
