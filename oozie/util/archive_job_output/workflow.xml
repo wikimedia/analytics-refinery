@@ -5,6 +5,13 @@
     <parameters>
 
         <property>
+            <name>check_done</name>
+            <value>true</value>
+            <description>
+                Whether or not to check for the done file
+            </description>
+        </property>
+        <property>
             <name>done_file</name>
             <value>_SUCCESS</value>
             <description>
@@ -63,6 +70,9 @@
             </case>
             <case to="source_directory_is_not_a_directory">
                 ${not fs:isDir(source_directory)}
+            </case>
+            <case to="identify_content_file">
+                ${check_done ne 'true'}
             </case>
             <case to="source_directory_is_not_done">
                 ${not fs:exists(concat(concat(source_directory,'/'),done_file))}

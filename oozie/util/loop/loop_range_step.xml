@@ -1,0 +1,116 @@
+<workflow-app name="loop_${loop_name}_(${loop_value}_of_${loop_start}_to_${loop_end})"
+              xmlns="uri:oozie:workflow:0.4">
+    <start to="check_fork"/>
+
+    <decision name="check_fork">
+        <switch>
+            <case to="fork">${loop_parallel eq "true"}</case>
+            <case to="run_serial">${loop_parallel eq "false"}</case>
+            <default to="error"/>
+        </switch>
+    </decision>
+
+    <!-- _______________________________________________________________________________ -->
+
+    <!-- We implement parallelism through a recursively-built tree of two-pronged forks
+         where the left prong is the action we want to loop over and the right prong is the
+         next fork down the tree. -->
+
+    <fork name="fork">
+        <path start="check_run_parallel"/>
+        <path start="check_continue_parallel"/>
+    </fork>
+
+        <decision name="check_run_parallel">
+            <switch>
+                <!-- We add zero to gently persuade the strings to be ints -->
+                <case to="run_parallel">${(loop_value + 0) le (loop_end + 0)}</case>
+                <default to="join"/>
+            </switch>
+        </decision>
+
+        <action name="run_parallel">
+            <sub-workflow>
+                <app-path>${loop_action}</app-path>
+                <propagate-configuration/>
+            </sub-workflow>
+            <ok to="join"/>
+            <error to="error"/>
+        </action>
+
+        <decision name="check_continue_parallel">
+            <switch>
+                <case to="continue_parallel">${(loop_value + 0) lt (loop_end + 0)}</case>
+                <default to="join"/>
+            </switch>
+        </decision>
+
+        <action name="continue_parallel">
+            <sub-workflow>
+                <!-- Take the red pill -->
+                <app-path>${wf:appPath()}</app-path>
+                <propagate-configuration/>
+                <configuration>
+                    <property>
+                        <name>loop_value</name>
+                        <value>${loop_value + 1}</value>
+                    </property>
+                </configuration>
+            </sub-workflow>
+            <ok to="join"/>
+            <error to="error"/>
+        </action>
+
+    <join name="join" to="end"/>
+
+    <!-- _______________________________________________________________________________ -->
+
+    <!-- We implement serial looping (as like a traditional for loop) by recursively
+         running the action until we reach the end of the range. -->
+
+    <decision name="check_run_serial">
+        <switch>
+            <case to="run_serial">${(loop_value + 0) le (loop_end + 0)}</case>
+            <default to="end"/>
+        </switch>
+    </decision>
+
+    <action name="run_serial">
+        <sub-workflow>
+            <app-path>${loop_action}</app-path>
+            <propagate-configuration/>
+        </sub-workflow>
+        <ok to="check_continue_serial"/>
+        <error to="error"/>
+    </action>
+
+    <decision name="check_continue_serial">
+        <switch>
+            <case to="continue_serial">${(loop_value + 0) lt (loop_end + 0)}</case>
+            <default to="end"/>
+        </switch>
+    </decision>
+
+    <action name="continue_serial">
+        <sub-workflow>
+            <app-path>${wf:appPath()}</app-path>
+            <propagate-configuration/>
+            <configuration>
+                <property>
+                    <name>loop_value</name>
+                    <value>${loop_value + 1}</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="end"/>
+        <error to="error"/>
+    </action>
+
+    <!-- _______________________________________________________________________________ -->
+
+    <kill name="error">
+        <message>Oops!</message>
+    </kill>
+
+    <end name="end"/>
+</workflow-app>

@@ -1,0 +1,1 @@
+oozie job -oozie http://your.oozie.server.host:11000/oozie -config loop_touchz.properties -run

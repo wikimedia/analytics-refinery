@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow-app xmlns="uri:oozie:workflow:0.4"
+    name="clickstream-wf-${year}-${month}">
+
+    <parameters>
+
+        <!-- Default values for inner oozie settings -->
+        <property>
+            <name>oozie_launcher_queue_name</name>
+            <value>${queue_name}</value>
+        </property>
+        <property>
+            <name>oozie_launcher_memory</name>
+            <value>2048</value>
+        </property>
+
+        <!-- Required properties -->
+        <property><name>name_node</name></property>
+        <property><name>job_tracker</name></property>
+        <property><name>queue_name</name></property>
+
+        <property>
+            <name>spark_app_jar</name>
+            <description>Path to the jar to be used to run spark application</description>
+        </property>
+        <property>
+            <name>spark_app_class</name>
+            <description>Class of the spark application to be run</description>
+        </property>
+        <property>
+          <name>spark_app_name</name>
+          <description>The spark application name</description>
+        </property>
+        <property>
+            <name>spark_executor_cores</name>
+            <description>CPU cores to allocate for each spark executor</description>
+        </property>
+        <property>
+            <name>spark_executor_memory</name>
+            <description>Memory to allocate for each spark executor</description>
+        </property>
+        <property>
+            <name>spark_executor_memory_overhead</name>
+            <description>Memory-overhead to allocate for each spark executor</description>
+        </property>
+        <property>
+            <name>spark_driver_memory</name>
+            <description>Memory to allocate for spark driver process</description>
+        </property>
+        <property>
+            <name>spark_max_executors</name>
+            <description>Maximum concurrent number of executors for spark dynamic allocation</description>
+        </property>
+
+        <property>
+          <name>webrequest_table</name>
+          <description>The refined webrequest table</description>
+        </property>
+        <property>
+          <name>mw_project_namespace_map_table</name>
+          <description>The mediawiki project namespace map table</description>
+        </property>
+        <property>
+          <name>mw_page_table</name>
+          <description>The mediawiki page table</description>
+        </property>
+        <property>
+          <name>mw_pagelinks_table</name>
+          <description>The mediawiki pagelinks table</description>
+        </property>
+        <property>
+          <name>mw_redirect_table</name>
+          <description>The mediawiki redirect table</description>
+        </property>
+        <property>
+            <name>year</name>
+            <description>The webrequest partition's year</description>
+        </property>
+        <property>
+            <name>month</name>
+            <description>The webrequest partition's month</description>
+        </property>
+        <property>
+            <name>snapshot</name>
+            <description>The snapshot to use for mediawiki raw data(YYYY-MM)</description>
+        </property>
+        <property>
+            <name>clickstream_wikis</name>
+            <description>Wiki projects to be worked (comma separated wiki_db list)</description>
+        </property>
+        <property>
+            <name>clickstream_minimum_links</name>
+            <description>Minimum number of times a link needs to have been followed to be in the resulting dataset</description>
+        </property>
+        <property>
+            <name>temporary_directory</name>
+            <description>Temporary folder basepath where to output datasets</description>
+        </property>
+        <property>
+            <name>clickstream_archive_base_path</name>
+            <description>Basepath where to archive datasets</description>
+        </property>
+
+        <property>
+            <name>spark_submit_workflow_file</name>
+            <description>Workflow submitting spark jobs with access to hive context</description>
+        </property>
+        <property>
+            <name>loop_workflow_file</name>
+            <description>Workflow looping over list elements executing another oozie action</description>
+        </property>
+        <property>
+            <name>loop_workflow_base_path</name>
+            <description>Base path for loop workflow -- needed for loop to work</description>
+        </property>
+        <property>
+            <name>loop_archive_wrapper_workflow_file</name>
+            <description>Workflow wrapping the archive worflow to pass loop_value in path</description>
+        </property>
+        <property>
+            <name>archive_job_output_workflow_file</name>
+            <description>Workflow for archiving result files</description>
+        </property>
+        <property>
+            <name>send_error_email_workflow_file</name>
+            <description>Workflow for sending an email</description>
+        </property>
+    </parameters>
+
+    <start to="generate_clickstream_datasets"/>
+
+    <action name="generate_clickstream_datasets">
+        <sub-workflow>
+            <app-path>${spark_submit_workflow_file}</app-path>
+            <propagate-configuration/>
+            <configuration>
+                <!-- Propagated properties :
+                    name_node
+                    job_tracker
+                    queue_name
+                    spark_app_jar
+                    spark_app_class
+                    spark_app_name
+                    spark_driver_memory
+                    spark_executor_cores
+                    spark_executor_memory
+                    spark_executor_memory_overhead
+                    spark_max_executors
+                -->
+                <property>
+                    <name>spark_app_options</name>
+                    <value>--snapshot ${snapshot} --year ${year} --month ${month} --minimum-count ${clickstream_minimum_links} --output-base-path ${temporary_directory}/clickstream-${wf:id()} --wikis ${clickstream_wikis} --webrequest-table ${webrequest_table} --project-namespace-table ${mw_project_namespace_map_table} --page-table ${mw_page_table} --redirect-table ${mw_redirect_table} --pagelinks-table ${mw_pagelinks_table}</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="archive_loop" />
+        <error to="send_error_email" />
+    </action>
+
+    <action name="archive_loop">
+        <sub-workflow>
+            <app-path>${loop_workflow_file}</app-path>
+            <propagate-configuration/>
+            <configuration>
+                <property>
+                    <name>loop_action</name>
+                    <value>${loop_archive_wrapper_workflow_file}</value>
+                </property>
+                <property>
+                    <name>loop_parallel</name>
+                    <value>true</value>
+                </property>
+                <property>
+                    <name>loop_type</name>
+                    <value>list</value>
+                </property>
+                <property>
+                    <name>loop_list</name>
+                    <value>${clickstream_wikis}</value>
+                </property>
+                <property>
+                    <name>loop_name</name>
+                    <value>clickstream_archive</value>
+                </property>
+                <property>
+                    <name>source_directory_base</name>
+                    <value>${temporary_directory}/clickstream-${wf:id()}</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="end"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <action name="send_error_email">
+        <sub-workflow>
+            <app-path>${send_error_email_workflow_file}</app-path>
+            <propagate-configuration/>
+            <configuration>
+                <property>
+                    <name>parent_name</name>
+                    <value>${wf:name()}</value>
+                </property>
+                <property>
+                    <name>parent_failed_action</name>
+                    <value>${wf:lastErrorNode()}</value>
+                </property>
+                <property>
+                    <name>parent_error_code</name>
+                    <value>${wf:errorCode(wf:lastErrorNode())}</value>
+                </property>
+                <property>
+                    <name>parent_error_message</name>
+                    <value>${wf:errorMessage(wf:lastErrorNode())}</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="kill"/>
+        <error to="kill"/>
+    </action>
+
+    <kill name="kill">
+        <message>Action failed, error message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+    </kill>
+    <end name="end"/>
+</workflow-app>

@@ -34,6 +34,12 @@
         </property>
 
         <property>
+            <name>spark_executor_cores</name>
+            <value>1</value>
+            <description>Cores per executor</description>
+        </property>
+
+        <property>
             <name>spark_executor_memory</name>
             <value>1G</value>
             <description>Memory per executor</description>
@@ -81,6 +87,9 @@
 
             <argument>--driver-memory</argument>
             <argument>${spark_driver_memory}</argument>
+
+            <argument>--executor-cores</argument>
+            <argument>${spark_executor_cores}</argument>
 
             <argument>--executor-memory</argument>
             <argument>${spark_executor_memory}</argument>

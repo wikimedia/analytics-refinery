@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coordinator-app xmlns="uri:oozie:coordinator:0.4"
+    name="clickstream-coord"
+    frequency="${coord:months(1)}"
+    start="${start_time}"
+    end="${stop_time}"
+    timezone="Universal">
+
+    <parameters>
+
+        <!-- Required properties. -->
+        <property><name>name_node</name></property>
+        <property><name>job_tracker</name></property>
+        <property><name>queue_name</name></property>
+
+        <property><name>workflow_file</name></property>
+
+        <property><name>webrequest_datasets_file</name></property>
+        <property><name>webrequest_data_directory</name></property>
+        <property><name>webrequest_table</name></property>
+
+        <property><name>mw_raw_datasets_file</name></property>
+        <property><name>mw_raw_directory</name></property>
+        <property><name>mw_project_namespace_map_table</name></property>
+        <property><name>mw_page_table</name></property>
+        <property><name>mw_pagelinks_table</name></property>
+        <property><name>mw_redirect_table</name></property>
+
+        <property><name>start_time</name></property>
+        <property><name>stop_time</name></property>
+
+        <property><name>spark_app_jar</name></property>
+        <property><name>spark_app_class</name></property>
+        <property><name>spark_app_name</name></property>
+        <property><name>spark_executor_cores</name></property>
+        <property><name>spark_executor_memory</name></property>
+        <property><name>spark_executor_memory_overhead</name></property>
+        <property><name>spark_driver_memory</name></property>
+        <property><name>spark_max_executors</name></property>
+        <property><name>clickstream_wikis</name></property>
+        <property><name>clickstream_minimum_links</name></property>
+        <property><name>temporary_directory</name></property>
+        <property><name>clickstream_archive_base_path</name></property>
+
+        <property><name>spark_submit_workflow_file</name></property>
+        <property><name>loop_workflow_file</name></property>
+        <property><name>loop_workflow_base_path</name></property>
+        <property><name>loop_archive_wrapper_workflow_file</name></property>
+        <property><name>archive_job_output_workflow_file</name></property>
+        <property><name>send_error_email_workflow_file</name></property>
+    </parameters>
+
+    <controls>
+        <!--(timeout is measured in minutes)-->
+        <timeout>-1</timeout>
+
+        <!-- Setting low concurrency for resource sharing.
+             The job runs pretty fast (~1 minute) and increasing concurrency should not cause any problems-->
+        <concurrency>2</concurrency>
+
+        <throttle>2</throttle>
+
+    </controls>
+
+    <datasets>
+        <include>${webrequest_datasets_file}</include>
+        <include>${mw_raw_datasets_file}</include>
+    </datasets>
+
+    <input-events>
+        <data-in name="text" dataset="webrequest_text">
+            <start-instance>${coord:current(0)}</start-instance>
+            <end-instance>${coord:current(coord:daysInMonth(0) * 24 - 1)}</end-instance>
+        </data-in>
+        <data-in name="mw_project_namespace_map" dataset="mw_project_namespace_map">
+            <instance>${coord:current(0)}</instance>
+        </data-in>
+        <data-in name="mw_page_table" dataset="mw_page_table">
+            <instance>${coord:current(0)}</instance>
+        </data-in>
+        <data-in name="mw_pagelinks_table" dataset="mw_pagelinks_table">
+            <instance>${coord:current(0)}</instance>
+        </data-in>
+        <data-in name="mw_redirect_table" dataset="mw_redirect_table">
+            <instance>${coord:current(0)}</instance>
+        </data-in>
+    </input-events>
+
+    <action>
+        <workflow>
+            <app-path>${workflow_file}</app-path>
+            <configuration>
+                <property>
+                    <name>year</name>
+                    <value>${coord:formatTime(coord:nominalTime(), "y")}</value>
+                </property>
+                <property>
+                    <name>month</name>
+                    <value>${coord:formatTime(coord:nominalTime(), "M")}</value>
+                </property>
+                <property>
+                    <name>snapshot</name>
+                    <value>${coord:formatTime(coord:nominalTime(), "yyyy")}-${coord:formatTime(coord:nominalTime(), "MM")}</value>
+                </property>
+            </configuration>
+        </workflow>
+    </action>
+</coordinator-app>
