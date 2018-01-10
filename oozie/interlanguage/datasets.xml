@@ -16,20 +16,12 @@ Use this dataset in your coordinator.xml files by setting:
     that are referred from another wiki within the same project family but
     in a different language.  This allows the tracking of inter-language user
     navigation.
-
-    Note that we do not use “${...}” but “${"$"}{...}", as dataset files are
-    passed to EL twice in cascade, and in the first EL level, ${MONTH}
-    evaluates to the string “${MONTH}”. Hence, we escape the dollar sign in
-    “${....}" to “${"$"}{...}”. At the first EL level, “${"$"}” gets turned
-    into a dollar sign, and “{...}”  is just passed along. Hence, we arrive
-    at “${...}” as input for the second EL level. There, the variables hold
-    their expected values, and we can start unpadding them.
     -->
     <dataset name="interlanguage_navigation_daily"
              frequency="${coord:days(1)}"
              initial-instance="${start_time}"
              timezone="Universal">
-        <uri-template>${interlanguage_data_directory}/navigation/daily/date=${YEAR}-${"$"}{MONTH + 0}-${"$"}{DAY + 0}</uri-template>
+        <uri-template>${interlanguage_data_directory}/navigation/daily/date=${YEAR}-${MONTH}-${DAY}</uri-template>
         <done-flag>_SUCCESS</done-flag>
     </dataset>
 </datasets>

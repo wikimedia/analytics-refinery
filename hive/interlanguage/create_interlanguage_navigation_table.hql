@@ -18,5 +18,5 @@ PARTITIONED BY (
     `date`              string  COMMENT 'Date in YYYY-MM-DD format'
 )
 STORED AS PARQUET
-LOCATION '/wmf/data/wmf/interlanguage/navigation'
+LOCATION '/wmf/data/wmf/interlanguage/navigation/daily'
 ;
