@@ -36,7 +36,7 @@ WITH ranked AS (
         SELECT
             COALESCE(project, 'all-projects') AS project,
             COALESCE(regexp_replace(access_method, ' ', '-'), 'all-access') AS access,
-            country_name(country_code) as country,
+            country_code as country,
             LPAD(year, 4, "0") as year,
             LPAD(month, 2, "0") as month,
             SUM(view_count) as raw_views,
