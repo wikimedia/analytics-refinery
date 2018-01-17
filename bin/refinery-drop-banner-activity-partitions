@@ -120,12 +120,15 @@ if __name__ == '__main__':
                         if end_of_day_datetime < threshold_datetime:
                             paths_to_delete.append(day_path)
 
-    if dry_run:
-        logger.info('Listing {0} directories from {1} ...'.format(len(paths_to_delete), location))
-        for path_to_delete in paths_to_delete:
-            print path_to_delete
-        logger.info('Dry run finished!')
+    if len(paths_to_delete) > 0:
+        if dry_run:
+            logger.info('Listing {0} directories from {1} ...'.format(len(paths_to_delete), location))
+            for path_to_delete in paths_to_delete:
+                print path_to_delete
+            logger.info('Dry run finished!')
+        else:
+            logger.info('Removing {0} directories from {1} ...'.format(len(paths_to_delete), location))
+            HdfsUtils.rm(' '.join(paths_to_delete))
+            logger.info('Done!')
     else:
-        logger.info('Removing {0} directories from {1} ...'.format(len(paths_to_delete), location))
-        HdfsUtils.rm(' '.join(paths_to_delete))
-        logger.info('Done!')
+        logger.info('No directories need to be removed from {0}.'.format(location))
