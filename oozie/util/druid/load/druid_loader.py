@@ -26,6 +26,7 @@ logger = logging.getLogger(__name__)
 
 class DruidLoader(object):
 
+    _DRUID_DATASOURCE_FIELD = '*DRUID_DATASOURCE*'
     _INTERVALS_ARRAY_FIELD = '*INTERVALS_ARRAY*'
     _INPUT_PATH_FIELD = '*INPUT_PATH*'
     _HADOOP_QUEUE_FIELD = '*HADOOP_QUEUE*'
@@ -37,11 +38,12 @@ class DruidLoader(object):
     _STATUS_FAILED = 'FAILED'
     _STATUS_SUCCEEDED = 'SUCCEEDED'
 
-    def __init__(self, template_path, data_path, period,
+    def __init__(self, template_path, target_datasource, data_path, period,
                  host='http://druid1001.eqiad.wmnet:8090',
                  hadoop_queue='default',
                  sleep=10):
         self.template_path = template_path
+        self.target_datasource = target_datasource
         self.data_path = data_path
         self.period = period
         self.host = host
@@ -53,6 +55,8 @@ class DruidLoader(object):
         template = open(self.template_path, 'r').read()
         intervals_array = '["{0}"]'.format(self.period)
         self.json = (template.
+                     replace(self._DRUID_DATASOURCE_FIELD,
+                             self.target_datasource).
                      replace(self._INPUT_PATH_FIELD, self.data_path).
                      replace(self._INTERVALS_ARRAY_FIELD, intervals_array).
                      replace(self._HADOOP_QUEUE_FIELD, self.hadoop_queue))
@@ -106,6 +110,11 @@ if __name__ == '__main__':
     parser.add_argument('data', help='The druid indexation json data path')
     parser.add_argument('period', help='The druid indexation period ' +
                         '(YYYY-MM-DD/YYY-MM-DD) format')
+    parser.add_argument('--target-datasource',
+                        default='',
+                        help='The druid datasource to index ' +
+                             '(default to empty, for cases where it is ' +
+                             'provided in template)')
     parser.add_argument('--overlord',
                         default='http://druid1001.eqiad.wmnet:8090',
                         help='The druid overlord url (defaults to ' +
@@ -121,7 +130,8 @@ if __name__ == '__main__':
 
     logging.basicConfig(level=(
         logging.WARNING if args.silent else logging.DEBUG))
-    loader = DruidLoader(args.template, args.data, args.period,
-                         host=args.overlord, hadoop_queue=args.hadoop_queue)
+    loader = DruidLoader(args.template, args.target_datasource,
+                         args.data, args.period, host=args.overlord,
+                         hadoop_queue=args.hadoop_queue)
     return_code = loader.execute()
     sys.exit(return_code)
