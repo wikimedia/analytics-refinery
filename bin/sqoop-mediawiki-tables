@@ -30,7 +30,8 @@ Sqoops a list of tables from a list of wikis into a target HDFS location
 
 Usage:
   sqoop-mediawiki-tables --jdbc-host HOST --output-dir HDFS_PATH
-          [--verbose] --wiki-file WIKIS --timestamp TIME
+          [--verbose] --wiki-file WIKIS
+          [--log-file LOG] --timestamp TIME
           [--max-tries TRIES] [--force] --snapshot SNAPSHOT
           [--mappers NUM] [--processors NUM] --user NAME
           [--job-name JOB_NAME] [--labsdb] --password-file FILE
@@ -98,15 +99,17 @@ import csv
 import logging
 import os
 import sys
+import subprocess
 
 from docopt import docopt
 from concurrent import futures
 from itertools import groupby
-from subprocess import check_call
 from traceback import format_exc
 from tempfile import mkstemp
 
 from refinery.util import is_yarn_application_running, HdfsUtils
+
+
 
 queries = {}
 
@@ -372,9 +375,10 @@ def sqoop_wiki(config):
         True if the sqoop worked
         False if the sqoop errored or failed in any way
     """
+    logger = logging.getLogger("sqoop-mediawiki-tables")
     full_table = '.'.join([config.dbname, config.table])
     log_message = '{} (try {})'.format(full_table, config.current_try)
-    logging.info('STARTING: {}'.format(log_message))
+    logger.info('STARTING: {}'.format(log_message))
     try:
         target_directory = (config.table_path_template + '/wiki_db={db}').format(
             table=config.table, db=config.dbname)
@@ -430,28 +434,36 @@ def sqoop_wiki(config):
                 '--delete-target-dir'
             ]
 
-        logging.info('Sqooping with: {}'.format(sqoop_arguments))
-        check_call(sqoop_arguments)
-        logging.info('FINISHED: {}'.format(log_message))
+        logger.info('Sqooping with: {}'.format(sqoop_arguments))
+        # Run subprocess and log output as info or warn from stdout/stderr
+        output = subprocess.check_output(sqoop_arguments,
+                                         stderr=subprocess.STDOUT,
+                                         universal_newlines=True)
+        for line in output.splitlines():
+            logger.info('SQOOP SAYS: {}'.format(line))
+        logger.info('FINISHED: {}'.format(log_message))
         return None
-    except:
-        logging.error('ERROR: {}, {}'.format(log_message, format_exc()))
+    except subprocess.CalledProcessError as exc:
+        for line in exc.output.splitlines():
+            logger.warn('SQOOP SAYS: {}'.format(line))
+        logger.warn('ERROR: {}'.format(log_message))
         config.current_try += 1
         return config
 
 
 def check_hdfs_path(table_path_template, force):
+    logger = logging.getLogger("sqoop-mediawiki-tables")
     res = True
-    logging.info('Checking HDFS paths')
+    logger.info('Checking HDFS paths')
     for table in queries.keys():
         table_path = table_path_template.format(table=table)
 
         if HdfsUtils.ls(table_path, include_children=False):
             if force:
                 HdfsUtils.rm(table_path)
-                logging.info('Forcing: {} deleted from HDFS.'.format(table_path))
+                logger.info('Forcing: {} deleted from HDFS.'.format(table_path))
             else:
-                logging.error('{} already exists in HDFS.'.format(table_path))
+                logger.error('{} already exists in HDFS.'.format(table_path))
                 res = False
     return res
 
@@ -487,19 +499,34 @@ if __name__ == '__main__':
     if verbose:
         log_level = logging.DEBUG
 
-    logging.basicConfig(level=log_level,
-                        format='%(asctime)s %(levelname)-6s %(message)s',
-                        datefmt='%Y-%m-%dT%H:%M:%S')
+    logger = logging.getLogger("sqoop-mediawiki-tables")
+    formatter = logging.Formatter(
+        fmt='%(asctime)s %(levelname)-6s %(message)s',
+        datefmt='%Y-%m-%dT%H:%M:%S')
+    logger.setLevel(log_level)
+
+    # Log log_level and upper to stdout
+    log_level_handler = logging.StreamHandler(sys.stdout)
+    log_level_handler.setFormatter(formatter)
+    log_level_handler.setLevel(log_level)
+
+    # In addition, Log ERROR to stderr
+    error_handler = logging.StreamHandler(sys.stderr)
+    error_handler.setLevel(logging.ERROR)
+    error_handler.setFormatter(formatter)
+
+    logger.addHandler(log_level_handler)
+    logger.addHandler(error_handler)
 
     yarn_job_name_prefix = yarn_job_name_prefix or 'sqoop-mediawiki-tables'
     # This works since the check doesn't involve 'full word' matching
     if is_yarn_application_running(yarn_job_name_prefix):
-        logging.warn('{} is already running, exiting.'.format(yarn_job_name_prefix))
+        logger.warn('{} is already running, exiting.'.format(yarn_job_name_prefix))
         sys.exit(1)
 
     jdbc_host = 'jdbc:mysql://' + host + '/'
 
-    logging.info('Started Shell with with {}'.format(' '.join(arguments)))
+    logger.info('Started Shell with with {}'.format(' '.join(arguments)))
 
     populate_queries(timestamp, labsdb)
     dbpostfix = '_p' if labsdb else ''
@@ -549,25 +576,31 @@ if __name__ == '__main__':
                 current_try += 1
         failed_jobs.extend(executor_config_list)
 
-    # if there were no failures at all, write a success flag to this dataset
-    if not failed_jobs:
-        if not generate_jar:
-            for table in queries.keys():
-                success_directory = table_path_template.format(table=table)
-                check_call([
-                    'hdfs', 'dfs', '-touchz',
-                    success_directory + '/_SUCCESS',
-                ])
-        else:
-            check_call([
+    # jar-generation mode - Check jar if jobs were successful
+    if generate_jar:
+        if not failed_jobs:
+            subprocess.check_call([
                 'jar', 'cf', jar_path, '-C', generate_jar, '.'
             ])
-            logging.info('Generated ORM jar at {}'.format(jar_path))
+            logger.info('Generated ORM jar at {}'.format(jar_path))
+
+    # Data-transfer mode - Write success flags for tables NOT having failed-job
     else:
-        to_rerun = ', '.join(map(str, failed_jobs))
-        logging.error('*' * 50)
-        logging.error('*  Jobs to re-run: {}'.format(to_rerun))
+        # Get tables having at least one failed job
+        failed_tables = set(map(lambda config: config.table, failed_jobs))
+        for table in (set(queries.keys()) - failed_tables):
+            success_directory = table_path_template.format(table=table)
+            subprocess.check_call([
+                'hdfs', 'dfs', '-touchz',
+                success_directory + '/_SUCCESS',
+            ])
+
+    # In any mode, if failed jobs, send an error email and log error
+    if failed_jobs:
+        logger.error('*' * 50)
+        logger.error('*  Jobs to re-run:')
         for c in failed_jobs:
-            logging.error('*    - {}'.format(str(c)))
-        logging.error('*' * 50)
+            logger.error('*    - {}'.format(str(c)))
+        logger.error('*' * 50)
+
         sys.exit(1)
