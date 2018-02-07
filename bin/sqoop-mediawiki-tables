@@ -15,26 +15,37 @@
 
 # Note: needs python3 to run unless we backport concurrent and urllib.parse
 #
-# Will be scheduled on a cron, every 7 days, as:
+# Example command that can be run in a cron:
+#   export PYTHONPATH=/home/milimetric/refinery/python
 #   python3 sqoop-mediawiki-tables \
 #     --jdbc-host analytics-store.eqiad.wmnet \
-#     --output-dir /wmf/data/raw/mediawiki/tables \
-#     --wiki-file \
-# "/mnt/hdfs/wmf/refinery/current/static_data/mediawiki/grouped_wikis/grouped_wikis.csv" \
-#     --timestamp YYYYMMDD000000 \
+#     --output-dir /user/milimetric/wmf/data/raw/mediawiki/tables \
 #     --user research \
-#     --password-file /user/hdfs/mysql-analytics-research-client-pw.txt
+#     --password-file /user/milimetric/mysql-analytics-research-client-pw.txt \
+#     --wiki-file \
+# "/mnt/hdfs/wmf/refinery/current/static_data/mediawiki/grouped_wikis/grouped_wikis_test.csv" \
+#     --tables user_groups,ipblocks \
+#     --from-timestamp YYYYMMDD000000 \
+#     --to-timestamp YYYYMMDD000000 \
+#     --partition-name snapshot \
+#     --partition-value 2018_02_20_test \
+#     --log-file sqoop-info-and-above.log
 
 """
 Sqoops a list of tables from a list of wikis into a target HDFS location
+NOTE: the options in the Usage below are in weird order because of a bug
+in docopt that makes it fail if -- is the first thing on a line, we should
+upstream a fix for that.
 
 Usage:
   sqoop-mediawiki-tables --jdbc-host HOST --output-dir HDFS_PATH
-          [--verbose] --wiki-file WIKIS --timestamp TIME
-          [--max-tries TRIES] [--force] --snapshot SNAPSHOT
-          [--mappers NUM] [--processors NUM] --user NAME
-          [--job-name JOB_NAME] [--labsdb] --password-file FILE
-          [--generate-jar JAR_OUT|--jar-file JAR_IN]
+          [--labsdb] --user NAME --password-file FILE
+          [--max-tries TRIES] --wiki-file WIKIS --tables TABLES
+          [--verbose] --from-timestamp FROM --to-timestamp TO
+          [--force] --partition-name PART --partition-value PVAL
+          [--mappers NUM] [--processors NUM]
+          [--job-name JOB_NAME] [--jar-file JAR_IN]
+          [--log-file LOG]
 
 Options:
     -h --help                           Show this help message and exit.
@@ -51,12 +62,21 @@ Options:
                                           where all wiki dbs that will be
                                           sqooped in parallel with this one
                                           share the same parallel-group
-    -t TIME --timestamp TIME            Try to get revisions only before this
-                                        (not exact due to new data coming in with
-                                        old timestamps; also, this only applies to
-                                        the revision table, not other tables)
-    -s SNAPSHOT --snapshot SNAPSHOT     The snapshot partition to load data
-                                        into (usually YYYY-MM)
+    -t TABLES --tables TABLES           Comma-separated list of mediawiki table names.
+                                        Limit the import to these specific tables.  This
+                                        is required and jobs using this script should
+                                        coordinate so as to not import the same table
+                                        in two different ways.
+    -F FROM --from-timestamp FROM       Get records with time >= this for all tables that
+                                        have timestamps.  Format is YYYYMMDD000000
+    -T TO --to-timestamp TO             Get records with time <  this for all tables that
+                                        have timestamps.  Format is YYYYMMDD000000
+    -s PART --partition-name PART       The name of the partition to use for this data.
+                                        (for example, in snapshot=2018-02,
+                                        --partition-name is snapshot)
+    -x PVAL --partition-value PVAL      The value to write to --partition-name for data
+                                        imported with this script, (for example, in
+                                        snapshot=2018-02, --partition-value is 2018-02)
     -u NAME --user NAME                 mysql user to use
     -p FILE --password-file FILE        File with mysql password to use
 
@@ -81,16 +101,12 @@ Options:
     -l --labsdb                         Add '_p' postfix to table names for labsdb
     -f --force                          Deleting existing folders before importing
                                         instead of failing
-    -g JAR_OUT --generate-jar JAR_OUT   Instead of running the job, just pick one wiki
-                                        and generate the java classes for each table,
-                                        then bundle them into a JAR for later use. Save
-                                        the generated jar to JAR_OUT, in a file named
-                                        JAR_OUT/mediawiki-tables-sqoop-orm.jar
-                                        NOTE: etwiki will be used to generate ORM classes
     -r JAR_IN --jar-file JAR_IN         Disable code generation and use a jar file
                                         with pre-compiled ORM classes.  The class names
                                         will be convention-based and assumed to be the
                                         same as running this script with -g
+    -o LOG --log-file LOG               A log file to send all output to.  If not passed,
+                                        the script will only log WARN to console.
 """
 __author__ = 'Dan Andreesu <milimetric@wikimedia.org>'
 
@@ -106,11 +122,14 @@ from itertools import groupby
 from traceback import format_exc
 from tempfile import mkstemp
 
-from refinery.util import is_yarn_application_running, HdfsUtils
+from refinery.logging_setup import configure_logging
+from refinery.sqoop import (
+    check_hdfs_path_or_exit, check_already_running_or_exit,
+    SqoopConfig, sqoop_wiki, validate_tables_and_get_queries,
+)
 
+logger = logging.getLogger()
 
-
-queries = {}
 
 print('************ NOTE ************')
 print('When sqooping from labs, resulting data will be shareable with the public '
@@ -119,431 +138,67 @@ print('When sqooping from labs, resulting data will be shareable with the public
 print('^^^^^^^^^^^^ NOTE ^^^^^^^^^^^^')
 
 
-def populate_queries(timestamp, labsdb):
-
-    # NOTES on queries:
-    # convert(... using utf8) is used to decode varbinary fields into strings
-    # type mapping is used to handle some databases having booleans in
-    #   tinyint(1) and others in tinyint(3,4) (newer databases like wikivoyage)
-
-    queries['archive'] = {
-        'query': '''
-             select ar_id,
-                    ar_namespace,
-                    convert(ar_title using utf8) ar_title,
-                    convert(ar_text using utf8) ar_text,
-                    convert(ar_comment using utf8) ar_comment,
-                    ar_user,
-                    convert(ar_user_text using utf8) ar_user_text,
-                    convert(ar_timestamp using utf8) ar_timestamp,
-                    ar_minor_edit,
-                    convert(ar_flags using utf8) ar_flags,
-                    ar_rev_id,
-                    ar_text_id,
-                    ar_deleted,
-                    ar_len,
-                    ar_page_id,
-                    ar_parent_id,
-                    convert(ar_sha1 using utf8) ar_sha1,
-                    convert({model} using utf8) ar_content_model,
-                    convert({format} using utf8) ar_content_format
-
-               from archive
-              where $CONDITIONS
-        '''.format(model="''" if labsdb else 'ar_content_model',
-                   format="''" if labsdb else 'ar_content_format'),
-        'map-types': '"{}"'.format(','.join([
-            'ar_minor_edit=Boolean',
-            'ar_deleted=Integer',
-        ])),
-
-        'split-by': 'ar_id',
-    }
-
-    queries['ipblocks'] = {
-        'query': '''
-             select ipb_id,
-                    convert(ipb_address using utf8) ipb_address,
-                    ipb_user,
-                    ipb_by,
-                    convert(ipb_by_text using utf8) ipb_by_text,
-                    convert(ipb_reason using utf8) ipb_reason,
-                    convert(ipb_timestamp using utf8) ipb_timestamp,
-                    ipb_auto,
-                    ipb_anon_only,
-                    ipb_create_account,
-                    ipb_enable_autoblock,
-                    convert(ipb_expiry using utf8) ipb_expiry,
-                    convert(ipb_range_start using utf8) ipb_range_start,
-                    convert(ipb_range_end using utf8) ipb_range_end,
-                    ipb_deleted,
-                    ipb_block_email,
-                    ipb_allow_usertalk,
-                    ipb_parent_block_id
-
-               from ipblocks
-              where $CONDITIONS
-        ''',
-        'map-types': '"{}"'.format(','.join([
-            'ipb_auto=Boolean',
-            'ipb_anon_only=Boolean',
-            'ipb_create_account=Boolean',
-            'ipb_enable_autoblock=Boolean',
-            'ipb_deleted=Boolean',
-            'ipb_block_email=Boolean',
-            'ipb_allow_usertalk=Boolean',
-        ])),
-
-        'split-by': 'ipb_id',
-    }
-
-    queries['logging'] = {
-        'query': '''
-             select log_id,
-                    convert(log_type using utf8) log_type,
-                    convert(log_action using utf8) log_action,
-                    convert(log_timestamp using utf8) log_timestamp,
-                    log_user,
-                    log_namespace,
-                    convert(log_title using utf8) log_title,
-                    convert(log_comment using utf8) log_comment,
-                    convert(log_params using utf8) log_params,
-                    log_deleted,
-                    convert(log_user_text using utf8) log_user_text,
-                    log_page
-
-               from logging
-              where $CONDITIONS
-        ''',
-
-        'split-by': 'log_id',
-    }
-
-    queries['page'] = {
-        'query': '''
-             select page_id,
-                    page_namespace,
-                    convert(page_title using utf8) page_title,
-                    convert(page_restrictions using utf8) page_restrictions,
-                    page_is_redirect,
-                    page_is_new,
-                    page_random,
-                    convert(page_touched using utf8) page_touched,
-                    convert(page_links_updated using utf8) page_links_updated,
-                    page_latest,
-                    page_len,
-                    convert(page_content_model using utf8) page_content_model
-
-               from page
-              where $CONDITIONS
-        ''',
-        'map-types': '"{}"'.format(','.join([
-            'page_is_redirect=Boolean',
-            'page_is_new=Boolean',
-        ])),
-
-        'split-by': 'page_id',
-    }
-
-    queries['pagelinks'] = {
-        'query': '''
-             select pl_from,
-                    pl_namespace,
-                    convert(pl_title using utf8) pl_title,
-                    pl_from_namespace
-
-               from pagelinks
-              where $CONDITIONS
-        ''',
-
-        'split-by': 'pl_from',
-    }
-
-    queries['redirect'] = {
-        'query': '''
-             select rd_from,
-                    rd_namespace,
-                    convert(rd_title using utf8) rd_title,
-                    convert(rd_interwiki using utf8) rd_interwiki,
-                    convert(rd_fragment using utf8) rd_fragment
-
-               from redirect
-              where $CONDITIONS
-        ''',
-
-        'split-by': 'rd_from',
-    }
-
-    queries['revision'] = {
-        'query': '''
-             select rev_id,
-                    rev_page,
-                    rev_text_id,
-                    convert(rev_comment using utf8) rev_comment,
-                    rev_user,
-                    convert(rev_user_text using utf8) rev_user_text,
-                    convert(rev_timestamp using utf8) rev_timestamp,
-                    rev_minor_edit,
-                    rev_deleted,
-                    rev_len,
-                    rev_parent_id,
-                    convert(rev_sha1 using utf8) rev_sha1,
-                    convert(rev_content_model using utf8) rev_content_model,
-                    convert(rev_content_format using utf8) rev_content_format
-
-               from revision
-              where $CONDITIONS
-                and rev_timestamp <= '{t}'
-        '''.format(t=timestamp),
-        'map-types': '"{}"'.format(','.join([
-            'rev_minor_edit=Boolean',
-            'rev_deleted=Integer',
-        ])),
-
-        'split-by': 'rev_id',
-    }
-
-    queries['user'] = {
-        'query': '''
-             select user_id,
-                    convert(user_name using utf8) user_name,
-                    user_name user_name_binary,
-                    convert(user_real_name using utf8) user_real_name,
-                    convert(user_email using utf8) user_email,
-                    convert(user_touched using utf8) user_touched,
-                    convert(user_registration using utf8) user_registration,
-                    user_editcount,
-                    convert(user_password_expires using utf8) user_password_expires
-
-               from user
-              where $CONDITIONS
-        ''',
-
-        'split-by': 'user_id',
-    }
-
-    queries['user_groups'] = {
-        'query': '''
-             select ug_user,
-                    convert(ug_group using utf8) ug_group
-
-               from user_groups
-              where $CONDITIONS
-        ''',
-
-        'split-by': 'ug_user',
-    }
-
-
-class SqoopConfig:
-
-    def __init__(self, yarn_job_name_prefix, user, password_file, jdbc_host, num_mappers,
-                 table_path_template, dbname, dbpostfix, table,
-                 query, split_by, map_types,
-                 generate_jar, jar_file,
-                 current_try):
-
-        self.yarn_job_name_prefix = yarn_job_name_prefix
-        self.user = user
-        self.password_file = password_file
-        self.jdbc_host = jdbc_host
-        self.num_mappers = num_mappers
-        self.table_path_template = table_path_template
-        self.dbname = dbname
-        self.dbpostfix = dbpostfix
-        self.table = table
-        self.query = query
-        self.split_by = split_by
-        self.map_types = map_types
-        self.generate_jar = generate_jar
-        self.jar_file = jar_file
-        self.current_try = current_try
-
-    def __str__(self):
-        return self.dbname + ':' + self.table
-
-
-def sqoop_wiki(config):
-    """
-    Imports a pre-determined list of tables from dbname
-
-    Parameters
-        config: SqoopConfig object filed in with needed parameters
-
-    Returns
-        True if the sqoop worked
-        False if the sqoop errored or failed in any way
-    """
-    logger = logging.getLogger()
-    full_table = '.'.join([config.dbname, config.table])
-    log_message = '{} (try {})'.format(full_table, config.current_try)
-    logger.info('STARTING: {}'.format(log_message))
-    try:
-        target_directory = (config.table_path_template + '/wiki_db={db}').format(
-            table=config.table, db=config.dbname)
-
-        query = config.query
-        command = 'import'
-        if config.generate_jar:
-            query = query + ' and 1=0'
-            command = 'codegen'
-
-        sqoop_arguments = [
-            'sqoop',
-            command,
-            '-D'                , "mapred.job.name='{}-{}'".format(
-                config.yarn_job_name_prefix, full_table),
-            '--username'        , config.user,
-            '--password-file'   , config.password_file,
-            '--connect'         , config.jdbc_host + config.dbname + config.dbpostfix,
-            '--query'           , config.query,
-        ]
-
-        if config.generate_jar:
-            sqoop_arguments += [
-                '--class-name'      , config.table,
-                '--outdir'          , config.generate_jar,
-                '--bindir'          , config.generate_jar,
-            ]
-        else:
-            sqoop_arguments += [
-                '--target-dir'      , target_directory,
-                '--num-mappers'     , str(config.num_mappers),
-                '--as-avrodatafile' ,
-            ]
-            if config.num_mappers > 1:
-                sqoop_arguments += [
-                    '--split-by'    , config.split_by,
-                ]
-
-        if config.jar_file:
-            sqoop_arguments += [
-                '--class-name'      , config.table,
-                '--jar-file'        , config.jar_file,
-            ]
-
-        if config.map_types:
-            sqoop_arguments += [
-                '--map-column-java' , config.map_types
-            ]
-
-        # Force deletion of possibly existing dir in case of retry
-        if config.current_try > 1:
-            sqoop_arguments += [
-                '--delete-target-dir'
-            ]
-
-        logger.info('Sqooping with: {}'.format(sqoop_arguments))
-        # Run subprocess and log output as info or warn from stdout/stderr
-        output = subprocess.check_output(sqoop_arguments,
-                                         stderr=subprocess.STDOUT,
-                                         universal_newlines=True)
-        for line in output.splitlines():
-            logger.info('SQOOP SAYS: {}'.format(line))
-        logger.info('FINISHED: {}'.format(log_message))
-        return None
-    except subprocess.CalledProcessError as exc:
-        for line in exc.output.splitlines():
-            logger.warn('SQOOP SAYS: {}'.format(line))
-        logger.warn('ERROR: {}'.format(log_message))
-        config.current_try += 1
-        return config
-
-
-def check_hdfs_path(table_path_template, force):
-    logger = logging.getLogger()
-    res = True
-    logger.info('Checking HDFS paths')
-    for table in queries.keys():
-        table_path = table_path_template.format(table=table)
-
-        if HdfsUtils.ls(table_path, include_children=False):
-            if force:
-                HdfsUtils.rm(table_path)
-                logger.info('Forcing: {} deleted from HDFS.'.format(table_path))
-            else:
-                logger.error('{} already exists in HDFS.'.format(table_path))
-                res = False
-    return res
-
-
 if __name__ == '__main__':
     # parse arguments
     arguments = docopt(__doc__)
     verbose                             = arguments.get('--verbose')
-    labsdb                              = arguments.get('--labsdb')
     yarn_job_name_prefix                = arguments.get('--job-name')
 
-    host                                = arguments.get('--jdbc-host')
     target_hdfs_directory               = arguments.get('--output-dir')
-    db_list_file                        = arguments.get('--wiki-file')
-    timestamp                           = arguments.get('--timestamp')
-    snapshot                            = arguments.get('--snapshot')
+    host                                = arguments.get('--jdbc-host')
     user                                = arguments.get('--user')
     password_file                       = arguments.get('--password-file')
+
+    db_list_file                        = arguments.get('--wiki-file')
+    import_tables_str                   = arguments.get('--tables')
+    labsdb                              = arguments.get('--labsdb')
+
+    from_timestamp                      = arguments.get('--from-timestamp')
+    to_timestamp                        = arguments.get('--to-timestamp')
+    partition_name                      = arguments.get('--partition-name')
+    partition_value                     = arguments.get('--partition-value')
+
     num_mappers                         = int(arguments.get('--mappers') or '1')
     num_processors                      = int(arguments.get('--processors')) if arguments.get('--processors') else None
     max_tries                           = int(arguments.get('--max-tries'))
     force                               = arguments.get('--force')
-    generate_jar                        = arguments.get('--generate-jar')
     jar_file                            = arguments.get('--jar-file')
+    log_file                            = arguments.get('--log-file')
 
-    table_path_template = '{hdfs}/{table}/snapshot={snapshot}'.format(
+    level = logging.DEBUG if verbose else logging.INFO
+    configure_logging(logger, level, log_file=log_file)
+
+    logger.debug('Started Shell with with {}'.format(' '.join(arguments)))
+
+    table_path_template = '{hdfs}/{table}/{partition_name}={partition_value}'.format(
         hdfs=target_hdfs_directory,
         table='{table}',
-        snapshot=snapshot,
+        partition_name=partition_name,
+        partition_value=partition_value,
     )
-
-    log_level = logging.INFO
-    if verbose:
-        log_level = logging.DEBUG
-
-    logger = logging.getLogger()
-    formatter = logging.Formatter(
-        fmt='%(asctime)s %(levelname)-6s %(message)s',
-        datefmt='%Y-%m-%dT%H:%M:%S')
-    logger.setLevel(log_level)
-
-    # Log log_level and upper to stdout
-    log_level_handler = logging.StreamHandler(sys.stdout)
-    log_level_handler.setFormatter(formatter)
-    log_level_handler.setLevel(log_level)
-
-    # In addition, Log ERROR to stderr
-    error_handler = logging.StreamHandler(sys.stderr)
-    error_handler.setLevel(logging.ERROR)
-    error_handler.setFormatter(formatter)
-
-    logger.addHandler(log_level_handler)
-    logger.addHandler(error_handler)
+    import_tables = import_tables_str.split(',')
 
     yarn_job_name_prefix = yarn_job_name_prefix or 'sqoop-mediawiki-tables'
-    # This works since the check doesn't involve 'full word' matching
-    if is_yarn_application_running(yarn_job_name_prefix):
-        logger.warn('{} is already running, exiting.'.format(yarn_job_name_prefix))
-        sys.exit(1)
+    queries = validate_tables_and_get_queries(
+        import_tables, from_timestamp, to_timestamp, labsdb
+    )
+
+    check_already_running_or_exit(yarn_job_name_prefix)
+    logging.debug('No other running instances, proceeding')
+    check_hdfs_path_or_exit(queries.keys(), table_path_template, force)
+    logging.debug('All table paths are empty or force cleaned')
 
     jdbc_host = 'jdbc:mysql://' + host + '/'
-
-    logger.info('Started Shell with with {}'.format(' '.join(arguments)))
-
-    populate_queries(timestamp, labsdb)
     dbpostfix = '_p' if labsdb else ''
 
-    if not check_hdfs_path(table_path_template, force):
-        sys.exit(1)
-
-    if generate_jar:
-        flat_wikis = [['etwiki', 1]]
-        jar_path = os.path.join(generate_jar, 'mediawiki-tables-sqoop-orm.jar')
-    else:
-        # read in the wikis to process and sqoop each one
-        with open(db_list_file) as dbs_file:
-            # Remove lines starting with dashes
-            flat_wikis = [row for row in csv.reader(dbs_file) if not row[0].startswith('#')]
+    # read in the wikis to process and sqoop each one
+    with open(db_list_file) as dbs_file:
+        # Remove lines starting with hashes
+        flat_wikis = [row for row in csv.reader(dbs_file) if not row[0].startswith('#')]
 
     failed_jobs = []
     for group, wikis in groupby(flat_wikis, lambda w: w[1]):
+        logger.debug('Processing group {}'.format(group))
         executor_config_list = []
         wikiList = list(wikis)
 
@@ -565,7 +220,7 @@ if __name__ == '__main__':
                                             num_mappers_adjusted,
                                             table_path_template, w[0], dbpostfix, table,
                                             query, split_by, map_types,
-                                            generate_jar, jar_file, 1))
+                                            None, jar_file, 1))
 
         # sqoop all wikis in this group and wait for them all to finish with retry
         with futures.ProcessPoolExecutor(num_processors_adjusted) as executor:
@@ -575,25 +230,16 @@ if __name__ == '__main__':
                 current_try += 1
         failed_jobs.extend(executor_config_list)
 
-    # jar-generation mode - Check jar if jobs were successful
-    if generate_jar:
-        if not failed_jobs:
-            subprocess.check_call([
-                'jar', 'cf', jar_path, '-C', generate_jar, '.'
-            ])
-            logger.info('Generated ORM jar at {}'.format(jar_path))
-
-    # Data-transfer mode - Write success flags for tables NOT having failed-job
-    else:
-        # Get tables having at least one failed job
-        failed_tables = set(map(lambda config: config.table, failed_jobs))
-        for table in (set(queries.keys()) - failed_tables):
-            success_file_path = table_path_template.format(table=table) + '/_SUCCESS'
-            subprocess.check_call([
-                'hdfs', 'dfs', '-touchz',
-                success_file_path
-            ])
-            logger.info('Wrote Success file {}'.format(success_file_path))
+    # Write success flags for tables NOT having failed-job
+    # Get tables having at least one failed job
+    failed_tables = set(map(lambda config: config.table, failed_jobs))
+    for table in (set(queries.keys()) - failed_tables):
+        success_file_path = table_path_template.format(table=table) + '/_SUCCESS'
+        subprocess.check_call([
+            'hdfs', 'dfs', '-touchz',
+            success_file_path
+        ])
+        logger.info('Wrote Success file {}'.format(success_file_path))
 
     # In any mode, if failed jobs, send an error email and log error
     if failed_jobs:

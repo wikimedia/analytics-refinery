@@ -1,0 +1,130 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Example run:
+#   python3 sqoop-generate-jar \
+#       --jdbc-host analytics-store.eqiad.wmnet \
+#       --output-dir /home/milimetric/sqoop-jar \
+#       --user research \
+#       --password-file /user/milimetric/mysql-analytics-research-client-pw.txt \
+#       --verbose
+
+"""
+Generate java classes for each table we know how to sqoop, then bundle them
+into a JAR for later use. Save the generated jar to JAR_OUT, in a file named
+JAR_OUT/mediawiki-tables-sqoop-orm.jar
+NOTE: the options in the Usage below are in weird order because of a bug
+in docopt that makes it fail if -- is the first thing on a line, we should
+upstream a fix for that.
+
+Usage:
+  sqoop-generate-jar --jdbc-host HOST --output-dir JAR_OUT
+          [--labsdb] --user NAME --password-file FILE
+          [--verbose] [--job-name JOB_NAME]
+
+Options:
+    -h --help                           Show this help message and exit.
+    -v --verbose                        Turn on verbose debug logging.
+
+    -H HOST --jdbc-host HOST            Domain name of the mysql db
+    -d JAR_OUT --output-dir JAR_OUT     Target directory to write the jar to
+
+    -u NAME --user NAME                 mysql user to use
+    -p FILE --password-file FILE        File with mysql password to use
+
+    -j JOB_NAME --job-name JOB_NAME     The yarn job name prefix, only one job with
+                                        a certain prefix can run at a time.
+                                        [optional] default is sqoop-generate-jar
+    -l --labsdb                         Add '_p' postfix to table names for labsdb
+"""
+__author__ = 'Dan Andreesu <milimetric@wikimedia.org>'
+
+import csv
+import os
+import sys
+import logging
+import subprocess
+
+from docopt import docopt
+from concurrent import futures
+from itertools import groupby
+from traceback import format_exc
+from tempfile import mkstemp
+
+from refinery.logging_setup import configure_logging
+from refinery.util import is_yarn_application_running, HdfsUtils
+from refinery.sqoop import sqoop_wiki, SqoopConfig, validate_tables_and_get_queries
+
+logger = logging.getLogger()
+
+
+if __name__ == '__main__':
+    # parse arguments
+    arguments = docopt(__doc__)
+    verbose                             = arguments.get('--verbose')
+    labsdb                              = arguments.get('--labsdb')
+    yarn_job_name_prefix                = arguments.get('--job-name')
+
+    host                                = arguments.get('--jdbc-host')
+    target_jar_directory                = arguments.get('--output-dir')
+    user                                = arguments.get('--user')
+    password_file                       = arguments.get('--password-file')
+    timestamp                           = '20010101000000'
+
+    level = logging.DEBUG if verbose else logging.INFO
+    configure_logging(logger, level)
+
+    yarn_job_name_prefix = yarn_job_name_prefix or 'sqoop-generate-jar'
+    # This works since the check doesn't involve 'full word' matching
+    if is_yarn_application_running(yarn_job_name_prefix):
+        logger.warn('{} is already running, exiting.'.format(yarn_job_name_prefix))
+        sys.exit(1)
+
+    jdbc_host = 'jdbc:mysql://' + host + '/'
+
+    logger.info('Started Shell with with {}'.format(' '.join(arguments)))
+
+    queries = validate_tables_and_get_queries(None, timestamp, timestamp, labsdb)
+    dbpostfix = '_p' if labsdb else ''
+
+    jar_path = os.path.join(target_jar_directory, 'mediawiki-tables-sqoop-orm.jar')
+
+    failed_jobs = []
+    executor_config_list = []
+
+    for table in queries.keys():
+        query = queries[table].get('query')
+        map_types = queries[table]['map-types'] if ('map-types' in queries[table]) else None
+        split_by = queries[table]['split-by']
+        executor_config_list.append(
+            SqoopConfig(yarn_job_name_prefix, user, password_file, jdbc_host, 1,
+                        # NOTE: using etwiki to generate schema for all wikis,
+                        # but it might not always be in sync with the other dbs
+                        None, 'etwiki', dbpostfix, table,
+                        query, split_by, map_types,
+                        target_jar_directory, None, 1)
+        )
+
+    with futures.ProcessPoolExecutor(1) as executor:
+        failed_jobs.extend(filter(None, list(executor.map(sqoop_wiki, executor_config_list))))
+        if len(failed_jobs):
+            failed_tables = ', '.join([c.table for c in failed_jobs])
+            logger.error('ERROR generating ORM jar for {}'.format(failed_tables))
+            sys.exit(1)
+
+    subprocess.check_call([
+        'jar', 'cf', jar_path, '-C', target_jar_directory, '.'
+    ])
+    logger.info('Generated ORM jar at {}'.format(jar_path))
