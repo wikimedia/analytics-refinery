@@ -30,8 +30,7 @@ Sqoops a list of tables from a list of wikis into a target HDFS location
 
 Usage:
   sqoop-mediawiki-tables --jdbc-host HOST --output-dir HDFS_PATH
-          [--verbose] --wiki-file WIKIS
-          [--log-file LOG] --timestamp TIME
+          [--verbose] --wiki-file WIKIS --timestamp TIME
           [--max-tries TRIES] [--force] --snapshot SNAPSHOT
           [--mappers NUM] [--processors NUM] --user NAME
           [--job-name JOB_NAME] [--labsdb] --password-file FILE
@@ -375,7 +374,7 @@ def sqoop_wiki(config):
         True if the sqoop worked
         False if the sqoop errored or failed in any way
     """
-    logger = logging.getLogger("sqoop-mediawiki-tables")
+    logger = logging.getLogger()
     full_table = '.'.join([config.dbname, config.table])
     log_message = '{} (try {})'.format(full_table, config.current_try)
     logger.info('STARTING: {}'.format(log_message))
@@ -452,7 +451,7 @@ def sqoop_wiki(config):
 
 
 def check_hdfs_path(table_path_template, force):
-    logger = logging.getLogger("sqoop-mediawiki-tables")
+    logger = logging.getLogger()
     res = True
     logger.info('Checking HDFS paths')
     for table in queries.keys():
@@ -499,7 +498,7 @@ if __name__ == '__main__':
     if verbose:
         log_level = logging.DEBUG
 
-    logger = logging.getLogger("sqoop-mediawiki-tables")
+    logger = logging.getLogger()
     formatter = logging.Formatter(
         fmt='%(asctime)s %(levelname)-6s %(message)s',
         datefmt='%Y-%m-%dT%H:%M:%S')
@@ -589,11 +588,12 @@ if __name__ == '__main__':
         # Get tables having at least one failed job
         failed_tables = set(map(lambda config: config.table, failed_jobs))
         for table in (set(queries.keys()) - failed_tables):
-            success_directory = table_path_template.format(table=table)
+            success_file_path = table_path_template.format(table=table) + '/_SUCCESS'
             subprocess.check_call([
                 'hdfs', 'dfs', '-touchz',
-                success_directory + '/_SUCCESS',
+                success_file_path
             ])
+            logger.info('Wrote Success file {}'.format(success_file_path))
 
     # In any mode, if failed jobs, send an error email and log error
     if failed_jobs:
