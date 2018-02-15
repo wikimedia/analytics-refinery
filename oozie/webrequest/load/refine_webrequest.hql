@@ -57,6 +57,7 @@ CREATE TEMPORARY FUNCTION referer_classify AS 'org.wikimedia.analytics.refinery.
 CREATE TEMPORARY FUNCTION get_pageview_info AS 'org.wikimedia.analytics.refinery.hive.GetPageviewInfoUDF';
 CREATE TEMPORARY FUNCTION normalize_host AS 'org.wikimedia.analytics.refinery.hive.HostNormalizerUDF';
 CREATE TEMPORARY FUNCTION get_tags AS 'org.wikimedia.analytics.refinery.hive.GetWebrequestTagsUDF';
+CREATE TEMPORARY FUNCTION isp_data as 'org.wikimedia.analytics.refinery.hive.GetISPDataUDF';
 
 
 INSERT OVERWRITE TABLE ${destination_table}
@@ -113,7 +114,8 @@ INSERT OVERWRITE TABLE ${destination_table}
           WHEN '-' THEN NULL
           ELSE str_to_map(x_analytics, '\;', '=')['ns']
         END as namespace_id,
-        get_tags(uri_host, uri_path, uri_query, http_status, content_type, user_agent, x_analytics) as tags
+        get_tags(uri_host, uri_path, uri_query, http_status, content_type, user_agent, x_analytics) as tags,
+        isp_data(ip) as isp_data
     FROM
         ${source_table}
     WHERE
