@@ -159,6 +159,18 @@
                 </property>
             </configuration>
         </sub-workflow>
+        <ok to="chmod_yearly_archive_directory"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <action name="chmod_yearly_archive_directory">
+        <fs>
+            <--
+            We need newly created year directories to be group writeable so @ezachte
+            can create top1000 files.  T185419
+            -->
+            <chmod path="${mediacounts_daily_archive_directory}/${year}" permissions="0775" />
+        </fs>
         <ok to="end"/>
         <error to="send_error_email"/>
     </action>
