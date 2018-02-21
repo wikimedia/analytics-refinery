@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Defines reusable datasets for MediaWiki raw data.
+Use this dataset in your coordinator.xml files by setting:
+
+    ${start_time}               - the initial instance of your data.
+                                  Example: 2014-04-01T00:00Z
+    ${mw_raw_private_directory} - Path to private imported data
+                                  Example: /wmf/data/raw/mediawiki_private
+-->
+
+<datasets>
+
+    <dataset name="mw_cu_changes_table"
+             frequency="${coord:months(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${mw_raw_private_directory}/tables/cu_changes/month=${YEAR}-${MONTH}</uri-template>
+        <done-flag>_SUCCESS</done-flag>
+    </dataset>
+
+    <dataset name="mw_cu_changes_table_partitioned"
+             frequency="${coord:months(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${mw_raw_private_directory}/tables/cu_changes/month=${YEAR}-${MONTH}</uri-template>
+        <done-flag>_PARTITIONED</done-flag>
+    </dataset>
+
+</datasets>

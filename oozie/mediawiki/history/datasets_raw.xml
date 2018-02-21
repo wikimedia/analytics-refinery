@@ -3,10 +3,10 @@
 Defines reusable datasets for MediaWiki raw data.
 Use this dataset in your coordinator.xml files by setting:
 
-    ${start_time}       - the initial instance of your data.
-                          Example: 2014-04-01T00:00Z
-    ${mw_raw_directory} - Path to directory where data is imported.
-                          Example: /wmf/data/raw/mediawiki
+    ${start_time}               - the initial instance of your data.
+                                  Example: 2014-04-01T00:00Z
+    ${mw_raw_directory}         - Path to directory where data is imported.
+                                  Example: /wmf/data/raw/mediawiki
 -->
 
 <datasets>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Defines reusable datasets for MediaWiki History data.
+Use this dataset in your coordinator.xml files by setting:
+
+    ${start_time}           - the initial instance of your data.
+                              Example: 2014-04-01T00:00Z
+    ${mw_private_directory} - Path to private import directory
+                              Example: /wmf/data/wmf/mediawiki_private
+-->
+
+<datasets>
+
+    <dataset name="geowiki_daily"
+             frequency="${coord:months(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${mw_private_directory}/geowiki_daily/month=${YEAR}-${MONTH}</uri-template>
+        <done-flag>_SUCCESS</done-flag>
+    </dataset>
+
+</datasets>

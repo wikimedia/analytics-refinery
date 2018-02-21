@@ -1,0 +1,69 @@
+-- Geolocate and group edits by wiki, country, and user
+-- This data will be used to generate monthly geowiki reports,
+-- and deleted after 90 days for privacy reasons.
+--
+-- Parameters:
+--     refinery_jar_version -- Version of the jar to import for UDFs
+--     artifacts_directory  -- Where the UDF jars are
+--     source_table         -- Read raw data from here
+--     bot_table            -- Look up whether a user is a bot here
+--     destination_table    -- Insert results here
+--     month                -- YYYY-MM to compute statistics for
+--
+-- Usage:
+--     hive -f geowiki_monthly.hql                                                          \
+--         -d refinery_jar_version=0.0.58                                                   \
+--         -d artifacts_directory=hdfs://analytics-hadoop/wmf/refinery/current/artifacts    \
+--         -d source_table=wmf_raw.mediawiki_private_cu_changes                             \
+--         -d user_history_table=wmf.mediawiki_user_history                                 \
+--         -d destination_table=wmf.geowiki_daily                                           \
+--         -d month=2018-02
+--
+-- TODO: Change user_groups to user_groups_historical, adding user_groups_latest to help searchers find this line
+ADD JAR ${artifacts_directory}/org/wikimedia/analytics/refinery/refinery-hive-${refinery_jar_version}.jar;
+CREATE TEMPORARY FUNCTION geocode as 'org.wikimedia.analytics.refinery.hive.GeocodedDataUDF';
+
+
+INSERT OVERWRITE TABLE ${destination_table}
+       PARTITION (month='${month}')
+
+     SELECT wiki_db,
+            country_code,
+            user_id_or_ip,
+            user_is_anonymous,
+            date,
+            count(*) as edit_count
+
+       FROM (select cuc.wiki_db,
+                    geocode(cuc_ip)['country_code'] as country_code,
+                    if(cuc_user = 0, cuc_user_text, cuc_user) as user_id_or_ip,
+                    if(cuc_user = 0, 1, 0) as user_is_anonymous,
+                    concat(
+                        substring(cuc_timestamp, 0, 4), '-',
+                        substring(cuc_timestamp, 5, 2), '-',
+                        substring(cuc_timestamp, 7, 2)
+                    ) as date
+
+               from ${source_table} cuc
+                        left join
+                    ${user_history_table} uh    on uh.snapshot = '${month}'
+                                                and uh.wiki_db = cuc.wiki_db
+                                                and user_id = cuc_user
+
+              where cuc.month='${month}'
+                and cuc_type in (0, 1)
+                and (   uh.user_id is null
+                    or  (   cuc_timestamp between
+                                coalesce(start_timestamp, '20010101000000') and
+                                coalesce(end_timestamp, '99999999999999')
+                        and not (array_contains(user_groups, 'bot') or is_bot_by_name)
+                        )
+                    )
+            ) geolocated_edits
+
+      GROUP BY wiki_db,
+            country_code,
+            date,
+            user_id_or_ip,
+            user_is_anonymous
+;

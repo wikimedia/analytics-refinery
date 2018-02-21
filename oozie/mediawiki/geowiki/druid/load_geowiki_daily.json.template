@@ -1,0 +1,66 @@
+{
+  "type" : "index_hadoop",
+  "spec" : {
+    "ioConfig" : {
+      "type" : "hadoop",
+      "inputSpec" : {
+        "type" : "static",
+        "paths" : "*INPUT_PATH*"
+      }
+    },
+    "dataSchema" : {
+      "dataSource" : "mediawiki-geowiki-daily",
+      "granularitySpec" : {
+        "type" : "uniform",
+        "segmentGranularity" : "month",
+        "queryGranularity" : "day",
+        "intervals" : *INTERVALS_ARRAY*
+      },
+      "parser" : {
+        "type" : "string",
+        "parseSpec" : {
+          "format" : "json",
+          "dimensionsSpec" : {
+            "dimensions" : [
+              "wiki_db",
+              "country_code",
+              "user_id_or_ip",
+              "user_is_anonymous"
+            ]
+          },
+          "timestampSpec" : {
+            "format" : "yyyy-MM-dd",
+            "column" : "date"
+          }
+        }
+      },
+      "metricsSpec" : [
+        {
+          "type" : "count",
+          "name" : "distinct_user_in_country_on_wiki"
+        },
+
+        {
+          "name" : "edit_count",
+          "type" : "longSum",
+          "fieldName": "edit_count"
+        }
+      ]
+    },
+    "tuningConfig" : {
+      "type" : "hadoop",
+      "overwriteFiles": true,
+      "ignoreInvalidRows" : false,
+      "partitionsSpec" : {
+        "type" : "hashed",
+        "numShards" : 1
+      },
+      "jobProperties" : {
+        "mapreduce.reduce.memory.mb" : "8192",
+        "mapreduce.output.fileoutputformat.compress": "org.apache.hadoop.io.compress.GzipCodec",
+        "mapreduce.job.queuename": "*HADOOP_QUEUE*"
+      }
+    }
+  }
+}
+
