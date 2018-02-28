@@ -19,6 +19,7 @@
         <property><name>start_time</name></property>
         <property><name>stop_time</name></property>
 
+        <property><name>oozie_spark_lib</name></property>
         <property><name>spark_master</name></property>
         <property><name>spark_job_jar</name></property>
         <property><name>spark_job_class</name></property>

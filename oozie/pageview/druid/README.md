@@ -11,5 +11,4 @@ Example command for running the coordinator on command line:
 
     oozie job -run \
          -config daily/coordinator.properties \
-         -D refinery_directory=hdfs://analytics-hadoop/wmf/refinery/current \
-         -D spark_job_jar=hdfs://analytics-hadoop/wmf/refinery/current/artifacts/refinery-job.jar
+         -D refinery_directory=hdfs://analytics-hadoop/wmf/refinery/current

@@ -25,6 +25,7 @@
         <property><name>mw_page_history_table</name></property>
         <property><name>mw_denormalized_history_table</name></property>
 
+        <property><name>oozie_spark_lib</name></property>
         <property><name>spark_master</name></property>
         <property><name>spark_job_jar</name></property>
         <property><name>spark_job_class</name></property>

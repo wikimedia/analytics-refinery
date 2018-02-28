@@ -29,6 +29,8 @@
         <property><name>start_time</name></property>
         <property><name>stop_time</name></property>
 
+        <property><name>oozie_spark_lib</name></property>
+        <property><name>spark_assembly_jar</name></property>
         <property><name>spark_app_jar</name></property>
         <property><name>spark_app_class</name></property>
         <property><name>spark_app_name</name></property>
@@ -42,7 +44,6 @@
         <property><name>temporary_directory</name></property>
         <property><name>clickstream_archive_base_path</name></property>
 
-        <property><name>spark_submit_workflow_file</name></property>
         <property><name>loop_workflow_file</name></property>
         <property><name>loop_workflow_base_path</name></property>
         <property><name>loop_archive_wrapper_workflow_file</name></property>

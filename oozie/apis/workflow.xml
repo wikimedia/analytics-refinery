@@ -3,6 +3,11 @@
     name="apis-wf-${year}-${month}-${day}-${hour}">
 
     <parameters>
+        <!-- Allows changing spark version to be used by oozie -->
+        <property>
+            <name>oozie.action.sharelib.for.spark</name>
+            <value>${oozie_spark_lib}</value>
+        </property>
 
         <!-- Default values for inner oozie settings -->
         <property>
@@ -76,8 +81,8 @@
             <description>Namespace/prefix for mw-api in Graphite</description>
         </property>
         <property>
-            <name>webrequest_data_directory</name>
-            <description>Path to webrequest data on Hadoop</description>
+            <name>webrequest_table</name>
+            <description>Webrequest table name on hive</description>
         </property>
         <property>
             <name>send_error_email_workflow_file</name>
@@ -126,8 +131,8 @@
             <arg>${restbase_namespace}</arg>
             <arg>--mwAPINamespace</arg>
             <arg>${mwapi_namespace}</arg>
-            <arg>--webrequest-base-path</arg>
-            <arg>${webrequest_data_directory}</arg>
+            <arg>--webrequest-table</arg>
+            <arg>${webrequest_table}</arg>
         </spark>
         <ok to="end" />
         <error to="send_error_email" />

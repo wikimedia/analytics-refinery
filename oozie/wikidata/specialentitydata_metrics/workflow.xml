@@ -3,6 +3,11 @@
     name="wikidata-specialentitydata_metrics-wf-${year}-${month}-${day}">
 
     <parameters>
+        <!-- Allows changing spark version to be used by oozie -->
+        <property>
+            <name>oozie.action.sharelib.for.spark</name>
+            <value>${oozie_spark_lib}</value>
+        </property>
 
         <!-- Default values for inner oozie settings -->
         <property>
@@ -40,12 +45,12 @@
             <description>Memory to allocate for spark driver process</description>
         </property>
         <property>
-            <name>spark_additional_files</name>
-            <description>Additional files for spark</description>
+            <name>spark_max_executors</name>
+            <description>Maximum number of executors for spark</description>
         </property>
         <property>
-            <name>webrequest_data_directory</name>
-            <description>The webrequest data directory</description>
+            <name>webrequest_table</name>
+            <description>The webrequest table</description>
         </property>
         <property>
             <name>year</name>
@@ -104,7 +109,7 @@
             <name>${spark_job_name}-${year}-${month}-${day}</name>
             <class>${spark_job_class}</class>
             <jar>${spark_job_jar}</jar>
-            <spark-opts>--conf spark.yarn.jar=${spark_assembly_jar} --conf spark.dynamicAllocation.enabled=true --conf spark.shuffle.service.enabled=true --executor-memory ${spark_executor_memory} --driver-memory ${spark_driver_memory} --queue ${queue_name} --files ${spark_additional_files} </spark-opts>
+            <spark-opts>--conf spark.yarn.jar=${spark_assembly_jar} --conf spark.dynamicAllocation.enabled=true --conf spark.shuffle.service.enabled=true --executor-memory ${spark_executor_memory} --conf spark.dynamicAllocation.maxExecutors=${spark_max_executors} --driver-memory ${spark_driver_memory} --queue ${queue_name}</spark-opts>
             <arg>--year</arg>
             <arg>${year}</arg>
             <arg>--month</arg>
@@ -117,8 +122,8 @@
             <arg>${graphite_port}</arg>
             <arg>--graphite-namespace</arg>
             <arg>${graphite_namespace}</arg>
-            <arg>--webrequest-base-path</arg>
-            <arg>${webrequest_data_directory}</arg>
+            <arg>--webrequest-table</arg>
+            <arg>${webrequest_table}</arg>
         </spark>
         <ok to="end" />
         <error to="send_error_email" />
