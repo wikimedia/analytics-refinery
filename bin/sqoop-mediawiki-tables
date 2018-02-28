@@ -72,8 +72,8 @@ Options:
     -T TO --to-timestamp TO             Get records with time <  this for all tables that
                                         have timestamps.  Format is YYYYMMDD000000
     -s PART --partition-name PART       The name of the partition to use for this data.
-                                        (for example, in snapshot=2018-02,
-                                        --partition-name is snapshot)
+                                        (for example, in month=2018-02, --partition-name
+                                        is snapshot)
     -x PVAL --partition-value PVAL      The value to write to --partition-name for data
                                         imported with this script, (for example, in
                                         snapshot=2018-02, --partition-value is 2018-02)
