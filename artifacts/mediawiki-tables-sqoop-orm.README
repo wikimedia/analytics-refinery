@@ -3,8 +3,9 @@ script in production.  It is then manually uploaded to Archiva and thus made ava
 in the remote git-fat artifacts repository by following the instructions at
 https://wikitech.wikimedia.org/wiki/Archiva#Uploading_dependency_artifacts, with
 
+Repository ID: Wikimedia Mirrored Repository
 Group ID: org.wikimedia.analytics
-Artifact ID: mediawiki-tables-sqooop-orm
+Artifact ID: mediawiki-tables-sqoop-orm
 Version: 0.0.3 (bump this when you generate a new jar)
 Packaging: jar
 
