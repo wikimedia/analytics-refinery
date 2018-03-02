@@ -4,8 +4,9 @@ Wikimedia Anaytics Refinery sqoop python helpers
 import sys
 import logging
 
-from subprocess import check_call
+from subprocess import check_call, DEVNULL
 from refinery.util import is_yarn_application_running, HdfsUtils
+from refinery.logging_setup import copy_subprocess_output_to_logger
 
 logger = logging.getLogger()
 
@@ -109,7 +110,8 @@ def sqoop_wiki(config):
 
         logger.info('Sqooping with: {}'.format(sqoop_arguments))
         logger.debug('You can copy the parameters above and execute the sqoop command manually')
-        check_call(sqoop_arguments)
+        # Ignore sqoop output because it's in Yarn and grabbing output is way complicated
+        check_call(sqoop_arguments, stdout=DEVNULL, stderr=DEVNULL)
         logger.info('FINISHED: {}'.format(log_message))
         return None
     except(Exception):
