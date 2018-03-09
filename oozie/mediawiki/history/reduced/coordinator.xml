@@ -19,6 +19,8 @@
 
         <property><name>datasets_file</name></property>
         <property><name>mw_directory</name></property>
+        <property><name>datasets_raw_file</name></property>
+        <property><name>mw_raw_directory</name></property>
 
         <property><name>mw_denormalized_history_table</name></property>
         <property><name>mw_project_namespace_map_table</name></property>
@@ -47,14 +49,18 @@
 
     <datasets>
         <!--
-        Include refined datasets files.
-        $datasets_file will be used as the input events
+        Include refined and raw datasets files.
         -->
         <include>${datasets_file}</include>
+        <include>${datasets_raw_file}</include>
     </datasets>
 
     <input-events>
         <data-in name="mw_denormalized_history_partitioned" dataset="mw_denormalized_history_partitioned">
+            <instance>${coord:current(0)}</instance>
+        </data-in>
+
+        <data-in name="mw_project_namespace_map_partitioned" dataset="mw_project_namespace_map_partitioned">
             <instance>${coord:current(0)}</instance>
         </data-in>
     </input-events>
