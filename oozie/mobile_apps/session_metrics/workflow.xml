@@ -40,8 +40,8 @@
             <description>Memory to allocate for spark driver process</description>
         </property>
         <property>
-            <name>spark_number_executors</name>
-            <description>Number of executors to run in parallel</description>
+            <name>spark_max_executors</name>
+            <description>Maximum number of executors to run in parallel</description>
         </property>
         <property>
             <name>year</name>
@@ -100,7 +100,7 @@
             <name>${spark_job_name}-${year}-${month}-${day}</name>
             <class>${spark_job_class}</class>
             <jar>${spark_job_jar}</jar>
-            <spark-opts>--conf spark.yarn.jar=${spark_assembly_jar} --executor-memory ${spark_executor_memory} --driver-memory ${spark_driver_memory} --num-executors ${spark_number_executors} --queue ${queue_name}</spark-opts>
+            <spark-opts>--conf spark.yarn.jar=${spark_assembly_jar} --conf spark.dynamicAllocation.enabled=true --conf spark.shuffle.service.enabled=true --executor-memory ${spark_executor_memory} --driver-memory ${spark_driver_memory} --queue ${queue_name} --conf spark.dynamicAllocation.maxExecutors=${spark_max_executors}</spark-opts>
             <arg>--year</arg>
             <arg>${year}</arg>
             <arg>--month</arg>
