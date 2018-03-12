@@ -114,7 +114,7 @@
             <!--The num-partitions value controls the number of partitions for the Spark job's computations,
                 Specifying a very small number for large amounts of data can lead of OOM errors.-->
             <arg>--num-partitions</arg>
-            <arg>${spark_number_executors}</arg>
+            <arg>${spark_max_executors}</arg>
             <arg>--output-dir</arg>
             <arg>${output_directory}</arg>
             <arg>--webrequest-base-path</arg>
