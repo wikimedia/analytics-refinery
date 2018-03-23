@@ -20,7 +20,7 @@
         <property><name>datasets_private_file</name></property>
         <property><name>mw_private_directory</name></property>
 
-        <property><name>geowiki_daily_table</name></property>
+        <property><name>geowiki_monthly_table</name></property>
 
         <property><name>druid_template_file</name></property>
         <property><name>druid_overlord_url</name></property>
@@ -49,7 +49,7 @@
     </datasets>
 
     <input-events>
-        <data-in name="geowiki_daily" dataset="geowiki_daily">
+        <data-in name="geowiki_monthly" dataset="geowiki_monthly">
             <instance>${coord:current(0)}</instance>
         </data-in>
     </input-events>

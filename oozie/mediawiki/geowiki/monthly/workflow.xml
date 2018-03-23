@@ -46,6 +46,10 @@
             <name>geowiki_daily_location</name>
             <description>Path to geowiki daily computed data on HDFS</description>
         </property>
+        <property>
+            <name>geowiki_monthly_location</name>
+            <description>Path to geowiki monthly computed data on HDFS</description>
+        </property>
 
         <!-- Hive tables-->
         <property>
@@ -59,6 +63,10 @@
         <property>
             <name>geowiki_daily_table</name>
             <description>Geowiki data per wiki, country, user, at daily granularity</description>
+        </property>
+        <property>
+            <name>geowiki_monthly_table</name>
+            <description>Geowiki data per wiki and country, at monthly granularity</description>
         </property>
 
         <!-- Subworkflows -->
@@ -126,6 +134,62 @@
                 <property>
                     <name>directory</name>
                     <value>${geowiki_daily_location}</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="insert_geowiki_monthly_data"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <!-- Aggregate daily data into monthly geowiki totals -->
+
+    <action name="insert_geowiki_monthly_data">
+        <hive xmlns="uri:oozie:hive-action:0.2">
+            <job-tracker>${job_tracker}</job-tracker>
+            <name-node>${name_node}</name-node>
+            <job-xml>${hive_site_xml}</job-xml>
+            <configuration>
+                <property>
+                    <name>oozie.launcher.mapred.job.queue.name</name>
+                    <value>${oozie_launcher_queue_name}</value>
+                </property>
+                <property>
+                    <name>oozie.launcher.mapreduce.map.memory.mb</name>
+                    <value>${oozie_launcher_memory}</value>
+                </property>
+
+                <property>
+                    <name>mapreduce.job.queuename</name>
+                    <value>${queue_name}</value>
+                </property>
+                <!--Let hive decide on the number of reducers -->
+                <property>
+                    <name>mapred.reduce.tasks</name>
+                    <value>-1</value>
+                </property>
+                <property>
+                    <name>hive.exec.scratchdir</name>
+                    <value>/tmp/hive-${user}</value>
+                </property>
+            </configuration>
+            <script>insert_geowiki_monthly_data.hql</script>
+            <param>source_table=${geowiki_daily_table}</param>
+            <param>destination_table=${geowiki_monthly_table}</param>
+            <param>month=${month_partition}</param>
+        </hive>
+        <ok to="mark_geowiki_monthly_hive_done" />
+        <error to="send_error_email" />
+    </action>
+
+    <!-- Flag the datasets as hive-done -->
+
+    <action name="mark_geowiki_monthly_hive_done">
+        <sub-workflow>
+            <app-path>${mark_directory_done_workflow_file}</app-path>
+            <configuration>
+                <property>
+                    <name>directory</name>
+                    <value>${geowiki_monthly_location}</value>
                 </property>
             </configuration>
         </sub-workflow>

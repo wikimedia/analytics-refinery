@@ -27,6 +27,7 @@
         <property><name>mw_cu_changes_table</name></property>
         <property><name>mw_user_history_table</name></property>
         <property><name>geowiki_daily_table</name></property>
+        <property><name>geowiki_monthly_table</name></property>
 
         <property><name>hive_site_xml</name></property>
         <property><name>mark_directory_done_workflow_file</name></property>
@@ -50,7 +51,7 @@
         <!--
             datasets_raw_private_file   : mw_cu_changes_table_partitioned
             datasets_file               : mw_user_history_partitioned
-            datasets_private_file       : geowiki_daily
+            datasets_private_file       : geowiki_daily, geowiki_monthly
         -->
         <include>${datasets_raw_private_file}</include>
         <include>${datasets_file}</include>
@@ -71,6 +72,9 @@
         <data-out name="geowiki_daily" dataset="geowiki_daily">
             <instance>${coord:current(0)}</instance>
         </data-out>
+        <data-out name="geowiki_monthly" dataset="geowiki_monthly">
+            <instance>${coord:current(0)}</instance>
+        </data-out>
     </output-events>
 
     <action>
@@ -84,6 +88,10 @@
                 <property>
                     <name>geowiki_daily_location</name>
                     <value>${coord:dataOut('geowiki_daily')}</value>
+                </property>
+                <property>
+                    <name>geowiki_monthly_location</name>
+                    <value>${coord:dataOut('geowiki_monthly')}</value>
                 </property>
             </configuration>
         </workflow>

@@ -9,11 +9,11 @@
       }
     },
     "dataSchema" : {
-      "dataSource" : "mediawiki-geowiki-daily",
+      "dataSource" : "mediawiki-geowiki-monthly",
       "granularitySpec" : {
         "type" : "uniform",
         "segmentGranularity" : "month",
-        "queryGranularity" : "day",
+        "queryGranularity" : "month",
         "intervals" : *INTERVALS_ARRAY*
       },
       "parser" : {
@@ -24,26 +24,21 @@
             "dimensions" : [
               "wiki_db",
               "country_code",
-              "user_id_or_ip",
-              "user_is_anonymous"
+              "users_are_anonymous",
+              "activity_level"
             ]
           },
           "timestampSpec" : {
-            "format" : "yyyy-MM-dd",
-            "column" : "date"
+            "format" : "yyyy-MM",
+            "column" : "month"
           }
         }
       },
       "metricsSpec" : [
         {
-          "type" : "count",
-          "name" : "distinct_user_in_country_on_wiki"
-        },
-
-        {
-          "name" : "edit_count",
+          "name" : "distinct_editors",
           "type" : "longSum",
-          "fieldName": "edit_count"
+          "fieldName": "distinct_editors"
         }
       ]
     },

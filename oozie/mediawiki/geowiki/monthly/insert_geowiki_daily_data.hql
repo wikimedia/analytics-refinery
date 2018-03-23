@@ -6,7 +6,7 @@
 --     refinery_jar_version -- Version of the jar to import for UDFs
 --     artifacts_directory  -- Where the UDF jars are
 --     source_table         -- Read raw data from here
---     bot_table            -- Look up whether a user is a bot here
+--     user_history_table   -- Look up whether a user is a bot here
 --     destination_table    -- Insert results here
 --     month                -- YYYY-MM to compute statistics for
 --
