@@ -1,3 +1,6 @@
+-- NOTE: This table only hold historical data, no new data is generated as of
+-- 2018-03
+--
 -- Creates table statement for mobile apps session metrics uniques daily table.
 -- This table uses the archive directory as a base and gets updated
 -- through a Spark job run every 7 days (mobile_apps/session_metrics oozie job).
