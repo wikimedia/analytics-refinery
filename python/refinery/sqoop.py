@@ -6,7 +6,6 @@ import logging
 
 from subprocess import check_call, DEVNULL
 from refinery.util import is_yarn_application_running, HdfsUtils
-from refinery.logging_setup import copy_subprocess_output_to_logger
 
 logger = logging.getLogger()
 
