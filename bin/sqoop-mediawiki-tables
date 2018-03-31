@@ -43,8 +43,8 @@ Usage:
           [--max-tries TRIES] --wiki-file WIKIS --tables TABLES
           [--verbose] --from-timestamp FROM --to-timestamp TO
           [--force] --partition-name PART --partition-value PVAL
-          [--mappers NUM] [--processors NUM]
-          [--job-name JOB_NAME] [--jar-file JAR_IN]
+          [--mappers NUM] [--processors NUM] [--tmp-base-path TMP]
+          [--job-name JOB_NAME] [--jar-file JAR_IN] --output-format FMT
           [--log-file LOG] [--dry-run]
 
 Options:
@@ -98,6 +98,10 @@ Options:
                                         [optional] default is sqoop-mediawiki-tables
     -r TRIES --max-tries TRIES          Maximum number of tries for a sqoop job in
                                         case of failure [default: 3]
+    -a FMT --output-format FMT          Output format for the sqoop jobs. Accepted
+                                        values are 'avrodata' or 'parquet'.
+    -b TMP --tmp-base-path TMP          HDFS folder where to temporary sqoop data
+                                        before renaming. [default: /tmp/sqoop-mediawiki-tables]
     -l --labsdb                         Add '_p' postfix to table names for labsdb
     -f --force                          Deleting existing folders before importing
                                         instead of failing
@@ -155,6 +159,8 @@ if __name__ == '__main__':
 
     num_mappers                         = int(arguments.get('--mappers') or '1')
     num_processors                      = int(arguments.get('--processors')) if arguments.get('--processors') else None
+    output_format                       = arguments.get('--output-format')
+    tmp_base_path                       = arguments.get('--tmp-base-path')
     max_tries                           = int(arguments.get('--max-tries'))
     dry_run                             = arguments.get('--dry-run')
     force                               = arguments.get('--force')
@@ -176,6 +182,9 @@ if __name__ == '__main__':
         logger.info('**** Only logging, no action in this mode ****')
         logger.info('**********************************************')
 
+    if output_format not in ['avrodata', 'parquet']:
+        raise Exception('Invalid output-format {}'.format(output_format))
+
     logger.debug('Started Shell with with {}'.format(' '.join(arguments)))
 
     table_path_template = '{hdfs}/{table}/{partition_name}={partition_value}'.format(
@@ -193,7 +202,8 @@ if __name__ == '__main__':
 
     check_already_running_or_exit(yarn_job_name_prefix)
     logging.debug('No other running instances, proceeding')
-    check_hdfs_path_or_exit(queries.keys(), table_path_template, force, dry_run)
+
+    check_hdfs_path_or_exit(queries.keys(), table_path_template, tmp_base_path, force, dry_run)
     logging.debug('All table paths are empty or force cleaned')
 
     jdbc_host = 'jdbc:mysql://' + host + '/'
@@ -225,7 +235,7 @@ if __name__ == '__main__':
                 map_types = queries[table]['map-types'] if ('map-types' in queries[table]) else None
                 split_by = queries[table]['split-by']
                 executor_config_list.append(SqoopConfig(yarn_job_name_prefix, user, password_file, jdbc_host,
-                                            num_mappers_adjusted,
+                                            num_mappers_adjusted, output_format, tmp_base_path,
                                             table_path_template, w[0], dbpostfix, table,
                                             query, split_by, map_types,
                                             None, jar_file, 1, dry_run))

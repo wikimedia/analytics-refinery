@@ -609,5 +609,36 @@ class HdfsUtils(object):
         return sh(['hdfs', 'dfs', '-rm', '-R', '-skipTrash'] + paths)
 
     @staticmethod
+    def mkdir(paths):
+        """
+        Runs hdfs dfs -rm -R on paths.
+        """
+        if isinstance(paths, str):
+            paths = paths.split()
+
+        return sh(['hdfs', 'dfs', '-mkdir', '-p'] + paths)
+
+    @staticmethod
+    def mv(fromPaths, toPaths):
+        """
+        Runs hdfs dfs -mv fromPath toPath for each values of from/to Paths.
+        """
+        if isinstance(fromPaths, str):
+            fromPaths = fromPaths.split()
+
+        if isinstance(toPaths, str):
+            toPaths = toPaths.split()
+
+        if len(fromPaths) != len(toPaths):
+            raise Exception('fromPaths and toPaths size don\'t match in hdfs mv function')
+
+
+        for i in range(len(fromPaths)) :
+            toParent = '/'.join(toPaths[i].split('/')[:-1])
+            if not HdfsUtils.ls(toParent, include_children=False):
+                HdfsUtils.mkdir(toParent)
+            sh(['hdfs', 'dfs', '-mv', fromPaths[i], toParent])
+
+    @staticmethod
     def validate_path(path):
         return path.startswith('/') or path.startswith('hdfs://')

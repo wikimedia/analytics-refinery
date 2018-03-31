@@ -3,6 +3,7 @@ Wikimedia Anaytics Refinery sqoop python helpers
 """
 import sys
 import logging
+import re
 
 from subprocess import check_call, DEVNULL
 from refinery.util import is_yarn_application_running, HdfsUtils
@@ -12,7 +13,9 @@ logger = logging.getLogger()
 
 class SqoopConfig:
 
-    def __init__(self, yarn_job_name_prefix, user, password_file, jdbc_host, num_mappers,
+    def __init__(self, yarn_job_name_prefix,
+                 user, password_file, jdbc_host,
+                 num_mappers, output_format, tmp_base_path,
                  table_path_template, dbname, dbpostfix, table,
                  query, split_by, map_types,
                  generate_jar, jar_file,
@@ -23,6 +26,8 @@ class SqoopConfig:
         self.password_file = password_file
         self.jdbc_host = jdbc_host
         self.num_mappers = num_mappers
+        self.output_format = output_format
+        self.tmp_base_path = tmp_base_path
         self.table_path_template = table_path_template
         self.dbname = dbname
         self.dbpostfix = dbpostfix
@@ -78,13 +83,20 @@ def sqoop_wiki(config):
                 '--bindir'          , config.generate_jar,
             ]
         else:
+            # We don't use the hive-partition folder style since
+            # it fails when sqooping as parquet outpout format.
+            # We instead sqoop into a temporary folder, and then
+            # move it to the correct place
+
             target_directory = (config.table_path_template + '/wiki_db={db}').format(
                 table=config.table, db=config.dbname)
 
+            tmp_target_directory = table_path_to_tmp_path(target_directory, config.tmp_base_path)
+
             sqoop_arguments += [
-                '--target-dir'      , target_directory,
+                '--target-dir'      , tmp_target_directory,
                 '--num-mappers'     , str(config.num_mappers),
-                '--as-avrodatafile' ,
+                '--as-{}file'.format(config.output_format),
             ]
             if config.num_mappers > 1:
                 sqoop_arguments += [
@@ -113,6 +125,9 @@ def sqoop_wiki(config):
         # Ignore sqoop output because it's in Yarn and grabbing output is way complicated
         if not config.dry_run:
             check_call(sqoop_arguments, stdout=DEVNULL, stderr=DEVNULL)
+        logger.info('Moving sqooped forlder from {} to {}'.format(tmp_target_directory, target_directory))
+        if not config.dry_run:
+            HdfsUtils.mv(tmp_target_directory, target_directory)
         logger.info('FINISHED: {}'.format(log_message))
         return None
     except(Exception):
@@ -405,6 +420,9 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp,
         return queries
 
 
+def table_path_to_tmp_path(table_path, tmp_base_path):
+    return tmp_base_path + re.sub('[^a-zA-Z/]+', '', table_path)
+
 def check_already_running_or_exit(yarn_job_name_prefix):
     # This works since the check doesn't involve 'full word' matching
     if is_yarn_application_running(yarn_job_name_prefix):
@@ -412,12 +430,20 @@ def check_already_running_or_exit(yarn_job_name_prefix):
         sys.exit(1)
 
 
-def check_hdfs_path_or_exit(tables, table_path_template, force, dry_run):
+def check_hdfs_path_or_exit(tables, table_path_template, tmp_base_path, force, dry_run):
     safe = True
     logger.info('Checking HDFS paths')
     for table in tables:
         table_path = table_path_template.format(table=table)
+        tmp_table_path = table_path_to_tmp_path(table_path, tmp_base_path)
 
+        # Delete temporary folder if it exists in any case
+        if HdfsUtils.ls(tmp_table_path, include_children=False):
+            if not dry_run:
+                HdfsUtils.rm(tmp_table_path)
+            logger.info('temporary path {} deleted from HDFS.'.format(tmp_table_path))
+
+        # Check if real folder exist and delee it if --force flag is on
         if HdfsUtils.ls(table_path, include_children=False):
             if force:
                 if not dry_run:
