@@ -168,7 +168,7 @@ if __name__ == '__main__':
     # Delete any old HDFS data
     if partition_paths_to_delete:
         if dry_run:
-            print('hdfs dfs -rm -R ' + ' '.join(partition_paths_to_delete))
+            print('hdfs dfs -rm -R -skipTrash ' + ' '.join(partition_paths_to_delete))
         else:
             logging.info('Removing {0} partition directories for table {1}.{2} from {3}.'
                 .format(len(partition_paths_to_delete), database, table, table_location)

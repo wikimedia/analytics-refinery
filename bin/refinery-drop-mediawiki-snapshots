@@ -246,7 +246,7 @@ def remove_directories(hive, table, directories, dry_run):
     table_location = hive.table_location(table)
     if directories:
         if dry_run:
-            print('hdfs dfs -rm -R ' + ' '.join(directories))
+            print('hdfs dfs -rm -R -skipTrash ' + ' '.join(directories))
         else:
             logger.info('Removing {0} directories from {1}'
                 .format(len(directories), table_location)

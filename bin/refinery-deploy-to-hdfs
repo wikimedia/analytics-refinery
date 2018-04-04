@@ -126,7 +126,7 @@ bring_tmp_hdfs_dir_into_place() {
     run_hdfs dfs -mv "$TMP_HDFSDIR_ABS" "$FINAL_HDFSDIR_ABS"
     if [ "$CLEANUP_SWAP" = "yes" ]
     then
-        run_hdfs dfs -rm -r -f "$SWAP_HDFSDIR_ABS"
+        run_hdfs dfs -rm -r -f -skipTrash "$SWAP_HDFSDIR_ABS"
     fi
 }
 
@@ -250,7 +250,7 @@ VERSIONED_TMP_TARGET_HDFSDIR_ABS="$VERSIONED_TARGET_HDFSDIR_ABS.tmp"
 
 # Making sure target exists (else put will complain) and is empty, by
 # unlinking, and recreating it.
-run_hdfs dfs -rm -r -f "$VERSIONED_TMP_TARGET_HDFSDIR_ABS"
+run_hdfs dfs -rm -r -f -skipTrash "$VERSIONED_TMP_TARGET_HDFSDIR_ABS"
 run_hdfs dfs -mkdir "$VERSIONED_TMP_TARGET_HDFSDIR_ABS"
 
 # Note that we only copy *, and not dot-files, hence excluding '.git'.

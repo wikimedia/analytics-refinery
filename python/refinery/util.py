@@ -593,12 +593,12 @@ class HdfsUtils(object):
     @staticmethod
     def rm(paths):
         """
-        Runs hdfs dfs -rm -R on paths.
+        Runs hdfs dfs -rm -R -skipTrash on paths.
         """
         if isinstance(paths, str):
             paths = paths.split()
 
-        return sh(['hdfs', 'dfs', '-rm', '-R'] + paths)
+        return sh(['hdfs', 'dfs', '-rm', '-R', '-skipTrash'] + paths)
 
     @staticmethod
     def validate_path(path):
