@@ -113,7 +113,7 @@
             <name>${spark_job_name}-${year}-${month}-${day}-${hour}</name>
             <class>${spark_job_class}</class>
             <jar>${spark_job_jar}</jar>
-            <spark-opts>--conf spark.yarn.jar=${spark_assembly_jar} --executor-memory ${spark_executor_memory} --driver-memory ${spark_driver_memory} --queue ${queue_name} --conf spark.dynamicAllocation.enabled=true --conf spark.shuffle.service.enabled=true
+            <spark-opts>--conf spark.yarn.archive=${spark_assembly_zip} --executor-memory ${spark_executor_memory} --driver-memory ${spark_driver_memory} --queue ${queue_name} --conf spark.dynamicAllocation.enabled=true --conf spark.shuffle.service.enabled=true
             --conf spark.dynamicAllocation.maxExecutors=${spark_max_executors}</spark-opts>
             <arg>--year</arg>
             <arg>${year}</arg>

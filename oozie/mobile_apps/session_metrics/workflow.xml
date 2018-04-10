@@ -29,6 +29,10 @@
             <description>Master to be used for Spark (yarn, local, other)</description>
         </property>
         <property>
+            <name>spark_assembly_zip</name>
+            <description>The spark assembly zip file on HDFS, preventing to repackage it everytime</description>
+        </property>
+        <property>
             <name>spark_job_jar</name>
             <description>Path to the jar to be used to run spark job</description>
         </property>
@@ -105,7 +109,7 @@
             <name>${spark_job_name}-${year}-${month}-${day}</name>
             <class>${spark_job_class}</class>
             <jar>${spark_job_jar}</jar>
-            <spark-opts>--conf spark.yarn.jar=${spark_assembly_jar} --conf spark.dynamicAllocation.enabled=true --conf spark.shuffle.service.enabled=true --executor-memory ${spark_executor_memory} --conf spark.dynamicAllocation.maxExecutors=${spark_max_executors} --driver-memory ${spark_driver_memory} --queue ${queue_name}</spark-opts>
+            <spark-opts>--conf spark.yarn.archive=${spark_assembly_zip} --conf spark.dynamicAllocation.enabled=true --conf spark.shuffle.service.enabled=true --executor-memory ${spark_executor_memory} --conf spark.dynamicAllocation.maxExecutors=${spark_max_executors} --driver-memory ${spark_driver_memory} --queue ${queue_name}</spark-opts>
             <arg>--year</arg>
             <arg>${year}</arg>
             <arg>--month</arg>
