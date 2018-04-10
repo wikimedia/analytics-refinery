@@ -16,40 +16,35 @@
 --         -d wiki_db=all                               \
 --         -d snapshot=2017-03
 
-set hive.mapred.mode=nonstrict;
-set hive.exec.dynamic.partition=true;
-set hive.exec.dynamic.partition.mode=nonstrict;
-set hive.error.on.empty.partition=false;
--- there are no more than 900 wikis, no matter how we import, usually less
-set hive.exec.max.dynamic.partitions=2000;
--- and we only use one node
-set hive.exec.max.dynamic.partitions.pernode=2000;
+insert into table ${destination_table} partition (snapshot='${snapshot}')
+select
+    day as dt,
+    'daily_unique_page_creators' as metric,
+    wiki_db,
+    count(*) as value
 
--- dynamic partitions must be specified here
- insert overwrite table ${destination_table} partition (snapshot='${snapshot}', metric, wiki_db)
--- dynamic partitions must be selected in order and at the end
- select day as dt,
-        count(*) as value,
-        'daily_unique_page_creators' as metric,
-        wiki_db
+from (
+    select
+        wiki_db,
+        substring(event_timestamp, 0, 10) as day,
+        coalesce(event_user_id, event_user_text) as any_user
+    from ${source_table}
+    where event_entity = 'page'
+        and event_type = 'create'
+        and ('${wiki_db}' = 'all' or wiki_db = '${wiki_db}')
+        and event_timestamp >= '${start_timestamp}'
+        and event_timestamp <  '${end_timestamp}'
+        and snapshot = '${snapshot}'
 
-   from (select wiki_db,
-                substring(event_timestamp, 0, 10) as day,
-                coalesce(event_user_id, event_user_text) as any_user
-           from ${source_table}
-          where event_entity = 'page'
-            and event_type = 'create'
-            and ('${wiki_db}' = 'all' or wiki_db = '${wiki_db}')
-            and event_timestamp >= '${start_timestamp}'
-            and event_timestamp <  '${end_timestamp}'
-            and snapshot = '${snapshot}'
+    group by
+        wiki_db,
+        substring(event_timestamp, 0, 10),
+        coalesce(event_user_id, event_user_text)
 
-          group by
-                wiki_db,
-                substring(event_timestamp, 0, 10),
-                coalesce(event_user_id, event_user_text)
-        ) page_creators
+    ) page_creators
 
-  group by wiki_db, day
-  order by wiki_db, dt
+group by
+    wiki_db,
+    day
+
 ;

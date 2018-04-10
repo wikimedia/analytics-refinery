@@ -63,7 +63,33 @@
         </property>
     </parameters>
 
-    <start to="compute_daily_edits"/>
+    <start to="check_existing_metrics"/>
+
+    <!--
+        Hive actions append data to an existing partition to
+        allow for many queries to populate the same partition.
+        This means the partition is NEVER overwritten, which could
+        lead to data duplication in case of rerun. We prevent this
+        by deleting the metrics-snapshot folder if it exists before
+        filling it with newly computed data.
+    -->
+    <decision name="check_existing_metrics">
+        <switch>
+            <case to="delete_existing_metrics">
+                ${fs:exists(metrics_location)}
+            </case>
+
+            <default to="compute_daily_edits"/>
+        </switch>
+    </decision>
+
+    <action name="delete_existing_metrics">
+        <fs>
+            <delete path="${metrics_location}" />
+        </fs>
+        <ok to="compute_daily_edits"/>
+        <error to="kill"/>
+    </action>
 
     <action name="compute_daily_edits">
         <hive xmlns="uri:oozie:hive-action:0.3">
