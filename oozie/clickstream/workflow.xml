@@ -37,8 +37,8 @@
           <description>The spark application name</description>
         </property>
         <property>
-            <name>spark_assembly_jar</name>
-            <description>The assembly jar path for spark</description>
+            <name>spark_assembly_zip</name>
+            <description>The assembly zip path for spark</description>
         </property>
         <property>
             <name>spark_executor_cores</name>
@@ -155,7 +155,7 @@
             <name>${spark_app_name}-${year}-${month}</name>
             <class>${spark_app_class}</class>
             <jar>${spark_app_jar}</jar>
-            <spark-opts>--conf spark.yarn.jar=${spark_assembly_jar} --conf spark.dynamicAllocation.enabled=true --conf spark.shuffle.service.enabled=true --conf spark.yarn.executor.memoryOverhead=${spark_executor_memory_overhead} --conf spark.dynamicAllocation.maxExecutors=${spark_max_executors} --executor-cores ${spark_executor_cores} --executor-memory ${spark_executor_memory} --driver-memory ${spark_driver_memory} --queue ${queue_name}</spark-opts>
+            <spark-opts>--conf spark.yarn.archive=${spark_assembly_zip} --conf spark.dynamicAllocation.enabled=true --conf spark.shuffle.service.enabled=true --conf spark.yarn.executor.memoryOverhead=${spark_executor_memory_overhead} --conf spark.dynamicAllocation.maxExecutors=${spark_max_executors} --executor-cores ${spark_executor_cores} --executor-memory ${spark_executor_memory} --driver-memory ${spark_driver_memory} --queue ${queue_name}</spark-opts>
             <arg>--snapshot</arg>
             <arg>${snapshot}</arg>
             <arg>--year</arg>
