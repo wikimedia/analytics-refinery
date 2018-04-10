@@ -3,6 +3,11 @@
     name="mediawiki-history-denormalize-wf-${snapshot}">
 
     <parameters>
+        <!-- Allows changing spark version to be used by oozie -->
+        <property>
+            <name>oozie.action.sharelib.for.spark</name>
+            <value>${oozie_spark_lib}</value>
+        </property>
 
         <!-- Default values for inner oozie settings -->
         <property>

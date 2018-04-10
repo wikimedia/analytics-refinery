@@ -3,6 +3,11 @@
     name="clickstream-wf-${year}-${month}">
 
     <parameters>
+        <!-- Allows changing spark version to be used by oozie -->
+        <property>
+            <name>oozie.action.sharelib.for.spark</name>
+            <value>${oozie_spark_lib}</value>
+        </property>
 
         <!-- Default values for inner oozie settings -->
         <property>
@@ -30,6 +35,10 @@
         <property>
           <name>spark_app_name</name>
           <description>The spark application name</description>
+        </property>
+        <property>
+            <name>spark_assembly_jar</name>
+            <description>The assembly jar path for spark</description>
         </property>
         <property>
             <name>spark_executor_cores</name>
@@ -102,10 +111,6 @@
         </property>
 
         <property>
-            <name>spark_submit_workflow_file</name>
-            <description>Workflow submitting spark jobs with access to hive context</description>
-        </property>
-        <property>
             <name>loop_workflow_file</name>
             <description>Workflow looping over list elements executing another oozie action</description>
         </property>
@@ -130,29 +135,50 @@
     <start to="generate_clickstream_datasets"/>
 
     <action name="generate_clickstream_datasets">
-        <sub-workflow>
-            <app-path>${spark_submit_workflow_file}</app-path>
-            <propagate-configuration/>
+        <spark xmlns="uri:oozie:spark-action:0.1">
+
+            <job-tracker>${job_tracker}</job-tracker>
+            <name-node>${name_node}</name-node>
             <configuration>
-                <!-- Propagated properties :
-                    name_node
-                    job_tracker
-                    queue_name
-                    spark_app_jar
-                    spark_app_class
-                    spark_app_name
-                    spark_driver_memory
-                    spark_executor_cores
-                    spark_executor_memory
-                    spark_executor_memory_overhead
-                    spark_max_executors
-                -->
+                <!--make sure oozie:launcher runs in a low priority queue -->
                 <property>
-                    <name>spark_app_options</name>
-                    <value>--snapshot ${snapshot} --year ${year} --month ${month} --minimum-count ${clickstream_minimum_links} --output-base-path ${temporary_directory}/clickstream-${wf:id()} --wikis ${clickstream_wikis} --webrequest-table ${webrequest_table} --project-namespace-table ${mw_project_namespace_map_table} --page-table ${mw_page_table} --redirect-table ${mw_redirect_table} --pagelinks-table ${mw_pagelinks_table}</value>
+                    <name>oozie.launcher.mapred.job.queue.name</name>
+                    <value>${oozie_launcher_queue_name}</value>
+                </property>
+                <property>
+                    <name>oozie.launcher.mapreduce.map.memory.mb</name>
+                    <value>${oozie_launcher_memory}</value>
                 </property>
             </configuration>
-        </sub-workflow>
+            <master>${spark_master}</master>
+            <mode>${spark_deploy}</mode>
+            <name>${spark_app_name}-${year}-${month}</name>
+            <class>${spark_app_class}</class>
+            <jar>${spark_app_jar}</jar>
+            <spark-opts>--conf spark.yarn.jar=${spark_assembly_jar} --conf spark.dynamicAllocation.enabled=true --conf spark.shuffle.service.enabled=true --conf spark.yarn.executor.memoryOverhead=${spark_executor_memory_overhead} --conf spark.dynamicAllocation.maxExecutors=${spark_max_executors} --executor-cores ${spark_executor_cores} --executor-memory ${spark_executor_memory} --driver-memory ${spark_driver_memory} --queue ${queue_name}</spark-opts>
+            <arg>--snapshot</arg>
+            <arg>${snapshot}</arg>
+            <arg>--year</arg>
+            <arg>${year}</arg>
+            <arg>--month</arg>
+            <arg>${month}</arg>
+            <arg>--minimum-count</arg>
+            <arg>${clickstream_minimum_links}</arg>
+            <arg>--output-base-path</arg>
+            <arg>${temporary_directory}/clickstream-${wf:id()}</arg>
+            <arg>--wikis</arg>
+            <arg>${clickstream_wikis}</arg>
+            <arg>--webrequest-table</arg>
+            <arg>${webrequest_table}</arg>
+            <arg>--project-namespace-table</arg>
+            <arg>${mw_project_namespace_map_table}</arg>
+            <arg>--page-table</arg>
+            <arg>${mw_page_table}</arg>
+            <arg>--redirect-table</arg>
+            <arg>${mw_redirect_table}</arg>
+            <arg>--pagelinks-table</arg>
+            <arg>${mw_pagelinks_table}</arg>
+        </spark>
         <ok to="archive_loop" />
         <error to="send_error_email" />
     </action>

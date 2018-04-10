@@ -19,16 +19,17 @@
         <property><name>start_time</name></property>
         <property><name>stop_time</name></property>
 
+        <property><name>oozie_spark_lib</name></property>
         <property><name>spark_master</name></property>
         <property><name>spark_job_jar</name></property>
         <property><name>spark_job_class</name></property>
-        <property><name>spark_additional_files</name></property>
         <property><name>spark_executor_memory</name></property>
         <property><name>spark_driver_memory</name></property>
+        <property><name>spark_max_executors</name></property>
         <property><name>graphite_host</name></property>
         <property><name>graphite_port</name></property>
         <property><name>graphite_namespace</name></property>
-        <property><name>webrequest_data_directory</name></property>
+        <property><name>webrequest_table</name></property>
 
         <property><name>error_emails_recipients</name></property>
         <property><name>send_error_email_workflow_file</name></property>
