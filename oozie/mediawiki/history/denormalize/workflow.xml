@@ -46,6 +46,10 @@
             <description>Memory to allocate for each spark executor</description>
         </property>
         <property>
+            <name>spark_executor_cores</name>
+            <description>Number of cores to allocate for each spark executor</description>
+        </property>
+        <property>
             <name>spark_executor_memory_overhead</name>
             <description>Overhead of memory for spark executor to work</description>
         </property>
@@ -54,8 +58,8 @@
             <description>Memory to allocate for spark driver process</description>
         </property>
         <property>
-            <name>spark_max_executors</name>
-            <description>Maximum concurrent number of executors for spark dynamic allocation</description>
+            <name>spark_num_executors</name>
+            <description>Number of concurrent number of executors for spark (no dynamic allocation)</description>
         </property>
 
         <property>
@@ -147,7 +151,7 @@
             <name>${spark_job_name}-${snapshot}</name>
             <class>${spark_job_class}</class>
             <jar>${spark_job_jar}</jar>
-            <spark-opts>--conf spark.yarn.archive=${spark_assembly_zip} --executor-memory ${spark_executor_memory} --driver-memory ${spark_driver_memory} --queue ${queue_name} --conf spark.dynamicAllocation.enabled=true --conf spark.shuffle.service.enabled=true --conf spark.dynamicAllocation.maxExecutors=${spark_max_executors} --conf spark.yarn.executor.memoryOverhead=${spark_executor_memory_overhead}</spark-opts>
+            <spark-opts>--conf spark.yarn.archive=${spark_assembly_zip} --executor-memory ${spark_executor_memory} --executor-cores ${spark_executor_cores} --driver-memory ${spark_driver_memory} --queue ${queue_name} --conf spark.dynamicAllocation.enabled=false --conf spark.shuffle.service.enabled=false --num-executors ${spark_num_executors} --conf spark.yarn.executor.memoryOverhead=${spark_executor_memory_overhead}</spark-opts>
             <arg>--mediawiki-base-path</arg>
             <arg>${mw_raw_directory}</arg>
             <arg>--output-base-path</arg>
@@ -156,7 +160,7 @@
             <arg>${snapshot}</arg>
             <arg>--temporary-path</arg>
             <arg>${tmp_path}</arg>
-            <arg>--num-partitions</arg>
+            <arg>--base-num-partitions</arg>
             <arg>${spark_partitions_number}</arg>
         </spark>
         <ok to="repair_user_history_table_partitions" />
