@@ -125,7 +125,7 @@ if __name__ == '__main__':
                     'Could not construct partition glob from a partition depth.'
                 )
 
-            if partition_glob is not None and not internal:
+            if partition_glob is not None:
                 # Loop through all the partition directory paths for this table
                 # and check if any of them are old enough for deletion.
                 for partition_path in HdfsUtils.ls(partition_glob, include_children=False):
