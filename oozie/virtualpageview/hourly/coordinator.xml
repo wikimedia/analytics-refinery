@@ -16,6 +16,9 @@
 
         <property><name>workflow_file</name></property>
 
+        <property><name>artifacts_directory</name></property>
+        <property><name>refinery_jar_version</name></property>
+
         <property><name>start_time</name></property>
         <property><name>stop_time</name></property>
 

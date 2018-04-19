@@ -19,6 +19,8 @@
         <property><name>name_node</name></property>
         <property><name>job_tracker</name></property>
 
+        <property><name>refinery_jar_version</name></property>
+        <property><name>artifacts_directory</name></property>
 
         <!-- Aggregation related configuration properties-->
         <property>
@@ -99,6 +101,8 @@
                 </property>
             </configuration>
             <script>${hive_virtualpageview_script_aggregate}</script>
+            <param>artifacts_directory=${artifacts_directory}</param>
+            <param>refinery_jar_version=${refinery_jar_version}</param>
             <param>source_table=${virtualpageview_source_table}</param>
             <param>destination_table=${virtualpageview_hourly_table}</param>
             <param>record_version=${record_version}</param>

@@ -1,17 +1,22 @@
--- 
+--
 -- Aggregate from event.VirtualPageView into wmf.virtualpageview_hourly.
 --
 -- Parameters:
---     source_table      -- Fully qualified source table name.
---     destination_table -- Fully qualified destination table name.
---     record_version    -- Version number of the current schema.
---     year              -- Year of the partition to aggregate.
---     month             -- Month of the partition to aggregate.
---     day               -- Day of the partition to aggregate.
---     hour              -- Hour of the partition to aggregate.
+--     artifacts_directory   -- Version of the jar to import for UDFs.
+--     refinery_jar_version  -- The artifact directory where to find
+--                              jar files to import for UDFs.
+--     source_table          -- Fully qualified source table name.
+--     destination_table     -- Fully qualified destination table name.
+--     record_version        -- Version number of the current schema.
+--     year                  -- Year of the partition to aggregate.
+--     month                 -- Month of the partition to aggregate.
+--     day                   -- Day of the partition to aggregate.
+--     hour                  -- Hour of the partition to aggregate.
 --
 -- Usage example:
 --     hive -f virtualpageview_hourly.hql \
+--         -d artifacts_directory=/wmf/refinery/current/artifacts \
+--         -d refinery_jar_version=0.0.58 \
 --         -d source_table=event.VirtualPageView \
 --         -d destination_table=wmf.virtualpageview_hourly \
 --         -d record_version=0.0.1 \
@@ -24,7 +29,7 @@
 SET parquet.compression = SNAPPY;
 SET mapred.reduce.tasks = 8;
 
-ADD JAR hdfs://analytics-hadoop/wmf/refinery/current/artifacts/org/wikimedia/analytics/refinery/refinery-hive-0.0.58.jar;
+ADD JAR ${artifacts_directory}/org/wikimedia/analytics/refinery/refinery-hive-${refinery_jar_version}.jar;
 CREATE TEMPORARY FUNCTION get_pageview_info AS 'org.wikimedia.analytics.refinery.hive.GetPageviewInfoUDF';
 
 WITH decorated_virtualpageviews AS (
