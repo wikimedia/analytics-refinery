@@ -33,10 +33,17 @@
             <description>Mediawiki project_namespace_map table to use</description>
         </property>
         <property>
+            <name>mw_history_reduced_table</name>
+            <description>Mediawiki denormalized history table to get data from</description>
+        </property>
+        <property>
             <name>snapshot</name>
             <description>The snapshot partition used (usually YYYY-MM)</description>
         </property>
-
+        <property>
+            <name>history_reduced_location</name>
+            <description>The folder where the mediawiki_history_reduced partition is written</description>
+        </property>
         <property>
             <name>loaded_period</name>
             <description>Period of the data loaded in interval format (yyyy-MM-dd/yyyy-MM-dd)</description>
@@ -48,10 +55,6 @@
         <property>
             <name>druid_overlord_url</name>
             <description>The druid overlord url used for loading</description>
-        </property>
-        <property>
-            <name>temporary_directory</name>
-            <description>A directory in HDFS for temporary files</description>
         </property>
         <property>
             <name>load_druid_workflow_file</name>
@@ -103,7 +106,7 @@
             <script>generate_mediawiki_history_reduced.hql</script>
             <param>mw_denormalized_history_table=${mw_denormalized_history_table}</param>
             <param>mw_project_namespace_map_table=${mw_project_namespace_map_table}</param>
-            <param>destination_directory=${temporary_directory}/${wf:id()}-mediawiki-history-reduced</param>
+            <param>destination_table=${mw_history_reduced_table}</param>
             <param>snapshot=${snapshot}</param>
         </hive>
         <ok to="mark_mediawiki_history_reduced_dataset_done" />
@@ -116,7 +119,7 @@
             <configuration>
                 <property>
                     <name>directory</name>
-                    <value>${temporary_directory}/${wf:id()}-mediawiki-history-reduced</value>
+                    <value>${history_reduced_location}</value>
                 </property>
             </configuration>
         </sub-workflow>
@@ -131,7 +134,7 @@
             <configuration>
                 <property>
                     <name>source_directory</name>
-                    <value>${temporary_directory}/${wf:id()}-mediawiki-history-reduced</value>
+                    <value>${history_reduced_location}</value>
                 </property>
                 <property>
                     <name>template_file</name>
@@ -147,14 +150,6 @@
                 </property>
             </configuration>
         </sub-workflow>
-        <ok to="remove_temporary_data"/>
-        <error to="send_error_email"/>
-    </action>
-
-    <action name="remove_temporary_data">
-        <fs>
-            <delete path="${temporary_directory}/${wf:id()}-mediawiki-history-reduced"/>
-        </fs>
         <ok to="end"/>
         <error to="send_error_email"/>
     </action>

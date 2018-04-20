@@ -68,12 +68,23 @@ NOTE: user, page and denormalized history are bound to two datasets
         <done-flag>_PARTITIONED</done-flag>
     </dataset>
 
+
     <!-- History metrics datasets -->
+
     <dataset name="mw_metrics"
              frequency="${coord:months(1)}"
              initial-instance="${start_time}"
              timezone="Universal">
         <uri-template>${mw_directory}/metrics/snapshot=${YEAR}-${MONTH}</uri-template>
+        <done-flag>_SUCCESS</done-flag>
+    </dataset>
+
+    <!-- History-reduced datasets -->
+     <dataset name="mw_history_reduced"
+             frequency="${coord:months(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${mw_directory}/history_reduced/snapshot=${YEAR}-${MONTH}</uri-template>
         <done-flag>_SUCCESS</done-flag>
     </dataset>
 </datasets>

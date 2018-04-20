@@ -1,4 +1,4 @@
--- Generate json formatted mediawiki history reduced to be loaded in Druid
+-- Adds a snapshot partition of mediawiki history reduced data
 --
 -- REMARK: Booleans are converted to 0/1 integers to allow
 -- using them both AS dimensions and metrics in druid (having
@@ -6,10 +6,10 @@
 -- deleted pages)
 --
 -- Usage:
---     hive -f generate_json_mediawiki_history.hql \
+--     hive -f generate_mediawiki_history.hql \
 --         -d mw_denormalized_history_table=wmf.mediawiki_history \
 --         -d mw_project_namespace_map_table=wmf_raw.project_namespace_map \
---         -d destination_directory=/tmp/druid/mediawiki_history \
+--         -d destination_table=wmf.mediawiki_history_reduced \
 --         -d snapshot=2017-08
 --
 
@@ -17,26 +17,6 @@ SET hive.exec.compress.output=true;
 SET mapreduce.output.fileoutputformat.compress.codec=org.apache.hadoop.io.compress.GzipCodec;
 
 ADD JAR /usr/lib/hive-hcatalog/share/hcatalog/hive-hcatalog-core.jar;
-
-DROP TABLE IF EXISTS `tmp_druid_mediawiki_history_reduced`;
-CREATE EXTERNAL TABLE IF NOT EXISTS `tmp_druid_mediawiki_history_reduced` (
-  `project`                                       string,
-  `event_entity`                                  string,
-  `event_type`                                    string,
-  `event_timestamp`                               string,
-  `user_id`                                       string,
-  `user_type`                                     string,
-  `page_id`                                       bigint,
-  `page_namespace`                                string,
-  `page_type`                                     string,
-  `other_tags`                                    array<string>,
-  `text_bytes_diff`                               bigint,
-  `text_bytes_diff_abs`                           bigint,
-  `revisions`                                     bigint
-)
-ROW FORMAT SERDE 'org.apache.hive.hcatalog.data.JsonSerDe'
-STORED AS TEXTFILE
-LOCATION '${destination_directory}';
 
 
 WITH
@@ -221,7 +201,7 @@ WITH
             AND event_timestamp IS NOT NULL
     )
 
-INSERT OVERWRITE TABLE tmp_druid_mediawiki_history_reduced
+INSERT OVERWRITE TABLE ${destination_table} partition (snapshot='${snapshot}')
 
 SELECT * FROM core_data
   UNION ALL
@@ -229,8 +209,3 @@ SELECT * FROM user_digests
   UNION ALL
 SELECT * FROM page_digests
 ;
-
-DROP TABLE IF EXISTS tmp_druid_mediawiki_history_reduced;
-
-
-

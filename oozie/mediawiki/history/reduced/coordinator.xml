@@ -24,11 +24,11 @@
 
         <property><name>mw_denormalized_history_table</name></property>
         <property><name>mw_project_namespace_map_table</name></property>
+        <property><name>mw_history_reduced_table</name></property>
 
         <property><name>druid_template_file</name></property>
         <property><name>druid_overlord_url</name></property>
         <property><name>druid_period_start</name></property>
-        <property><name>temporary_directory</name></property>
 
         <property><name>load_druid_workflow_file</name></property>
         <property><name>mark_directory_done_workflow_file</name></property>
@@ -65,6 +65,12 @@
         </data-in>
     </input-events>
 
+    <output-events>
+        <data-out name="mw_history_reduced" dataset="mw_history_reduced">
+            <instance>${coord:current(0)}</instance>
+        </data-out>
+    </output-events>
+
     <action>
         <workflow>
             <app-path>${workflow_file}</app-path>
@@ -76,6 +82,10 @@
                 <property>
                     <name>loaded_period</name>
                     <value>${druid_period_start}/${coord:formatTime(coord:dateOffset(coord:nominalTime(), 1, "MONTH"), "yyyy-MM-dd")}</value>
+                </property>
+                <property>
+                    <name>history_reduced_location</name>
+                    <value>${coord:dataOut('mw_history_reduced')}</value>
                 </property>
             </configuration>
         </workflow>
