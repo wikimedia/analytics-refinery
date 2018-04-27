@@ -16,7 +16,7 @@ class SqoopConfig:
                  table_path_template, dbname, dbpostfix, table,
                  query, split_by, map_types,
                  generate_jar, jar_file,
-                 current_try):
+                 current_try, dry_run):
 
         self.yarn_job_name_prefix = yarn_job_name_prefix
         self.user = user
@@ -33,6 +33,7 @@ class SqoopConfig:
         self.generate_jar = generate_jar
         self.jar_file = jar_file
         self.current_try = current_try
+        self.dry_run = dry_run
 
     def __str__(self):
         return self.dbname + ':' + self.table
@@ -110,7 +111,8 @@ def sqoop_wiki(config):
         logger.info('Sqooping with: {}'.format(sqoop_arguments))
         logger.debug('You can copy the parameters above and execute the sqoop command manually')
         # Ignore sqoop output because it's in Yarn and grabbing output is way complicated
-        check_call(sqoop_arguments, stdout=DEVNULL, stderr=DEVNULL)
+        if not config.dry_run:
+            check_call(sqoop_arguments, stdout=DEVNULL, stderr=DEVNULL)
         logger.info('FINISHED: {}'.format(log_message))
         return None
     except(Exception):
@@ -410,7 +412,7 @@ def check_already_running_or_exit(yarn_job_name_prefix):
         sys.exit(1)
 
 
-def check_hdfs_path_or_exit(tables, table_path_template, force):
+def check_hdfs_path_or_exit(tables, table_path_template, force, dry_run):
     safe = True
     logger.info('Checking HDFS paths')
     for table in tables:
@@ -418,7 +420,8 @@ def check_hdfs_path_or_exit(tables, table_path_template, force):
 
         if HdfsUtils.ls(table_path, include_children=False):
             if force:
-                HdfsUtils.rm(table_path)
+                if not dry_run:
+                    HdfsUtils.rm(table_path)
                 logger.info('Forcing: {} deleted from HDFS.'.format(table_path))
             else:
                 logger.error('{} already exists in HDFS.'.format(table_path))
