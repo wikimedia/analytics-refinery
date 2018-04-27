@@ -64,6 +64,11 @@ WITH
             AND month=${month}
             AND day=${day}
             AND hour=${hour}
+            AND dt != '-' -- This mimics webrequest_sequence_stats
+            -- and allows for 'wrong' numbers to match between
+            -- both script (note that this constraint is not present
+            -- in the next_hour table, as the rows wih no-dt are ones
+            -- the script is trying to match for the next hour)
     ) webrequest_with_next_sequence
     WHERE
         next_sequence IS NOT NULL -- This condition drops the maximum
