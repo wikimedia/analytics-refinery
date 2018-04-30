@@ -9,7 +9,7 @@
       }
     },
     "dataSchema" : {
-      "dataSource" : "mediawiki_history_reduced",
+      "dataSource" : "*DRUID_DATASOURCE*",
       "granularitySpec" : {
         "type" : "uniform",
         "segmentGranularity" : "month",

@@ -30,6 +30,9 @@
         <property><name>druid_overlord_url</name></property>
         <property><name>druid_period_start</name></property>
 
+        <property><name>druid_datasource_prefix</name></property>
+        <property><name>temporary_directory</name></property>
+
         <property><name>load_druid_workflow_file</name></property>
         <property><name>mark_directory_done_workflow_file</name></property>
         <property><name>send_error_email_workflow_file</name></property>

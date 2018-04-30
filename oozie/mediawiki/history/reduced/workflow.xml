@@ -57,6 +57,14 @@
             <description>The druid overlord url used for loading</description>
         </property>
         <property>
+            <name>druid_datasource_prefix</name>
+            <description>The druid datasource prefix to be used, followed by snapshot value</description>
+        </property>
+        <property>
+            <name>temporary_directory</name>
+            <description>A directory in HDFS for temporary files</description>
+        </property>
+        <property>
             <name>load_druid_workflow_file</name>
             <description>Workflow for loading druid</description>
         </property>
@@ -148,6 +156,11 @@
                     <name>druid_overlord_url</name>
                     <value>${druid_overlord_url}</value>
                 </property>
+                <property>
+                    <name>target_datasource</name>
+                    <value>${druid_datasource_prefix}_${snapshot}</value>
+                </property>
+
             </configuration>
         </sub-workflow>
         <ok to="end"/>
