@@ -45,7 +45,7 @@ Usage:
           [--force] --partition-name PART --partition-value PVAL
           [--mappers NUM] [--processors NUM]
           [--job-name JOB_NAME] [--jar-file JAR_IN]
-          [--log-file LOG]
+          [--log-file LOG] [--dry-run]
 
 Options:
     -h --help                           Show this help message and exit.
@@ -107,6 +107,8 @@ Options:
                                         same as running this script with -g
     -o LOG --log-file LOG               A log file to send all output to.  If not passed,
                                         the script will only log WARN to console.
+    -y --dry-run                        The script will run and log messages, but it
+                                        won't load any data or have any consequences.
 """
 __author__ = 'Dan Andreesu <milimetric@wikimedia.org>'
 
@@ -161,12 +163,19 @@ if __name__ == '__main__':
     num_mappers                         = int(arguments.get('--mappers') or '1')
     num_processors                      = int(arguments.get('--processors')) if arguments.get('--processors') else None
     max_tries                           = int(arguments.get('--max-tries'))
+    dry_run                             = arguments.get('--dry-run')
     force                               = arguments.get('--force')
     jar_file                            = arguments.get('--jar-file')
     log_file                            = arguments.get('--log-file')
 
     level = logging.DEBUG if verbose else logging.INFO
     configure_logging(logger, level, log_file=log_file)
+
+    if dry_run:
+        logger.info('**********************************************')
+        logger.info('**************** DRY RUN MODE ****************')
+        logger.info('**** Only logging, no action in this mode ****')
+        logger.info('**********************************************')
 
     logger.debug('Started Shell with with {}'.format(' '.join(arguments)))
 
@@ -185,7 +194,7 @@ if __name__ == '__main__':
 
     check_already_running_or_exit(yarn_job_name_prefix)
     logging.debug('No other running instances, proceeding')
-    check_hdfs_path_or_exit(queries.keys(), table_path_template, force)
+    check_hdfs_path_or_exit(queries.keys(), table_path_template, force, dry_run)
     logging.debug('All table paths are empty or force cleaned')
 
     jdbc_host = 'jdbc:mysql://' + host + '/'
@@ -220,7 +229,7 @@ if __name__ == '__main__':
                                             num_mappers_adjusted,
                                             table_path_template, w[0], dbpostfix, table,
                                             query, split_by, map_types,
-                                            None, jar_file, 1))
+                                            None, jar_file, 1, dry_run))
 
         # sqoop all wikis in this group and wait for them all to finish with retry
         with futures.ProcessPoolExecutor(num_processors_adjusted) as executor:
@@ -235,10 +244,11 @@ if __name__ == '__main__':
     failed_tables = set(map(lambda config: config.table, failed_jobs))
     for table in (set(queries.keys()) - failed_tables):
         success_file_path = table_path_template.format(table=table) + '/_SUCCESS'
-        subprocess.check_call([
-            'hdfs', 'dfs', '-touchz',
-            success_file_path
-        ])
+        if not dry_run:
+            subprocess.check_call([
+                'hdfs', 'dfs', '-touchz',
+                success_file_path
+            ])
         logger.info('Wrote Success file {}'.format(success_file_path))
 
     # In any mode, if failed jobs, send an error email and log error
