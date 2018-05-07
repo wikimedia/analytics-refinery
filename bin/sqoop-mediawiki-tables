@@ -133,13 +133,6 @@ from refinery.sqoop import (
 logger = logging.getLogger()
 
 
-print('************ NOTE ************')
-print('When sqooping from labs, resulting data will be shareable with the public '
-      'but when sqooping from production, resulting data may need to be redacted or '
-      'otherwise anonymized before sharing.')
-print('^^^^^^^^^^^^ NOTE ^^^^^^^^^^^^')
-
-
 if __name__ == '__main__':
     # parse arguments
     arguments = docopt(__doc__)
@@ -170,6 +163,12 @@ if __name__ == '__main__':
 
     level = logging.DEBUG if verbose else logging.INFO
     configure_logging(logger, level, log_file=log_file)
+
+    logger.info('************ NOTE ************')
+    logger.info('When sqooping from labs, resulting data will be shareable with the public '
+                'but when sqooping from production, resulting data may need to be redacted or '
+                'otherwise anonymized before sharing.')
+    logger.info('^^^^^^^^^^^^ NOTE ^^^^^^^^^^^^')
 
     if dry_run:
         logger.info('**********************************************')
