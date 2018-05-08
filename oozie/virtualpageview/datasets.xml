@@ -5,7 +5,7 @@ Use this dataset in your coordinator.xml files by setting:
 
     ${start_time}     - the initial instance of your data.
                         Example: 2014-04-01T00:00Z
-    ${virtualpageview_hourly_data_directory} - Path to directory where aggregated virtualpageview data is stored.
+    ${virtualpageview_data_directory} - Path to directory where aggregated virtualpageview data is stored.
                         Example: /wmf/data/wmf/virtualpageview
 -->
 
@@ -28,7 +28,7 @@ Use this dataset in your coordinator.xml files by setting:
              frequency="${coord:hours(1)}"
              initial-instance="${start_time}"
              timezone="Universal">
-        <uri-template>${virtualpageview_hourly_data_directory}/hourly/year=${YEAR}/month=${"$"}{MONTH + 0}/day=${"$"}{DAY + 0}/hour=${"$"}{HOUR + 0}</uri-template>
+        <uri-template>${virtualpageview_data_directory}/hourly/year=${YEAR}/month=${"$"}{MONTH + 0}/day=${"$"}{DAY + 0}/hour=${"$"}{HOUR + 0}</uri-template>
         <done-flag>_SUCCESS</done-flag>
     </dataset>
 

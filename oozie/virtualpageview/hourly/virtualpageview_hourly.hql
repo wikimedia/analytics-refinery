@@ -81,7 +81,10 @@ SELECT
     '${record_version}' AS record_version,
     count(*) as view_count,
     event.page_id AS page_id,
-    event.page_namespace AS namespace_id
+    event.page_namespace AS namespace_id,
+    event.source_title AS source_page_title,
+    event.source_page_id AS source_page_id,
+    event.source_namespace AS source_namespace_id
 FROM
     decorated_virtualpageviews
 GROUP BY
@@ -96,5 +99,8 @@ GROUP BY
     geocoded_data['city'],
     useragent,
     event.page_id,
-    event.page_namespace
+    event.page_namespace,
+    event.source_title,
+    event.source_page_id,
+    event.source_namespace
 ;

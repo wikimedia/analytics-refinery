@@ -23,7 +23,7 @@
         <property><name>stop_time</name></property>
 
         <property><name>virtualpageview_datasets_file</name></property>
-        <property><name>virtualpageview_hourly_data_directory</name></property>
+        <property><name>virtualpageview_data_directory</name></property>
 
         <property><name>hive_site_xml</name></property>
 
@@ -105,7 +105,7 @@
                 </property>
                 <property>
                     <!-- To mark directory done after success -->
-                    <name>virtualpageview_hourly_dataset_directory</name>
+                    <name>virtualpageview_data_directory</name>
                     <value>${coord:dataOut('virtualpageview_output')}</value>
                 </property>
 
