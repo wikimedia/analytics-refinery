@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <workflow-app xmlns="uri:oozie:workflow:0.4"
-    name="mediawiki-geowiki-druid-wf-${month_partition}">
+    name="mediawiki-geoeditors-druid-wf-${month_partition}">
 
     <parameters>
 
@@ -25,8 +25,8 @@
         </property>
 
         <property>
-            <name>geowiki_monthly_table</name>
-            <description>Geowiki monthly table, loaded monthly</description>
+            <name>geoeditors_monthly_table</name>
+            <description>Geoeditors monthly table, loaded monthly</description>
         </property>
         <property>
             <name>month_partition</name>
@@ -64,9 +64,9 @@
 
     </parameters>
 
-    <start to="generate_json_geowiki_monthly"/>
+    <start to="generate_json_geoeditors_monthly"/>
 
-    <action name="generate_json_geowiki_monthly">
+    <action name="generate_json_geoeditors_monthly">
         <hive xmlns="uri:oozie:hive-action:0.2">
             <job-tracker>${job_tracker}</job-tracker>
             <name-node>${name_node}</name-node>
@@ -96,22 +96,22 @@
                     <value>/tmp/hive-${user}</value>
                 </property>
             </configuration>
-            <script>generate_json_geowiki_monthly.hql</script>
-            <param>source_table=${geowiki_monthly_table}</param>
-            <param>destination_directory=${temporary_directory}/${wf:id()}-json-private-geowiki-monthly</param>
+            <script>generate_json_geoeditors_monthly.hql</script>
+            <param>source_table=${geoeditors_monthly_table}</param>
+            <param>destination_directory=${temporary_directory}/${wf:id()}-json-private-geoeditors-monthly</param>
             <param>month=${month_partition}</param>
         </hive>
-        <ok to="mark_json_geowiki_monthly_dataset_done" />
+        <ok to="mark_json_geoeditors_monthly_dataset_done" />
         <error to="send_error_email" />
     </action>
 
-    <action name="mark_json_geowiki_monthly_dataset_done">
+    <action name="mark_json_geoeditors_monthly_dataset_done">
         <sub-workflow>
             <app-path>${mark_directory_done_workflow_file}</app-path>
             <configuration>
                 <property>
                     <name>directory</name>
-                    <value>${temporary_directory}/${wf:id()}-json-private-geowiki-monthly</value>
+                    <value>${temporary_directory}/${wf:id()}-json-private-geoeditors-monthly</value>
                 </property>
             </configuration>
         </sub-workflow>
@@ -126,7 +126,7 @@
             <configuration>
                 <property>
                     <name>source_directory</name>
-                    <value>${temporary_directory}/${wf:id()}-json-private-geowiki-monthly</value>
+                    <value>${temporary_directory}/${wf:id()}-json-private-geoeditors-monthly</value>
                 </property>
                 <property>
                     <name>template_file</name>
@@ -148,7 +148,7 @@
 
     <action name="remove_temporary_data">
         <fs>
-            <delete path="${temporary_directory}/${wf:id()}-json-private-geowiki-monthly"/>
+            <delete path="${temporary_directory}/${wf:id()}-json-private-geoeditors-monthly"/>
         </fs>
         <ok to="end"/>
         <error to="send_error_email"/>

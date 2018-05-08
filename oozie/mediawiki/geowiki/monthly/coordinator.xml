@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <coordinator-app xmlns="uri:oozie:coordinator:0.4"
     xmlns:sla="uri:oozie:sla:0.2"
-    name="mediawiki-geowiki-monthly-coord"
+    name="mediawiki-geoeditors-monthly-coord"
     frequency="${coord:months(1)}"
     start="${start_time}"
     end="${stop_time}"
@@ -26,8 +26,8 @@
 
         <property><name>mw_cu_changes_table</name></property>
         <property><name>mw_user_history_table</name></property>
-        <property><name>geowiki_daily_table</name></property>
-        <property><name>geowiki_monthly_table</name></property>
+        <property><name>geoeditors_daily_table</name></property>
+        <property><name>geoeditors_monthly_table</name></property>
 
         <property><name>hive_site_xml</name></property>
         <property><name>mark_directory_done_workflow_file</name></property>
@@ -51,7 +51,7 @@
         <!--
             datasets_raw_private_file   : mw_cu_changes_table_partitioned
             datasets_file               : mw_user_history_partitioned
-            datasets_private_file       : geowiki_daily, geowiki_monthly
+            datasets_private_file       : geoeditors_daily, geoeditors_monthly
         -->
         <include>${datasets_raw_private_file}</include>
         <include>${datasets_file}</include>
@@ -68,11 +68,11 @@
     </input-events>
 
     <output-events>
-        <!-- Completed Geowiki datasets -->
-        <data-out name="geowiki_daily" dataset="geowiki_daily">
+        <!-- Completed Geoeditors datasets -->
+        <data-out name="geoeditors_daily" dataset="geoeditors_daily">
             <instance>${coord:current(0)}</instance>
         </data-out>
-        <data-out name="geowiki_monthly" dataset="geowiki_monthly">
+        <data-out name="geoeditors_monthly" dataset="geoeditors_monthly">
             <instance>${coord:current(0)}</instance>
         </data-out>
     </output-events>
@@ -86,12 +86,12 @@
                     <value>${coord:formatTime(coord:nominalTime(), "yyyy")}-${coord:formatTime(coord:nominalTime(), "MM")}</value>
                 </property>
                 <property>
-                    <name>geowiki_daily_location</name>
-                    <value>${coord:dataOut('geowiki_daily')}</value>
+                    <name>geoeditors_daily_location</name>
+                    <value>${coord:dataOut('geoeditors_daily')}</value>
                 </property>
                 <property>
-                    <name>geowiki_monthly_location</name>
-                    <value>${coord:dataOut('geowiki_monthly')}</value>
+                    <name>geoeditors_monthly_location</name>
+                    <value>${coord:dataOut('geoeditors_monthly')}</value>
                 </property>
             </configuration>
         </workflow>

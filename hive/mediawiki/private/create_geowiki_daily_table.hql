@@ -1,14 +1,14 @@
--- Creates table statement for geowiki_daily table.
+-- Creates table statement for geoeditors_daily table.
 --
 -- Parameters:
 --     <none>
 --
 -- Usage
---     hive -f create_geowiki_daily_table.hql   \
+--     hive -f create_geoeditors_daily_table.hql   \
 --          --database wmf
 --
 
-CREATE EXTERNAL TABLE `geowiki_daily` (
+CREATE EXTERNAL TABLE `geoeditors_daily` (
   `wiki_db`                     string      COMMENT 'The wiki database of origin',
   `country_code`                string      COMMENT 'The 2-letter ISO country code this group of edits geolocated to, including Unknown (--)',
   `user_fingerprint_or_id`      string      COMMENT 'If an anonymous user, this is the IP + UA, otherwise it is their user id in this wiki db',
@@ -25,5 +25,5 @@ PARTITIONED BY (
 )
 STORED AS PARQUET
 LOCATION
-  'hdfs://analytics-hadoop/wmf/data/wmf/mediawiki_private/geowiki_daily'
+  'hdfs://analytics-hadoop/wmf/data/wmf/mediawiki_private/geoeditors_daily'
 ;

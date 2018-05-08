@@ -1,14 +1,14 @@
--- Creates table statement for geowiki_monthly table.
+-- Creates table statement for geoeditors_monthly table.
 --
 -- Parameters:
 --     <none>
 --
 -- Usage
---     hive -f create_geowiki_monthly_table.hql   \
+--     hive -f create_geoeditors_monthly_table.hql   \
 --          --database wmf
 --
 
-CREATE EXTERNAL TABLE `geowiki_monthly` (
+CREATE EXTERNAL TABLE `geoeditors_monthly` (
   `wiki_db`                         string      COMMENT 'The wiki database the editors worked in',
   `country_code`                    string      COMMENT 'The 2-letter ISO country code this group of editors geolocated to, including Unknown (--)',
   `users_are_anonymous`             boolean     COMMENT 'Whether or not this group of editors edited anonymously',
@@ -23,5 +23,5 @@ PARTITIONED BY (
 )
 STORED AS PARQUET
 LOCATION
-  'hdfs://analytics-hadoop/wmf/data/wmf/mediawiki_private/geowiki_monthly'
+  'hdfs://analytics-hadoop/wmf/data/wmf/mediawiki_private/geoeditors_monthly'
 ;

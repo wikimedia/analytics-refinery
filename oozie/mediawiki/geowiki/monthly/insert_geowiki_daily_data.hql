@@ -1,5 +1,5 @@
 -- Geolocate and group edits by wiki, country, and user
--- This data will be used to generate monthly geowiki reports,
+-- This data will be used to generate monthly geoeditors reports,
 -- and deleted after 90 days for privacy reasons.
 --
 -- Parameters:
@@ -11,12 +11,12 @@
 --     month                -- YYYY-MM to compute statistics for
 --
 -- Usage:
---     hive -f geowiki_monthly.hql                                                          \
+--     hive -f geoeditors_monthly.hql                                                       \
 --         -d refinery_jar_version=0.0.58                                                   \
 --         -d artifacts_directory=hdfs://analytics-hadoop/wmf/refinery/current/artifacts    \
 --         -d source_table=wmf_raw.mediawiki_private_cu_changes                             \
 --         -d user_history_table=wmf.mediawiki_user_history                                 \
---         -d destination_table=wmf.geowiki_daily                                           \
+--         -d destination_table=wmf.geoeditors_daily                                        \
 --         -d month=2018-02
 --
 -- TODO: Change user_groups to user_groups_historical, adding user_groups_latest to help searchers find this line

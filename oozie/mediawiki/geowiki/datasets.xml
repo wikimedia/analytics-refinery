@@ -11,19 +11,19 @@ Use this dataset in your coordinator.xml files by setting:
 
 <datasets>
 
-    <dataset name="geowiki_daily"
+    <dataset name="geoeditors_daily"
              frequency="${coord:months(1)}"
              initial-instance="${start_time}"
              timezone="Universal">
-        <uri-template>${mw_private_directory}/geowiki_daily/month=${YEAR}-${MONTH}</uri-template>
+        <uri-template>${mw_private_directory}/geoeditors_daily/month=${YEAR}-${MONTH}</uri-template>
         <done-flag>_SUCCESS</done-flag>
     </dataset>
 
-    <dataset name="geowiki_monthly"
+    <dataset name="geoeditors_monthly"
              frequency="${coord:months(1)}"
              initial-instance="${start_time}"
              timezone="Universal">
-        <uri-template>${mw_private_directory}/geowiki_monthly/month=${YEAR}-${MONTH}</uri-template>
+        <uri-template>${mw_private_directory}/geoeditors_monthly/month=${YEAR}-${MONTH}</uri-template>
         <done-flag>_SUCCESS</done-flag>
     </dataset>
 

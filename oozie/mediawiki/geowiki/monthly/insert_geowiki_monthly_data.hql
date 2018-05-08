@@ -1,4 +1,4 @@
--- Aggregate geowiki_daily data into the traditional kind of data kept by geowiki
+-- Aggregate geoeditors_daily data into the traditional kind of data kept by geoeditors
 --
 -- Parameters:
 --     refinery_jar_version -- Version of the jar to import for UDFs
@@ -8,9 +8,9 @@
 --     month                -- YYYY-MM to compute statistics for
 --
 -- Usage:
---     hive -f insert_geowiki_monthly_data.hql                                              \
---         -d source_table=wmf.geowiki_daily                                                \
---         -d destination_table=wmf.geowiki_monthly                                         \
+--     hive -f insert_geoeditors_monthly_data.hql        \
+--         -d source_table=wmf.geoeditors_daily          \
+--         -d destination_table=wmf.geoeditors_monthly   \
 --         -d month=2018-02
 --
 

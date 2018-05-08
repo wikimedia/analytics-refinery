@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <workflow-app xmlns="uri:oozie:workflow:0.4"
-    name="mediawiki-geowiki-monthly-wf-${month_partition}">
+    name="mediawiki-geoeditors-monthly-wf-${month_partition}">
 
     <parameters>
 
@@ -43,12 +43,12 @@
         </property>
 
         <property>
-            <name>geowiki_daily_location</name>
-            <description>Path to geowiki daily computed data on HDFS</description>
+            <name>geoeditors_daily_location</name>
+            <description>Path to geoeditors daily computed data on HDFS</description>
         </property>
         <property>
-            <name>geowiki_monthly_location</name>
-            <description>Path to geowiki monthly computed data on HDFS</description>
+            <name>geoeditors_monthly_location</name>
+            <description>Path to geoeditors monthly computed data on HDFS</description>
         </property>
 
         <!-- Hive tables-->
@@ -61,12 +61,12 @@
             <description>Recomputed user history table</description>
         </property>
         <property>
-            <name>geowiki_daily_table</name>
-            <description>Geowiki data per wiki, country, user, at daily granularity</description>
+            <name>geoeditors_daily_table</name>
+            <description>Geoeditors data per wiki, country, user, at daily granularity</description>
         </property>
         <property>
-            <name>geowiki_monthly_table</name>
-            <description>Geowiki data per wiki and country, at monthly granularity</description>
+            <name>geoeditors_monthly_table</name>
+            <description>Geoeditors data per wiki and country, at monthly granularity</description>
         </property>
 
         <!-- Subworkflows -->
@@ -80,11 +80,11 @@
         </property>
     </parameters>
 
-    <start to="insert_geowiki_daily_data"/>
+    <start to="insert_geoeditors_daily_data"/>
 
-    <!-- Aggregate raw data into daily geowiki totals -->
+    <!-- Aggregate raw data into daily geoeditors totals -->
 
-    <action name="insert_geowiki_daily_data">
+    <action name="insert_geoeditors_daily_data">
         <hive xmlns="uri:oozie:hive-action:0.2">
             <job-tracker>${job_tracker}</job-tracker>
             <name-node>${name_node}</name-node>
@@ -113,37 +113,37 @@
                     <value>/tmp/hive-${user}</value>
                 </property>
             </configuration>
-            <script>insert_geowiki_daily_data.hql</script>
+            <script>insert_geoeditors_daily_data.hql</script>
             <param>refinery_jar_version=${refinery_jar_version}</param>
             <param>artifacts_directory=${artifacts_directory}</param>
             <param>source_table=${mw_cu_changes_table}</param>
             <param>user_history_table=${mw_user_history_table}</param>
-            <param>destination_table=${geowiki_daily_table}</param>
+            <param>destination_table=${geoeditors_daily_table}</param>
             <param>month=${month_partition}</param>
         </hive>
-        <ok to="mark_geowiki_daily_hive_done" />
+        <ok to="mark_geoeditors_daily_hive_done" />
         <error to="send_error_email" />
     </action>
 
     <!-- Flag the datasets as hive-done -->
 
-    <action name="mark_geowiki_daily_hive_done">
+    <action name="mark_geoeditors_daily_hive_done">
         <sub-workflow>
             <app-path>${mark_directory_done_workflow_file}</app-path>
             <configuration>
                 <property>
                     <name>directory</name>
-                    <value>${geowiki_daily_location}</value>
+                    <value>${geoeditors_daily_location}</value>
                 </property>
             </configuration>
         </sub-workflow>
-        <ok to="insert_geowiki_monthly_data"/>
+        <ok to="insert_geoeditors_monthly_data"/>
         <error to="send_error_email"/>
     </action>
 
-    <!-- Aggregate daily data into monthly geowiki totals -->
+    <!-- Aggregate daily data into monthly geoeditors totals -->
 
-    <action name="insert_geowiki_monthly_data">
+    <action name="insert_geoeditors_monthly_data">
         <hive xmlns="uri:oozie:hive-action:0.2">
             <job-tracker>${job_tracker}</job-tracker>
             <name-node>${name_node}</name-node>
@@ -172,24 +172,24 @@
                     <value>/tmp/hive-${user}</value>
                 </property>
             </configuration>
-            <script>insert_geowiki_monthly_data.hql</script>
-            <param>source_table=${geowiki_daily_table}</param>
-            <param>destination_table=${geowiki_monthly_table}</param>
+            <script>insert_geoeditors_monthly_data.hql</script>
+            <param>source_table=${geoeditors_daily_table}</param>
+            <param>destination_table=${geoeditors_monthly_table}</param>
             <param>month=${month_partition}</param>
         </hive>
-        <ok to="mark_geowiki_monthly_hive_done" />
+        <ok to="mark_geoeditors_monthly_hive_done" />
         <error to="send_error_email" />
     </action>
 
     <!-- Flag the datasets as hive-done -->
 
-    <action name="mark_geowiki_monthly_hive_done">
+    <action name="mark_geoeditors_monthly_hive_done">
         <sub-workflow>
             <app-path>${mark_directory_done_workflow_file}</app-path>
             <configuration>
                 <property>
                     <name>directory</name>
-                    <value>${geowiki_monthly_location}</value>
+                    <value>${geoeditors_monthly_location}</value>
                 </property>
             </configuration>
         </sub-workflow>
