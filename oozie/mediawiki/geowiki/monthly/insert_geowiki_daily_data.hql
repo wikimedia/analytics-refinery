@@ -29,15 +29,17 @@ INSERT OVERWRITE TABLE ${destination_table}
 
      SELECT wiki_db,
             country_code,
-            user_id_or_ip,
+            user_fingerprint_or_id,
             user_is_anonymous,
             date,
-            count(*) as edit_count
+            count(*) as edit_count,
+            sum(page_is_namespace_zero) as namespace_zero_edit_count
 
        FROM (select cuc.wiki_db,
                     geocode(cuc_ip)['country_code'] as country_code,
-                    if(cuc_user = 0, cuc_user_text, cuc_user) as user_id_or_ip,
+                    if(cuc_user = 0, md5(concat(cuc_ip, cuc_agent)), cuc_user) as user_fingerprint_or_id,
                     if(cuc_user = 0, 1, 0) as user_is_anonymous,
+                    if(cuc_namespace = 0, 1, 0) as page_is_namespace_zero,
                     concat(
                         substring(cuc_timestamp, 0, 4), '-',
                         substring(cuc_timestamp, 5, 2), '-',
@@ -64,6 +66,6 @@ INSERT OVERWRITE TABLE ${destination_table}
       GROUP BY wiki_db,
             country_code,
             date,
-            user_id_or_ip,
+            user_fingerprint_or_id,
             user_is_anonymous
 ;
