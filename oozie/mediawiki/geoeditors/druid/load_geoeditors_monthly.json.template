@@ -39,6 +39,11 @@
           "name" : "distinct_editors",
           "type" : "longSum",
           "fieldName": "distinct_editors"
+        },
+        {
+          "name" : "namespace_zero_distinct_editors",
+          "type" : "longSum",
+          "fieldName": "namespace_zero_distinct_editors"
         }
       ]
     },

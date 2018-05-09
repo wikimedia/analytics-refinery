@@ -27,7 +27,8 @@ CREATE EXTERNAL TABLE `tmp_druid_geoeditors_monthly` (
   `country_code`        string      COMMENT 'The 2-letter ISO country code this group of editors geolocated to, including Unknown (--)',
   `users_are_anonymous` int         COMMENT 'Whether or not this group of editors edited anonymously',
   `activity_level`      string      COMMENT 'How many edits this group of editors performed, can be "at least 1", "at least 5", or "at least 100"',
-  `distinct_editors`    bigint      COMMENT 'Number of editors meeting this activity level'
+  `distinct_editors`                bigint      COMMENT 'Number of editors meeting this activity level',
+  `namespace_zero_distinct_editors` bigint      COMMENT 'Number of editors meeting this activity level with only namespace zero edits'
 )
 ROW FORMAT SERDE 'org.apache.hive.hcatalog.data.JsonSerDe'
 STORED AS TEXTFILE
@@ -40,7 +41,8 @@ LOCATION '${destination_directory}';
         country_code,
         CASE WHEN users_are_anonymous THEN 1 ELSE 0 END AS users_are_anonymous,
         activity_level,
-        distinct_editors
+        distinct_editors,
+        namespace_zero_distinct_editors
 
    FROM ${source_table}
   WHERE month = '${month}'
