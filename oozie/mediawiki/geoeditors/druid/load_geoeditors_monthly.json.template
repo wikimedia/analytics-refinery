@@ -9,7 +9,7 @@
       }
     },
     "dataSchema" : {
-      "dataSource" : "mediawiki-geoeditors-monthly",
+      "dataSource" : "mediawiki_geoeditors_monthly",
       "granularitySpec" : {
         "type" : "uniform",
         "segmentGranularity" : "month",
