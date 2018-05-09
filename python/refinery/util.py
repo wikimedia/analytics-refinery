@@ -18,6 +18,7 @@ Wikimedia Anaytics Refinery python utilities.
 """
 
 from collections import OrderedDict
+from dateutil import parser
 import datetime
 import logging
 import os
@@ -448,7 +449,7 @@ class HiveUtils(object):
 
 
 class HivePartition(OrderedDict):
-    partition_regex          = re.compile(r'(\w+)=["\']?(\w+)["\']?')
+    partition_regex          = re.compile(r'(\w+)=["\']?([\w\-]+)["\']?')
     camus_regex              = re.compile(r'.*/hourly/(?P<year>\d+)\/(?P<month>\d+)\/(?P<day>\d+)\/(?P<hour>\d+)')
 
     desc_separator = '/'
@@ -487,12 +488,19 @@ class HivePartition(OrderedDict):
     def datetime(self):
         """
         Returns a datetime.datetime for this partition.
+
+        Supports different schemes, such as:
+        year=...[/month=...[/day=...[/hour=...]]]
+        date=YYYY-MM-DD
+        month=YYYY-MM
+        day=YYYY-MM-DD
+        hour=YYYY-MM-DD-HH
+        ...
         """
-        return datetime.datetime(
-            int(self.get('year')),
-            int(self.get('month', 1)),
-            int(self.get('day',   1)),
-            int(self.get('hour',  0))
+        return parser.parse(
+            '-'.join(map(str, self.values())),
+            fuzzy=True,
+            default=datetime.datetime(2000, 1, 1, 0, 0)
         )
 
 
