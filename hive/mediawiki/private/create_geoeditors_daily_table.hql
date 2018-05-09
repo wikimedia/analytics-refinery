@@ -11,7 +11,7 @@
 CREATE EXTERNAL TABLE `geoeditors_daily` (
   `wiki_db`                     string      COMMENT 'The wiki database of origin',
   `country_code`                string      COMMENT 'The 2-letter ISO country code this group of edits geolocated to, including Unknown (--)',
-  `user_fingerprint_or_id`      string      COMMENT 'If an anonymous user, this is the IP + UA, otherwise it is their user id in this wiki db',
+  `user_fingerprint_or_id`      string      COMMENT 'If an anonymous user, this is a hash of the IP + UA, otherwise it is their user id in this wiki db',
   `user_is_anonymous`           boolean     COMMENT 'Whether or not this user edited this group of edits anonymously',
   `date`                        string      COMMENT 'The YYYY-MM-DD date for this group of edits',
 
