@@ -16,7 +16,7 @@ ADD JAR /usr/lib/hive-hcatalog/share/hcatalog/hive-hcatalog-core.jar;
 DROP TABLE IF EXISTS tmp_monthly_druid_virtualpageviews_${year}_${month};
 
 CREATE EXTERNAL TABLE IF NOT EXISTS tmp_monthly_druid_virtualpageviews_${year}_${month} (
-    `ts`                  string,
+    `dt`                  string,
     `project`             string,
     `language_variant`    string,
     `access_method`       string,
