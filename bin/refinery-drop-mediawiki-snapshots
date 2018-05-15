@@ -115,12 +115,6 @@ WIKI_DB_TABLES = [
     'mediawiki_revision',
     'mediawiki_user',
     'mediawiki_user_groups',
-    'mediawiki_metrics'
-]
-
-# Tables partitioned by metric in addition to by snapshot
-METRIC_TABLES = [
-    'mediawiki_metrics'
 ]
 
 
@@ -145,7 +139,7 @@ def get_partitions_to_drop(hive, table, keep_snapshots):
     # For tables partitioned by dimensions other than snapshot
     # extract just the snapshot spec:
     # snapshot=2017-01,wiki_db=enwiki => snapshot=2017-01
-    if table in WIKI_DB_TABLES + METRIC_TABLES:
+    if table in WIKI_DB_TABLES:
         snapshots = set([])
         for partition in partitions:
             snapshot = partition.split(spec_separator)[0]
@@ -165,11 +159,6 @@ def get_partitions_to_drop(hive, table, keep_snapshots):
     # HACK: For tables partitioned by dimensions other than snapshot
     # add <dimension>!='' to snapshot spec, so that HiveUtils deletes
     # the whole snapshot partition with all sub-partitions in it.
-    if table in METRIC_TABLES:
-        partitions_to_drop = [
-            spec_separator.join([p, "metric!=''"])
-            for p in partitions_to_drop
-        ]
     if table in WIKI_DB_TABLES:
         partitions_to_drop = [
             spec_separator.join([p, "wiki_db!=''"])
