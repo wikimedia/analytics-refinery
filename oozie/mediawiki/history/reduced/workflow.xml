@@ -61,10 +61,6 @@
             <description>The druid datasource prefix to be used, followed by snapshot value</description>
         </property>
         <property>
-            <name>temporary_directory</name>
-            <description>A directory in HDFS for temporary files</description>
-        </property>
-        <property>
             <name>load_druid_workflow_file</name>
             <description>Workflow for loading druid</description>
         </property>
