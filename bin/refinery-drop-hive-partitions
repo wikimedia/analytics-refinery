@@ -39,7 +39,7 @@ Options:
     -o --hive-options=<options>         Any valid Hive CLI options you want to pass to Hive commands.
                                         Example: '--auxpath /path/to/hive-serdes-1.0-SNAPSHOT.jar'
     -v --verbose                        Turn on verbose debug logging.
-    -f --log-file                       File to send info logs to
+    -f [FILE] --log-file [FILE]         File to send info logs to
     -n --dry-run                        Don't actually drop any partitions, just output the Hive queries to drop partitions.
 """
 __author__ = 'Andrew Otto <otto@wikimedia.org>'
