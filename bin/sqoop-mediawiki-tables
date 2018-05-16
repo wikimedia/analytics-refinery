@@ -201,10 +201,10 @@ if __name__ == '__main__':
     )
 
     check_already_running_or_exit(yarn_job_name_prefix)
-    logging.debug('No other running instances, proceeding')
+    logger.debug('No other running instances, proceeding')
 
     check_hdfs_path_or_exit(queries.keys(), table_path_template, tmp_base_path, force, dry_run)
-    logging.debug('All table paths are empty or force cleaned')
+    logger.debug('All table paths are empty or force cleaned')
 
     jdbc_host = 'jdbc:mysql://' + host + '/'
     dbpostfix = '_p' if labsdb else ''

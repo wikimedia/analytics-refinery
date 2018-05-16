@@ -39,18 +39,21 @@ Options:
     -o --hive-options=<options>         Any valid Hive CLI options you want to pass to Hive commands.
                                         Example: '--auxpath /path/to/hive-serdes-1.0-SNAPSHOT.jar'
     -v --verbose                        Turn on verbose debug logging.
+    -f --log-file                       File to send info logs to
     -n --dry-run                        Don't actually drop any partitions, just output the Hive queries to drop partitions.
 """
 __author__ = 'Andrew Otto <otto@wikimedia.org>'
 
 import datetime
-from   docopt   import docopt
+from docopt import docopt
 import logging
 import re
 import os
 import sys
 from refinery.util import HiveUtils, HivePartition, HdfsUtils
+from refinery.logging_setup import configure_logging
 
+logger = logging.getLogger()
 
 if __name__ == '__main__':
     # parse arguments
@@ -63,16 +66,12 @@ if __name__ == '__main__':
     partition_depth = arguments['--partition-depth']
     hive_options    = arguments['--hive-options']
     verbose         = arguments['--verbose']
+    log_file        = arguments['--log-file']
     dry_run         = arguments['--dry-run']
 
 
-    log_level = logging.INFO
-    if verbose:
-        log_level = logging.DEBUG
-
-    logging.basicConfig(level=log_level,
-                        format='%(asctime)s %(levelname)-6s %(message)s',
-                        datefmt='%Y-%m-%dT%H:%M:%S')
+    log_level = logging.DEBUG if verbose else logging.INFO
+    configure_logging(logger, log_level, log_file=log_file)
 
     if partition_depth is not None:
         partition_depth = int(partition_depth)
@@ -93,7 +92,7 @@ if __name__ == '__main__':
 
     # Iterate through each table and find old Hive partitions and HDFS paths to drop.
     for table in tables:
-        logging.info('Looking for partitions to drop for {}.{}...'.format(database, table))
+        logger.info('Looking for partitions to drop for {}.{}...'.format(database, table))
         # Attempt to infer table location from the table metadata.
         table_location = hive.table_location(table)
 
@@ -120,7 +119,7 @@ if __name__ == '__main__':
                 partition_glob = hive_partitions[0].glob(base_path=table_location)
             else:
                 partition_glob = None
-                logging.warn(
+                logger.warn(
                     'Could not search for HDFS paths to drop. '
                     'Could not construct partition glob from a partition depth.'
                 )
@@ -134,7 +133,7 @@ if __name__ == '__main__':
                         if partition.datetime() < old_partition_datetime_threshold:
                             partition_paths_to_delete.append(partition_path)
                     except Exception as e:
-                        logging.error(
+                        logger.error(
                             'Could not parse date from {}. Skipping. ({})'
                             .format(partition_path, e)
                         )
@@ -147,21 +146,21 @@ if __name__ == '__main__':
             if dry_run:
                 print(hive.drop_partitions_ddl(table, partition_specs_to_drop))
             else:
-                logging.info('Dropping {0} Hive partitions from table {1}.{2}'
+                logger.info('Dropping {0} Hive partitions from table {1}.{2}'
                     .format(len(partition_specs_to_drop), database, table)
                 )
                 hive.drop_partitions(table, partition_specs_to_drop)
         else:
-            logging.info('No Hive partitions need dropped for table {0}.{1}'.format(database, table))
+            logger.info('No Hive partitions need dropped for table {0}.{1}'.format(database, table))
 
         # Delete any old HDFS data
         if partition_paths_to_delete:
             if dry_run:
                 print('hdfs dfs -rm -R -skipTrash ' + ' '.join(partition_paths_to_delete))
             else:
-                logging.info('Removing {0} partition directories for table {1}.{2} from {3}.'
+                logger.info('Removing {0} partition directories for table {1}.{2} from {3}.'
                     .format(len(partition_paths_to_delete), database, table, table_location)
                 )
                 HdfsUtils.rm(' '.join(partition_paths_to_delete))
         else:
-            logging.info('No partition directories need removed for table {0}.{1}'.format(database, table))
+            logger.info('No partition directories need removed for table {0}.{1}'.format(database, table))
