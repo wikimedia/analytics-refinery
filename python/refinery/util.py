@@ -497,8 +497,11 @@ class HivePartition(OrderedDict):
         hour=YYYY-MM-DD-HH
         ...
         """
+        # partitions can have non-datetime components
+        relevant_partition_keys = set(['dt', 'date', 'year', 'month', 'day', 'hour', 'minute'])
+        values = [self[k] for k in self.keys() if k in relevant_partition_keys]
         return parser.parse(
-            '-'.join(map(str, self.values())),
+            '-'.join(map(str, values)),
             fuzzy=True,
             default=datetime.datetime(2000, 1, 1, 0, 0)
         )
