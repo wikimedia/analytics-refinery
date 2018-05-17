@@ -35,7 +35,11 @@
                 "content_type",
                 "referer",
                 "user_agent",
-                "x_cache"
+                "x_cache",
+                "continent",
+                "country_code",
+                "isp",
+                "as_number"
             ]
           },
           "timestampSpec" : {
