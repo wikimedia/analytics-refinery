@@ -96,7 +96,7 @@ Options:
     -j JOB_NAME --job-name JOB_NAME     The yarn job name prefix, only one job with
                                         a certain prefix can run at a time.
                                         [optional] default is sqoop-mediawiki-tables
-    -r TRIES --max-tries TRIES          Maximum number of tries for a sqoop job in
+    -e TRIES --max-tries TRIES          Maximum number of tries for a sqoop job in
                                         case of failure [default: 3]
     -a FMT --output-format FMT          Output format for the sqoop jobs. Accepted
                                         values are 'avrodata' or 'parquet'.

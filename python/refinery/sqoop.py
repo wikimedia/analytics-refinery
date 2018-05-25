@@ -120,6 +120,16 @@ def sqoop_wiki(config):
                 '--delete-target-dir'
             ]
 
+        # This step is needed particularly in case of retry - tmp_target_directory
+        # Folder is created at first try, so we need to delete it (if it exists)
+        # before trying again.
+        logger.info('Deleting temporary target directory {} if it exists'.format(tmp_target_directory))
+        if not config.dry_run:
+            try:
+                HdfsUtils.rm(tmp_target_directory)
+            except:
+                pass
+
         logger.info('Sqooping with: {}'.format(sqoop_arguments))
         logger.debug('You can copy the parameters above and execute the sqoop command manually')
         # Ignore sqoop output because it's in Yarn and grabbing output is way complicated
@@ -127,7 +137,7 @@ def sqoop_wiki(config):
             check_call(sqoop_arguments, stdout=DEVNULL, stderr=DEVNULL)
         logger.info('Moving sqooped forlder from {} to {}'.format(tmp_target_directory, target_directory))
         if not config.dry_run:
-            HdfsUtils.mv(tmp_target_directory, target_directory)
+            HdfsUtils.mv(tmp_target_directory, target_directory, inParent=False)
         logger.info('FINISHED: {}'.format(log_message))
         return None
     except(Exception):
@@ -421,7 +431,7 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp,
 
 
 def table_path_to_tmp_path(table_path, tmp_base_path):
-    return tmp_base_path + re.sub('[^a-zA-Z/]+', '', table_path)
+    return tmp_base_path + re.sub('[^a-zA-Z0-9/]+', '', table_path)
 
 def check_already_running_or_exit(yarn_job_name_prefix):
     # This works since the check doesn't involve 'full word' matching

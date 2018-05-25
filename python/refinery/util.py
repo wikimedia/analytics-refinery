@@ -622,9 +622,12 @@ class HdfsUtils(object):
         return sh(['hdfs', 'dfs', '-mkdir', '-p'] + paths)
 
     @staticmethod
-    def mv(fromPaths, toPaths):
+    def mv(fromPaths, toPaths, inParent=True):
         """
         Runs hdfs dfs -mv fromPath toPath for each values of from/to Paths.
+        If inParent is True (default), the parent folder in each of the
+        toPaths provide is used as destination. Set inParent parameter to
+        False if the file/folder moved is also renamed.
         """
         if isinstance(fromPaths, str):
             fromPaths = fromPaths.split()
@@ -640,7 +643,10 @@ class HdfsUtils(object):
             toParent = '/'.join(toPaths[i].split('/')[:-1])
             if not HdfsUtils.ls(toParent, include_children=False):
                 HdfsUtils.mkdir(toParent)
-            sh(['hdfs', 'dfs', '-mv', fromPaths[i], toParent])
+            if (inParent):
+                sh(['hdfs', 'dfs', '-mv', fromPaths[i], toParent])
+            else:
+                sh(['hdfs', 'dfs', '-mv', fromPaths[i], toPaths[i]])
 
     @staticmethod
     def validate_path(path):
