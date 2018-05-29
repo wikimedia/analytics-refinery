@@ -25,6 +25,7 @@
         <property><name>druid_template_file</name></property>
         <property><name>druid_overlord_url</name></property>
         <property><name>druid_period_start</name></property>
+        <property><name>druid_datasource</name></property>
         <property><name>temporary_directory</name></property>
 
         <property><name>load_druid_workflow_file</name></property>

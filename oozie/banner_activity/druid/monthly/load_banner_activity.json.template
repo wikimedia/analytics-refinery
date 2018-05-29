@@ -6,13 +6,13 @@
       "inputSpec" : {
         "type" : "dataSource",
         "ingestionSpec" : {
-          "dataSource": "banner_activity_minutely",
+          "dataSource": "*DRUID_DATASOURCE*",
           "intervals": *INTERVALS_ARRAY*
     }
       }
     },
     "dataSchema" : {
-      "dataSource" : "banner_activity_minutely",
+      "dataSource" : "*DRUID_DATASOURCE*",
       "granularitySpec" : {
         "type" : "uniform",
         "segmentGranularity" : "month",

@@ -107,14 +107,10 @@ if __name__ == '__main__':
 
     parser.add_argument('template',
                         help='The druid indexation json template path')
+    parser.add_argument('target', help='The druid datasource to index')
     parser.add_argument('data', help='The druid indexation json data path')
     parser.add_argument('period', help='The druid indexation period ' +
                         '(YYYY-MM-DD/YYY-MM-DD) format')
-    parser.add_argument('--target-datasource',
-                        default='',
-                        help='The druid datasource to index ' +
-                             '(default to empty, for cases where it is ' +
-                             'provided in template)')
     parser.add_argument('--overlord',
                         default='http://druid1001.eqiad.wmnet:8090',
                         help='The druid overlord url (defaults to ' +
@@ -130,7 +126,7 @@ if __name__ == '__main__':
 
     logging.basicConfig(level=(
         logging.WARNING if args.silent else logging.DEBUG))
-    loader = DruidLoader(args.template, args.target_datasource,
+    loader = DruidLoader(args.template, args.target,
                          args.data, args.period, host=args.overlord,
                          hadoop_queue=args.hadoop_queue)
     return_code = loader.execute()

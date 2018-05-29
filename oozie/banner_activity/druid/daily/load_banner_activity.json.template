@@ -9,7 +9,7 @@
       }
     },
     "dataSchema" : {
-      "dataSource" : "banner_activity_minutely",
+      "dataSource" : "*DRUID_DATASOURCE*",
       "granularitySpec" : {
         "type" : "uniform",
         "segmentGranularity" : "day",

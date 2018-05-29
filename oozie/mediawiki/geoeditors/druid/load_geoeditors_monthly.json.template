@@ -9,7 +9,7 @@
       }
     },
     "dataSchema" : {
-      "dataSource" : "mediawiki_geoeditors_monthly",
+      "dataSource" : "*DRUID_DATASOURCE*",
       "granularitySpec" : {
         "type" : "uniform",
         "segmentGranularity" : "month",

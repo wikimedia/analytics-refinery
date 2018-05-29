@@ -40,6 +40,10 @@
             <name>druid_overlord_url</name>
             <description>The druid overlord url used for loading</description>
         </property>
+        <property>
+            <name>druid_datasource</name>
+            <description>The druid datasource to index into</description>
+        </property>
 
         <property>
             <name>banner_activity_daily_directory</name>
@@ -85,6 +89,10 @@
                 <property>
                     <name>druid_overlord_url</name>
                     <value>${druid_overlord_url}</value>
+                </property>
+                <property>
+                    <name>target_datasource</name>
+                    <value>${druid_datasource}</value>
                 </property>
             </configuration>
         </sub-workflow>

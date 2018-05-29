@@ -40,7 +40,6 @@
         </property>
         <property>
             <name>target_datasource</name>
-            <value></value>
             <description>
                 Datasource to be loaded in Druid. Can be empty if this value
                 is hard-coded in the loading template.
@@ -62,7 +61,17 @@
     </parameters>
 
 
-    <start to="check_source_directory"/>
+    <start to="check_user_datasource"/>
+
+    <decision name="check_user_datasource">
+        <switch>
+            <case to="check_source_directory">
+                ${(wf:user() eq "hdfs") or (replaceAll(target_datasource, "^test_.*$", "test") eq "test")}
+            </case>
+            <!-- Default to error-->
+            <default to="datasource_not_test_user_not_hdfs"/>
+        </switch>
+    </decision>
 
     <decision name="check_source_directory">
         <switch>
@@ -108,9 +117,8 @@
             <argument>${druid_overlord_url}</argument>
             <argument>--hadoop-queue</argument>
             <argument>${queue_name}</argument>
-            <argument>--target-datasource</argument>
-            <argument>${target_datasource}</argument>
             <argument>template_file</argument>
+            <argument>${target_datasource}</argument>
             <argument>${source_directory}</argument>
             <argument>${loaded_period}</argument>
             <file>druid_loader.py#druid_loader.py</file>
@@ -119,6 +127,11 @@
         <ok to="end"/>
         <error to="kill"/>
     </action>
+
+    <kill name="datasource_not_test_user_not_hdfs">
+        <message>User ${wf:user()} can't index datasource ${target_datasource}. Either prefix the datasource name with `test_` or run the job as hdfs.</message>
+    </kill>
+
 
     <kill name="source_directory_does_not_exist">
         <message>The job output directory ${source_directory} does not exist</message>

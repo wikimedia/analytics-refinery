@@ -9,7 +9,7 @@
       }
     },
     "dataSchema" : {
-      "dataSource" : "unique_devices_per_project_family_daily",
+      "dataSource" : "*DRUID_DATASOURCE*",
       "granularitySpec" : {
         "type" : "uniform",
         "segmentGranularity" : "day",
