@@ -1,0 +1,70 @@
+{
+  "type" : "index_hadoop",
+  "spec" : {
+    "ioConfig" : {
+      "type" : "hadoop",
+      "inputSpec" : {
+        "type" : "static",
+        "paths" : "*INPUT_PATH*"
+      }
+    },
+    "dataSchema" : {
+      "dataSource" : "*DRUID_DATASOURCE*",
+      "granularitySpec" : {
+        "type" : "uniform",
+        "segmentGranularity" : "month",
+        "queryGranularity" : "day",
+        "intervals" : *INTERVALS_ARRAY*
+      },
+      "parser" : {
+        "type" : "string",
+        "parseSpec" : {
+          "format" : "json",
+          "dimensionsSpec" : {
+            "dimensions" : [
+                "project_family",
+                "country",
+                "country_code"
+            ]
+          },
+          "timestampSpec" : {
+            "format" : "auto",
+            "column" : "dt"
+          }
+        }
+      },
+      "metricsSpec" : [
+        {
+          "name" : "uniques_underestimate",
+          "type" : "longSum",
+          "fieldName": "uniques_underestimate"
+        },
+        {
+          "name" : "uniques_offset",
+          "type" : "longSum",
+          "fieldName": "uniques_offset"
+        },
+        {
+          "name" : "uniques_estimate",
+          "type" : "longSum",
+          "fieldName": "uniques_estimate"
+        }
+      ]
+    },
+    "tuningConfig" : {
+      "type" : "hadoop",
+      "overwriteFiles": true,
+      "ignoreInvalidRows" : false,
+      "partitionsSpec" : {
+        "type" : "hashed",
+        "numShards" : 1
+      },
+      "jobProperties" : {
+        "mapreduce.reduce.memory.mb" : "8192",
+        "mapreduce.output.fileoutputformat.compress": "org.apache.hadoop.io.compress.GzipCodec",
+        "mapreduce.job.queuename": "*HADOOP_QUEUE*"
+      }
+    }
+  }
+}
+
