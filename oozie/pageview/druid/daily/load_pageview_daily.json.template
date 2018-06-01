@@ -9,7 +9,7 @@
       }
     },
     "dataSchema" : {
-      "dataSource" : "pageviews-hourly",
+      "dataSource" : "*DRUID_DATASOURCE*",
       "granularitySpec" : {
         "type" : "uniform",
         "segmentGranularity" : "day",
