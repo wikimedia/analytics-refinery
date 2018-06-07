@@ -17,7 +17,7 @@
 Wikimedia Anaytics Refinery python utilities.
 """
 
-from collections import OrderedDict
+from collections import defaultdict, OrderedDict
 from dateutil import parser
 import datetime
 import logging
@@ -499,7 +499,15 @@ class HivePartition(OrderedDict):
         """
         # partitions can have non-datetime components
         relevant_partition_keys = set(['dt', 'date', 'year', 'month', 'day', 'hour', 'minute'])
-        values = [self[k] for k in self.keys() if k in relevant_partition_keys]
+        transformers = defaultdict(lambda: lambda x: x, {
+            # 2018-5-15-05 is valid, but 2018-5-15-5 is not.  Prefix with 0 to mak
+            # parser happy.
+            'hour': lambda hour: "%02d" % (hour)
+        })
+        values = [transformers[k](self[k]) for k in self.keys() if k in relevant_partition_keys]
+
+        # the date parser also only likes things that are zero-prefixed.
+        # so
         return parser.parse(
             '-'.join(map(str, values)),
             fuzzy=True,
