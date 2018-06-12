@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <coordinator-app xmlns="uri:oozie:coordinator:0.4"
     xmlns:sla="uri:oozie:sla:0.2"
-    name="mediawiki-history-denormalize-coord"
+    name="mediawiki-history-check_denormalize-coord"
     frequency="${coord:months(1)}"
     start="${start_time}"
     end="${stop_time}"
@@ -15,11 +15,14 @@
         <property><name>workflow_file</name></property>
         <property><name>start_time</name></property>
         <property><name>stop_time</name></property>
+        <property><name>hive_site_xml</name></property>
 
-        <property><name>datasets_raw_file</name></property>
-        <property><name>mw_raw_directory</name></property>
         <property><name>datasets_file</name></property>
         <property><name>mw_directory</name></property>
+
+        <property><name>mw_user_history_table</name></property>
+        <property><name>mw_page_history_table</name></property>
+        <property><name>mw_denormalized_history_table</name></property>
 
         <property><name>oozie_spark_lib</name></property>
         <property><name>spark_master</name></property>
@@ -28,13 +31,17 @@
         <property><name>spark_job_class</name></property>
         <property><name>spark_executor_memory</name></property>
         <property><name>spark_executor_cores</name></property>
-        <property><name>spark_executor_memory_overhead</name></property>
         <property><name>spark_driver_memory</name></property>
-        <property><name>spark_num_executors</name></property>
+        <property><name>spark_max_num_executors</name></property>
 
-        <property><name>spark_partitions_number</name></property>
-        <property><name>tmp_path</name></property>
 
+        <property><name>wikis_to_check</name></property>
+        <property><name>min_events_growth</name></property>
+        <property><name>max_events_growth</name></property>
+        <property><name>wrongs_rows_ratio</name></property>
+
+        <property><name>add_partition_workflow_file</name></property>
+        <property><name>mark_directory_done_workflow_file</name></property>
         <property><name>send_error_email_workflow_file</name></property>
 
         <property><name>sla_alert_contact</name></property>
@@ -54,47 +61,34 @@
 
     <datasets>
         <!--
-        Include raw and history datasets files.
+        Include history datasets files.
         -->
-        <include>${datasets_raw_file}</include>
         <include>${datasets_file}</include>
     </datasets>
 
     <!-- Reminder: This job doesn't depend on hive partitions being created
          over its data since it reads files. -->
     <input-events>
-        <data-in name="mw_project_namespace_map" dataset="mw_project_namespace_map">
+        <data-in name="mw_user_history" dataset="mw_user_history">
             <instance>${coord:current(0)}</instance>
         </data-in>
-        <data-in name="mw_archive_table" dataset="mw_archive_table">
+        <data-in name="mw_page_history" dataset="mw_page_history">
             <instance>${coord:current(0)}</instance>
         </data-in>
-        <data-in name="mw_logging_table" dataset="mw_logging_table">
-            <instance>${coord:current(0)}</instance>
-        </data-in>
-        <data-in name="mw_page_table" dataset="mw_page_table">
-            <instance>${coord:current(0)}</instance>
-        </data-in>
-        <data-in name="mw_revision_table" dataset="mw_revision_table">
-            <instance>${coord:current(0)}</instance>
-        </data-in>
-        <data-in name="mw_user_table" dataset="mw_user_table">
-            <instance>${coord:current(0)}</instance>
-        </data-in>
-        <data-in name="mw_user_groups_table" dataset="mw_user_groups_table">
+        <data-in name="mw_denormalized_history" dataset="mw_denormalized_history">
             <instance>${coord:current(0)}</instance>
         </data-in>
     </input-events>
 
     <output-events>
-        <!-- Datasets for data synchronisation-->
-        <data-out name="mw_user_history" dataset="mw_user_history">
+        <!-- Datasets for hive partitions synchronisation -->
+        <data-out name="mw_user_history_partitioned" dataset="mw_user_history_partitioned">
             <instance>${coord:current(0)}</instance>
         </data-out>
-        <data-out name="mw_page_history" dataset="mw_page_history">
+        <data-out name="mw_page_history_partitioned" dataset="mw_page_history_partitioned">
             <instance>${coord:current(0)}</instance>
         </data-out>
-        <data-out name="mw_denormalized_history" dataset="mw_denormalized_history">
+        <data-out name="mw_denormalized_history_partitioned" dataset="mw_denormalized_history_partitioned">
             <instance>${coord:current(0)}</instance>
         </data-out>
     </output-events>
@@ -104,8 +98,24 @@
             <app-path>${workflow_file}</app-path>
             <configuration>
                 <property>
-                    <name>snapshot</name>
+                    <name>previous_snapshot</name>
+                    <value>${coord:formatTime(coord:nominalTime(), "yyyy")}-${coord:formatTime(coord:dateOffset(coord:nominalTime(), -1, "MONTH"), "MM")}</value>
+                </property>
+                <property>
+                    <name>new_snapshot</name>
                     <value>${coord:formatTime(coord:nominalTime(), "yyyy")}-${coord:formatTime(coord:nominalTime(), "MM")}</value>
+                </property>
+                <property>
+                    <name>user_history_location</name>
+                    <value>${coord:dataOut('mw_user_history_partitioned')}</value>
+                </property>
+                <property>
+                    <name>page_history_location</name>
+                    <value>${coord:dataOut('mw_page_history_partitioned')}</value>
+                </property>
+                <property>
+                    <name>denormalized_history_location</name>
+                    <value>${coord:dataOut('mw_denormalized_history_partitioned')}</value>
                 </property>
             </configuration>
         </workflow>

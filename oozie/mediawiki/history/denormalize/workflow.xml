@@ -85,42 +85,6 @@
         </property>
 
         <property>
-            <name>user_history_location</name>
-            <description>Path to user history computed data on Hadoop</description>
-        </property>
-        <property>
-            <name>page_history_location</name>
-            <description>Path to page history computed data on Hadoop</description>
-        </property>
-        <property>
-            <name>denormalized_history_location</name>
-            <description>Path to denormalized history computed data on Hadoop</description>
-        </property>
-
-        <!-- Hive tables-->
-        <property>
-            <name>mw_user_history_table</name>
-            <description>Recomputed user history table</description>
-        </property>
-        <property>
-            <name>mw_page_history_table</name>
-            <description>Recomputed page history table</description>
-        </property>
-        <property>
-            <name>mw_denormalized_history_table</name>
-            <description>Recomputed denormalized history table</description>
-        </property>
-
-        <!-- Subworkflows -->
-        <property>
-            <name>repair_partitions_workflow_file</name>
-            <description>Workflow definition for repairing partitions</description>
-        </property>
-        <property>
-            <name>mark_directory_done_workflow_file</name>
-            <description>Workflow for marking a directory done</description>
-        </property>
-        <property>
             <name>send_error_email_workflow_file</name>
             <description>Workflow for sending an email</description>
         </property>
@@ -163,100 +127,8 @@
             <arg>--base-num-partitions</arg>
             <arg>${spark_partitions_number}</arg>
         </spark>
-        <ok to="repair_user_history_table_partitions" />
+        <ok to="end" />
         <error to="send_error_email" />
-    </action>
-
-    <!-- Add MW History tables partitions and flag the datasets as hive-done -->
-
-    <action name="repair_user_history_table_partitions">
-        <sub-workflow>
-            <app-path>${repair_partitions_workflow_file}</app-path>
-            <propagate-configuration/>
-            <configuration>
-                <property><name>table</name><value>${mw_user_history_table}</value></property>
-            </configuration>
-        </sub-workflow>
-        <ok to="mark_user_history_hive_done"/>
-        <error to="send_error_email"/>
-    </action>
-
-    <action name="mark_user_history_hive_done">
-        <sub-workflow>
-            <app-path>${mark_directory_done_workflow_file}</app-path>
-            <configuration>
-                <property>
-                    <name>directory</name>
-                    <value>${user_history_location}</value>
-                </property>
-                <property>
-                    <name>done_file</name>
-                    <value>_PARTITIONED</value>
-                </property>
-            </configuration>
-        </sub-workflow>
-        <ok to="repair_page_history_table_partitions"/>
-        <error to="send_error_email"/>
-    </action>
-
-    <action name="repair_page_history_table_partitions">
-        <sub-workflow>
-            <app-path>${repair_partitions_workflow_file}</app-path>
-            <propagate-configuration/>
-            <configuration>
-                <property><name>table</name><value>${mw_page_history_table}</value></property>
-            </configuration>
-        </sub-workflow>
-        <ok to="mark_page_history_hive_done"/>
-        <error to="send_error_email"/>
-    </action>
-
-    <action name="mark_page_history_hive_done">
-        <sub-workflow>
-            <app-path>${mark_directory_done_workflow_file}</app-path>
-            <configuration>
-                <property>
-                    <name>directory</name>
-                    <value>${page_history_location}</value>
-                </property>
-                <property>
-                    <name>done_file</name>
-                    <value>_PARTITIONED</value>
-                </property>
-            </configuration>
-        </sub-workflow>
-        <ok to="repair_denormalized_history_table_partitions"/>
-        <error to="send_error_email"/>
-    </action>
-
-    <action name="repair_denormalized_history_table_partitions">
-        <sub-workflow>
-            <app-path>${repair_partitions_workflow_file}</app-path>
-            <propagate-configuration/>
-            <configuration>
-                <property><name>table</name><value>${mw_denormalized_history_table}</value></property>
-            </configuration>
-        </sub-workflow>
-        <ok to="mark_denormalized_history_hive_done"/>
-        <error to="send_error_email"/>
-    </action>
-
-    <action name="mark_denormalized_history_hive_done">
-        <sub-workflow>
-            <app-path>${mark_directory_done_workflow_file}</app-path>
-            <configuration>
-                <property>
-                    <name>directory</name>
-                    <value>${denormalized_history_location}</value>
-                </property>
-                <property>
-                    <name>done_file</name>
-                    <value>_PARTITIONED</value>
-                </property>
-            </configuration>
-        </sub-workflow>
-        <ok to="end"/>
-        <error to="send_error_email"/>
     </action>
 
     <action name="send_error_email">
