@@ -123,21 +123,23 @@ def sqoop_wiki(config):
         # This step is needed particularly in case of retry - tmp_target_directory
         # Folder is created at first try, so we need to delete it (if it exists)
         # before trying again.
-        logger.info('Deleting temporary target directory {} if it exists'.format(tmp_target_directory))
-        if not config.dry_run:
-            try:
-                HdfsUtils.rm(tmp_target_directory)
-            except:
-                pass
+        if not config.generate_jar:
+            logger.info('Deleting temporary target directory {} if it exists'.format(tmp_target_directory))
+            if not config.dry_run:
+                try:
+                    HdfsUtils.rm(tmp_target_directory)
+                except:
+                    pass
 
         logger.info('Sqooping with: {}'.format(sqoop_arguments))
         logger.debug('You can copy the parameters above and execute the sqoop command manually')
         # Ignore sqoop output because it's in Yarn and grabbing output is way complicated
         if not config.dry_run:
             check_call(sqoop_arguments, stdout=DEVNULL, stderr=DEVNULL)
-        logger.info('Moving sqooped forlder from {} to {}'.format(tmp_target_directory, target_directory))
-        if not config.dry_run:
-            HdfsUtils.mv(tmp_target_directory, target_directory, inParent=False)
+        if not config.generate_jar:
+            logger.info('Moving sqooped forlder from {} to {}'.format(tmp_target_directory, target_directory))
+            if not config.dry_run:
+                HdfsUtils.mv(tmp_target_directory, target_directory, inParent=False)
         logger.info('FINISHED: {}'.format(log_message))
         return None
     except(Exception):

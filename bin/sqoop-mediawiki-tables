@@ -43,7 +43,8 @@ Usage:
           [--max-tries TRIES] --wiki-file WIKIS --tables TABLES
           [--verbose] --from-timestamp FROM --to-timestamp TO
           [--force] --partition-name PART --partition-value PVAL
-          [--mappers NUM] [--processors NUM] [--tmp-base-path TMP]
+          [--mappers NUM] [--processors NUM]
+          [--hdfs-tmp-path HTMP]  [--local-tmp-path LTMP]
           [--job-name JOB_NAME] [--jar-file JAR_IN] --output-format FMT
           [--log-file LOG] [--dry-run]
 
@@ -100,8 +101,10 @@ Options:
                                         case of failure [default: 3]
     -a FMT --output-format FMT          Output format for the sqoop jobs. Accepted
                                         values are 'avrodata' or 'parquet'.
-    -b TMP --tmp-base-path TMP          HDFS folder where to temporary sqoop data
+    -g HTMP --hdfs-tmp-path HTMP        HDFS folder where to temporary sqoop data
                                         before renaming. [default: /tmp/sqoop-mediawiki-tables]
+    -G LTMP --local-tmp-path LTMP       Local folder where to temporary store generated
+                                        jar files. [default: /tmp/sqoop-jars]
     -l --labsdb                         Add '_p' postfix to table names for labsdb
     -f --force                          Deleting existing folders before importing
                                         instead of failing
@@ -121,6 +124,7 @@ import logging
 import os
 import sys
 import subprocess
+import datetime
 
 from docopt import docopt
 from concurrent import futures
@@ -160,7 +164,10 @@ if __name__ == '__main__':
     num_mappers                         = int(arguments.get('--mappers') or '1')
     num_processors                      = int(arguments.get('--processors')) if arguments.get('--processors') else None
     output_format                       = arguments.get('--output-format')
-    tmp_base_path                       = arguments.get('--tmp-base-path')
+
+    hdfs_tmp_path                       = arguments.get('--hdfs-tmp-path')
+    local_tmp_path                      = arguments.get('--local-tmp-path')
+
     max_tries                           = int(arguments.get('--max-tries'))
     dry_run                             = arguments.get('--dry-run')
     force                               = arguments.get('--force')
@@ -203,11 +210,52 @@ if __name__ == '__main__':
     check_already_running_or_exit(yarn_job_name_prefix)
     logger.debug('No other running instances, proceeding')
 
-    check_hdfs_path_or_exit(queries.keys(), table_path_template, tmp_base_path, force, dry_run)
+    check_hdfs_path_or_exit(queries.keys(), table_path_template, hdfs_tmp_path, force, dry_run)
     logger.debug('All table paths are empty or force cleaned')
 
     jdbc_host = 'jdbc:mysql://' + host + '/'
     dbpostfix = '_p' if labsdb else ''
+
+    failed_jobs = []
+    executor_config_list = []
+
+    ####################################################
+    # First Step - Generate JAR using etwiki if no jar_file specifiec
+
+    if not jar_file:
+        now_dt = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+        target_jar_directory = os.path.join(local_tmp_path, now_dt)
+        jar_path = os.path.join(target_jar_directory, 'mediawiki-tables-sqoop-orm.jar')
+
+        logger.info('Generating ORM jar at {}'.format(jar_path))
+
+        for table in queries.keys():
+            query = queries[table].get('query')
+            map_types = queries[table]['map-types'] if ('map-types' in queries[table]) else None
+            split_by = queries[table]['split-by']
+            executor_config_list.append(
+                SqoopConfig(yarn_job_name_prefix, user, password_file, jdbc_host, 1,
+                            None, None, None, 'etwiki', dbpostfix, table,
+                            query, split_by, map_types,
+                            target_jar_directory, None, 1, dry_run))
+
+        with futures.ProcessPoolExecutor(1) as executor:
+            failed_jobs.extend(filter(None, list(executor.map(sqoop_wiki, executor_config_list))))
+            if len(failed_jobs):
+                failed_tables = ', '.join([c.table for c in failed_jobs])
+                logger.error('ERROR generating ORM jar for {}'.format(failed_tables))
+                sys.exit(1)
+
+        subprocess.check_call([
+            'jar', 'cf', jar_path, '-C', target_jar_directory, '.'
+        ])
+        jar_file = jar_path
+        logger.info('ORM jar generated at {}'.format(jar_path))
+
+
+    ####################################################
+    # Second Step - Sqoop data using generated jar
+
 
     # read in the wikis to process and sqoop each one
     with open(db_list_file) as dbs_file:
@@ -234,11 +282,12 @@ if __name__ == '__main__':
                 query = queries[table].get('query')
                 map_types = queries[table]['map-types'] if ('map-types' in queries[table]) else None
                 split_by = queries[table]['split-by']
-                executor_config_list.append(SqoopConfig(yarn_job_name_prefix, user, password_file, jdbc_host,
-                                            num_mappers_adjusted, output_format, tmp_base_path,
-                                            table_path_template, w[0], dbpostfix, table,
-                                            query, split_by, map_types,
-                                            None, jar_file, 1, dry_run))
+                executor_config_list.append(
+                    SqoopConfig(yarn_job_name_prefix, user, password_file, jdbc_host,
+                                num_mappers_adjusted, output_format, hdfs_tmp_path,
+                                table_path_template, w[0], dbpostfix, table,
+                                query, split_by, map_types,
+                                None, jar_file, 1, dry_run))
 
         # sqoop all wikis in this group and wait for them all to finish with retry
         with futures.ProcessPoolExecutor(num_processors_adjusted) as executor:
