@@ -5,6 +5,7 @@
       "type" : "hadoop",
       "inputSpec" : {
         "type" : "static",
+        "inputFormat": "io.druid.data.input.parquet.DruidParquetInputFormat",
         "paths" : "*INPUT_PATH*"
       }
     },
@@ -16,12 +17,16 @@
         "queryGranularity" : "day",
         "intervals" : *INTERVALS_ARRAY*
       },
-            "parser" : {
-        "type" : "string",
+      "parser" : {
+        "type": "parquet",
         "parseSpec" : {
-          "format" : "json",
-          "dimensionsSpec" : {
-            "dimensions" : [
+          "format": "timeAndDims",
+          "timestampSpec": {
+            "format" : "yyyy-MM-dd HH:mm:ss.S",
+            "column" : "event_timestamp"
+          },
+          "dimensionsSpec": {
+            "dimensions": [
               "project",
               "event_entity",
               "event_type",
@@ -34,11 +39,9 @@
               "revisions",
               "text_bytes_diff",
               "text_bytes_diff_abs"
-            ]
-          },
-          "timestampSpec" : {
-            "format" : "yyyy-MM-dd HH:mm:ss.S",
-            "column" : "event_timestamp"
+            ],
+            "dimensionExclusions": [],
+            "spatialDimensions": []
           }
         }
       },
@@ -67,14 +70,13 @@
     "tuningConfig" : {
       "type" : "hadoop",
       "overwriteFiles": true,
-      "ignoreInvalidRows" : false,
       "partitionsSpec" : {
         "type" : "hashed",
         "numShards" : 4
       },
       "jobProperties" : {
+        "mapreduce.map.memory.mb" : "4096",
         "mapreduce.reduce.memory.mb" : "8192",
-        "mapreduce.output.fileoutputformat.compress": "org.apache.hadoop.io.compress.GzipCodec",
         "mapreduce.job.queuename": "*HADOOP_QUEUE*"
       }
     }

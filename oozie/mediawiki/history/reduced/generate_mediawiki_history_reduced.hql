@@ -13,12 +13,6 @@
 --         -d snapshot=2017-08
 --
 
-SET hive.exec.compress.output=true;
-SET mapreduce.output.fileoutputformat.compress.codec=org.apache.hadoop.io.compress.GzipCodec;
-
-ADD JAR /usr/lib/hive-hcatalog/share/hcatalog/hive-hcatalog-core.jar;
-
-
 WITH
     project_map AS (
         SELECT DISTINCT

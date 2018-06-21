@@ -13,8 +13,6 @@
 --         --database wmf
 --
 
-ADD JAR /usr/lib/hive-hcatalog/share/hcatalog/hive-hcatalog-core.jar;
-
 CREATE EXTERNAL TABLE IF NOT EXISTS `mediawiki_history_reduced` (
   `project`              string COMMENT 'The project this event belongs to (en.wikipedia or wikidata for instance)',
   `event_entity`         string COMMENT 'revision, user, page, daily_digest or monthly_digest',
@@ -35,9 +33,7 @@ PARTITIONED BY (
   `snapshot` string COMMENT 'Versioning information to keep multiple datasets (YYYY-MM for regular labs imports)'
 )
 
-ROW FORMAT SERDE 'org.apache.hive.hcatalog.data.JsonSerDe'
-
-STORED AS TEXTFILE
+STORED AS PARQUET
 
 LOCATION
   'hdfs://analytics-hadoop/wmf/data/wmf/mediawiki/history_reduced';
