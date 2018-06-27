@@ -502,7 +502,7 @@ class HivePartition(OrderedDict):
         transformers = defaultdict(lambda: lambda x: x, {
             # 2018-5-15-05 is valid, but 2018-5-15-5 is not.  Prefix with 0 to mak
             # parser happy.
-            'hour': lambda hour: "%02d" % (hour)
+            'hour': lambda hour: "%02d" % (int(hour))
         })
         values = [transformers[k](self[k]) for k in self.keys() if k in relevant_partition_keys]
 
