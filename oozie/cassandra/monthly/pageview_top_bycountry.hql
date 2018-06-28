@@ -9,8 +9,8 @@
 -- Usage:
 --     hive -f pageview_top_bycountry.hql                         \
 --         -d destination_directory=/tmp/pageview_top_bycountry   \
---         -d source_table=wmf.pageview_hourly                    \
---         -d separator=\t                                        \
+--         -d source_table=wmf.projectview_hourly                 \
+--         -d separator='\t'                                        \
 --         -d year=2015                                           \
 --         -d month=5                                             \
 --
@@ -40,15 +40,7 @@ WITH ranked AS (
             LPAD(year, 4, "0") as year,
             LPAD(month, 2, "0") as month,
             SUM(view_count) as raw_views,
-            CASE
-                WHEN SUM(view_count) >= 1000000000 then '1000000000-9999999999'
-                WHEN SUM(view_count) >= 100000000 then '100000000-999999999'
-                WHEN SUM(view_count) >= 10000000 then '10000000-99999999'
-                WHEN SUM(view_count) >= 1000000 then '1000000-9999999'
-                WHEN SUM(view_count) >= 100000 then '100000-999999'
-                WHEN SUM(view_count) >= 10000 then '10000-99999'
-                WHEN SUM(view_count) >= 1000 then '1000-9999'
-                WHEN SUM(view_count) >= 100 then '100-999' END as views
+            CEIL(SUM(view_count) / 1000) * 1000 as views
         FROM ${source_table}
         WHERE
             year = ${year}
@@ -77,8 +69,8 @@ SELECT
         CONCAT('[',
             CONCAT_WS(',', collect_set(
                 CONCAT('{"country":"', ranked.country,
-                    '","views":"', CAST(ranked.views AS STRING),
-                    '","rank":', CAST(ranked.rank AS STRING), '}'))
+                    '","views":', CAST(ranked.views AS STRING),
+                    ',"rank":', CAST(ranked.rank AS STRING), '}'))
             ),']')
     )
 FROM ranked
