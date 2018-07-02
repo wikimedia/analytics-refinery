@@ -11,8 +11,8 @@
 CREATE EXTERNAL TABLE `mediawiki_user_history`(
     wiki_db                         string          COMMENT 'enwiki, dewiki, eswiktionary, etc.',
     user_id                         bigint          COMMENT 'ID of the user, as in the user table.',
-    user_name_historical            string          COMMENT 'Historical user name.',
-    user_name                       string          COMMENT 'User name as of today.',
+    user_text_historical            string          COMMENT 'Historical user name.',
+    user_text                       string          COMMENT 'User name as of today.',
     user_groups_historical          array<string>   COMMENT 'Historical user groups.',
     user_groups                     array<string>   COMMENT 'User groups as of today.',
     user_blocks_historical          array<string>   COMMENT 'Historical user blocks.',
