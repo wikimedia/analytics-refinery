@@ -912,6 +912,62 @@ MobileWikiAppWiktionaryPopup:
     webHost: keep
     wiki: keep
 
+MobileWikiAppiOSUserHistory:
+    event:
+        measure_readinglist_listcount: keep
+        measure_readinglist_itemcount: keep
+        readinglist_sync: keep
+        readinglist_showdefault: keep
+        measure_font_size: keep
+        theme: keep
+        feed_disabled: keep
+        trend_notify: keep
+        search_tab: keep
+        primary_language: keep
+        is_anon: keep
+        app_install_id: keep
+        event_dt: keep
+        session_id: keep
+        feed_enabled_list:
+            fa:
+                ena: keep
+                dis: keep
+            tr:
+                ena: keep
+                dis: keep
+            od:
+                ena: keep
+                dis: keep
+            ns:
+                ena: keep
+                dis: keep
+            rp:
+                ena: keep
+                dis: keep
+            cr:
+                ena: keep
+                dis: keep
+            pl:
+                ena: keep
+                dis: keep
+            rd:
+                ena: keep
+                dis: keep
+            pd:
+                ena: keep
+                dis: keep
+            mp:
+                ena: keep
+                dis: keep
+    userAgent:
+        os_family: keep
+        os_major: keep
+        wmf_app_version: keep
+    geocoded_data:
+        country: keep
+    webHost: keep
+    wiki: keep
+
 MultimediaViewerAttribution:
     event:
         authorPresent: keep
