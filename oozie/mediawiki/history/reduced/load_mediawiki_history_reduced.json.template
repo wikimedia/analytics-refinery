@@ -75,6 +75,7 @@
         "numShards" : 4
       },
       "jobProperties" : {
+        "parquet.avro.add-list-element-records":"false",
         "mapreduce.map.memory.mb" : "4096",
         "mapreduce.reduce.memory.mb" : "8192",
         "mapreduce.job.queuename": "*HADOOP_QUEUE*"
