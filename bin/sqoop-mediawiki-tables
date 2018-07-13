@@ -247,8 +247,8 @@ if __name__ == '__main__':
                 sys.exit(1)
 
         subprocess.check_call([
-            'jar', 'cf', jar_path, '-C', target_jar_directory, '.'
-        ])
+            'jar', 'cf', jar_path, '-C', target_jar_directory, '.',
+        ], stdout=DEVNULL, stderr=DEVNULL)
         jar_file = jar_path
         logger.info('ORM jar generated at {}'.format(jar_path))
 
@@ -306,7 +306,7 @@ if __name__ == '__main__':
             subprocess.check_call([
                 'hdfs', 'dfs', '-touchz',
                 success_file_path
-            ])
+            ], stdout=DEVNULL, stderr=DEVNULL)
         logger.info('Wrote Success file {}'.format(success_file_path))
 
     # In any mode, if failed jobs, send an error email and log error
