@@ -553,6 +553,7 @@ MobileWikiAppAppearanceSettings:
     event:
         action: keep
         appInstallID: keep
+        app_install_id: keep
         appearanceAppInstallID: keep
         currentValue: keep
         newValue: keep
@@ -566,6 +567,7 @@ MobileWikiAppArticleSuggestions:
     event:
         action: keep
         appInstallID: keep
+        app_install_id: keep
         latency: keep
         readMoreIndex: keep
         readMoreSource: keep
@@ -593,6 +595,7 @@ MobileWikiAppDailyStats:
     event:
         appInstallAgeDays: keep
         appInstallID: keep
+        app_install_id: keep
     userAgent:
         os_family: keep
         wmf_app_version: keep
@@ -622,6 +625,7 @@ MobileWikiAppFeed:
         action: keep
         age: keep
         appInstallID: keep
+        app_install_id: keep
         cardType: keep
         position: keep
         sessionToken: keep
@@ -635,6 +639,7 @@ MobileWikiAppFeed:
 MobileWikiAppFindInPage:
     event:
         appInstallID: keep
+        app_install_id: keep
         numFindNext: keep
         numFindPrev: keep
         pageHeight: keep
@@ -659,6 +664,7 @@ MobileWikiAppIntents:
     event:
         action: keep
         appInstallID: keep
+        app_install_id: keep
     userAgent:
         os_family: keep
         wmf_app_version: keep
@@ -669,6 +675,7 @@ MobileWikiAppLangSelect:
     event:
         action: keep
         appInstallID: keep
+        app_install_id: keep
         newLang: keep
         oldLang: keep
         sessionToken: keep
@@ -684,6 +691,7 @@ MobileWikiAppLinkPreview:
     event:
         action: keep
         appInstallID: keep
+        app_install_id: keep
         previewSessionToken: keep
         timeSpent: keep
         version: keep
@@ -710,6 +718,7 @@ MobileWikiAppMediaGallery:
     event:
         action: keep
         appInstallID: keep
+        app_install_id: keep
         gallerySessionToken: keep
         source: keep
         timeSpent: keep
@@ -723,6 +732,7 @@ MobileWikiAppNavMenu:
     event:
         action: keep
         appInstallID: keep
+        app_install_id: keep
         menuItem: keep
         sessionToken: keep
     userAgent:
@@ -769,6 +779,7 @@ MobileWikiAppReadingLists:
         action: keep
         addsource: keep
         appInstallID: keep
+        app_install_id: keep
         itemcount: keep
         listcount: keep
     userAgent:
@@ -781,6 +792,7 @@ MobileWikiAppSavedPages:
     event:
         action: keep
         appInstallID: keep
+        app_install_id: keep
         savedPagesAppInstallToken: keep
     userAgent:
         os_family: keep
@@ -792,6 +804,7 @@ MobileWikiAppSearch:
     event:
         action: keep
         appInstallID: keep
+        app_install_id: keep
         numberOfResults: keep
         position: keep
         searchSessionToken: keep
@@ -809,6 +822,7 @@ MobileWikiAppSessions:
         action: keep
         apiMode: keep
         appInstallID: keep
+        app_install_id: keep
         backPressed: keep
         fromBack: keep
         fromDisambig: keep
@@ -869,6 +883,7 @@ MobileWikiAppTabs:
     event:
         action: keep
         appInstallID: keep
+        app_install_id: keep
         tabCount: keep
         tabIndex: keep
         tabsSessionToken: keep
@@ -882,6 +897,7 @@ MobileWikiAppToCInteraction:
     event:
         action: keep
         appInstallID: keep
+        app_install_id: keep
         numSections: keep
         sectionIndex: keep
         timeSpent: keep
@@ -896,6 +912,7 @@ MobileWikiAppWidgets:
     event:
         action: keep
         appInstallID: keep
+        app_install_id: keep
     userAgent:
         os_family: keep
         wmf_app_version: keep
@@ -930,35 +947,26 @@ MobileWikiAppiOSUserHistory:
         session_id: keep
         feed_enabled_list:
             fa:
-                ena: keep
-                dis: keep
+                on: keep
+                off: keep
             tr:
-                ena: keep
-                dis: keep
+                on: keep
+                off: keep
             od:
-                ena: keep
-                dis: keep
+                on: keep
+                off: keep
             ns:
-                ena: keep
-                dis: keep
-            rp:
-                ena: keep
-                dis: keep
-            cr:
-                ena: keep
-                dis: keep
+                on: keep
+                off: keep
             pl:
-                ena: keep
-                dis: keep
+                on: keep
+                off: keep
             rd:
-                ena: keep
-                dis: keep
-            pd:
-                ena: keep
-                dis: keep
-            mp:
-                ena: keep
-                dis: keep
+                on: keep
+                off: keep
+            rp: keep
+            cr: keep
+            pd: keep
     userAgent:
         os_family: keep
         os_major: keep
