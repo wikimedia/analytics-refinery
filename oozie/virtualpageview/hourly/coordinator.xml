@@ -24,6 +24,7 @@
 
         <property><name>virtualpageview_datasets_file</name></property>
         <property><name>virtualpageview_data_directory</name></property>
+        <property><name>whitelist_table</name></property>
 
         <property><name>hive_site_xml</name></property>
 

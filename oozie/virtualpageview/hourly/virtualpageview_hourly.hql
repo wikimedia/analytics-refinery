@@ -8,6 +8,8 @@
 --     source_table          -- Fully qualified source table name.
 --     destination_table     -- Fully qualified destination table name.
 --     record_version        -- Version number of the current schema.
+--     whitelist_table       -- Fully qualified table name for the whitelist
+--                              to be used as filter.
 --     year                  -- Year of the partition to aggregate.
 --     month                 -- Month of the partition to aggregate.
 --     day                   -- Day of the partition to aggregate.
@@ -20,6 +22,7 @@
 --         -d source_table=event.VirtualPageView \
 --         -d destination_table=wmf.virtualpageview_hourly \
 --         -d record_version=0.0.1 \
+--         -d whitelist_table=wmf.pageview_whitelist \
 --         -d year=2018 \
 --         -d month=3 \
 --         -d day=14 \
@@ -50,6 +53,11 @@ WITH decorated_virtualpageviews AS (
         month = ${month} AND
         day = ${day} AND
         hour = ${hour}
+),
+filtered_virtualpageviews AS (
+    SELECT * FROM decorated_virtualpageviews
+    JOIN ${whitelist_table} whitelist
+        ON (pageview_info['project'] = whitelist.authorized_value)
 )
 INSERT OVERWRITE TABLE ${destination_table} PARTITION(
     year = ${year},
@@ -86,7 +94,7 @@ SELECT
     event.source_page_id AS source_page_id,
     event.source_namespace AS source_namespace_id
 FROM
-    decorated_virtualpageviews
+    filtered_virtualpageviews
 GROUP BY
     pageview_info['project'],
     pageview_info['language_variant'],

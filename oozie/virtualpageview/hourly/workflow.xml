@@ -22,6 +22,8 @@
         <property><name>refinery_jar_version</name></property>
         <property><name>artifacts_directory</name></property>
 
+        <property><name>whitelist_table</name></property>
+
         <!-- Aggregation related configuration properties-->
         <property>
             <name>hive_virtualpageview_script_aggregate</name>
@@ -106,6 +108,7 @@
             <param>source_table=${virtualpageview_source_table}</param>
             <param>destination_table=${virtualpageview_hourly_table}</param>
             <param>record_version=${record_version}</param>
+            <param>whitelist_table=${whitelist_table}</param>
             <param>year=${year}</param>
             <param>month=${month}</param>
             <param>day=${day}</param>
