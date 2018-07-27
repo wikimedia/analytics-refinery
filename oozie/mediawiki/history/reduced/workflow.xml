@@ -154,9 +154,8 @@
                 </property>
                 <property>
                     <name>target_datasource</name>
-                    <value>${druid_datasource_prefix}_${snapshot}</value>
+                    <value>${druid_datasource_prefix}_${replaceAll(snapshot, "-", "_")}</value>
                 </property>
-
             </configuration>
         </sub-workflow>
         <ok to="end"/>
