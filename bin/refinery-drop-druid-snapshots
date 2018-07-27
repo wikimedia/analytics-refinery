@@ -1,0 +1,85 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Note: You should make sure to put refinery/python on your PYTHONPATH.
+#   export PYTHONPATH=$PYTHONPATH:/path/to/refinery/python
+"""
+This script deletes old snapshots from the druid cluster. It is useful to
+keep a few recent snapshots in case the most recent data turns out to be
+defective and a revert is necessary, but there should be no need to
+keep all snapshots.
+
+DO NOT use this script on druid datasources whose intervals represent time
+data other than snapshots. For example, geowiki_archive_monthly's intervals
+represent the time ranges of the data, which we wouldn't want to delete.
+
+Usage: refinery-drop-druid-snapshots [options]
+
+Options:
+    -h --help                       Show this help message and exit.
+    -d --basename=<name>            Base name of the datasource from which data will
+                                    be deleted. Assumes that the datasources name will be
+                                    <BASE_NAME>_yyyy-MM
+    -t --druid-host=<hostname>      Fully qualified url of the druid host
+    -s --keep-snapshots=<n>         Keep the <n> most recent snapshots. [default: 6]
+    -v --verbose                    Turn on verbose debug logging.
+    -f [FILE] --log-file [FILE]     File to send info logs to
+    -n --dry-run                    Don't actually drop any partitions, just output Hive queries.
+"""
+
+__author__ = 'Francisco Dans <fdans@wikimedia.org>'
+
+import re
+import sys
+from docopt import docopt
+import logging
+from refinery.util import DruidUtils
+from refinery.logging_setup import configure_logging
+
+logger = logging.getLogger()
+
+if __name__ == '__main__':
+    arguments = docopt(__doc__)
+    keep            = int(arguments['--keep-snapshots'])
+    basename        = arguments['--basename']
+    druid_host      = arguments['--druid-host']
+    verbose         = arguments['--verbose']
+    dry_run         = arguments['--dry-run']
+    log_file        = arguments['--log-file']
+
+    log_level = logging.DEBUG if verbose else logging.INFO
+    configure_logging(logger, log_level, log_file=log_file)
+
+    if dry_run:
+        print('################################################')
+        print('DRY RUN MODE - THIS RUN WILL NOT CHANGE ANYTHING')
+        print('################################################')
+
+    logger.info('Using druid host {}...'.format(druid_host))
+    druid = DruidUtils(druid_host)
+
+    logger.info('Looking for snapshots to delete for {}...'.format(basename))
+    datasources = druid.list_datasources()
+    matched_snapshots = list(sorted(filter(lambda d: re.match(basename + '_\d{4}_\d\d', d), datasources), reverse = True))
+    if len(matched_snapshots) == 0:
+        sys.exit('The base name you specified does not match any datasources')
+    snapshots_to_remove = matched_snapshots[keep:]
+    if len(snapshots_to_remove) == 0:
+        sys.exit('There are no datasources to remove (total available {})'.format(len(matched_snapshots)))
+    for snapshot in snapshots_to_remove:
+        logger.info('Deleting snapshot {}...'.format(snapshot))
+        druid.remove_datasource(snapshot, deep=True, dry_run=dry_run)
+
+    logger.info('Deleted {} snapshots from {}...'.format(len(snapshots_to_remove), basename))
