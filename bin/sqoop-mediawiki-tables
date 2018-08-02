@@ -123,9 +123,9 @@ import csv
 import logging
 import os
 import sys
-import subprocess
 import datetime
 
+from subprocess import check_call, DEVNULL
 from docopt import docopt
 from concurrent import futures
 from itertools import groupby
@@ -246,16 +246,14 @@ if __name__ == '__main__':
                 logger.error('ERROR generating ORM jar for {}'.format(failed_tables))
                 sys.exit(1)
 
-        subprocess.check_call([
+        check_call([
             'jar', 'cf', jar_path, '-C', target_jar_directory, '.',
         ], stdout=DEVNULL, stderr=DEVNULL)
         jar_file = jar_path
         logger.info('ORM jar generated at {}'.format(jar_path))
 
-
     ####################################################
     # Second Step - Sqoop data using generated jar
-
 
     # read in the wikis to process and sqoop each one
     with open(db_list_file) as dbs_file:
@@ -303,7 +301,7 @@ if __name__ == '__main__':
     for table in (set(queries.keys()) - failed_tables):
         success_file_path = table_path_template.format(table=table) + '/_SUCCESS'
         if not dry_run:
-            subprocess.check_call([
+            check_call([
                 'hdfs', 'dfs', '-touchz',
                 success_file_path
             ], stdout=DEVNULL, stderr=DEVNULL)
