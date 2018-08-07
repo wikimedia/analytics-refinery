@@ -5,6 +5,7 @@
       "type" : "hadoop",
       "inputSpec" : {
         "type" : "static",
+        "inputFormat": "io.druid.data.input.parquet.DruidParquetInputFormat",
         "paths" : "*INPUT_PATH*"
       }
     },
@@ -17,9 +18,9 @@
         "intervals" : *INTERVALS_ARRAY*
       },
       "parser" : {
-        "type" : "string",
+        "type" : "parquet",
         "parseSpec" : {
-          "format" : "json",
+          "format" : "timeAndDims",
           "dimensionsSpec" : {
             "dimensions" : [
               "wiki_db",
@@ -94,81 +95,6 @@
           "type" : "count",
           "name" : "events"
         },
-
-
-        {
-          "name" : "self_created_event_users",
-          "type" : "longSum",
-          "fieldName": "event_user_is_created_by_self"
-        },
-        {
-          "name" : "system_created_event_users",
-          "type" : "longSum",
-          "fieldName": "event_user_is_created_by_system"
-        },
-        {
-          "name" : "peer_created_event_users",
-          "type" : "longSum",
-          "fieldName": "event_user_is_created_by_peer"
-        },
-        {
-          "name" : "anonymous_event_users",
-          "type" : "longSum",
-          "fieldName": "event_user_is_anonymous"
-        },
-        {
-          "name" : "bot_by_name_event_users",
-          "type" : "longSum",
-          "fieldName": "event_user_is_bot_by_name"
-        },
-
-
-
-        {
-          "name" : "content_namespace_pages_historical",
-          "type" : "longSum",
-          "fieldName": "page_namespace_is_content_historical"
-        },{
-          "name" : "content_namespace_pages",
-          "type" : "longSum",
-          "fieldName": "page_namespace_is_content"
-        },
-        {
-          "name" : "redirect_pages",
-          "type" : "longSum",
-          "fieldName": "page_is_redirect"
-        },
-
-
-
-        {
-          "name" : "self_created_users",
-          "type" : "longSum",
-          "fieldName": "user_is_created_by_self"
-        },
-        {
-          "name" : "system_created_users",
-          "type" : "longSum",
-          "fieldName": "user_is_created_by_system"
-        },
-        {
-          "name" : "peer_created_users",
-          "type" : "longSum",
-          "fieldName": "user_is_created_by_peer"
-        },
-        {
-          "name" : "anonymous_users",
-          "type" : "longSum",
-          "fieldName": "user_is_anonymous"
-        },
-        {
-          "name" : "bot_by_name_users",
-          "type" : "longSum",
-          "fieldName": "user_is_bot_by_name"
-        },
-
-
-
         {
           "name" : "revision_text_bytes_num",
           "type" : "longSum",
@@ -178,40 +104,21 @@
           "name" : "revision_text_bytes_diff_num",
           "type" : "longSum",
           "fieldName": "revision_text_bytes_diff"
-        },
-        {
-          "name" : "minor_revisions",
-          "type" : "longSum",
-          "fieldName": "revision_minor_edit"
-        },
-        {
-          "name" : "deleted_revisions",
-          "type" : "longSum",
-          "fieldName": "revision_is_deleted"
-        },
-        {
-          "name" : "identity_reverted_revisions",
-          "type" : "longSum",
-          "fieldName": "revision_is_identity_reverted"
-        },
-        {
-          "name" : "identity_reverting_revisions",
-          "type" : "longSum",
-          "fieldName": "revision_is_identity_revert"
         }
       ]
     },
     "tuningConfig" : {
       "type" : "hadoop",
       "overwriteFiles": true,
-      "ignoreInvalidRows" : false,
       "partitionsSpec" : {
         "type" : "hashed",
         "numShards" : 16
       },
       "jobProperties" : {
+        "parquet.avro.add-list-element-records":"false",
+        "mapreduce.map.memory.mb" : "4096",
         "mapreduce.reduce.memory.mb" : "8192",
-        "mapreduce.output.fileoutputformat.compress": "org.apache.hadoop.io.compress.GzipCodec",
+        "mapreduce.job.reduce.slowstart.completedmaps": "0.95",
         "mapreduce.job.queuename": "*HADOOP_QUEUE*"
       }
     }
