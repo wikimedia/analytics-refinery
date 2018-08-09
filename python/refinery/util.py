@@ -608,7 +608,6 @@ class HdfsUtils(object):
             ).splitlines() if not line.startswith(b'Found ')
         ]
 
-
     @staticmethod
     def rm(paths):
         """
@@ -655,6 +654,35 @@ class HdfsUtils(object):
                 sh(['hdfs', 'dfs', '-mv', fromPaths[i], toParent])
             else:
                 sh(['hdfs', 'dfs', '-mv', fromPaths[i], toPaths[i]])
+
+    @staticmethod
+    def put(localPath, hdfsPath, force=False):
+        """
+        Runs 'hdfs dfs -put localPath hdfsPath' to copy a local file over to hdfs.
+        """
+        command = ['hdfs', 'dfs', '-put', localPath, hdfsPath]
+        if force:
+            command.insert(3, '-f')
+        sh(command)
+
+    @staticmethod
+    def cat(path):
+        """
+        Runs hdfs dfs -cat path and returns the contents of the file.
+        Be careful with file size, it will be returned as an in-memory string.
+        """
+        command = ['hdfs', 'dfs', '-cat', path]
+        return sh(command).decode('utf-8')
+
+    @staticmethod
+    def get_modified_datetime(path):
+        """
+        Runs 'hdfs dfs -stat' and returns the modified datetime for the given path.
+        """
+        stat_str = sh(['hdfs', 'dfs', '-stat', path]).decode('utf-8')
+        date_str, time_str = stat_str.strip().split()
+        iso_datetime_str = date_str + 'T' + time_str + 'Z'
+        return parser.parse(iso_datetime_str)
 
     @staticmethod
     def validate_path(path):

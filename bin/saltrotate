@@ -1,0 +1,139 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""
+Creates, rotates and deletes criptographic salt files.
+
+Usage: saltrotate [options] <file_path>
+
+Options:
+    -h --help                   Show this help message and exit.
+    -p --period=<period_code>   Rotate the salt every such period.
+                                Format: <N> <UNIT>. N must be a positive
+                                integer. UNIT must be one of: hours, days,
+                                months. Default: '1 days'.
+    -s --start=<iso_datetime>   Start counting rotation periods at this time.
+                                Default: '1970-01-01T00:00:00Z'.
+    --verbose                   Turn on verbose logging.
+    --dry-run                   Don't actually apply any changes.
+"""
+
+from datetime import datetime, timezone
+from dateutil import parser as datetime_parser, relativedelta
+from docopt import docopt
+from refinery.logging_setup import configure_logging
+from refinery.util import HdfsUtils
+import logging
+import os
+import random
+import re
+import tempfile
+
+
+SALT_LENGTH = 64
+SALT_ALPHABET = list('0123456789abcdef')
+
+logger = logging.getLogger()
+
+
+def parse_period(period):
+    if period is not None:
+        if not re.match(r"^[0-9]+ (hours|days|months)$", period):
+            raise Exception('Invalid period string: ' + period)
+        count, unit = period.split()
+        params = {}
+        params[unit] = int(count)
+        return relativedelta.relativedelta(**params)
+
+def create_salt():
+    chosen_chars = [random.choice(SALT_ALPHABET) for i in range(SALT_LENGTH)]
+    return ''.join(chosen_chars)
+
+def check_salt(hdfs_path, salt):
+    logger.debug('Checking salt file integrity...')
+    try:
+        read_salt = HdfsUtils.cat(hdfs_path)
+    except Exception as e:
+        logger.error('Unable to read updated salt file.')
+        raise e
+    if read_salt != salt:
+        logger.error('Verification of salt file contents failed.')
+        raise Exception()
+    logger.debug('Salt file integrity checked.')
+
+def rotate_salt(hdfs_path):
+    new_salt = create_salt()
+    logger.debug('Writing new salt to local temporary file...')
+    local_dir = '/tmp/saltrotate/'
+    if not os.path.exists(local_dir):
+        os.makedirs(local_dir)
+    file_descriptor, local_path = tempfile.mkstemp(dir=local_dir, text=True)
+    with open(local_path, 'w') as salt_file:
+        salt_file.write(new_salt)
+    logger.debug('Copying salt file over to HDFS...')
+    HdfsUtils.put(local_path, hdfs_path, force=True)
+    logger.debug('Removing local temporary salt file...')
+    os.remove(local_path)
+    check_salt(hdfs_path, new_salt)
+
+def main(file_path, period_timedelta, start_datetime, dry_run):
+    logger.debug('Checking for existing salt file...')
+    file_exists = len(HdfsUtils.ls([file_path])) > 0
+    if file_exists:
+        logger.debug('Salt file already exists.')
+        logger.debug('Checking whether salt needs rotation...')
+        if period_timedelta is not None:
+            current_datetime = datetime.now(timezone.utc)
+            mod_datetime = HdfsUtils.get_modified_datetime(file_path)
+            rotate_datetime = start_datetime
+            while rotate_datetime <= mod_datetime:
+                rotate_datetime += period_timedelta
+            if rotate_datetime <= current_datetime:
+                logger.debug('Salt needs rotation.')
+                logger.info('Rotating existing salt...')
+                if not dry_run:
+                    rotate_salt(file_path)
+            else:
+                logger.info('Salt does not need rotation yet.')
+        else:
+            logger.info('No salt rotation specified.')
+    else:
+        logger.debug('Salt file does not exist.')
+        logger.info('Creating new salt...')
+        if not dry_run:
+            rotate_salt(file_path)
+    logger.info('Done!')
+
+
+if __name__ == '__main__':
+
+    # Parse arguments.
+    arguments = docopt(__doc__)
+    file_path = arguments['<file_path>']
+    period_timedelta = parse_period(arguments['--period'])
+    start_datetime = datetime_parser.parse(
+        arguments['--start']
+        if arguments['--start'] is not None
+        else '1970-01-01T00:00:00Z'
+    )
+    verbose = arguments['--verbose']
+    dry_run = arguments['--dry-run']
+
+    # Configure logging.
+    log_level = logging.DEBUG if verbose else logging.INFO
+    configure_logging(logger, log_level, stdout=True)
+
+    # Execute logic.
+    main(file_path, period_timedelta, start_datetime, dry_run)
