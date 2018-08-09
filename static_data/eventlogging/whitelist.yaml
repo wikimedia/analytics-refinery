@@ -947,23 +947,23 @@ MobileWikiAppiOSUserHistory:
         session_id: keep
         feed_enabled_list:
             fa:
-                on: keep
-                off: keep
+                !!str on: keep
+                !!str off: keep
             tr:
-                on: keep
-                off: keep
+                !!str on: keep
+                !!str off: keep
             od:
-                on: keep
-                off: keep
+                !!str on: keep
+                !!str off: keep
             ns:
-                on: keep
-                off: keep
+                !!str on: keep
+                !!str off: keep
             pl:
-                on: keep
-                off: keep
+                !!str on: keep
+                !!str off: keep
             rd:
-                on: keep
-                off: keep
+                !!str on: keep
+                !!str off: keep
             rp: keep
             cr: keep
             pd: keep
