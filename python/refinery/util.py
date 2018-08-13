@@ -686,4 +686,24 @@ class HdfsUtils(object):
 
     @staticmethod
     def validate_path(path):
-        return path.startswith('/') or path.startswith('hdfs://')
+        return path.startswith('/') or path.startswwith('hdfs://')
+
+    @staticmethod
+    def get_parent_dirs(path, top_parent_path):
+        """
+        Lists the parent directories of the specified path, going up the directory
+        tree until top_parent_path is reached. This function expects top_parent_path
+        to be a literal substring of path.
+        """
+        dirs = path.replace(top_parent_path, '')[1:].split('/')
+        parents = [top_parent_path]
+        for directory in dirs:
+            parents.append(os.path.join(parents[-1], directory))
+        return parents
+
+    @staticmethod
+    def dir_bytes_size(path):
+        """
+        Returns the size in bytes of a hdfs path
+        """
+        return int(sh(['hdfs', 'dfs', '-du', '-s', path]).split()[0])

@@ -171,10 +171,37 @@ if __name__ == '__main__':
     if partition_paths_to_delete:
         if dry_run:
             print('hdfs dfs -rm -R -skipTrash ' + ' '.join(partition_paths_to_delete))
+            print('Parent directories that have been emptied because of this operation will also be deleted.')
+
         else:
             logging.info('Removing {0} partition directories for table {1}.{2} from {3}.'
                 .format(len(partition_paths_to_delete), database, table, table_location)
             )
             HdfsUtils.rm(' '.join(partition_paths_to_delete))
+            # Delete any directories left empty by partition removal
+            # Keep track of directories that were checked for size
+            visited_paths = set()
+            parent_dirs_to_remove = []
+            # Generate a list of parent folders per directory
+            for path in partition_paths_to_delete:
+                path_size = "0"
+                # When running in dry-run mode, we're not deleting anything, so we check
+                # if the parent directory has the same size as the partition dir we would
+                # have deleted.
+                if dry_run:
+                    path_size = HdfsUtils.dir_bytes_size(path)
+                parent_paths = HdfsUtils.get_parent_dirs(path, table_location)
+                # Sort them by length asc so that we don't have to erase multiple times
+                parent_paths.sort(key=len)
+                # Iterate over parent list. If we remove a dir, we jump to the next path
+                for parent_path in parent_paths:
+                    if parent_path not in visited_paths:
+                        visited_paths.add(parent_path)
+                        if HdfsUtils.dir_bytes_size(parent_path) == path_size:
+                            parent_dirs_to_remove.append(parent_path)
+                            break
+            logging.info('Removing {0} empty directories for table {1}.{2}.'
+                .format(len(parent_dirs_to_remove), database, table)
+            HdfsUtils.rm(' '.join(parent_dirs_to_remove))
     else:
         logging.info('No partition directories need removed for table {0}.{1}'.format(database, table))
