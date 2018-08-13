@@ -85,7 +85,7 @@ if __name__ == '__main__':
         checker_command = '/usr/bin/java -cp "{0}" org.wikimedia.analytics.refinery.camus.CamusPartitionChecker -c {1} {2} {3}'.format(
             check_classpath,
             properties_file,
-            datetime_to_check
+            datetime_to_check,
             check_dry_run
         )
 
