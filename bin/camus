@@ -28,6 +28,8 @@ Options:
     -c --check                          If set, a CamusPartitionChecker job will be submitted after the camus run if any (checking and flagging imported partitions).
     -q --check-jar=<jar-file>           Path to refinery-job jar file. [default: /srv/deployment/analytics/refinery/artifacts/refinery-camus.jar]
     -d --check-datetime=<datetime>      Camus run date to check (yyyy-mm-dd-HH-MM-SS format). Most recent run if not set.
+    -O --check-java-opts=<java-opts>    Any extra Java options to pass to the CamusPartitionChecker job.
+    -E --check-emails-to=<check_emails_to>  If set, encountered errors will be emailed to these comma separated email addresses.
     -m --check-dry-run                  Execute the check in dry-run mode.
 """
 __author__ = 'Andrew Otto <otto@wikimedia.org>'
@@ -80,13 +82,18 @@ if __name__ == '__main__':
         check_jar       = arguments['--check-jar']
         # We use Spark 2 jars/* to get Scala and Hadoop dependencies.
         check_classpath = ':'.join([check_jar, '/usr/lib/spark2/jars/*'])
+        check_java_opts = arguments['--check-java-opts'] if arguments['--check-java-opts'] else ''
         datetime_to_check = '-d %s' % arguments['--check-datetime'] if arguments['--check-datetime'] else ''
         check_dry_run = '--dry-run' if arguments['--check-dry-run'] else ''
-        checker_command = '/usr/bin/java -cp "{0}" org.wikimedia.analytics.refinery.camus.CamusPartitionChecker -c {1} {2} {3}'.format(
+        check_email_report = '--send-email-report --to-emails %s' % arguments['--check-emails-to'] if arguments['--check-emails-to'] else ''
+
+        checker_command = '/usr/bin/java -cp "{0}" {1} org.wikimedia.analytics.refinery.camus.CamusPartitionChecker -c {2} {3} {4} {5}'.format(
             check_classpath,
+            check_java_opts,
             properties_file,
             datetime_to_check,
-            check_dry_run
+            check_dry_run,
+            check_email_report
         )
 
         logging.info('Submitting camus-checker job: {0}'.format(checker_command))
