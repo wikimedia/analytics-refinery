@@ -78,17 +78,19 @@ if __name__ == '__main__':
     # Check execution block
     if (arguments['--check']):
         check_jar       = arguments['--check-jar']
-        # Spark classpath contains hadoop jars, no need to add them explicitely
-        check_classpath = ':'.join([check_jar, '/usr/lib/spark/lib/spark-assembly.jar', '$(hadoop classpath | sed \'s@^[^:]*:@@\')', '/usr/share/java/*'])
+        # We use Spark 2 jars/* to get Scala and Hadoop dependencies.
+        check_classpath = ':'.join([check_jar, '/usr/lib/spark2/jars/*'])
         datetime_to_check = '-d %s' % arguments['--check-datetime'] if arguments['--check-datetime'] else ''
-        checker_command = '/usr/bin/java -cp "{0}" org.wikimedia.analytics.refinery.camus.CamusPartitionChecker -c {1} {2}'.format(
+        check_dry_run = '--dry-run' if arguments['--check-dry-run'] else ''
+        checker_command = '/usr/bin/java -cp "{0}" org.wikimedia.analytics.refinery.camus.CamusPartitionChecker -c {1} {2} {3}'.format(
             check_classpath,
             properties_file,
             datetime_to_check
+            check_dry_run
         )
 
         logging.info('Submitting camus-checker job: {0}'.format(checker_command))
         if not dry_run:
-            exit_value += os.system(checker_command + (' --dry-run' if arguments['--check-dry-run'] else ''))
+            exit_value += os.system(checker_command)
 
     sys.exit(exit_value)
