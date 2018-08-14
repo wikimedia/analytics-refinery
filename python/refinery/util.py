@@ -686,7 +686,7 @@ class HdfsUtils(object):
 
     @staticmethod
     def validate_path(path):
-        return path.startswith('/') or path.startswwith('hdfs://')
+        return path.startswith('/') or path.startswith('hdfs://')
 
     @staticmethod
     def get_parent_dirs(path, top_parent_path):
