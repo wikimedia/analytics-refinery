@@ -19,7 +19,7 @@ time granularities -- with filters (project, page-type, editor-type, activity-le
 
 
 * new articles
-  * Formula: page-create - page-delete + page-restore
+  * Formula: Count page-create events (by construction no deleted pages)
   * Filters: project, page-type
 
 
@@ -60,38 +60,38 @@ granularity (daily or monthly) -- with filters
 
 
 * Most edited articles
-  * Formula: top 100 page_id by number of edits
+  * Formula: top 100 page_title by number of edits
   * Filters: project, page-type
 
 
 * Articles with most contributors
-  * Formula: top 100 page_id by number of distinct user_id
+  * Formula: top 100 page_title by number of distinct user_id
    (to mitigate anonymous)
   * Filters: project, page-type
 
 
 * Articles with largest growth
-  * Formula: top 100 page_id by sum of text_bytes_diff
+  * Formula: top 100 page_title by sum of text_bytes_diff
   * Filters: project, page-type
 
 
 * Articles most modified (bytes)
-  * Formula: top 100 page_id by sum of text_bytes_diff_abs
+  * Formula: top 100 page_title by sum of text_bytes_diff_abs
   * Filters: project, page-type
 
 
 * Contributors with most edits
-  * Formula: top 100 user_id by number of edits
+  * Formula: top 100 user_text by number of edits
   * Filters: project, user-type
 
 
 * Contributors having added most bytes
-  * Formula: top 100 user_id by sum of text_bytes_diff
+  * Formula: top 100 user_text by sum of text_bytes_diff
   * Filters: project, user-type
 
 
 * Contributors having modified most bytes
-  * Formula: top 100 user_id by sum of text_bytes_diff_abs
+  * Formula: top 100 user_text by sum of text_bytes_diff_abs
   * Filters: project, user-type
 
 
@@ -114,57 +114,55 @@ usually less evident (at least for me) to spot a non-additive metric.
 Let's take examples:
  1 Number of edits over a time period (day or month), broken-down or rolled-up by project.
    This metric is additive: if we have the number of daily-edits for every-day of a month,
-   we sum them up and have the value for the given month. Same for projects, if we have values for every project,
-   their sum is he global value.
+   we sum them up and have the value for the given month. Same for projects, if we have values
+   for every project, their sum is the global value.
  2 Number of editors over a time period (day or month), broken-down or rolled-up by project.
-   This metric however is non-additive: if we have the number of editors for every day of a month and some them up,
-   there are many chances that the result will be different from the computation of distinct users having done a
-   least one edit for that month. This is due to the fact that if an editor makes one edit a day for every day of
-   a month, it would counted as 1 in every daily metric value, and also 1 in the monthly computation (and not 31).
+   This metric however is non-additive: if we have the number of editors for every day of a month
+   and some them up, there are many chances that the result will be different from the computation
+   of distinct users having done at least one edit for that month. This is due to the fact that if
+   an editor makes one edit a day for every day of a month, it would count as 1 in every daily
+   metric value, and also 1 in the monthly computation (and not 31).
 
-In a general way, non-additive metrics are the ones defined as *distinct count*. For those, either you have events
-that by construction enforce the *distinct* aspect over your dimensions (such as `edit` for us), either you need to
-compute a **distinct count** over your dimensions and values (see next session).
+In a general way, non-additive metrics are the ones defined as *distinct count*. For those, either
+you have events that by construction enforce the *distinct* aspect over your dimensions (such as
+`edit` for us), either you need to compute a **distinct count** over your dimensions and values
+(see next session).
 
 
 #### The **distinct count** issue
 
-As stated in the previous section, when you have rows that by construction enforce
-the *distinct* aspect over your dimensions, counting distinct is as simple as counting those
-rows (`edits` in our use-case). When your data isn't formatted in such a way, you need to
-make sure every item you want distinct appears only once. This is equivalent to doing a `group
-by` the key you want distinct, then count the rows. While easy to say, it is actually tricky
-to do at scale and fast.
+As stated in the previous section, when you have rows that by construction enforce the *distinct*
+aspect over your dimensions, counting distinct is as simple as counting those rows (`edits`
+in our use-case). When your data isn't formatted in such a way, you need to make sure every item
+you want distinct appears only once. This is equivalent to doing a `group by` the key you want
+distinct, then count the rows. While easy to say, it is actually tricky to do at scale and fast.
 
-For use-cases that can afford a bit of imprecision, Druid implements the HyperLogLog
-hashing trick to compute fast and at scale an estimation of the *count distinct*,
-with estimated error being about 2% (tested with our datase). This solution will be
-very usefull for some use-cases we have, such as ranking by distinct-count as in
-*articles with most conributors* metric, where the actual count value can afford
-some imprecision as long as the ranking is correct, the 2% error is too big for the
-core metrics needing distinct-count: *editors* and *edited articles*. We also tried
-to use the `group by` then `count` strategy, but it doesn't scale correctly in Druid,
-as it keeps every resulting row of the inner query in memory.
+For use-cases that can afford a bit of imprecision, Druid implements the HyperLogLog hashing trick
+to compute fast and at scale an estimation of the *count distinct*, with estimated error being
+about 2% (tested with our datase). This solution will be very usefull for some use-cases we have,
+such as ranking by distinct-count as in *articles with most conributors* metric, where the actual
+count value can afford some imprecision as long as the ranking is correct. However the 2% error is
+too big for the core metrics needing distinct-count: *editors* and *edited articles*. We also tried
+to use the `group by` then `count` strategy, but it doesn't scale correctly in Druid, as it keeps
+every resulting row of the inner query in memory.
 
 
 #### The data-massaging solution
 
-The solution we picked for solving the two issues above is to prepare (massage) our
-data to fit our queries use-cases, and be carefull with how we query the dataset.
-While not being really generic nor intuitive in term of usage, this trick allows
-us to make Druid answer our queries fast and with correct results. The down-side
-is that it needs us to do heavier precomputation, and that our dataset in Druid
-contains more data, as it not only contains raw events but prepared ones.
+The solution we picked for solving the two issues above is to prepare (massage) our data to fit our
+queries use-cases, and be carefull with how we query the dataset. While not being really generic
+nor intuitive in term of usage, this trick allows us to make Druid answer our queries fast and
+with correct results. The down-side is that it needs us to do heavier precomputation, and that our
+dataset in Druid contains more data, as it not only contains raw events but prepared ones.
 
-In detail, we added rows with special type (to be filtered out of regular queries),
-that are unique by eiher page_id or user_id, time granularity (day or month),
-and any of the needed split-dimension (page-type and editor-type). We took advantage
-of having such new rows to store the count of edits for that period and dimension
-setting, named *activity level*, for even more filtering capacity. Last concern, this
-trick requires us to store events for the aggregated versions of our dimensions splits
-`page-type` and `editor-type`; we don't deduplicate users accross projects, so our
-distinct-count metrics are additive over that dimension. Instead of generating new
-fields for each of the possible value pairs, we encode the two dimensions values
+In detail, we added rows with special type (to be filtered out of regular queries), that are unique
+by eiher page_title (including namespace prefix) or user_text, time granularity (day or month),
+and any of the needed split-dimension (page-type and editor-type). We took advantage of having such
+new rows to store the count of edits for that period and dimension setting, named *activity level*,
+for even more filtering capacity. Last concern, this trick requires us to store events for the
+aggregated versions of our dimensions splits `page-type` and `editor-type`; we don't deduplicate
+users accross projects, so our distinct-count metrics are additive over that dimension. Instead of
+generating new fields for each of the possible value pairs, we encode the two dimensions values
 as a string, and use a special value "all" for precomputed disinct rows.
 
 
@@ -177,9 +175,9 @@ Field | Type | Comment
 `event_entity`                          | `string` | The entity the event is related to. Can be `revision`, `page` or `user` (This field should **always** be filtered on when querying to have correct result)
 `event_type`                            | `string` | The type of event - Can be `create`, `delete, `restore`, `daily_digest` or `monthly_digest` (the last two are special events used for distinct count)
 `event_timestamp`                       | `string` | The timestamp of the event in SQL format (YYYY-MM-DD HH:MM:SS.0)
-`user_id`                               | `string` | The user_id of the event performer id any, or its user_text if anonymous
+`user_text`                             | `string` | user_text of the performing user (IP if anonymous)
 `user_type`                             | `string` | Can be `anonymous`, `group_bot` (user is in the bot group), `name_bot` (user is not on the bot group but has a name that looks like a bot) or `user`. The special `all` value is used with `*ly_digest` event_types to gather `activity_lelve` for the rooled up dimension
-`page_id`                               | `bigint` | The page_id the event applies to
+`page_title`                            | `string` | The page_title the event applies to (prefixed with its canonical namespace)
 `page_namespace`                        | `int`    | The page_namespace the event applies to (for this one we keep historified values)
 `page_type`                             | `string` | Can be `content` (the page belongs in a content namespace) or `non_content` (the page belongs in a non-content namespace). The special `all` value is used with `*ly_digest` event_types to gather `activity_level` for the rolled up dimension
 `other_tags`                            | `array<string>` | Contains flags about the revisions or users events, allowing us to prevent keeping them as single dimensions. Can contain `user_first_24_hours` (if the revision happens within 24h of the performer creation), `redirect` (if the revision belongs to a page that is a redirect), `deleted` (if the revision has been deleted), `deleted_day`/`deleted_month`/`deleted_year` (if the revision has been deleted the same day, month or year), `reverted` or `revert` if the revision has been reverted or is a revert, `reverted_X` where `X` is a time period in `minute`, `5_minutes`, `10_minutes`, `hour`, `12_hours`, `day`, `3_days`, `week`, `2_weeks`, `month`, `3_month`, `6_month`, `year`, and finally `self_created`/`system_created`/`peer_created` if a user has been created by himself, a peer or the autologin system.
@@ -444,7 +442,7 @@ time curl -L -H'Content-Type: application/json' -XPOST --data-binary '
   "queryType": "topN",
   "dataSource": "mediawiki_history_reduced",
   "granularity": "month",
-  "dimension": "page_id",
+  "dimension": "page_title",
   "metric": "edits",
   "threshold": 100,
   "filter": {
@@ -477,7 +475,7 @@ time curl -L -H'Content-Type: application/json' -XPOST --data-binary '
   "queryType": "topN",
   "dataSource": "mediawiki_history_reduced",
   "granularity": "month",
-  "dimension": "page_id",
+  "dimension": "page_title",
   "metric": "contributors",
   "threshold": 100,
   "filter": {
@@ -494,7 +492,7 @@ time curl -L -H'Content-Type: application/json' -XPOST --data-binary '
     {
       "type": "cardinality",
       "name": "contributors",
-      "fields": [ "user_id" ]
+      "fields": [ "user_text" ]
     }
   ],
   "intervals": [ "2017-06-01T00:00:00.000/2017-07-01T00:00:00.000" ]
@@ -513,7 +511,7 @@ time curl -L -H'Content-Type: application/json' -XPOST --data-binary '
   "queryType": "topN",
   "dataSource": "mediawiki_history_reduced",
   "granularity": "month",
-  "dimension": "page_id",
+  "dimension": "page_title",
   "metric": "added_bytes",
   "threshold": 100,
   "filter": {
@@ -545,7 +543,7 @@ time curl -L -H'Content-Type: application/json' -XPOST --data-binary '
   "queryType": "topN",
   "dataSource": "mediawiki_history_reduced",
   "granularity": "month",
-  "dimension": "page_id",
+  "dimension": "page_title",
   "metric": "modified_bytes",
   "threshold": 100,
   "filter": {
@@ -576,7 +574,7 @@ time curl -L -H'Content-Type: application/json' -XPOST --data-binary '
   "queryType": "topN",
   "dataSource": "mediawiki_history_reduced",
   "granularity": "month",
-  "dimension": "user_id",
+  "dimension": "user_text",
   "metric": "edits",
   "threshold": 100,
   "filter": {
@@ -608,7 +606,7 @@ time curl -L -H'Content-Type: application/json' -XPOST --data-binary '
   "queryType": "topN",
   "dataSource": "mediawiki_history_reduced",
   "granularity": "day",
-  "dimension": "user_id",
+  "dimension": "user_text",
   "metric": "added_bytes",
   "threshold": 100,
   "filter": {
@@ -638,7 +636,7 @@ time curl -L -H'Content-Type: application/json' -XPOST --data-binary '
   "queryType": "topN",
   "dataSource": "mediawiki_history_reduced",
   "granularity": "day",
-  "dimension": "user_id",
+  "dimension": "user_text",
   "metric": "modified_bytes",
   "threshold": 100,
   "filter": {

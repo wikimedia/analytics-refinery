@@ -13,6 +13,10 @@
 --         -d snapshot=2017-08
 --
 
+-- Bump memory for mappers and reducers
+SET mapreduce.map.memory.mb=4096;
+SET mapreduce.reduce.memory.mb=8192;
+
 WITH
     project_map AS (
         SELECT DISTINCT
@@ -23,18 +27,22 @@ WITH
         WHERE TRUE
             AND snapshot = '${snapshot}'
     ),
+    namespace_map AS (
+        SELECT DISTINCT
+            dbname AS wiki_db,
+            namespace,
+            IF (namespace_canonical_name != '', CONCAT(namespace_canonical_name, ':'), '') AS namespace_prefix
+        FROM ${mw_project_namespace_map_table}
+        WHERE TRUE
+            AND snapshot = '${snapshot}'
+    ),
     digest_base AS (
         SELECT
             pm.hostname AS project,
             CONCAT(SUBSTRING(event_timestamp, 0, 10), ' 00:00:00.0') AS event_timestamp_day,
             CONCAT(SUBSTRING(event_timestamp, 0, 7), '-01 00:00:00.0') AS event_timestamp_month,
-            page_id,
-            -- Build a user-id from real id or text (only used for distinct aggregation)
-            CASE WHEN event_user_id IS NOT NULL AND event_user_id > 0
-                THEN CAST(event_user_id AS string)
-                ELSE COALESCE(event_user_text, event_user_text_historical)
-            END AS user_id,
-            COALESCE(page_namespace, page_namespace_historical),
+            CONCAT(COALESCE(nm.namespace_prefix, ''), COALESCE(page_title, page_title_historical)) AS page_title,
+            COALESCE(event_user_text, event_user_text_historical) AS user_text,
             IF (COALESCE(page_namespace_is_content, page_namespace_is_content_historical), 'content', 'non_content') AS page_type,
             page_is_redirect,
             CASE
@@ -49,6 +57,9 @@ WITH
         FROM ${mw_denormalized_history_table} mw
             INNER JOIN project_map pm
                 ON (mw.wiki_db = pm.wiki_db)
+            LEFT JOIN namespace_map nm
+                ON (mw.wiki_db = nm.wiki_db
+                    AND COALESCE(page_namespace, page_namespace_historical) = nm.namespace)
         WHERE TRUE
             AND snapshot = '${snapshot}'
             AND event_entity = 'revision'
@@ -62,9 +73,9 @@ WITH
             'user' AS event_entity,
             IF (event_timestamp_day IS NULL, 'monthly_digest', 'daily_digest') AS event_type,
             COALESCE(event_timestamp_day, event_timestamp_month) AS event_timestamp,
-            NULL AS user_id,
+            NULL AS user_text,
             COALESCE(user_type, 'all') AS user_type,
-            NULL AS page_id,
+            NULL AS page_title,
             NULL AS page_namespace,
             COALESCE(page_type, 'all') AS page_type,
             ARRAY() AS other_tags,
@@ -76,18 +87,18 @@ WITH
             project,
             event_timestamp_day,
             event_timestamp_month,
-            user_id,
+            user_text,
             user_type,
             page_type
         GROUPING SETS(
-            (project, event_timestamp_day, user_id, user_type, page_type),
-            (project, event_timestamp_day, user_id, user_type),
-            (project, event_timestamp_day, user_id, page_type),
-            (project, event_timestamp_day, user_id),
-            (project, event_timestamp_month, user_id, user_type, page_type),
-            (project, event_timestamp_month, user_id, user_type),
-            (project, event_timestamp_month, user_id, page_type),
-            (project, event_timestamp_month, user_id)
+            (project, event_timestamp_day, user_text, user_type, page_type),
+            (project, event_timestamp_day, user_text, user_type),
+            (project, event_timestamp_day, user_text, page_type),
+            (project, event_timestamp_day, user_text),
+            (project, event_timestamp_month, user_text, user_type, page_type),
+            (project, event_timestamp_month, user_text, user_type),
+            (project, event_timestamp_month, user_text, page_type),
+            (project, event_timestamp_month, user_text)
         )
     ),
     page_digests AS (
@@ -96,9 +107,9 @@ WITH
             'page' AS event_entity,
             IF (event_timestamp_day IS NULL, 'monthly_digest', 'daily_digest') AS event_type,
             COALESCE(event_timestamp_day, event_timestamp_month) AS event_timestamp,
-            NULL AS user_id,
+            NULL AS user_text,
             COALESCE(user_type, 'all') AS user_type,
-            NULL AS page_id,
+            NULL AS page_title,
             NULL AS page_namespace,
             COALESCE(page_type, 'all') AS page_type,
             ARRAY() AS other_tags,
@@ -111,18 +122,18 @@ WITH
             project,
             event_timestamp_day,
             event_timestamp_month,
-            page_id,
+            page_title,
             user_type,
             page_type
         GROUPING SETS(
-            (project, event_timestamp_day, page_id, user_type, page_type),
-            (project, event_timestamp_day, page_id, user_type),
-            (project, event_timestamp_day, page_id, page_type),
-            (project, event_timestamp_day, page_id),
-            (project, event_timestamp_month, page_id, user_type, page_type),
-            (project, event_timestamp_month, page_id, user_type),
-            (project, event_timestamp_month, page_id, page_type),
-            (project, event_timestamp_month, page_id)
+            (project, event_timestamp_day, page_title, user_type, page_type),
+            (project, event_timestamp_day, page_title, user_type),
+            (project, event_timestamp_day, page_title, page_type),
+            (project, event_timestamp_day, page_title),
+            (project, event_timestamp_month, page_title, user_type, page_type),
+            (project, event_timestamp_month, page_title, user_type),
+            (project, event_timestamp_month, page_title, page_type),
+            (project, event_timestamp_month, page_title)
         )
     ),
 
@@ -132,10 +143,7 @@ WITH
             event_entity,
             event_type,
             event_timestamp,
-            -- Build a user-id from real id or text (only used for distinct aggregation)
-            IF (event_user_id IS NOT NULL AND event_user_id > 0,
-                CAST(event_user_id AS string),
-                COALESCE(event_user_text, event_user_text_historical)) AS user_id,
+            COALESCE(event_user_text, event_user_text_historical) AS user_text,
             CASE
                 -- Using sequence to prevent writing NOT
                 WHEN event_user_is_anonymous THEN 'anonymous'
@@ -143,7 +151,7 @@ WITH
                 WHEN COALESCE(event_user_text, event_user_text_historical) RLIKE '(?i)^.*bot([^a-z].*$|$)' THEN 'name_bot'
                 ELSE 'user'
             END AS user_type,
-            page_id,
+            CONCAT(COALESCE(nm.namespace_prefix, ''), COALESCE(page_title, page_title_historical)) AS page_title,
             page_namespace,
             CASE
                 WHEN page_namespace_is_content THEN 'content'
@@ -189,6 +197,9 @@ WITH
         FROM ${mw_denormalized_history_table} mw
             INNER JOIN project_map pm
                 ON (mw.wiki_db = pm.wiki_db)
+            LEFT JOIN namespace_map nm
+                ON (mw.wiki_db = nm.wiki_db
+                    AND COALESCE(page_namespace, page_namespace_historical) = nm.namespace)
         WHERE TRUE
             AND snapshot = '${snapshot}'
             -- Only export rows with valid timestamp format

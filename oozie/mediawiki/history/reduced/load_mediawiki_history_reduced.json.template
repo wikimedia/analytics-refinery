@@ -30,9 +30,9 @@
               "project",
               "event_entity",
               "event_type",
-              "user_id",
+              "user_text",
               "user_type",
-              "page_id",
+              "page_title",
               "page_namespace",
               "page_type",
               "other_tags",
@@ -72,7 +72,7 @@
       "overwriteFiles": true,
       "partitionsSpec" : {
         "type" : "hashed",
-        "numShards" : 4
+        "numShards" : 6
       },
       "jobProperties" : {
         "parquet.avro.add-list-element-records":"false",
