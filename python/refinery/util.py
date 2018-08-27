@@ -619,6 +619,16 @@ class HdfsUtils(object):
         return sh(['hdfs', 'dfs', '-rm', '-R', '-skipTrash'] + paths)
 
     @staticmethod
+    def rmdir(paths):
+        """
+        Runs hdfs dfs -rmdir on paths.
+        """
+        if isinstance(paths, str):
+            paths = paths.split()
+
+        return sh(['hdfs', 'dfs', '-rmdir'] + paths)
+
+    @staticmethod
     def mkdir(paths):
         """
         Runs hdfs dfs -rm -R on paths.
@@ -687,3 +697,24 @@ class HdfsUtils(object):
     @staticmethod
     def validate_path(path):
         return path.startswith('/') or path.startswith('hdfs://')
+
+    @staticmethod
+    def get_parent_dirs(path, top_parent_path):
+        """
+        Lists the parent directories of the specified path, going up the directory
+        tree until top_parent_path is reached. This function expects top_parent_path
+        to be a literal substring of path.
+        """
+        dirs = path.replace(top_parent_path, '')[1:].split('/')
+        parents = [top_parent_path]
+        for directory in dirs:
+            parents.append(os.path.join(parents[-1], directory))
+        parents.remove(path)
+        return parents
+
+    @staticmethod
+    def dir_bytes_size(path):
+        """
+        Returns the size in bytes of a hdfs path
+        """
+        return int(sh(['hdfs', 'dfs', '-du', '-s', path]).split()[0])
