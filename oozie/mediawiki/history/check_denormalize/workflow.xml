@@ -1,0 +1,499 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow-app xmlns="uri:oozie:workflow:0.4"
+    name="mediawiki-history-check_denormalize-wf-${new_snapshot}">
+
+    <parameters>
+              <!-- Allows changing spark version to be used by oozie -->
+        <property>
+            <name>oozie.action.sharelib.for.spark</name>
+            <value>${oozie_spark_lib}</value>
+        </property>
+
+        <!-- Default values for inner oozie settings -->
+        <property>
+            <name>oozie_launcher_queue_name</name>
+            <value>${queue_name}</value>
+        </property>
+        <property>
+            <name>oozie_launcher_memory</name>
+            <value>2048</value>
+        </property>
+
+        <!-- Required properties -->
+        <property><name>queue_name</name></property>
+        <property><name>name_node</name></property>
+        <property><name>job_tracker</name></property>
+
+        <property>
+            <name>hive_site_xml</name>
+            <description>hive-site.xml file path in HDFS</description>
+        </property>
+        <property>
+            <name>spark_master</name>
+            <description>Master to be used for Spark (yarn, local, other)</description>
+        </property>
+        <property>
+            <name>spark_assembly_zip</name>
+            <description>The spark assembly zip file on HDFS, preventing to repackage it everytime</description>
+        </property>
+        <property>
+            <name>spark_job_jar</name>
+            <description>Path to the jar to be used to run spark job</description>
+        </property>
+        <property>
+            <name>spark_job_class</name>
+            <description>Class of the spark job to be run</description>
+        </property>
+        <property>
+            <name>spark_executor_memory</name>
+            <description>Memory to allocate for each spark executor</description>
+        </property>
+        <property>
+            <name>spark_executor_cores</name>
+            <description>Number of cores to allocate for each spark executor</description>
+        </property>
+        <property>
+            <name>spark_driver_memory</name>
+            <description>Memory to allocate for spark driver process</description>
+        </property>
+        <property>
+            <name>spark_max_num_executors</name>
+            <description>Maximum number of concurrent executors for spark with dynamic allocation</description>
+        </property>
+
+
+        <property>
+            <name>previous_snapshot</name>
+            <description>The previous snapshot partition to compare with (YYYY-MM)</description>
+        </property>
+        <property>
+            <name>new_snapshot</name>
+            <description>The new snapshot partition to check (YYYY-MM)</description>
+        </property>
+        <property>
+            <name>wikis_to_check</name>
+            <description>The number of wikis to use in the check (by decreasing edit activity)</description>
+        </property>
+        <property>
+            <name>min_events_growth</name>
+            <description>The minimum value for which events-growth don't fail</description>
+        </property>
+        <property>
+            <name>max_events_growth</name>
+            <description>The maximum value for which events-growth don't fail</description>
+        </property>
+        <property>
+            <name>wrongs_rows_ratio</name>
+            <description>The maximum value for which errors-rows-ratio don't fail</description>
+        </property>
+
+        <property>
+            <name>mw_directory</name>
+            <description>Path to mediawiki processed data on Hadoop</description>
+        </property>
+        <property>
+            <name>check_errors_folder</name>
+            <value>${mw_directory}/history_check_errors/snapshot=${new_snapshot}</value>
+            <description>The folder where errors are written (if any)</description>
+        </property>
+
+        <property>
+            <name>user_history_location</name>
+            <description>Path to user history computed data on Hadoop</description>
+        </property>
+        <property>
+            <name>page_history_location</name>
+            <description>Path to page history computed data on Hadoop</description>
+        </property>
+        <property>
+            <name>denormalized_history_location</name>
+            <description>Path to denormalized history computed data on Hadoop</description>
+        </property>
+
+        <!-- Hive tables-->
+        <property>
+            <name>mw_user_history_table</name>
+            <description>Recomputed user history table</description>
+        </property>
+        <property>
+            <name>mw_page_history_table</name>
+            <description>Recomputed page history table</description>
+        </property>
+        <property>
+            <name>mw_denormalized_history_table</name>
+            <description>Recomputed denormalized history table</description>
+        </property>
+
+        <!-- Subworkflows -->
+        <property>
+            <name>add_partition_workflow_file</name>
+            <description>Workflow definition for adding a partition</description>
+        </property>
+        <property>
+            <name>mark_directory_done_workflow_file</name>
+            <description>Workflow for marking a directory done</description>
+        </property>
+        <property>
+            <name>send_error_email_workflow_file</name>
+            <description>Workflow for sending an email</description>
+        </property>
+    </parameters>
+
+    <start to="check_preexisting_errors_folder"/>
+
+    <!-- delete preexisting check-errors folder to prevent rerun failures -->
+    <decision name="check_preexisting_errors_folder">
+        <switch>
+            <!-- Go to deletion if errors folder exist, continue otherwise -->
+            <case to="delete_errors_folder">
+                ${fs:exists(check_errors_folder)}
+            </case>
+            <default to="check_user_history"/>
+        </switch>
+    </decision>
+
+    <action name="delete_errors_folder">
+        <fs>
+            <delete path="${check_errors_folder}"/>
+        </fs>
+        <ok to="check_user_history"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <!-- Check and repair hive user history -->
+    <action name="check_user_history">
+        <spark xmlns="uri:oozie:spark-action:0.1">
+            <job-tracker>${job_tracker}</job-tracker>
+            <name-node>${name_node}</name-node>
+            <configuration>
+                <!--make sure oozie:launcher runs in a low priority queue -->
+                <property>
+                    <name>oozie.launcher.mapred.job.queue.name</name>
+                    <value>${oozie_launcher_queue_name}</value>
+                </property>
+                <property>
+                    <name>oozie.launcher.mapreduce.map.memory.mb</name>
+                    <value>${oozie_launcher_memory}</value>
+                </property>
+            </configuration>
+            <master>${spark_master}</master>
+            <mode>${spark_deploy}</mode>
+            <name>${spark_job_name}-${new_snapshot}</name>
+            <class>${spark_job_class}</class>
+            <jar>${spark_job_jar}</jar>
+            <spark-opts>--conf spark.yarn.archive=${spark_assembly_zip} --executor-memory ${spark_executor_memory} --executor-cores ${spark_executor_cores} --driver-memory ${spark_driver_memory} --queue ${queue_name} --conf spark.dynamicAllocation.enabled=true --conf spark.shuffle.service.enabled=true --conf spark.dynamicAllocation.maxExecutors=${spark_max_num_executors}</spark-opts>
+            <arg>--mediawiki-history-base-path</arg>
+            <arg>${mw_directory}</arg>
+            <arg>--previous-snapshot</arg>
+            <arg>${previous_snapshot}</arg>
+            <arg>--new-snapshot</arg>
+            <arg>${new_snapshot}</arg>
+            <arg>--wikis-to-check</arg>
+            <arg>${wikis_to_check}</arg>
+            <arg>--min-events-growth-threshold</arg>
+            <arg>${min_events_growth}</arg>
+            <arg>--max-events-growth-threshold</arg>
+            <arg>${max_events_growth}</arg>
+            <arg>--wrong-rows-ratio-threshold</arg>
+            <arg>${wrongs_rows_ratio}</arg>
+            <arg>--check-user-history</arg>
+        </spark>
+        <ok to="check_user_history_result" />
+        <error to="send_error_email" />
+    </action>
+
+    <decision name="check_user_history_result">
+        <switch>
+            <!-- Fail if errors folder exist, continue otherwise -->
+            <case to="send_error_check_mediawiki_history_email">
+                ${fs:exists(check_errors_folder) and fs:dirSize(check_errors_folder) gt 0}
+            </case>
+            <default to="add_user_history_table_partition"/>
+        </switch>
+    </decision>
+
+    <action name="add_user_history_table_partition">
+        <sub-workflow>
+            <app-path>${add_partition_workflow_file}</app-path>
+            <propagate-configuration/>
+            <configuration>
+                <property>
+                  <name>table</name>
+                  <value>${mw_user_history_table}</value>
+                </property>
+                <property>
+                  <name>partition_spec</name>
+                  <value>snapshot='${new_snapshot}'</value>
+                </property>
+                <property>
+                  <name>location</name>
+                  <value>${user_history_location}</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="mark_user_history_hive_done"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <action name="mark_user_history_hive_done">
+        <sub-workflow>
+            <app-path>${mark_directory_done_workflow_file}</app-path>
+            <configuration>
+                <property>
+                    <name>directory</name>
+                    <value>${user_history_location}</value>
+                </property>
+                <property>
+                    <name>done_file</name>
+                    <value>_PARTITIONED</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="check_page_history"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <!-- Check and repair hive page history -->
+    <action name="check_page_history">
+        <spark xmlns="uri:oozie:spark-action:0.1">
+            <job-tracker>${job_tracker}</job-tracker>
+            <name-node>${name_node}</name-node>
+            <configuration>
+                <!--make sure oozie:launcher runs in a low priority queue -->
+                <property>
+                    <name>oozie.launcher.mapred.job.queue.name</name>
+                    <value>${oozie_launcher_queue_name}</value>
+                </property>
+                <property>
+                    <name>oozie.launcher.mapreduce.map.memory.mb</name>
+                    <value>${oozie_launcher_memory}</value>
+                </property>
+            </configuration>
+            <master>${spark_master}</master>
+            <mode>${spark_deploy}</mode>
+            <name>${spark_job_name}-${new_snapshot}</name>
+            <class>${spark_job_class}</class>
+            <jar>${spark_job_jar}</jar>
+            <spark-opts>--conf spark.yarn.archive=${spark_assembly_zip} --executor-memory ${spark_executor_memory} --executor-cores ${spark_executor_cores} --driver-memory ${spark_driver_memory} --queue ${queue_name} --conf spark.dynamicAllocation.enabled=true --conf spark.shuffle.service.enabled=true --conf spark.dynamicAllocation.maxExecutors=${spark_max_num_executors}</spark-opts>
+            <arg>--mediawiki-history-base-path</arg>
+            <arg>${mw_directory}</arg>
+            <arg>--previous-snapshot</arg>
+            <arg>${previous_snapshot}</arg>
+            <arg>--new-snapshot</arg>
+            <arg>${new_snapshot}</arg>
+            <arg>--wikis-to-check</arg>
+            <arg>${wikis_to_check}</arg>
+            <arg>--min-events-growth-threshold</arg>
+            <arg>${min_events_growth}</arg>
+            <arg>--max-events-growth-threshold</arg>
+            <arg>${max_events_growth}</arg>
+            <arg>--wrong-rows-ratio-threshold</arg>
+            <arg>${wrongs_rows_ratio}</arg>
+            <arg>--check-page-history</arg>
+        </spark>
+        <ok to="check_page_history_result" />
+        <error to="send_error_email" />
+    </action>
+
+    <decision name="check_page_history_result">
+        <switch>
+            <!-- Fail if errors folder exist, continue otherwise -->
+            <case to="send_error_check_mediawiki_history_email">
+                ${fs:exists(check_errors_folder) and fs:dirSize(check_errors_folder) gt 0}
+            </case>
+            <default to="add_page_history_table_partition"/>
+        </switch>
+    </decision>
+
+    <action name="add_page_history_table_partition">
+        <sub-workflow>
+            <app-path>${add_partition_workflow_file}</app-path>
+            <propagate-configuration/>
+            <configuration>
+                <property>
+                  <name>table</name>
+                  <value>${mw_page_history_table}</value>
+                </property>
+                <property>
+                  <name>partition_spec</name>
+                  <value>snapshot='${new_snapshot}'</value>
+                </property>
+                <property>
+                  <name>location</name>
+                  <value>${page_history_location}</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="mark_page_history_hive_done"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <action name="mark_page_history_hive_done">
+        <sub-workflow>
+            <app-path>${mark_directory_done_workflow_file}</app-path>
+            <configuration>
+                <property>
+                    <name>directory</name>
+                    <value>${page_history_location}</value>
+                </property>
+                <property>
+                    <name>done_file</name>
+                    <value>_PARTITIONED</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="check_denormalized_history"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <!-- Check and repair hive denormalized history -->
+    <action name="check_denormalized_history">
+        <spark xmlns="uri:oozie:spark-action:0.1">
+            <job-tracker>${job_tracker}</job-tracker>
+            <name-node>${name_node}</name-node>
+            <configuration>
+                <!--make sure oozie:launcher runs in a low priority queue -->
+                <property>
+                    <name>oozie.launcher.mapred.job.queue.name</name>
+                    <value>${oozie_launcher_queue_name}</value>
+                </property>
+                <property>
+                    <name>oozie.launcher.mapreduce.map.memory.mb</name>
+                    <value>${oozie_launcher_memory}</value>
+                </property>
+            </configuration>
+            <master>${spark_master}</master>
+            <mode>${spark_deploy}</mode>
+            <name>${spark_job_name}-${new_snapshot}</name>
+            <class>${spark_job_class}</class>
+            <jar>${spark_job_jar}</jar>
+            <spark-opts>--conf spark.yarn.archive=${spark_assembly_zip} --executor-memory ${spark_executor_memory} --executor-cores ${spark_executor_cores} --driver-memory ${spark_driver_memory} --queue ${queue_name} --conf spark.dynamicAllocation.enabled=true --conf spark.shuffle.service.enabled=true --conf spark.dynamicAllocation.maxExecutors=${spark_max_num_executors}</spark-opts>
+            <arg>--mediawiki-history-base-path</arg>
+            <arg>${mw_directory}</arg>
+            <arg>--previous-snapshot</arg>
+            <arg>${previous_snapshot}</arg>
+            <arg>--new-snapshot</arg>
+            <arg>${new_snapshot}</arg>
+            <arg>--wikis-to-check</arg>
+            <arg>${wikis_to_check}</arg>
+            <arg>--min-events-growth-threshold</arg>
+            <arg>${min_events_growth}</arg>
+            <arg>--max-events-growth-threshold</arg>
+            <arg>${max_events_growth}</arg>
+            <arg>--wrong-rows-ratio-threshold</arg>
+            <arg>${wrongs_rows_ratio}</arg>
+            <arg>--check-denormalized-history</arg>
+        </spark>
+        <ok to="check_denormalized_history_result" />
+        <error to="send_error_email" />
+    </action>
+
+    <decision name="check_denormalized_history_result">
+        <switch>
+            <!-- Fail if errors folder exist, continue otherwise -->
+            <case to="send_error_check_mediawiki_history_email">
+                ${fs:exists(check_errors_folder) and fs:dirSize(check_errors_folder) gt 0}
+            </case>
+            <default to="add_denormalized_history_table_partition"/>
+        </switch>
+    </decision>
+
+
+    <action name="add_denormalized_history_table_partition">
+        <sub-workflow>
+            <app-path>${add_partition_workflow_file}</app-path>
+            <propagate-configuration/>
+            <configuration>
+                <property>
+                  <name>table</name>
+                  <value>${mw_denormalized_history_table}</value>
+                </property>
+                <property>
+                  <name>partition_spec</name>
+                  <value>snapshot='${new_snapshot}'</value>
+                </property>
+                <property>
+                  <name>location</name>
+                  <value>${denormalized_history_location}</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="mark_denormalized_history_hive_done"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <action name="mark_denormalized_history_hive_done">
+        <sub-workflow>
+            <app-path>${mark_directory_done_workflow_file}</app-path>
+            <configuration>
+                <property>
+                    <name>directory</name>
+                    <value>${denormalized_history_location}</value>
+                </property>
+                <property>
+                    <name>done_file</name>
+                    <value>_PARTITIONED</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="end"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <action name="send_error_check_mediawiki_history_email">
+        <sub-workflow>
+            <app-path>${send_error_email_workflow_file}</app-path>
+            <propagate-configuration/>
+            <configuration>
+                <property>
+                    <name>subject</name>
+                    <value>MediawikiHistory ERROR - Workflow ${wf:name()}</value>
+                </property>
+                <property>
+                    <name>body</name>
+                    <value>This is an ERROR.
+Check of mediawiki-history snapshot ${new_snapshot} has generated a non-empty error file at ${check_errors_folder}.
+
+Please, have a look at this error file attached to this email and take necessary action!
+
+Thanks :)
+-- Oozie</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="kill"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <action name="send_error_email">
+        <sub-workflow>
+            <app-path>${send_error_email_workflow_file}</app-path>
+            <propagate-configuration/>
+            <configuration>
+                <property>
+                    <name>parent_name</name>
+                    <value>${wf:name()}</value>
+                </property>
+                <property>
+                    <name>parent_failed_action</name>
+                    <value>${wf:lastErrorNode()}</value>
+                </property>
+                <property>
+                    <name>parent_error_code</name>
+                    <value>${wf:errorCode(wf:lastErrorNode())}</value>
+                </property>
+                <property>
+                    <name>parent_error_message</name>
+                    <value>${wf:errorMessage(wf:lastErrorNode())}</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="kill"/>
+        <error to="kill"/>
+    </action>
+
+    <kill name="kill">
+        <message>Action failed, error message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+    </kill>
+    <end name="end"/>
+</workflow-app>
