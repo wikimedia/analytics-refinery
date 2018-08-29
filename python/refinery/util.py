@@ -25,14 +25,17 @@ import os
 import subprocess
 import re
 import tempfile
-import urllib2
 import json
 
 # Ugly but need python3 support
 try:
     from urlparse import urlparse
+    from urllib2 import (build_opener, Request, HTTPHandler, HTTPError,
+                         URLError, urlopen)
 except ImportError:
     from urllib.parse import urlparse
+    from urllib.request import build_opener, Request, HTTPHandler, urlopen
+    from urllib.error import HTTPError, URLError
 
 logger = logging.getLogger('refinery-util')
 
@@ -774,8 +777,8 @@ class DruidUtils(object):
         return datasources
 
     def delete(self, url, dry_run=False):
-        opener = urllib2.build_opener(urllib2.HTTPHandler)
-        request = urllib2.Request(url)
+        opener = build_opener(HTTPHandler)
+        request = Request(url)
         request.get_method = lambda: 'DELETE'
         if dry_run:
             print('DELETE ' + url)
@@ -783,9 +786,9 @@ class DruidUtils(object):
         else:
             try:
                 return opener.open(request).read()
-            except urllib2.HTTPError as e:
+            except HTTPError as e:
                 logger.error('HTTPError = ' + str(e.code))
-            except urllib2.URLError as e:
+            except URLError as e:
                 logger.error('URLError = ' + str(e.reason))
             except Exception:
                 import traceback
@@ -793,10 +796,10 @@ class DruidUtils(object):
 
     def get(self, url):
         try:
-            return urllib2.urlopen(url).read()
-        except urllib2.HTTPError as e:
+            return urlopen(url).read()
+        except HTTPError as e:
             logger.error('HTTPError = ' + str(e.code))
-        except urllib2.URLError as e:
+        except URLError as e:
             logger.error('URLError = ' + str(e.reason))
         except Exception:
             import traceback
