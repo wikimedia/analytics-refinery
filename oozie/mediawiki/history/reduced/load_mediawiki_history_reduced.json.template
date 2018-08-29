@@ -78,6 +78,7 @@
         "parquet.avro.add-list-element-records":"false",
         "mapreduce.map.memory.mb" : "4096",
         "mapreduce.reduce.memory.mb" : "8192",
+        "mapreduce.job.reduce.slowstart.completedmaps": "0.95",
         "mapreduce.job.queuename": "*HADOOP_QUEUE*"
       }
     }
