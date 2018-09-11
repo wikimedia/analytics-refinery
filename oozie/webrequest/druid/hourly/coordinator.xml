@@ -56,9 +56,6 @@
         <data-in name="webrequest_upload_hourly_input" dataset="webrequest_upload">
             <instance>${coord:current(0)}</instance>
         </data-in>
-        <data-in name="webrequest_misc_hourly_input" dataset="webrequest_misc">
-            <instance>${coord:current(0)}</instance>
-        </data-in>
     </input-events>
 
     <action>

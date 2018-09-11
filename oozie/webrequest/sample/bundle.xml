@@ -25,16 +25,6 @@
 
     </parameters>
 
-    <coordinator name="webrequest-sample-${sample_rate}-misc-coord">
-        <app-path>${coordinator_file}</app-path>
-        <configuration>
-            <property>
-                <name>webrequest_source</name>
-                <value>misc</value>
-            </property>
-        </configuration>
-    </coordinator>
-
     <coordinator name="webrequest-sample-${sample_rate}-text-coord">
         <app-path>${coordinator_file}</app-path>
         <configuration>
