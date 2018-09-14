@@ -18,6 +18,7 @@
         <property><name>hive_site_xml</name></property>
 
         <property><name>oozie_spark_lib</name></property>
+        <property><name>artifacts_directory</name></property>
         <property><name>spark_master</name></property>
         <property><name>spark_assembly_zip</name></property>
         <property><name>spark_job_jar</name></property>
