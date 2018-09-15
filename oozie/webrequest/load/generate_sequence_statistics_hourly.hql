@@ -25,8 +25,8 @@
 --     hive -f generate_sequence_statistics_hourly.hql                   \
 --         -d source_table=wmf_raw.webrequest_sequence_stats             \
 --         -d destination_table=wmf_raw.webrequest_sequence_stats_hourly \
---         -d webrequest_source=misc                                     \
---         -d year=2015                                                  \
+--         -d webrequest_source=text                                     \
+--         -d year=2018                                                  \
 --         -d month=8                                                    \
 --         -d day=11                                                     \
 --         -d hour=1

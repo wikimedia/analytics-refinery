@@ -396,7 +396,7 @@ class HiveUtils(object):
 
         Example:
             partition_datetime_from_path(
-                path='/wmf/data/webrequest/webrequest_source=misc/year=2015/month=1/day=9/hour=0"
+                path='/wmf/data/webrequest/webrequest_source=text/year=2018/month=1/day=9/hour=0"
                 regex=r'.*/(year=.+)$',
                 format=k'year=%Y/month=%m/day=%d/hour=%H'
             )

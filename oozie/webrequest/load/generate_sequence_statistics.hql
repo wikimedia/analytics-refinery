@@ -44,8 +44,8 @@
 --     hive -f generate_sequence_statistics.hql                   \
 --         -d source_table=wmf_raw.webrequest                     \
 --         -d destination_table=wmf_raw.webrequest_sequence_stats \
---         -d webrequest_source=misc                              \
---         -d year=2014                                           \
+--         -d webrequest_source=text                              \
+--         -d year=2018                                           \
 --         -d month=5                                             \
 --         -d day=12                                              \
 --         -d hour=1

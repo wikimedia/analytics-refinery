@@ -58,10 +58,6 @@
             <start-instance>${coord:current(0)}</start-instance>
             <end-instance>${coord:current(23)}</end-instance>
         </data-in>
-        <data-in name="webrequest_misc_daily_input" dataset="webrequest_misc">
-            <start-instance>${coord:current(0)}</start-instance>
-            <end-instance>${coord:current(23)}</end-instance>
-        </data-in>
         <!-- Delay daily ingestion by 2 hours to prevent hour/day mix -->
         <data-in name="webrequest_delay" dataset="webrequest_text">
             <instance>${coord:current(26)}</instance>

@@ -36,16 +36,6 @@
         <property><name>sla_alert_contact</name></property>
     </parameters>
 
-    <coordinator name="webrequest-load-coord-misc">
-        <app-path>${coordinator_file}</app-path>
-        <configuration>
-            <property>
-                <name>webrequest_source</name>
-                <value>misc</value>
-            </property>
-        </configuration>
-    </coordinator>
-
     <coordinator name="webrequest-load-coord-text">
         <app-path>${coordinator_file}</app-path>
         <configuration>
