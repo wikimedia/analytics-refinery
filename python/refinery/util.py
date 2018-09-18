@@ -728,7 +728,7 @@ class HdfsUtils(object):
 class DruidUtils(object):
     def __init__(self, druid_host):
         self.host = druid_host
-        self.coordinator_url = self.host + '/druid/coordinator/v1'
+        self.coordinator_url = 'http://' + self.host + '/druid/coordinator/v1'
 
     def list_intervals(self, datasource):
         """
@@ -772,7 +772,7 @@ class DruidUtils(object):
                 self.remove_interval(datasource, interval, dry_run)
 
     def list_datasources(self):
-        url = self.coordinator_url + '/datasources'
+        url = self.coordinator_url + '/metadata/datasources'
         datasources = json.loads(self.get(url))
         return datasources
 
@@ -796,7 +796,7 @@ class DruidUtils(object):
 
     def get(self, url):
         try:
-            return urlopen(url).read()
+            return urlopen(url).read().decode('utf-8')
         except HTTPError as e:
             logger.error('HTTPError = ' + str(e.code))
         except URLError as e:

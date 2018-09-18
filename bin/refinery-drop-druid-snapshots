@@ -32,7 +32,7 @@ Options:
     -d --basename=<name>            Base name of the datasource from which data will
                                     be deleted. Assumes that the datasources name will be
                                     <BASE_NAME>_yyyy-MM
-    -t --druid-host=<hostname>      Fully qualified url of the druid host
+    -t --druid-host=<host>:<port>   Druid's coordinator hostname and port
     -s --keep-snapshots=<n>         Keep the <n> most recent snapshots. [default: 6]
     -v --verbose                    Turn on verbose debug logging.
     -f [FILE] --log-file [FILE]     File to send info logs to
