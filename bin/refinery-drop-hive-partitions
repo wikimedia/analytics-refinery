@@ -185,10 +185,11 @@ if __name__ == '__main__':
                                 break
                 logger.info('Removing {0} empty directories for table {1}.{2}.'
                     .format(len(parent_dirs_to_remove), database, table))
-                if len(parent_dirs_to_remove) > MAX_NUMBER_OF_PARENT_DIRS_TO_REMOVE:
-                    errorString = 'Number of parent partition directories to remove ({0}) exceeds maximum allowed ({1})'.format(len(parent_dirs_to_remove), MAX_NUMBER_OF_PARENT_DIRS_TO_REMOVE)
-                    logger.error(errorString)
-                    sys.exit(errorString)
-                HdfsUtils.rmdir(' '.join(parent_dirs_to_remove))
+                if len(parent_dirs_to_remove) > 0:
+                    if len(parent_dirs_to_remove) > MAX_NUMBER_OF_PARENT_DIRS_TO_REMOVE:
+                        errorString = 'Number of parent partition directories to remove ({0}) exceeds maximum allowed ({1})'.format(len(parent_dirs_to_remove), MAX_NUMBER_OF_PARENT_DIRS_TO_REMOVE)
+                        logger.error(errorString)
+                        sys.exit(errorString)
+                    HdfsUtils.rmdir(' '.join(parent_dirs_to_remove))
         else:
             logger.info('No partition directories need removed for table {0}.{1}'.format(database, table))
