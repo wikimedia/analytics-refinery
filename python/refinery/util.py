@@ -645,6 +645,16 @@ class HdfsUtils(object):
         return sh(['hdfs', 'dfs', '-mkdir', '-p'] + paths)
 
     @staticmethod
+    def cp(fromPath, toPath, force=False):
+        """
+        Runs 'hdfs dfs -cp fromPath toPath' to copy a file.
+        """
+        command = ['hdfs', 'dfs', '-cp', fromPath, toPath]
+        if force:
+            command.insert(3, '-f')
+        sh(command)
+
+    @staticmethod
     def mv(fromPaths, toPaths, inParent=True):
         """
         Runs hdfs dfs -mv fromPath toPath for each values of from/to Paths.
