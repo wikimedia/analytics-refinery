@@ -87,4 +87,25 @@ NOTE: user, page and denormalized history are bound to two datasets
         <uri-template>${mw_directory}/history_reduced/snapshot=${YEAR}-${MONTH}</uri-template>
         <done-flag>_SUCCESS</done-flag>
     </dataset>
+
+    <!-- Wikitext datasets - Data only -->
+
+    <dataset name="mw_wikitext_history"
+             frequency="${coord:months(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${mw_directory}/wikitext_history/snapshot=${YEAR}-${MONTH}</uri-template>
+        <done-flag>_SUCCESS</done-flag>
+    </dataset>
+
+        <!-- Wikitext datasets - Hive partitions -->
+
+    <dataset name="mw_wikitext_history_partitioned"
+             frequency="${coord:months(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${mw_directory}/wikitext_history/snapshot=${YEAR}-${MONTH}</uri-template>
+        <done-flag>_PARTITIONED</done-flag>
+    </dataset>
+
 </datasets>

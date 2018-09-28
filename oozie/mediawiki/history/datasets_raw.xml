@@ -175,4 +175,14 @@ Use this dataset in your coordinator.xml files by setting:
         <done-flag>_PARTITIONED</done-flag>
     </dataset>
 
+    <!-- XML-Dumps datasets -->
+    <!-- Expected to be used with a monthly coordinator started at the beginning of month,
+         since dumps copied to HDFS are the ones generated on the 1st of every month -->
+    <dataset name="pages_history_meta_xml_dump"
+             frequency="${coord:months(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${mw_raw_directory}/xmldumps/pages_meta_history/${YEAR}${MONTH}${DAY}</uri-template>
+        <done-flag>_SUCCESS</done-flag>
+    </dataset>
 </datasets>
