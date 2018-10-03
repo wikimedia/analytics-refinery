@@ -80,12 +80,12 @@
             <!--
                 Use action actual time as SLA base, since it's the time used
                 to compute timeout
-                Job is waiting for the month data to be present, then the sqoop
-                happens on the 2nd, so waiting for 5 days after month end should
-                be enough.
+                Job is waiting for the month data to be present, so it waits ~31 days,
+                then the sqoop happens on the 2nd, so waiting for 3 days after
+                (31 + 3 = 34 days) should be enough.
             -->
             <sla:nominal-time>${coord:actualTime()}</sla:nominal-time>
-            <sla:should-end>${2 * DAYS}</sla:should-end>
+            <sla:should-end>${34 * DAYS}</sla:should-end>
             <sla:alert-events>end_miss</sla:alert-events>
             <sla:alert-contact>${sla_alert_contact}</sla:alert-contact>
         </sla:info>
