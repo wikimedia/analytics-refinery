@@ -56,8 +56,8 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `webrequest`(
     `page_id`           bigint  COMMENT 'MediaWiki page_id for this page title. For redirects this could be the page_id of the redirect or the page_id of the target. This may not always be set, even if the page is actually a pageview.',
     `namespace_id`      int     COMMENT 'MediaWiki namespace_id for this page title. This may not always be set, even if the page is actually a pageview.',
     `tags`              array<string> COMMENT 'List containing tags qualifying the request, ex: [portal, wikidata]. Will be used to split webrequest into smaller subsets.',
-    `isp_data`          map<string, string>  COMMENT 'Internet Service Provider data in a map with keys isp, organization, autonomous_system_organization and autonomous_system_number'
-
+    `isp_data`          map<string, string>  COMMENT 'Internet Service Provider data in a map with keys isp, organization, autonomous_system_organization and autonomous_system_number',
+    `accept`            string  COMMENT 'Accept header of request'
 )
 PARTITIONED BY (
     `webrequest_source` string  COMMENT 'Source cluster',
