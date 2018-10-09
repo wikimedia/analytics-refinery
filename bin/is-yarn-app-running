@@ -26,7 +26,9 @@ __author__ = 'Andrew Otto <otto@wikimedia.org>'
 
 import sys
 from docopt import docopt
-from refinery.util import is_yarn_application_running
+from refinery.util import (
+    is_yarn_application_running, yarn_application_id, yarn_application_status
+)
 
 # parse arguments
 arguments = docopt(__doc__)
@@ -35,7 +37,9 @@ verbose = arguments['--verbose']
 
 if is_yarn_application_running(job_name):
     if verbose:
-        print("{} is already running".format(job_name))
+        application_id = yarn_application_id(job_name)
+        print("{} is already running with applicationId {}:".format(job_name, application_id))
+        print(yarn_application_status(application_id))
     sys.exit(0)
 else:
     if verbose:
