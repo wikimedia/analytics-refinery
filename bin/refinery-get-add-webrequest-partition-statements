@@ -89,7 +89,14 @@ def webrequest_add_partition_statements(database='wmf_raw', table='webrequest', 
     Given an existant webrequest table with partitions already added, this will return
     a List of ADD PARTITION statements that could be used to re-add all of the partitions.
     """
-    hive = HiveUtils(database)
+
+
+    if webrequest_type == 'raw':
+        hive_options = '--auxpath /usr/lib/hive-hcatalog/share/hcatalog/hive-hcatalog-core.jar'
+    else:
+        hive_options = ''
+
+    hive = HiveUtils(database, options=hive_options)
 
     # The base location of this webrequest table in HDFS.
     # If it was not provided via the CLI, then attempt to

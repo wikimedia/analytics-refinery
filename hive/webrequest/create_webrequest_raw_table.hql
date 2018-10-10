@@ -55,4 +55,6 @@ STORED AS INPUTFORMAT
     'org.apache.hadoop.mapred.SequenceFileInputFormat'
 OUTPUTFORMAT
     'org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat'
+LOCATION
+    'hdfs://analytics-hadoop/wmf/data/raw/webrequest'
 ;

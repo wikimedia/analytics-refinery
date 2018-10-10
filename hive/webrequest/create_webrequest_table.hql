@@ -68,6 +68,6 @@ PARTITIONED BY (
 )
 CLUSTERED BY(hostname, sequence) INTO 64 BUCKETS
 STORED AS PARQUET
-LOCATION '/wmf/data/wmf/webrequest'
+LOCATION 'hdfs://analytics-hadoop/wmf/data/wmf/webrequest'
 ;
 
