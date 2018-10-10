@@ -65,7 +65,7 @@
 
         <property>
             <name>hive_site_xml</name>
-            <value>${oozie_directory}/util/hive/hive-site.xml</value>
+            <value>${name_node}/user/hive/hive-site.xml</value>
             <description>Path to hive-site.xml</description>
         </property>
 
