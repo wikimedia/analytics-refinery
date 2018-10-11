@@ -1056,14 +1056,17 @@ NavigationTiming:
         domLoading: keep
         domainLookupEnd: keep
         domainLookupStart: keep
+        deviceMemory: keep
         fetchStart: keep
         firstImage: keep
         firstPaint: keep
         firstPaintAfterLoad: keep
+        gaps: keep
         isAnon: keep
         isHiDPI: keep
         isHttp2: keep
         isHttps: keep
+        isOversample: keep
         lazyLoadImages: keep
         loadEventEnd: keep
         loadEventStart: keep
@@ -1072,11 +1075,15 @@ NavigationTiming:
         mediaWikiLoadEnd: keep
         mediaWikiLoadStart: keep
         mediaWikiVersion: keep
+        mwSpecialPageName: keep
         mobileMode: keep
         namespaceId: keep
         netSpeed: keep
+        netinfoEffectiveConnectionType: keep
+        pageviewToken: keep
         originCountry: keep
         originRegion: keep
+        oversampleReason: keep
         receiving: keep
         redirectCount: keep
         redirectEnd: keep
@@ -1086,9 +1093,13 @@ NavigationTiming:
         requestStart: keep
         responseEnd: keep
         responseStart: keep
+        revId: keep
+        RSI: keep
         runtime: keep
         secureConnectionStart: keep
         sending: keep
+        transferSize: keep
+        unload: keep
         unloadEventEnd: keep
         unloadEventStart: keep
         waiting: keep
@@ -1147,6 +1158,8 @@ QuickSurveyInitiation:
     event:
         beaconCapable: keep
         eventName: keep
+        pageviewToken: keep
+        performanceNow: keep
         surveyCodeName: keep
         surveyInstanceToken: keep
         surveySessionToken: keep
@@ -1161,6 +1174,7 @@ QuickSurveysResponses:
         namespaceId: keep
         pageId: keep
         pageTitle: keep
+        pageviewToken: keep
         platform: keep
         surveyCodeName: keep
         surveyInstanceToken: keep
@@ -1192,6 +1206,33 @@ RelatedArticles:
         pageId: keep
         skin: keep
         userSessionToken: keep
+    webHost: keep
+    wiki: keep
+
+ResourceTiming:
+    event:
+        connectEnd: keep
+        connectStart: keep
+        domainLookupEnd: keep
+        domainLookupStart: keep
+        decodedBodySize: keep
+        duration: keep
+        encodedBodySize: keep
+        fetchStart: keep
+        initiatorType: keep
+        label: keep
+        name: keep
+        nextHopProtocol: keep
+        pageviewToken: keep
+        redirectEnd: keep
+        redirectStart: keep
+        requestStart: keep
+        responseEnd: keep
+        responseStart: keep
+        secureConnectionStart: keep
+        startTime: keep
+        transferSize: keep
+        workerStart: keep
     webHost: keep
     wiki: keep
 
