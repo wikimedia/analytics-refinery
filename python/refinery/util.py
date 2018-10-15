@@ -57,6 +57,37 @@ def is_yarn_application_running(job_name):
     return retval == 0
 
 
+def yarn_application_id(job_name):
+    """
+    Returns the YARN applicationId for the given job_name.  If there is no
+    currently running or scheduled job with the job_name, returns None.
+    """
+    command = '/usr/bin/yarn application -list 2>/dev/null | grep \'{}\''.format(job_name)
+    output = sh(command, check_return_code=False)
+
+    # if no output returned, then there is no job currently running with this job_name.
+    if len(output) == 0:
+        return None
+    # Else return the first element in the output, which should be the applicationId.
+    else:
+        return output.split('\t')[0]
+
+
+def yarn_application_status(application_id):
+    """
+    Returns the output of yarn application -status for the given application_id.
+    If there is no running application with this applicaiton_id, returns
+    a custom message stating so.
+    """
+    command = '/usr/bin/yarn application -status {}'.format(application_id)
+    output = sh(command, check_return_code=False)
+
+    if len(output) == 0:
+        output = 'No job with applicationId {} is currently scheduled'.format(application_id)
+
+    return output
+
+
 def sh(command, check_return_code=True, strip_output=True, return_stderr=False):
     """
     Executes a shell command and return the stdout.
