@@ -77,7 +77,9 @@ if __name__ == '__main__':
         sys.exit('The base name you specified does not match any datasources')
     snapshots_to_remove = matched_snapshots[keep:]
     if len(snapshots_to_remove) == 0:
-        sys.exit('There are no datasources to remove (total available {})'.format(len(matched_snapshots)))
+        logger.info('There are no datasources to remove (total available {}: {})'
+                    .format(len(matched_snapshots), str(matched_snapshots)))
+        system.exit(0)
     for snapshot in snapshots_to_remove:
         logger.info('Deleting snapshot {}...'.format(snapshot))
         druid.remove_datasource(snapshot, deep=True, dry_run=dry_run)
