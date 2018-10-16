@@ -31,7 +31,7 @@
             </property>
             <property>
                 <name>send_error_email_to</name>
-                <value>${common_error_to},dcausse@wikimedia.org,ebernhardson@wikimedia.org,okeyes@wikimedia.org,mpopov@wikimedia.org</value>
+                <value>${common_error_to},dcausse@wikimedia.org,ebernhardson@wikimedia.org,mpopov@wikimedia.org</value>
             </property>
         </configuration>
     </coordinator>
