@@ -60,18 +60,6 @@ DiacriticsVisibility:
     webHost: keep
     wiki: keep
 
-Echo:
-    event:
-        deliveryMethod: keep
-        eventSource: keep
-        notificationGroup: keep
-        notificationType: keep
-        revisionId: keep
-        sender: keep
-        version: keep
-    webHost: keep
-    wiki: keep
-
 EchoInteraction:
     event:
         action: keep
