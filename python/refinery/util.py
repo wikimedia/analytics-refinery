@@ -51,7 +51,7 @@ def is_yarn_application_running(job_name):
     This command will return false on any command failure.
     '''
     command = '/usr/bin/yarn application -list 2>/dev/null | ' + \
-        'grep -q  "\({0}\).*\(RUNNING\|ACCEPTED\)"'.format(job_name)
+        'grep -qP "(^|\s){}(?=\s|$).*(RUNNING|ACCEPTED)"'.format(job_name)
     logging.debug('Running: {0}'.format(command))
     retval = os.system(command)
     return retval == 0
