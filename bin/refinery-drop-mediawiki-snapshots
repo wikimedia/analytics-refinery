@@ -100,7 +100,8 @@ AFFECTED_TABLES = {
         'mediawiki_history',
         'mediawiki_metrics',
         'mediawiki_page_history',
-        'mediawiki_user_history'
+        'mediawiki_user_history',
+        'mediawiki_history_reduced'
     ]
 }
 
