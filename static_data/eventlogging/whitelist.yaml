@@ -1063,14 +1063,11 @@ NavigationTiming:
         mediaWikiLoadEnd: keep
         mediaWikiLoadStart: keep
         mediaWikiVersion: keep
-        mwSpecialPageName: keep
         mobileMode: keep
         namespaceId: keep
         netSpeed: keep
         netinfoEffectiveConnectionType: keep
         pageviewToken: keep
-        originCountry: keep
-        originRegion: keep
         oversampleReason: keep
         receiving: keep
         redirectCount: keep
@@ -1081,7 +1078,6 @@ NavigationTiming:
         requestStart: keep
         responseEnd: keep
         responseStart: keep
-        revId: keep
         RSI: keep
         runtime: keep
         secureConnectionStart: keep
@@ -1144,7 +1140,6 @@ Print:
 
 QuickSurveyInitiation:
     event:
-        beaconCapable: keep
         eventName: keep
         pageviewToken: keep
         performanceNow: keep
