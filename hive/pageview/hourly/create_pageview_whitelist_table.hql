@@ -12,7 +12,7 @@
 CREATE EXTERNAL TABLE IF NOT EXISTS `pageview_whitelist` (
     `field_name`        string  COMMENT 'Name of the field with a white-listed value',
     `authorized_value`  string  COMMENT 'Value authorized for the given field name',
-    `insertion_ts`      timestamp  COMMENT 'Date of insertion into the white-list'
+    `insertion_dt`      timestamp  COMMENT 'Date of insertion into the white-list'
 )
 ROW FORMAT DELIMITED
 FIELDS TERMINATED BY '\t'
