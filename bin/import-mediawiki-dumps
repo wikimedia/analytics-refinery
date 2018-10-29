@@ -1,0 +1,437 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+"""
+Check availability of mediawiki-dumps per project and copy them onto HDFS
+if not already present. The expected dump-date format is YYYYMMDD.
+
+Usage:
+  import-mediawiki-dumps
+          [--input-base PATH] [--output-base PATH]
+          [--projects-file FILE] [--dump-type TYPE]
+          [--max-tries INT] [--log-file FILE]
+          [--overwrite] [--dry-run]
+          --dump-date DATE
+
+Options:
+    -i PATH --input-base PATH     The input base path for dumps (local)
+                                    [default: /mnt/data/xmldatadumps/public]
+    -o PATH --output-base PATH    The output base path for dumps (hdfs)
+                                    [default: /wmf/data/raw/mediawiki/xmldumps]
+    -p FILE --projects-file FILE  The path of the project list to import
+                                    (CSV with project DB as first  column,
+                                    comment-lines started with #)
+                                    [default: /mnt/hdfs/wmf/refinery/current/static_data/mediawiki/grouped_wikis/labs_grouped_wikis.csv]
+    -t TYPE --dump-type TYPE      The dump-type to import. Should be one of: pages-meta-history,
+                                    pages-meta-current, stub-meta-history, stub-meta-current
+                                    [default: pages-meta-history]
+    -m INT --max-tries INT        Maximum number of import tries per project
+                                    [default: 3]
+    -l FILE --log-file FILE       The file path to write logs. If none provided,
+                                    logging to console.
+    -w --overwrite                Drop existing destination before copying.
+    -r --dry-run                  No action, log only
+    -h --help                     Show this help message and exit.
+"""
+
+import os
+import sys
+import logging
+import docopt
+import json
+
+from refinery.logging_setup import configure_logging
+from refinery.util import HdfsUtils as hdfs
+
+
+logger = logging.getLogger()
+
+
+__author__ = 'Joseph Allemandou <joal@wikimedia.org>'
+
+
+IMPORT_SUCCESS = 'SUCCESS'
+IMPORT_FAILURE = 'FAILURE'
+IMPORT_UNAVAILABLE = 'UNAVAILABLE'
+
+SUCCESS_FLAG = '_SUCCESS'
+
+DUMP_TYPES = [
+    'pages-meta-history',
+    'pages-meta-current',
+    'stub-meta-history',
+    'stub-meta-current'
+]
+
+GLOB_PATTERNS = {
+  'pages-meta-history': '{}-{}-pages-meta-history*.xml*.bz2',
+  'pages-meta-current': '{}-{}-pages-meta-current*.xml*.bz2',
+  'stub-meta-history': '{}-{}-stub-meta-history*.xml*.gz',
+  'stub-meta-current': '{}-{}-stub-meta-current*.xml*.gz'
+}
+
+# Used to check if job is finished in DUMP_INFO_FILE.
+# We use file-oriented names as they are more explicit
+# than json names, and also since some json-jobs generate
+# multiple dump types (stubs)
+DUMP_INFO_FILE='dumpruninfo.json'
+JSON_NAMES = {
+  'pages-meta-history': 'metahistorybz2dump',
+  'pages-meta-current': 'metacurrentdump',
+  'stub-meta-history': 'xmlstubsdump',
+  'stub-meta-current': 'xmlstubsdump'
+}
+
+
+def write_success_flag(folder, dry_run):
+    """
+    If dry_run is false, writes an empty file in hdfs folder
+    named as defined by the global variable SUCCESS_FLAG
+    """
+    success_path = os.path.join(folder, SUCCESS_FLAG)
+    logger.info('Writing success flag ' + success_path)
+    if not dry_run:
+        hdfs.touchz(success_path)
+
+
+def exists_success_flag(folder):
+    """
+    Checks if hdfs folder contains a file named as
+    as defined by the global variable SUCCESS_FLAG
+    """
+    output_content = hdfs.ls(folder)
+    for path in output_content:
+        # HdfsUtils.ls returns bytes - Need to convert them
+        path_str = path.decode('utf-8')
+        if os.path.basename(path_str) == SUCCESS_FLAG:
+            return True
+    return False
+
+
+class MediawikiDumpsImporter(object):
+    """
+    This class manages importing multiple wiki-project XML-dumps onto HDFS.
+    It checks the output-base path validity, possibly deleting it in case
+    of overwrite, builds the list of projects to import from a file and
+    launches imports using MediawikiProjectDumpImporter.
+    When all imports are finished, a success-flag file is written in
+    the output folder if every job was successful.
+    """
+
+    def __init__(self, input_base, output_base,
+                 projects_file, dump_type, dump_date,
+                 max_tries, overwrite, dry_run):
+        """
+        Initializes variables and validates parameters
+        """
+        self.input_base = input_base
+        self.output_base = output_base
+        self.projects_file = projects_file
+        self.dump_type = dump_type
+        self.dump_date = dump_date
+        self.max_tries = max_tries
+        self.overwrite = overwrite
+        self.dry_run = dry_run
+
+        self._validate_parameters()
+
+        # Use _ in path instead of - for dump-types
+        path_dump_type = dump_type.replace('-', '_')
+        self.output_base_full = os.path.join(output_base, path_dump_type, dump_date)
+
+    def _validate_parameters(self):
+        """
+        Validates that dump-date contains 8 digits, that the file containing
+        the projects to import exists, and that the dump-type to import is
+        one of the accepted list
+        """
+        if not (self.dump_date.isdigit() and len(self.dump_date) == 8):
+            raise ValueError('Invalid dump-date {}.\n'.format(self.dump_date) +
+                             'It should be YYYYMMDD formatted')
+
+        if not os.path.isfile(self.projects_file):
+            raise ValueError('Invalid projects-file {}.\n'.format(self.projects_file) +
+                             'File doesn\'t exist')
+
+        if self.dump_type not in DUMP_TYPES:
+            raise ValueError('Invalid dump-type {}.\n'.format(self.dump_type) +
+                             'Should be one of {}'.format(', '.join(DUMP_TYPES)))
+
+    def run(self):
+        """
+        Actually run the import:
+         - Prepare HDFS (delete destination folder if overwrite, and
+           create it if if does not exist), and stop if a previous has
+           already been successful (presence of a success-flag file)
+         - Get the list of projects to import from the project-file
+         - Loop over the projects to try to import each of them with
+           MediawikiProjectDumpImporter, and save each final status
+         - At then end log about failures/unavailable projects and
+           write success-flag if all imports were successful
+        """
+        self._prepare_hdfs()
+        if exists_success_flag(self.output_base_full):
+            logger.info('Nothing to do - Success-flag already present in ' +
+                        'output folder ' + self.output_base_full)
+            return
+
+        projects_list = self._get_projects_list()
+
+        import_results = []
+        # loop through projects
+        for project in projects_list:
+            logger.info('Running MediawikiProjectDumpImporter for ' + project)
+
+            project_importer = MediawikiProjectDumpImporter(
+                self.input_base, self.output_base_full, project, self.dump_type,
+                self.dump_date, self.max_tries, self.dry_run)
+            project_importer.run()
+            logger.info('ProjectImporter finished with status {} for project {}'.format(
+                project_importer.status, project))
+            import_results.append((project, project_importer.status))
+
+        unavailables = [project for (project, status) in import_results if status == IMPORT_UNAVAILABLE]
+        failures = [project for (project, status) in import_results if status == IMPORT_FAILURE]
+        if failures or unavailables:
+            logger.warn(
+                'Not writing success flag due to unavailable projects [{}] '.format(','.join(unavailables)) +
+                'and failed projects [{}] '.format(','.join(failures)))
+        else:
+            logger.info('Writing success flag in ' + self.output_base_full)
+            write_success_flag(self.output_base_full, self.dry_run)
+
+    def _prepare_hdfs(self):
+        """
+        Delete destination folder if overwrite is set, then try to
+        create it if it doesn't exist, finally fail if it still
+        doesn't exist.
+        """
+        logger.info('Preparing HDFS before importing projects')
+        # Delete global destination if overwrite
+        if (self.overwrite and hdfs.ls(self.output_base_full, include_children=False)):
+            logger.info('--overwrite parameter set. Deleting ' +
+                        '{} on HDFS.'.format(self.output_base_full))
+            if not self.dry_run:
+                hdfs.rm(self.output_base_full, recurse=True)
+
+        # Create global destination if doesn't exist
+        if not hdfs.ls(self.output_base_full, include_children=False):
+            logger.info('Creating destination folder {} on HDFS.'.format(
+                self.output_base_full))
+            if not self.dry_run:
+                hdfs.mkdir(self.output_base_full, create_parent=True)
+
+        # Check that global destination exists and is a directory
+        output_details = hdfs.ls(self.output_base_full, include_children=False, with_details=True)
+        if not output_details or output_details[0]['file_type'] != 'd':
+            raise ValueError('HDFS destination path ' + self.output_base_full +
+                             ' either doesn\'t exists or is not a directory')
+
+    def _get_projects_list(self):
+        """
+        Read project-file, considering lines starting with # as comments,
+        and project lines to comma-separated value with project being
+        the first element of each line.
+        """
+        logger.info('Getting projects-list')
+        projects = []
+        with open(self.projects_file, "r") as file:
+            for line in file:
+                if not line.startswith('#'):
+                    project = line.strip().split(',')[0].strip()
+                    if project:
+                        projects.append(project)
+        logger.info('{} projects in list'.format(len(projects)))
+        return projects
+
+
+class MediawikiProjectDumpImporter(object):
+    """
+    This class provides functions to copy mediawiki-project xml-dump files
+    from a local folder onto HDFS. It is used by MediawikiDumpsImporter
+    to import multiple projects dumps at once.
+    It first checks if the source-project is ready for import (local folder
+    exists and dump is in done status in dumpruninfo.json). Then it prepares
+    HDFS (create destination folder if it doesn't exist, and check if project
+    has previously been successfully imported). Finally it uses HdfsUtils.rsync
+    to copy local files to hdfs, with multiple tries in case of failure.
+    The variable self.status is used to report dump being successfully copied,
+    unavailable or in failure.
+    """
+
+    def __init__(self, input_base, output_base, project,
+                 dump_type, dump_date, max_tries, dry_run):
+        self.input_base = input_base
+        self.output_base = output_base
+        self.project = project
+        self.dump_type = dump_type
+        self.dump_date = dump_date
+        self.max_tries = max_tries
+        self.dry_run = dry_run
+
+        self.output_path = os.path.join(self.output_base, project)
+        self.input_path = os.path.join(
+          self.input_base, self.project, self.dump_date,
+          GLOB_PATTERNS[self.dump_type].format(self.project, self.dump_date))
+        self.status = None
+
+    def _set_success(self):
+        self.status = IMPORT_SUCCESS
+
+    def _set_failure(self):
+        self.status = IMPORT_FAILURE
+
+    def _set_unavailable(self):
+        self.status = IMPORT_UNAVAILABLE
+
+    def run(self):
+        """
+        Main function to copy dump-files. It checks local dump availability,
+        prepares hdfs destination, and runs the HdfsUtils.rsync, retrying
+        in case of failure.
+        self.status is used to manage success/unavailability/failure
+        """
+        # Check dump to import and stop accordingly
+        self._check_dump_to_import()
+        if self.status:
+            # Info logged in _check_dump_to_import
+            return
+
+        # Prepare HDFS and check if import already done
+        self._prepare_hdfs()
+        if exists_success_flag(self.output_path):
+            logger.info('Nothing to do - Successflag already present in ' +
+                        'output folder ' + self.output_path)
+            self._set_success()
+            return
+
+        tries = 0
+
+        while (not self.status and tries < self.max_tries):
+            logger.info('RSyncing files for project {} (try {})'.format(self.project, tries + 1))
+            if hdfs.rsync(self.input_path, self.output_path, local_to_hdfs=True,
+                          should_delete=True, dry_run=self.dry_run):
+                logger.info('Project {} succesfully imported'.format(self.project))
+                write_success_flag(self.output_path, self.dry_run)
+                self._set_success()
+            else:
+                tries += 1
+
+        if self.status:
+            return
+        elif tries == self.max_tries:
+            logger.warn('Failed maximum number of imports {} for project {}'.format(
+                tries, self.project))
+            self._set_failure()
+
+    def _check_dump_to_import(self):
+        """
+        Verifies that source local-folder exists, that it contains the
+        dumpruninfo.json file, and that the dump-type to import has
+        status 'done' in that file.
+        """
+        project_path = os.path.join(self.input_base, self.project)
+        project_date_path = os.path.join(project_path, self.dump_date)
+        project_dump_info = os.path.join(project_date_path, DUMP_INFO_FILE)
+        logger.info('Check if {} is ready to be imported from {}'.format(
+            self.project, project_date_path))
+        if not os.path.isdir(project_path):
+            logger.warn('Input-base {} doesn\'t contain '.format(self.input_base) +
+                        'a project folder for ' + self.project)
+            self._set_failure()
+        elif not os.path.isdir(project_date_path):
+            logger.warn('Project-Input-base {} doesn\'t contain '.format(project_path) +
+                        'a date folder ' + self.dump_date)
+            self._set_unavailable()
+        elif not os.path.exists(project_dump_info):
+            logger.warn('Project-Input folder {} doesn\'t contain '.format(project_date_path) +
+                        'the json dump-info file ' + DUMP_INFO_FILE)
+            self._set_unavailable()
+        else:
+            # Check dump status in DUMP_INFO_FILE for dump-type
+            with open(project_dump_info, "r") as json_file:
+                dump_info = json.load(json_file)
+                try:
+                    dump_status = dump_info['jobs'][JSON_NAMES[self.dump_type]]['status']
+                    if dump_status != 'done':
+                        logger.warn('Dump status not done in json dump-info file '
+                                    + project_dump_info)
+                        self._set_unavailable()
+                except:
+                    logger.exception('Problem reading json dump-info file ' + project_dump_info)
+                    self._set_failure()
+
+    def _prepare_hdfs(self):
+        """
+        Creates the destination folder if it doesn't exist, and then
+        check that it exists as a directory.
+        """
+        logger.info('Prepare HDFS output project path ' + self.output_path)
+        # Create project folder if it doesn't exist
+        if not hdfs.ls(self.output_path, include_children=False):
+            logger.info(
+                'Creating project folder {} on HDFS.'.format(self.output_path))
+            if not self.dry_run:
+                hdfs.mkdir(self.output_path, create_parent=True)
+
+        # Check that project folder exists and is a directory
+        output_details = hdfs.ls(self.output_path, include_children=False, with_details=True)
+        if not output_details or output_details[0]['file_type'] != 'd':
+            logger.warn('HDFS project folder ' + self.output_path +
+                        ' either doesn\'t exists or is not a directory')
+            self._set_failure()
+
+
+def main(args):
+    input_base = args['--input-base']
+    output_base = args['--output-base']
+    projects_file = args['--projects-file']
+    dump_type = args['--dump-type']
+    dump_date = args['--dump-date']
+    max_tries = int(args['--max-tries'])
+    log_file = args['--log-file']
+    overwrite = args['--overwrite']
+    dry_run = args['--dry-run']
+
+    if log_file:
+        configure_logging(logger, logging.INFO, log_file=log_file)
+    else:
+        configure_logging(logger, logging.INFO, stdout=True)
+
+    logger.info(
+            'Creating MediawikiDumpsImporter with parameters:\n' +
+            '    input_base:     {}\n'.format(input_base) +
+            '    output_base:    {}\n'.format(output_base) +
+            '    projects_file:  {}\n'.format(projects_file) +
+            '    dump_type:      {}\n'.format(dump_type) +
+            '    dump_date:      {}\n'.format(dump_date) +
+            '    max-tries:      {}\n'.format(max_tries) +
+            '    overwrite:      {}\n'.format(overwrite) +
+            '    dry-run:        {}\n'.format(dry_run)
+            )
+
+    # Instanciate and run importer
+    importer = MediawikiDumpsImporter(input_base, output_base, projects_file, dump_type,
+                                      dump_date, max_tries, overwrite, dry_run)
+    importer.run()
+
+
+if __name__ == "__main__":
+    try:
+        main(docopt.docopt(__doc__))
+    except RuntimeError as e:
+        logger.error(e)
+        sys.exit(1)
