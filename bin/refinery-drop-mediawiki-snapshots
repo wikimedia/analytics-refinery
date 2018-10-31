@@ -86,6 +86,7 @@ logger.addHandler(handler_err)
 AFFECTED_TABLES = {
     'wmf_raw': [
         'mediawiki_archive',
+        'mediawiki_change_tag',
         'mediawiki_ipblocks',
         'mediawiki_logging',
         'mediawiki_page',
@@ -109,6 +110,7 @@ AFFECTED_TABLES = {
 WIKI_DB_TABLES = [
     'mediawiki_archive',
     'mediawiki_ipblocks',
+    'mediawiki_change_tag',
     'mediawiki_logging',
     'mediawiki_page',
     'mediawiki_pagelinks',
