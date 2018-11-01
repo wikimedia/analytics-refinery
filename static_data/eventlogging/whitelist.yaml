@@ -118,6 +118,37 @@ Edit:
     webHost: keep
     wiki: keep
 
+EditAttemptStep:
+    event:
+        action: keep
+        abort_mechanism: keep
+        abort_timing: keep
+        abort_type: keep
+        init_mechanism: keep
+        init_timing: keep
+        init_type: keep
+        is_oversample: keep
+        loaded_timing: keep
+        ready_timing: keep
+        save_attempt_timing: keep
+        save_failure_message: keep
+        save_failure_timing: keep
+        save_failure_type: keep
+        save_intent_timing: keep
+        save_success_timing: keep
+        editing_session_id: keep
+        editor_interface: keep
+        integration: keep
+        mw_version: keep
+        page_ns: keep
+        platform: keep
+        user_class: keep
+        user_editcount: keep
+        user_id: keep
+        version: keep
+    webHost: keep
+    wiki: keep
+
 EditorActivation:
     event:
         month: keep
