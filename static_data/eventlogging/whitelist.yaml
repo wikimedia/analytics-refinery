@@ -1102,9 +1102,6 @@ Popups:
         linkInteractionToken: keep
         namespaceIdHover: keep
         namespaceIdSource: keep
-        pageIdSource: keep
-        pageTitleHover: keep
-        pageTitleSource: keep
         pageToken: keep
         perceivedWait: keep
         popupDelay: keep
