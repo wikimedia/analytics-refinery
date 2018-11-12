@@ -10,7 +10,7 @@
 
 CREATE EXTERNAL TABLE `mediawiki_redirect`(
   `rd_from`             bigint      COMMENT 'Contains the page_id of the source page',
-  `rd_namespace`        bigint      COMMENT 'Contains the number of the target''s namespace',
+  `rd_namespace`        int         COMMENT 'Contains the number of the target''s namespace',
   `rd_title`            string      COMMENT 'Contains the sanitized title of the target page. It is stored as text, with spaces replaced by underscores',
   `rd_interwiki`        string      COMMENT 'MediaWiki version:  ≥ 1.16 - This field is not empty only if an interwiki prefix is used: #REDIRECT [[prefix:…]] (a prefix such as "w:" for Wikipedia, or an interlanguage link prefix such as "nl:" for Dutch, but not both). In this case a redirect is not visible in Special:WhatLinksHere (even if the target lies in the same wiki), rd_namespace is always 0 and rd_title may contain a possible namespace prefix, but rd_fragment may be non-NULL',
   `rd_fragment`         string      COMMENT 'Contains the target''s fragment ID if present (see also bugzilla:218), otherwise is NULL'

@@ -10,9 +10,9 @@
 
 CREATE EXTERNAL TABLE `mediawiki_pagelinks`(
   `pl_from`             bigint      COMMENT 'Key to the page_id of the page containing the link',
-  `pl_namespace`        bigint      COMMENT 'Key to page_namespace of the target page. The target page may or may not exist, and due to renames and deletions may refer to different page records as time goes by',
+  `pl_namespace`        int         COMMENT 'Key to page_namespace of the target page. The target page may or may not exist, and due to renames and deletions may refer to different page records as time goes by',
   `pl_title`            string      COMMENT 'Key to page_title of the target page. The target page may or may not exist, and due to renames and deletions may refer to different page records as time goes by. Spaces are converted to underscores, and the first letter is automatically capitalized. So for example, a link to foo bar would have a pl_title of "Foo_bar"',
-  `pl_from_namespace`   bigint      COMMENT 'MediaWiki version:  ≥ 1.24 - page_namespace of the page containing the link'
+  `pl_from_namespace`   int         COMMENT 'MediaWiki version:  ≥ 1.24 - page_namespace of the page containing the link'
 )
 COMMENT
   'See most up to date documentation at https://www.mediawiki.org/wiki/Manual:Pagelinks_table'

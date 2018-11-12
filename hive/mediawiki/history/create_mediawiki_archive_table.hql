@@ -10,7 +10,7 @@
 
 CREATE EXTERNAL TABLE `mediawiki_archive`(
   `ar_id`               bigint      COMMENT 'Primary key along with wiki.',
-  `ar_namespace`        bigint      COMMENT 'Basic page information: contains the namespace of the deleted revision. These contain the value in page_namespace.',
+  `ar_namespace`        int         COMMENT 'Basic page information: contains the namespace of the deleted revision. These contain the value in page_namespace.',
   `ar_title`            string      COMMENT 'Basic page information: contains the page title of the deleted page, which is the same as page_title.',
   `ar_text`             string      COMMENT 'Before MediaWiki 1.5, old archived pages saved their text here. Old archived pages have ar_text_id set to NULL\; they do not point to an entry in the text table. Instead, this field is the place where the text resides. Restoring content from an old archived page restores the text from this field.  MediaWiki version: ≥ 1.5 Still used! In newly deleted pages (MediaWiki 1.5 and later), the revision text remains in the text table. Such newly deleted pages will not store text in the archive table, but will rather reference the separately existing text rows. However, for text from pages, which have been archived in MediaWiki 1.4 and before, the ar_text field will still be used!  This field remains for backward compatibility.',
   `ar_comment`          string      COMMENT 'Basic revision information: contains the edit summary of the deleted revision, analogous to rev_comment.',
