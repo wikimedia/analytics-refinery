@@ -1,0 +1,20 @@
+The hive-jdbc-1.1.0-cdh5.10.0.jar and hive-service-1.1.0-cdh5.10.0.jar files are
+present here in order to workaround a bug in Spark and DataFrameToHive.
+
+When ALTERing Hive tables, DataFrameToHive uses a manual JDBC connection to Hive,
+rather than Spark SQL.  This is a work around for https://issues.apache.org/jira/browse/SPARK-23890.
+Spark doesn't allow issuing of ALTER statements via spark.sql().
+
+When we upgraded to CDH 5.15.0 (in November 2018), this manual JDBC connection stopped working.
+Even though the Hive version hasn't changed from CDH 5.10.0 to CDH 5.15.0, there seems to
+be some backported fix that now causes org/apache/hadoop/hive/common/auth/HiveAuthUtils.class.
+HiveAuthUtils.class is in /usr/lib/hive/lib/hive-common.jar in Hive 1.1.0.  However,
+adding hive-common.jar from Hive 1.1.0 causes it to be used over Spark's own builtin version
+of hive-common (1.2.1).  Spark references some HiveConf properties that are not present in
+Hive 1.1.0, which results in a java.lang.NoSuchFieldError: METASTORE_CLIENT_SOCKET_LIFETIME.
+
+Our workaround to this NEW problem to continue using our workaround is to use the Hive
+jars from CDH 5.10.0 to create our manual JDBC connections from DataFrameToHive.
+
+The real fix to this problem would be to fix SPARK-23890 to allow harmless ALTER
+statements via spark.sql() so we can stop using a manual Hive JDBC connection.
