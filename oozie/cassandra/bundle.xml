@@ -287,19 +287,19 @@
         </property>
         <property>
             <name>unique_devices_cql</name>
-            <value>UPDATE "${unique_devices_keyspace}"."data" SET "devices" = ?</value>
+            <value>UPDATE "${unique_devices_keyspace}"."data" SET "devices" = ?, "offset" = ?, "underestimate" = ?</value>
         </property>
         <property>
             <name>unique_devices_hive_fields</name>
-            <value>project,access-site,timestamp,devices</value>
+            <value>project,access-site,timestamp,devices,offset,underestimate</value>
         </property>
         <property>
             <name>unique_devices_hive_fields_types</name>
-            <value>text,text,text,bigint</value>
+            <value>text,text,text,bigint,bigint,bigint</value>
         </property>
         <property>
             <name>unique_devices_cassandra_fields</name>
-            <value>devices</value>
+            <value>devices,offset,underestimate</value>
         </property>
         <property>
             <name>unique_devices_cassandra_primary_keys</name>
