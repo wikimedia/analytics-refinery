@@ -32,7 +32,9 @@ WITH unique_devices AS (
             ELSE 'desktop-site'
             END AS access_site,
         CONCAT(LPAD(year, 4, "0"), LPAD(month, 2, "0"), LPAD(day, 2, "0")) AS dt,
-        SUM(uniques_estimate) AS devices
+        SUM(uniques_estimate) AS devices,
+        SUM(uniques_offset) AS offset,
+        SUM(uniques_underestimate) AS underestimate
     FROM
         ${source_table}
     WHERE
@@ -61,7 +63,9 @@ INSERT OVERWRITE DIRECTORY "${destination_directory}"
             project,
             COALESCE(access_site, 'all-sites'),
             dt,
-            CAST(SUM(devices) AS STRING)) as line
+            CAST(SUM(devices) AS STRING),
+            CAST(SUM(offset) AS STRING),
+            CAST(SUM(underestimate) AS STRING)) as line
     FROM
         unique_devices
     GROUP BY
