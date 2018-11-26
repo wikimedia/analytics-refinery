@@ -268,7 +268,7 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp,
                     convert(log_user_text using utf8) log_user_text,
                     log_page
 
-               from logging
+               from logging_compat
               where $CONDITIONS
                 and log_timestamp >= '{f}'
                 and log_timestamp <  '{t}'
