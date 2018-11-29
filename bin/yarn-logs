@@ -61,7 +61,7 @@ noisy_logger_names = [
     'ContainerManagementProtocolProxy',
     'AMRMClientImpl',
     'SchedulerExtensionServices',
-    'OutputCommitCoordinator',å
+    'OutputCommitCoordinator',
     'SparkHadoopMapRedUtil'
 ]
 
