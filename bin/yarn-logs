@@ -65,7 +65,7 @@ noisy_logger_names = [
     'SparkHadoopMapRedUtil'
 ]
 
-# Filter out noisy annoying logs from noån job loggers.
+# Filter out noisy annoying logs from non job loggers.
 if not verbose:
     command += ' | grep -ivE \'{}\''.format('|'.join(noisy_logger_names))
 
