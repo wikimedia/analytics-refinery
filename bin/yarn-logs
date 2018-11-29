@@ -1,0 +1,76 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""
+Handy wrapper around yarn logs command.
+
+Usage: yarn-logs [options] <application-id>
+
+Options:
+  --verbose  If not set, Noisy YARN, Spark, etc. log lines will be filtered out.
+  --user <user> If given, sudo -u to this user before running yarn logs command.
+
+"""
+__author__ = 'Andrew Otto <otto@wikimedia.org>'
+
+import os, sys
+from docopt import docopt
+from refinery.util import yarn_application_id
+import re
+
+# parse arguments
+arguments      = docopt(__doc__)
+application_id = arguments['<application-id>']
+verbose        = arguments['--verbose']
+user           = arguments['--user']
+
+command = 'yarn logs -applicationId {}'.format(application_id)
+
+
+noisy_logger_names = [
+    'DagScheduler',
+    'Yarn',
+    'Task',
+    'MemoryStore',
+    'BlockManager',
+    'DiskBlock',
+    'Executor',
+    'Shuffle',
+    'CoarseGrained',
+    'ContextCleaner',
+    'SecurityManager',
+    'MapOutput',
+    'Torrent',
+    'TransportClient',
+    'SignalUtils',
+    'Netty',
+    'CodecPool',
+    'SLF4J',
+    'ContainerManagementProtocolProxy',
+    'AMRMClientImpl',
+    'SchedulerExtensionServices',
+    'OutputCommitCoordinator',å
+    'SparkHadoopMapRedUtil'
+]
+
+# Filter out noisy annoying logs from noån job loggers.
+if not verbose:
+    command += ' | grep -ivE \'{}\''.format('|'.join(noisy_logger_names))
+
+if user:
+    command = 'sudo -u {} {}'.format(user, command)
+
+print(command)
+os.system(command)
