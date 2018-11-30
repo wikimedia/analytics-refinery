@@ -1268,6 +1268,13 @@ ServerSideAccountCreation:
     webHost: keep
     wiki: keep
 
+ServerTiming:
+    event:
+        description: keep
+        duration: keep
+        name: keep
+        pageviewToken: keep
+
 TaskRecommendation:
     event:
         offset: keep
