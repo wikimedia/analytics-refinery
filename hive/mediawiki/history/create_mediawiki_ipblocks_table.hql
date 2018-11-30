@@ -26,7 +26,10 @@ CREATE EXTERNAL TABLE `mediawiki_ipblocks`(
   `ipb_deleted`             boolean COMMENT 'Allows the entry to be flagged, hiding it from users and sysops.',
   `ipb_block_email`         boolean COMMENT 'Prevents the user from accessing Special:Emailuser',
   `ipb_allow_usertalk`      boolean COMMENT 'Prevents a blocked user from editing their talk page. A value of 1 means that the user is not allowed to edit his user talk page. (Thus, a less confusing name would have been ipb_block_usertalk).',
-  `ipb_parent_block_id`     bigint  COMMENT 'ID of the block that caused this block to exist. Autoblocks set this to the original block so that the original block being deleted also deletes the autoblocks.'
+  `ipb_parent_block_id`     bigint  COMMENT 'ID of the block that caused this block to exist. Autoblocks set this to the original block so that the original block being deleted also deletes the autoblocks.',
+  `ipb_by_actor`            bigint  COMMENT 'This is a foreign key to actor_id in the actor table.',
+  `ipb_reason_id`           bigint  COMMENT 'This is a foreign key to comment_id in the comment table.'
+
 )
 COMMENT
   'See most up to date documentation at https://www.mediawiki.org/wiki/Manual:Ipblocks_table'

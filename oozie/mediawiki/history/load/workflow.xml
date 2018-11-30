@@ -69,6 +69,16 @@
             <name>mw_user_groups_table</name>
             <description>User groups table imported from Mediawiki</description>
         </property>
+        <!-- Private Hive tables -->
+        <property>
+            <name>mw_private_actor_table</name>
+            <description>Private actor table built from Mediawiki-production DB</description>
+        </property>
+        <property>
+            <name>mw_private_comment_table</name>
+            <description>Private comment table imported from Mediawiki-production DB</description>
+        </property>
+
 
         <!-- Dataset locations to mark as done-->
         <property>
@@ -114,6 +124,15 @@
         <property>
             <name>mw_user_groups_table_location</name>
             <description>Path to user groups table data on HDFS</description>
+        </property>
+        <!-- Private datasets location -->
+        <property>
+            <name>mw_private_actor_table_location</name>
+            <description>Path to private actor table data on HDFS</description>
+        </property>
+        <property>
+            <name>mw_private_comment_table_location</name>
+            <description>Path to private comment table data on HDFS</description>
         </property>
 
         <!-- Subworkflows -->
@@ -464,6 +483,69 @@
                 <property>
                     <name>directory</name>
                     <value>${mw_user_groups_table_location}</value>
+                </property>
+                <property>
+                    <name>done_file</name>
+                    <value>_PARTITIONED</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="repair_mw_private_actor_table_partitions"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <!-- Private tables -->
+    <!-- private actor -->
+    <action name="repair_mw_private_actor_table_partitions">
+        <sub-workflow>
+            <app-path>${repair_partitions_workflow_file}</app-path>
+            <propagate-configuration/>
+            <configuration>
+                <property><name>table</name><value>${mw_private_actor_table}</value></property>
+            </configuration>
+        </sub-workflow>
+        <ok to="mark_mw_private_actor_table_hive_done"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <action name="mark_mw_private_actor_table_hive_done">
+        <sub-workflow>
+            <app-path>${mark_directory_done_workflow_file}</app-path>
+            <configuration>
+                <property>
+                    <name>directory</name>
+                    <value>${mw_private_actor_table_location}</value>
+                </property>
+                <property>
+                    <name>done_file</name>
+                    <value>_PARTITIONED</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="repair_mw_private_comment_table_partitions"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <!-- private comment -->
+    <action name="repair_mw_private_comment_table_partitions">
+        <sub-workflow>
+            <app-path>${repair_partitions_workflow_file}</app-path>
+            <propagate-configuration/>
+            <configuration>
+                <property><name>table</name><value>${mw_private_comment_table}</value></property>
+            </configuration>
+        </sub-workflow>
+        <ok to="mark_mw_private_comment_table_hive_done"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <action name="mark_mw_private_comment_table_hive_done">
+        <sub-workflow>
+            <app-path>${mark_directory_done_workflow_file}</app-path>
+            <configuration>
+                <property>
+                    <name>directory</name>
+                    <value>${mw_private_comment_table_location}</value>
                 </property>
                 <property>
                     <name>done_file</name>
