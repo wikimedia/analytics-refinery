@@ -55,6 +55,20 @@
 
         <property><name>send_error_email_workflow_file</name></property>
 
+        <!--
+        The following properties are only required by uniques. We're adding a
+        default value so that the coordinator doesn't fail for the rest of the
+        jobs, which don't use them.
+        -->
+        <property>
+            <name>source_table_per_domain</name>
+            <value>wmf.unique_devices_per_domain_daily</value>
+        </property>
+        <property>
+            <name>source_table_per_project_family</name>
+            <value>wmf.unique_devices_per_project_family_daily</value>
+        </property>
+
     </parameters>
 
     <controls>

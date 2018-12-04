@@ -32,6 +32,14 @@
             <description>Hive table to use</description>
         </property>
         <property>
+            <name>source_table_per_domain</name>
+            <description>Hive table to take per domain uniques from</description>
+        </property>
+        <property>
+            <name>source_table_per_project_family</name>
+            <description>Hive table to take per project family uniques from</description>
+        </property>
+        <property>
             <name>temporary_directory</name>
             <description>A temporary directory to store data.</description>
         </property>
@@ -175,6 +183,14 @@
 
             <script>${hive_script}</script>
             <param>source_table=${source_table}</param>
+            <!--
+            The following two properties are only required by uniques. We're
+            adding a default value so that the coordinator doesn't fail for
+            the rest of the jobs, which don't use them.
+            -->
+            <param>source_table_per_domain=${source_table_per_domain}</param>
+            <param>source_table_per_project_family=${source_table_per_project_family}</param>
+
             <param>separator=${hive_value_separator}</param>
             <param>destination_directory=${temporary_directory}/${wf:id()}-${cassandra_keyspace}</param>
             <param>year=${year}</param>

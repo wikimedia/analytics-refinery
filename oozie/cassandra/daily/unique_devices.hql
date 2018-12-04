@@ -1,19 +1,21 @@
 -- Parameters:
---     destination_directory -- HDFS path to write output files
---     source_table          -- Fully qualified table name to compute from.
---     separator             -- Separator for values
---     year                  -- year of partition to compute from.
---     month                 -- month of partition to compute from.
---     day                   -- day of partition to compute from.
+--     destination_directory             -- HDFS path to write output files
+--     source_table_per_domain           -- Fully qualified table name to compute from (per domain).
+--     source_table_per_project_family   -- Fully qualified table name to compute from (per family).
+--     separator                         -- Separator for values
+--     year                              -- year of partition to compute from.
+--     month                             -- month of partition to compute from.
+--     day                               -- day of partition to compute from.
 --
 -- Usage:
---     hive -f unique_devices.hql                                 \
---         -d destination_directory=/tmp/unique_devices           \
---         -d source_table=wmf.unique_devices_per_domain_daily    \
---         -d separator=\t                                        \
---         -d year=2016                                           \
---         -d month=1                                             \
---         -d day=1                                               \
+--     hive -f unique_devices.hql                                                            \
+--         -d destination_directory=/tmp/unique_devices                                      \
+--         -d source_table_per_domain=wmf.unique_devices_per_domain_daily                    \
+--         -d source_table_per_project_family=wmf.unique_devices_per_project_family_daily    \
+--         -d separator=\t                                                                   \
+--         -d year=2016                                                                      \
+--         -d month=1                                                                        \
+--         -d day=1                                                                          \
 --
 
 
@@ -21,7 +23,7 @@ SET hive.exec.compress.output=true;
 SET mapreduce.output.fileoutputformat.compress.codec=org.apache.hadoop.io.compress.GzipCodec;
 
 
-WITH unique_devices AS (
+WITH unique_devices_per_domain AS (
     SELECT
         CONCAT(
             regexp_extract(domain, '^((?!www)([a-z0-9-_]+)\\.)(m\\.)?\\w+\\.org$'),
@@ -36,7 +38,7 @@ WITH unique_devices AS (
         SUM(uniques_offset) AS offset,
         SUM(uniques_underestimate) AS underestimate
     FROM
-        ${source_table}
+        ${source_table_per_domain}
     WHERE
         year = ${year}
         AND month = ${month}
@@ -52,6 +54,29 @@ WITH unique_devices AS (
             END,
         CONCAT(LPAD(year, 4, "0"), LPAD(month, 2, "0"), LPAD(day, 2, "0"))
     HAVING SUM(uniques_estimate) > 1000
+), unique_devices_per_project_family AS (
+    SELECT
+        CONCAT('all-', project_family, '-projects') AS project,
+        'all-sites' AS access_site,
+        CONCAT(LPAD(year, 4, "0"), LPAD(month, 2, "0"), LPAD(day, 2, "0")) AS dt,
+        SUM(uniques_estimate) AS devices,
+        SUM(uniques_offset) AS offset,
+        SUM(uniques_underestimate) AS underestimate
+    FROM
+        ${source_table_per_project_family}
+    WHERE
+        year = ${year}
+        AND month = ${month}
+        AND day = ${day}
+        AND !array_contains(array('mediawiki', 'wikidata', 'wikimediafoundation', 'wikimedia'), project_family)
+    GROUP BY
+        CONCAT('all-', project_family, '-projects'),
+        CONCAT(LPAD(year, 4, "0"), LPAD(month, 2, "0"), LPAD(day, 2, "0"))
+    HAVING SUM(uniques_estimate) > 1000
+), unique_devices AS (
+    SELECT * FROM unique_devices_per_project_family
+    UNION ALL
+    SELECT * FROM unique_devices_per_domain
 )
 
 INSERT OVERWRITE DIRECTORY "${destination_directory}"
