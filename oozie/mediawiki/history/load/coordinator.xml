@@ -21,7 +21,7 @@
 
         <property><name>mw_project_namespace_map_table</name></property>
         <property><name>mw_archive_table</name></property>
-        <property><name>mw_change_tag_table</name></property>
+        <!-- <property><name>mw_change_tag_table</name></property> -->
         <property><name>mw_ipblocks_table</name></property>
         <property><name>mw_logging_table</name></property>
         <property><name>mw_page_table</name></property>
@@ -65,9 +65,9 @@
         <data-in name="mw_archive_table" dataset="mw_archive_table">
             <instance>${coord:current(0)}</instance>
         </data-in>
-        <data-in name="mw_change_tag_table" dataset="mw_change_tag_table">
+        <!-- <data-in name="mw_change_tag_table" dataset="mw_change_tag_table">
             <instance>${coord:current(0)}</instance>
-        </data-in>
+        </data-in> -->
         <data-in name="mw_ipblocks_table" dataset="mw_ipblocks_table">
             <instance>${coord:current(0)}</instance>
         </data-in>
@@ -102,9 +102,9 @@
         <data-out name="mw_archive_table_partitioned" dataset="mw_archive_table_partitioned">
             <instance>${coord:current(0)}</instance>
         </data-out>
-        <data-out name="mw_change_tag_table_partitioned" dataset="mw_change_tag_table_partitioned">
+        <!-- <data-out name="mw_change_tag_table_partitioned" dataset="mw_change_tag_table_partitioned">
             <instance>${coord:current(0)}</instance>
-        </data-out>
+        </data-out> -->
         <data-out name="mw_ipblocks_table_partitioned" dataset="mw_ipblocks_table_partitioned">
             <instance>${coord:current(0)}</instance>
         </data-out>
@@ -147,10 +147,10 @@
                     <name>mw_archive_table_location</name>
                     <value>${coord:dataIn('mw_archive_table')}</value>
                 </property>
-                <property>
+                <!-- <property>
                     <name>mw_change_tag_table_location</name>
                     <value>${coord:dataIn('mw_change_tag_table')}</value>
-                </property>
+                </property> -->
                 <property>
                     <name>mw_ipblocks_table_location</name>
                     <value>${coord:dataIn('mw_ipblocks_table')}</value>

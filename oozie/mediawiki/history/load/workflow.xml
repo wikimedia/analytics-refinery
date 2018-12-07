@@ -33,10 +33,10 @@
             <name>mw_archive_table</name>
             <description>Archive table imported from Mediawiki</description>
         </property>
-        <property>
+        <!-- <property>
             <name>mw_change_tag_table</name>
             <description>Change tag table imported from Mediawiki</description>
-        </property>
+        </property> -->
         <property>
             <name>mw_ipblocks_table</name>
             <description>Ipblocks table imported from Mediawiki</description>
@@ -79,10 +79,10 @@
             <name>mw_archive_table_location</name>
             <description>Path to archive table data on HDFS</description>
         </property>
-        <property>
+        <!-- <property>
             <name>mw_change_tag_table_location</name>
             <description>Path to change tag table data on HDFS</description>
-        </property>
+        </property> -->
         <property>
             <name>mw_ipblocks_table_location</name>
             <description>Path to ipblocks table data on HDFS</description>
@@ -191,11 +191,12 @@
                 </property>
             </configuration>
         </sub-workflow>
-        <ok to="repair_mw_change_tag_table_partitions"/>
+        <!-- <ok to="repair_mw_change_tag_table_partitions"/> -->
+        <ok to="repair_mw_ipblocks_table_partitions"/>
         <error to="send_error_email"/>
     </action>
 
-    <!-- change_tag -->
+    <!-- change_tag
     <action name="repair_mw_change_tag_table_partitions">
         <sub-workflow>
             <app-path>${repair_partitions_workflow_file}</app-path>
@@ -224,7 +225,7 @@
         </sub-workflow>
         <ok to="repair_mw_ipblocks_table_partitions"/>
         <error to="send_error_email"/>
-    </action>
+    </action> -->
 
     <!-- ipblocks -->
     <action name="repair_mw_ipblocks_table_partitions">
