@@ -1,0 +1,91 @@
+-- Spark-SQL Check for false-positive when data-loss occurs in webrequest
+--
+-- More precisely, verify that missing (host, sequence-number) for
+-- a given hour are found either in the previous or then next hour.
+-- Note: We discard hostnames having 0 as minimal sequence number
+--       as it means varnish-kafka has been restarted for them during
+--       the hour, and the sequences are not coherent anmore.
+--
+-- WARNING: This script is to be run when the hour next to the one
+--          raising alarms has been refined.
+--
+--
+-- Parameters:
+--     table_name        -- Fully qualified table name to look for dataloss
+--                          false-positives
+--     webrequest_source -- webrequest_source of partition to look for dataloss
+--                          false-positives
+--     year              -- year of partition to look for dataloss
+--                          false-positives
+--     month             -- month of partition to look for dataloss
+--                          false-positives
+--     day               -- day of partition to look for dataloss
+--                          false-positives
+--     hour              -- hour of partition to look for dataloss
+--                          false-positives
+--
+--
+-- Usage:
+--     spark2-sql --master yarn -S -f check_dataloss_false_positives.sparksql \
+--         -d table_name=wmf.webrequest           \
+--         -d webrequest_source=upload            \
+--         -d year=2018                           \
+--         -d month=12                            \
+--         -d day=1                               \
+--         -d hour=4
+--
+
+WITH
+  -- Only consider hostnames where varnish-kafka has not restarted,
+  -- neaning having their minimum sequence number not 0
+  hostnames_no_restart_with_stats AS (
+    SELECT
+      hostname AS hname,
+      MIN(sequence) AS min_seq,
+      MAX(sequence) AS max_seq
+    FROM ${table_name}
+      WHERE webrequest_source='${webrequest_source}'
+      AND year=${year}
+      AND month=${month}
+      AND day=${day}
+      AND hour=${hour}
+    GROUP BY hostname
+    HAVING MIN(sequence) > 0
+  )
+
+  SELECT
+    hostname,
+    COUNT(DISTINCT(sequence)) = (MAX(max_seq) - MIN(min_seq) + 1) AS alarm_is_false_positive,
+    COUNT(DISTINCT(sequence)) AS actual_count_with_outliers,
+    MAX(max_seq) - MIN(min_seq) + 1 AS expected_count,
+    MAX(max_seq) - MIN(min_seq) + 1 - COUNT(DISTINCT(sequence)) AS newly_computed_rows_loss,
+    MIN(min_seq) AS min_seq,
+    MAX(max_seq) AS max_seq,
+    SUM(CASE WHEN hour = (24 + ${hour} - 1) % 24 THEN 1 ELSE 0 END) AS rows_previous_hour,
+    SUM(CASE WHEN hour = ${hour} THEN 1 ELSE 0 END) AS rows_current_hour,
+    SUM(CASE WHEN hour = (${hour} + 1) % 24 THEN 1 ELSE 0 END) AS rows_next_hour
+  FROM ${table_name}
+    INNER JOIN hostnames_no_restart_with_stats
+      ON (hostname = hname
+        AND sequence >= min_seq
+        AND sequence <= max_seq)
+  WHERE webrequest_source='${webrequest_source}'
+    AND year=${year}
+    AND month=${month}
+    AND (
+      -- Current hour
+      (day = ${day} AND hour = ${hour})
+      -- Next hour
+      OR (
+        day = ${day} + CAST(((${hour} + 1) / 24) AS INT)
+        AND hour = (${hour} + 1) % 24
+      )
+      -- Previous hour (tricking to get correct values)
+      OR (
+        day = ${day} + CAST(((-24 + ${hour}) / 24) AS INT)
+        AND hour = (24 + ${hour} - 1) % 24
+      )
+    )
+  GROUP BY hostname
+  ORDER BY hostname
+;
