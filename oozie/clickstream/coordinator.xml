@@ -80,16 +80,16 @@
         <data-in name="delay" dataset="webrequest_text">
             <instance>${coord:current((coord:daysInMonth(0) + 10) * 24 - 1)}</instance>
         </data-in>
-        <data-in name="mw_project_namespace_map" dataset="mw_project_namespace_map">
+        <data-in name="mw_project_namespace_map" dataset="mw_project_namespace_map_partitioned">
             <instance>${coord:current(0)}</instance>
         </data-in>
-        <data-in name="mw_page_table" dataset="mw_page_table">
+        <data-in name="mw_page_table" dataset="mw_page_table_partitioned">
             <instance>${coord:current(0)}</instance>
         </data-in>
-        <data-in name="mw_pagelinks_table" dataset="mw_pagelinks_table">
+        <data-in name="mw_pagelinks_table" dataset="mw_pagelinks_table_partitioned">
             <instance>${coord:current(0)}</instance>
         </data-in>
-        <data-in name="mw_redirect_table" dataset="mw_redirect_table">
+        <data-in name="mw_redirect_table" dataset="mw_redirect_table_partitioned">
             <instance>${coord:current(0)}</instance>
         </data-in>
     </input-events>
