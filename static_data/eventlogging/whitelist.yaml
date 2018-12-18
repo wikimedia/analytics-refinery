@@ -1203,7 +1203,6 @@ ReadingDepth:
         namespaceId: keep
         pageTitle: keep
         pageToken: keep
-        sessionToken: keep
         skin: keep
         totalLength: keep
         visibleLength: keep
