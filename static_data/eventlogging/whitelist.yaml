@@ -1162,7 +1162,6 @@ Print:
         action: keep
         isAnon: keep
         namespaceId: keep
-        pageTitle: keep
         sessionToken: keep
         skin: keep
 
