@@ -472,7 +472,6 @@ MobileWebSectionUsage:
         pageId: keep
         section: keep
         sectionCount: keep
-        sessionId: keep
     webHost: keep
     wiki: keep
 
