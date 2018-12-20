@@ -33,3 +33,16 @@ Example command for running the coordinator on command line:
         -D refinery_directory=hdfs://analytics-hadoop/wmf/refinery/current \
         -Dstart_time=2017-01-01T00:00Z \
         -Dstop_time=2017-01-02T00:00Z
+
+
+The `druid_kafka_supervisor_example.json` file is an example configuration
+launching a druid-kafka-supervisor task - a realtime ingestion task from kafka
+data. It uses the `eventlogging_CentralNoticeImpression` kafka topic as source
+and sends flattened and transformed data to the
+`test_kafka_event_centralnoticeimpression` druid datasource.
+To start the supervisor you'd use the following command from a stat100X machine:
+```
+curl -L -X POST -H 'Content-Type: application/json' \
+  -d @druid_kafka_supervisor_example.json \
+  http://druid1001.eqiad.wmnet:8090/druid/indexer/v1/supervisor
+```
