@@ -1,0 +1,121 @@
+{
+  "type": "kafka",
+  "dataSchema": {
+    "dataSource": "test_kafka_event_centralnoticeimpression",
+    "parser": {
+      "type": "string",
+      "parseSpec": {
+        "format": "json",
+        "flattenSpec": {
+          "useFieldDiscovery": false,
+          "fields": [
+            "dt",
+            { "type": "path", "name": "event_anonymous", "expr": "$.event.anonymous" },
+            { "type": "path", "name": "event_banner", "expr": "$.event.banner" },
+            { "type": "path", "name": "event_bannerCategory", "expr": "$.event.bannerCategory" },
+            { "type": "path", "name": "event_bucket", "expr": "$.event.bucket" },
+            { "type": "path", "name": "event_campaign", "expr": "$.event.campaign" },
+            { "type": "path", "name": "event_campaignCategory", "expr": "$.event.campaignCategory" },
+            { "type": "path", "name": "event_campaignCategoryUsesLegacy", "expr": "$.event.campaignCategoryUsesLegacy" },
+            { "type": "path", "name": "event_country", "expr": "$.event.country" },
+            { "type": "path", "name": "event_db", "expr": "$.event.db" },
+            { "type": "path", "name": "event_device", "expr": "$.event.device" },
+            { "type": "path", "name": "event_impressionEventSampleRate", "expr": "$.event.impressionEventSampleRate" },
+            { "type": "path", "name": "event_project", "expr": "$.event.project" },
+            { "type": "path", "name": "event_recordImpressionSampleRate", "expr": "$.event.recordImpressionSampleRate" },
+            { "type": "path", "name": "event_region", "expr": "$.event.region" },
+            { "type": "path", "name": "event_result", "expr": "$.event.result" },
+            { "type": "path", "name": "event_status", "expr": "$.event.status" },
+            { "type": "path", "name": "event_statusCode", "expr": "$.event.statusCode" },
+            { "type": "path", "name": "event_uselang", "expr": "$.event.uselang" },
+            "recvFrom",
+            { "type": "path", "name": "ua_browser_family", "expr": "$.userAgent.browser_family" },
+            { "type": "path", "name": "ua_browser_major", "expr": "$.userAgent.browser_major" },
+            { "type": "path", "name": "ua_device_family", "expr": "$.userAgent.device_family" },
+            { "type": "path", "name": "ua_is_bot", "expr": "$.userAgent.is_bot" },
+            { "type": "path", "name": "ua_is_mediawiki", "expr": "$.userAgent.is_mediawiki" },
+            { "type": "path", "name": "ua_os_family", "expr": "$.userAgent.os_family" },
+            { "type": "path", "name": "ua_os_major", "expr": "$.userAgent.os_major" },
+            { "type": "path", "name": "ua_wmf_app_version", "expr": "$.userAgent.wmf_app_version" },
+            "webHost",
+            "wiki"
+          ]
+        },
+        "timestampSpec": {
+          "column": "dt",
+          "format": "auto"
+        },
+        "dimensionsSpec": {
+          "dimensions": [
+            "event_anonymous",
+            "event_banner",
+            "event_bannerCategory",
+            "event_bucket",
+            "event_campaign",
+            "event_campaignCategory",
+            "event_campaignCategoryUsesLegacy",
+            "event_country",
+            "event_db",
+            "event_device",
+            "event_impressionEventSampleRate",
+            "event_project",
+            "event_recordImpressionSampleRate",
+            "event_region",
+            "event_result",
+            "event_status",
+            "event_statusCode",
+            "event_uselang",
+            "recvFrom",
+            "ua_browser_family",
+            "ua_browser_major",
+            "ua_device_family",
+            "ua_is_bot",
+            "ua_is_mediawiki",
+            "ua_os_family",
+            "ua_os_major",
+            "ua_wmf_app_version",
+            "webHost",
+            "wiki"
+          ]
+        }
+      }
+    },
+    "transformSpec": {
+      "transforms": [
+        {
+          "type": "expression",
+          "name": "event_inverseRecordImpressionSampleRate",
+          "expression": "1 / event_recordImpressionSampleRate" }
+      ]
+    },
+    "metricsSpec": [
+      {
+        "name": "event_count",
+        "type": "count"
+      },
+      {
+        "name": "event_normalized_count",
+        "type": "doubleSum",
+        "fieldName": "event_inverseRecordImpressionSampleRate"
+      }
+    ],
+    "granularitySpec": {
+      "type": "uniform",
+      "segmentGranularity": "HOUR",
+      "queryGranularity": "SECOND"
+    }
+  },
+  "tuningConfig": {
+    "type": "kafka",
+    "maxRowsPerSegment": 5000000
+  },
+  "ioConfig": {
+    "topic": "eventlogging_CentralNoticeImpression",
+    "consumerProperties": {
+      "bootstrap.servers": "kafka-jumbo1001.eqiad.wmnet:9092"
+    },
+    "taskCount": 1,
+    "replicas": 3,
+    "taskDuration": "PT10M"
+  }
+}
