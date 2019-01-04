@@ -39,7 +39,8 @@
                 "continent",
                 "country_code",
                 "isp",
-                "as_number"
+                "as_number",
+                "is_pageview"
             ]
           },
           "timestampSpec" : {

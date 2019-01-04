@@ -39,6 +39,7 @@ CREATE EXTERNAL TABLE IF NOT EXISTS tmp_daily_druid_webrequests_${year}_${month}
     `country_code`          string,
     `isp`                   string,
     `as_number`             string,
+    `is_pageview`           boolean,
     `hits`                  bigint
 )
 ROW FORMAT SERDE 'org.apache.hive.hcatalog.data.JsonSerDe'
@@ -67,6 +68,7 @@ SELECT
     geocoded_data['country_code'] as country_code,
     isp_data['isp'] as isp,
     isp_data['autonomous_system_number'] as as_number,
+    is_pageview,
     count(1) as hits
 FROM ${source_table}
   TABLESAMPLE(BUCKET 1 OUT OF 128 ON hostname, sequence)
@@ -94,7 +96,8 @@ GROUP BY
     geocoded_data['continent'],
     geocoded_data['country_code'],
     isp_data['isp'],
-    isp_data['autonomous_system_number']
+    isp_data['autonomous_system_number'],
+    is_pageview
 ;
 
 
