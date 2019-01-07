@@ -57,7 +57,7 @@
     </datasets>
 
     <input-events>
-        <data-in name="mw_denormalized_history" dataset="mw_denormalized_history">
+        <data-in name="mw_denormalized_history_partitioned" dataset="mw_denormalized_history_partitioned">
             <instance>${coord:current(0)}</instance>
         </data-in>
     </input-events>
