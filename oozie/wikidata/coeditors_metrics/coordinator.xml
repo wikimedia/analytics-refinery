@@ -14,6 +14,8 @@
         <property><name>queue_name</name></property>
 
         <property><name>workflow_file</name></property>
+        <property><name>dataset_raw_file</name></property>
+        <property><name>mw_raw_directory</name></property>
         <property><name>dataset_file</name></property>
         <property><name>mw_directory</name></property>
 
@@ -53,10 +55,14 @@
         Include datasets files.
         $dataset_file will be used as the input events
         -->
+        <include>${dataset_raw_file}</include>
         <include>${dataset_file}</include>
     </datasets>
 
     <input-events>
+        <data-in name="mw_project_namespace_map_partitioned" dataset="mw_project_namespace_map_partitioned">
+            <instance>${coord:current(0)}</instance>
+        </data-in>
         <data-in name="mw_denormalized_history_partitioned" dataset="mw_denormalized_history_partitioned">
             <instance>${coord:current(0)}</instance>
         </data-in>
