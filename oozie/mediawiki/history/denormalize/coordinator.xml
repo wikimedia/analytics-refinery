@@ -32,7 +32,7 @@
         <property><name>spark_executor_cores</name></property>
         <property><name>spark_executor_memory_overhead</name></property>
         <property><name>spark_driver_memory</name></property>
-        <property><name>spark_num_executors</name></property>
+        <property><name>spark_max_executors</name></property>
 
         <property><name>spark_partitions_number</name></property>
         <property><name>tmp_path</name></property>
