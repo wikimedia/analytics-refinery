@@ -88,13 +88,13 @@
 
     <output-events>
         <!-- Datasets for data synchronisation-->
-        <data-out name="mw_user_history" dataset="mw_user_history">
+        <data-out name="mw_user_history_unchecked" dataset="mw_user_history_unchecked">
             <instance>${coord:current(0)}</instance>
         </data-out>
-        <data-out name="mw_page_history" dataset="mw_page_history">
+        <data-out name="mw_page_history_unchecked" dataset="mw_page_history_unchecked">
             <instance>${coord:current(0)}</instance>
         </data-out>
-        <data-out name="mw_denormalized_history" dataset="mw_denormalized_history">
+        <data-out name="mw_denormalized_history_unchecked" dataset="mw_denormalized_history_unchecked">
             <instance>${coord:current(0)}</instance>
         </data-out>
     </output-events>

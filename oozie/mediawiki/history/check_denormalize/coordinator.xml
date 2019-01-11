@@ -69,18 +69,28 @@
     <!-- Reminder: This job doesn't depend on hive partitions being created
          over its data since it reads files. -->
     <input-events>
-        <data-in name="mw_user_history" dataset="mw_user_history">
+        <data-in name="mw_user_history_unchecked" dataset="mw_user_history_unchecked">
             <instance>${coord:current(0)}</instance>
         </data-in>
-        <data-in name="mw_page_history" dataset="mw_page_history">
+        <data-in name="mw_page_history_unchecked" dataset="mw_page_history_unchecked">
             <instance>${coord:current(0)}</instance>
         </data-in>
-        <data-in name="mw_denormalized_history" dataset="mw_denormalized_history">
+        <data-in name="mw_denormalized_history_unchecked" dataset="mw_denormalized_history_unchecked">
             <instance>${coord:current(0)}</instance>
         </data-in>
     </input-events>
 
     <output-events>
+        <!-- Datasets for checked data -->
+        <data-out name="mw_user_history" dataset="mw_user_history">
+            <instance>${coord:current(0)}</instance>
+        </data-out>
+        <data-out name="mw_page_history" dataset="mw_page_history">
+            <instance>${coord:current(0)}</instance>
+        </data-out>
+        <data-out name="mw_denormalized_history" dataset="mw_denormalized_history">
+            <instance>${coord:current(0)}</instance>
+        </data-out>
         <!-- Datasets for hive partitions synchronisation -->
         <data-out name="mw_user_history_partitioned" dataset="mw_user_history_partitioned">
             <instance>${coord:current(0)}</instance>

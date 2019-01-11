@@ -16,9 +16,9 @@ NOTE: user, page and denormalized history are bound to two datasets
 
 <datasets>
 
-    <!-- Recomputed history datasets - Data only (no hive partition)-->
+    <!-- Recomputed history datasets Unchecked - Data only (no hive partition)-->
 
-    <dataset name="mw_user_history"
+    <dataset name="mw_user_history_unchecked"
              frequency="${coord:months(1)}"
              initial-instance="${start_time}"
              timezone="Universal">
@@ -26,7 +26,7 @@ NOTE: user, page and denormalized history are bound to two datasets
         <done-flag>_SUCCESS</done-flag>
     </dataset>
 
-    <dataset name="mw_page_history"
+    <dataset name="mw_page_history_unchecked"
              frequency="${coord:months(1)}"
              initial-instance="${start_time}"
              timezone="Universal">
@@ -34,12 +34,38 @@ NOTE: user, page and denormalized history are bound to two datasets
         <done-flag>_SUCCESS</done-flag>
     </dataset>
 
-    <dataset name="mw_denormalized_history"
+    <dataset name="mw_denormalized_history_unchecked"
              frequency="${coord:months(1)}"
              initial-instance="${start_time}"
              timezone="Universal">
         <uri-template>${mw_directory}/history/snapshot=${YEAR}-${MONTH}</uri-template>
         <done-flag>_SUCCESS</done-flag>
+    </dataset>
+
+    <!-- Recomputed history datasets - Data only (no hive partition)-->
+
+    <dataset name="mw_user_history"
+             frequency="${coord:months(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${mw_directory}/user_history/snapshot=${YEAR}-${MONTH}</uri-template>
+        <done-flag>_CHECKED</done-flag>
+    </dataset>
+
+    <dataset name="mw_page_history"
+             frequency="${coord:months(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${mw_directory}/page_history/snapshot=${YEAR}-${MONTH}</uri-template>
+        <done-flag>_CHECKED</done-flag>
+    </dataset>
+
+    <dataset name="mw_denormalized_history"
+             frequency="${coord:months(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${mw_directory}/history/snapshot=${YEAR}-${MONTH}</uri-template>
+        <done-flag>_CHECKED</done-flag>
     </dataset>
 
     <!-- Recomputed history datasets - Hive partitions -->
