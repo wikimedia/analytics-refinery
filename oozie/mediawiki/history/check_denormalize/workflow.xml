@@ -135,7 +135,15 @@
         </property>
         <property>
             <name>send_error_email_workflow_file</name>
-            <description>Workflow for sending an email</description>
+            <description>Workflow for sending an error email</description>
+        </property>
+        <property>
+            <name>send_success_email_workflow_file</name>
+            <description>Workflow for sending a success email</description>
+        </property>
+        <property>
+            <name>success_email_to</name>
+            <description>Comma-separated list of email addresses to send a success email to</description>
         </property>
     </parameters>
 
@@ -433,6 +441,25 @@
                 <property>
                     <name>done_file</name>
                     <value>_PARTITIONED</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="send_success_email"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <action name="send_success_email">
+        <sub-workflow>
+            <app-path>${send_success_email_workflow_file}</app-path>
+            <propagate-configuration/>
+            <configuration>
+                <property>
+                    <name>parent_name</name>
+                    <value>${wf:name()}</value>
+                </property>
+                <property>
+                    <name>to</name>
+                    <value>${success_email_to}</value>
                 </property>
             </configuration>
         </sub-workflow>

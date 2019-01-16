@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow-app xmlns="uri:oozie:workflow:0.4"
+    name="send-success-email-wf">
+
+    <!--
+        This subworflow is a simple wrapper over the oozie email action
+          allowing to provide default values for most of the needed fields.
+    -->
+
+    <parameters>
+
+        <property>
+            <name>hue_url</name>
+            <!-- Provide a default value for the job not to fail if not set-->
+            <value>https://hue.wikimedia.org/oozie/list_oozie_workflows</value>
+            <description>The id of the completed workflow (default to workflow list url).</description>
+        </property>
+
+        <property>
+            <name>parent_name</name>
+            <!-- Provide a default value for the job not to fail if not set-->
+            <value>UNSET</value>
+            <description>The name of the parent workflow.</description>
+        </property>
+
+        <property>
+            <name>to</name>
+            <value>analytics-alerts@wikimedia.org</value>
+            <description>
+                The comma-separated list of email recipients
+            </description>
+        </property>
+
+        <property>
+            <name>subject</name>
+            <value>Job completed - Oozie Job ${parent_name}</value>
+            <description>
+                The subject of the email
+            </description>
+        </property>
+
+        <property>
+            <name>body</name>
+            <value>Job details:
+    - Job id: ${parent_name}
+    - Hue link: ${hue_url}
+
+The job above has finished successfully and data is now available :)
+-- Oozie
+            </value>
+            <description>
+                The body of the email
+            </description>
+        </property>
+    </parameters>
+
+    <start to="send_email"/>
+    <action name="send_email">
+        <email xmlns="uri:oozie:email-action:0.1">
+            <to>${to}</to>
+            <subject>${subject}</subject>
+            <body>${body}</body>
+        </email>
+        <ok to="end"/>
+        <error to="kill"/>
+    </action>
+
+    <kill name="kill">
+        <message>send_success_email action failed, error message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+    </kill>
+    <end name="end"/>
+</workflow-app>
