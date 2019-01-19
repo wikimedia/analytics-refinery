@@ -1375,6 +1375,14 @@ VET135171:
     webHost: keep
     wiki: keep
 
+VisualEditorFeatureUse:
+    event:
+        action: keep
+        editingsessionid: keep
+        feature: keep
+    webHost: keep
+    wiki: keep
+
 WikimediaBlogVisit:
     event:
         referrerUrl: keep
