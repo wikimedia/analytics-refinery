@@ -18,6 +18,8 @@
 
         <property><name>datasets_raw_file</name></property>
         <property><name>mw_raw_directory</name></property>
+        <property><name>datasets_raw_private_file</name></property>
+        <property><name>mw_raw_private_directory</name></property>
         <property><name>datasets_file</name></property>
         <property><name>mw_directory</name></property>
 
@@ -54,9 +56,10 @@
 
     <datasets>
         <!--
-        Include raw and history datasets files.
+        Include raw, raw_private and history datasets files.
         -->
         <include>${datasets_raw_file}</include>
+        <include>${datasets_raw_private_file}</include>
         <include>${datasets_file}</include>
     </datasets>
 
@@ -82,6 +85,13 @@
             <instance>${coord:current(0)}</instance>
         </data-in>
         <data-in name="mw_user_groups_table" dataset="mw_user_groups_table">
+            <instance>${coord:current(0)}</instance>
+        </data-in>
+        <!-- Private datasets -->
+        <data-in name="mw_private_actor_table" dataset="mw_private_actor_table">
+            <instance>${coord:current(0)}</instance>
+        </data-in>
+        <data-in name="mw_private_comment_table" dataset="mw_private_comment_table">
             <instance>${coord:current(0)}</instance>
         </data-in>
     </input-events>

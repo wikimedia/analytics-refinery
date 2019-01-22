@@ -27,7 +27,9 @@ CREATE EXTERNAL TABLE `mediawiki_archive`(
   `ar_parent_id`        bigint      COMMENT 'The revision id of the previous revision to the page. Populated from rev_parent_id. Will be null for revisions deleted prior to 1.13. First edits to newly created articles (and therefore the creation of the article) can be identified by the value of this field being 0.',
   `ar_sha1`             string      COMMENT 'The SHA-1 text content hash in base-36. Populated from rev_sha1.',
   `ar_content_model`    string      COMMENT 'Content model for the archived revision, which is NULL by default and only stored if it differs from the page\'s default, as determined by ContentHandler::getDefaultModelFor( $title ).',
-  `ar_content_format`   string      COMMENT 'Content format for the archived revision, which is NULL by default and only stored if it differs from the page\'s default.'
+  `ar_content_format`   string      COMMENT 'Content format for the archived revision, which is NULL by default and only stored if it differs from the page\'s default.',
+  `ar_actor`            bigint      COMMENT 'This is a foreign key to actor_id in the actor table.',
+  `ar_comment_id`       bigint      COMMENT 'This is a foreign key to comment_id in the comment table.'
 )
 COMMENT
   'See most up to date documentation at https://www.mediawiki.org/wiki/Manual:Archive_table'

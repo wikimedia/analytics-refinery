@@ -80,6 +80,10 @@
             <description>Path to mediawiki raw data on Hadoop</description>
         </property>
         <property>
+            <name>mw_raw_private_directory</name>
+            <description>Path to mediawiki raw private data on Hadoop</description>
+        </property>
+        <property>
             <name>mw_directory</name>
             <description>Path to mediawiki processed data on Hadoop</description>
         </property>
@@ -118,6 +122,8 @@
             <spark-opts>--conf spark.yarn.archive=${spark_assembly_zip} --executor-memory ${spark_executor_memory} --executor-cores ${spark_executor_cores} --driver-memory ${spark_driver_memory} --queue ${queue_name} --conf spark.dynamicAllocation.enabled=false --conf spark.shuffle.service.enabled=false --num-executors ${spark_num_executors} --conf spark.yarn.executor.memoryOverhead=${spark_executor_memory_overhead}</spark-opts>
             <arg>--mediawiki-base-path</arg>
             <arg>${mw_raw_directory}</arg>
+            <arg>--mediawiki-private-base-path</arg>
+            <arg>${mw_raw_private_directory}</arg>
             <arg>--output-base-path</arg>
             <arg>${mw_directory}</arg>
             <arg>--snapshot</arg>

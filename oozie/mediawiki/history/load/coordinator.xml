@@ -19,6 +19,9 @@
         <property><name>datasets_raw_file</name></property>
         <property><name>mw_raw_directory</name></property>
 
+        <property><name>datasets_raw_private_file</name></property>
+        <property><name>mw_raw_private_directory</name></property>
+
         <property><name>mw_project_namespace_map_table</name></property>
         <property><name>mw_archive_table</name></property>
         <!-- <property><name>mw_change_tag_table</name></property> -->
@@ -30,6 +33,9 @@
         <property><name>mw_revision_table</name></property>
         <property><name>mw_user_table</name></property>
         <property><name>mw_user_groups_table</name></property>
+
+        <property><name>mw_private_actor_table</name></property>
+        <property><name>mw_private_comment_table</name></property>
 
         <property><name>hive_site_xml</name></property>
         <property><name>repair_partitions_workflow_file</name></property>
@@ -53,9 +59,10 @@
 
     <datasets>
         <!--
-        Include raw and history datasets files.
+        Include raw and raw private datasets files.
         -->
         <include>${datasets_raw_file}</include>
+        <include>${datasets_raw_private_file}</include>
     </datasets>
 
     <input-events>
@@ -90,6 +97,13 @@
             <instance>${coord:current(0)}</instance>
         </data-in>
         <data-in name="mw_user_groups_table" dataset="mw_user_groups_table">
+            <instance>${coord:current(0)}</instance>
+        </data-in>
+        <!-- Private datasets dependancies -->
+        <data-in name="mw_private_actor_table" dataset="mw_private_actor_table">
+            <instance>${coord:current(0)}</instance>
+        </data-in>
+        <data-in name="mw_private_comment_table" dataset="mw_private_comment_table">
             <instance>${coord:current(0)}</instance>
         </data-in>
     </input-events>
@@ -127,6 +141,13 @@
             <instance>${coord:current(0)}</instance>
         </data-out>
         <data-out name="mw_user_groups_table_partitioned" dataset="mw_user_groups_table_partitioned">
+            <instance>${coord:current(0)}</instance>
+        </data-out>
+        <!-- Private datasets dependancies -->
+        <data-out name="mw_private_actor_table_partitioned" dataset="mw_private_actor_table_partitioned">
+            <instance>${coord:current(0)}</instance>
+        </data-out>
+        <data-out name="mw_private_comment_table_partitioned" dataset="mw_private_comment_table_partitioned">
             <instance>${coord:current(0)}</instance>
         </data-out>
     </output-events>
@@ -182,6 +203,15 @@
                 <property>
                     <name>mw_user_groups_table_location</name>
                     <value>${coord:dataIn('mw_user_groups_table')}</value>
+                </property>
+                <!-- Private datasets path -->
+                <property>
+                    <name>mw_private_actor_table_location</name>
+                    <value>${coord:dataIn('mw_private_actor_table')}</value>
+                </property>
+                <property>
+                    <name>mw_private_comment_table_location</name>
+                    <value>${coord:dataIn('mw_private_comment_table')}</value>
                 </property>
             </configuration>
         </workflow>
