@@ -128,7 +128,7 @@ def sqoop_wiki(config):
             if not config.dry_run:
                 try:
                     HdfsUtils.rm(tmp_target_directory)
-                except:
+                except(Exception):
                     pass
 
         logger.info('Sqooping with: {}'.format(sqoop_arguments))
@@ -182,13 +182,13 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp,
              select ar_id,
                     ar_namespace,
                     convert(ar_title using utf8) ar_title,
-                    convert(ar_text using utf8) ar_text,
+                    convert('' using utf8) ar_text,
                     convert(ar_comment using utf8) ar_comment,
                     ar_user,
                     convert(ar_user_text using utf8) ar_user_text,
                     convert(ar_timestamp using utf8) ar_timestamp,
                     ar_minor_edit,
-                    convert(ar_flags using utf8) ar_flags,
+                    convert('' using utf8) ar_flags,
                     ar_rev_id,
                     ar_text_id,
                     ar_deleted,
@@ -196,8 +196,10 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp,
                     ar_page_id,
                     ar_parent_id,
                     convert(ar_sha1 using utf8) ar_sha1,
-                    convert({model} using utf8) ar_content_model,
-                    convert({format} using utf8) ar_content_format
+                    convert('' using utf8) ar_content_model,
+                    convert('' using utf8) ar_content_format,
+                    ar_actor,
+                    coalesce(ar_comment_id, 0) ar_comment_id
 
                from archive
               where $CONDITIONS
@@ -209,6 +211,8 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp,
         'map-types': '"{}"'.format(','.join([
             'ar_minor_edit=Boolean',
             'ar_deleted=Integer',
+            'ar_actor=Long',
+            'ar_comment_id=Long',
         ])),
 
         'split-by': 'ar_id',
@@ -233,7 +237,9 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp,
                     ipb_deleted,
                     ipb_block_email,
                     ipb_allow_usertalk,
-                    ipb_parent_block_id
+                    ipb_parent_block_id,
+                    ipb_by_actor,
+                    ipb_reason_id
 
                from ipblocks
               where $CONDITIONS
@@ -248,6 +254,8 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp,
             'ipb_deleted=Boolean',
             'ipb_block_email=Boolean',
             'ipb_allow_usertalk=Boolean',
+            'ipb_by_actor=Long',
+            'ipb_reason_id=Long',
         ])),
 
         'split-by': 'ipb_id',
@@ -266,14 +274,20 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp,
                     convert(log_params using utf8) log_params,
                     log_deleted,
                     convert(log_user_text using utf8) log_user_text,
-                    log_page
+                    log_page,
+                    log_actor,
+                    log_comment_id
 
                from logging_compat
               where $CONDITIONS
                 and log_timestamp >= '{f}'
                 and log_timestamp <  '{t}'
         '''.format(t=to_timestamp, f=from_timestamp),
-
+        'map-types': '"{}"'.format(','.join([
+            'log_user=Long',
+            'log_actor=Long',
+            'log_comment_id=Long',
+        ])),
         'split-by': 'log_id',
     }
 
@@ -348,15 +362,21 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp,
                     convert(rev_sha1 using utf8) rev_sha1,
                     convert(rev_content_model using utf8) rev_content_model,
                     convert(rev_content_format using utf8) rev_content_format
+                    {labsdb}
 
                from revision
               where $CONDITIONS
                 and rev_timestamp >= '{f}'
                 and rev_timestamp <  '{t}'
-        '''.format(f=from_timestamp, t=to_timestamp),
+        '''.format(
+            f=from_timestamp,
+            t=to_timestamp,
+            labsdb=',rev_actor,coalesce(rev_comment_id,0) rev_comment_id' if labsdb else ',null rev_actor,null rev_comment_id'),
         'map-types': '"{}"'.format(','.join([
             'rev_minor_edit=Boolean',
             'rev_deleted=Integer',
+            'rev_actor=Long',
+            'rev_comment_id=Long',
         ])),
 
         'split-by': 'rev_id',
@@ -436,6 +456,30 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp,
         'split-by': 'cuc_id',
     }
 
+    queries['actor'] = {
+        # NOTE: we don't need actor_user, as tables key into here via actor_id just to get the
+        # actor_name.  But it seems like a good idea to have it for other purposes and joins
+        'query': '''
+             select actor_id,
+                    actor_user,
+                    convert(actor_name using utf8) actor_name
+               from actor
+              where $CONDITIONS
+        ''',
+        'split-by': 'actor_id',
+    }
+
+    queries['comment'] = {
+        # NOTE: skipping comment_hash and comment_data, not needed
+        'query': '''
+             select comment_id,
+                    convert(comment_text using utf8) comment_text
+               from comment
+              where $CONDITIONS
+        ''',
+        'split-by': 'comment_id',
+    }
+
     if filter_tables:
         filter_tables_dict = {t: True for t in filter_tables}
         if len(set(filter_tables_dict.keys()) - set(queries.keys())):
@@ -448,6 +492,7 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp,
 
 def table_path_to_tmp_path(table_path, tmp_base_path):
     return tmp_base_path + re.sub('[^a-zA-Z0-9/]+', '', table_path)
+
 
 def check_already_running_or_exit(yarn_job_name_prefix):
     # This works since the check doesn't involve 'full word' matching
