@@ -208,9 +208,27 @@
             <case to="send_error_check_mediawiki_history_email">
                 ${fs:exists(check_errors_folder) and fs:dirSize(check_errors_folder) gt 0}
             </case>
-            <default to="add_user_history_table_partition"/>
+            <default to="mark_user_history_checked"/>
         </switch>
     </decision>
+
+    <action name="mark_user_history_checked">
+        <sub-workflow>
+            <app-path>${mark_directory_done_workflow_file}</app-path>
+            <configuration>
+                <property>
+                    <name>directory</name>
+                    <value>${user_history_location}</value>
+                </property>
+                <property>
+                    <name>done_file</name>
+                    <value>_CHECKED</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="add_user_history_table_partition"/>
+        <error to="send_error_email"/>
+    </action>
 
     <action name="add_user_history_table_partition">
         <sub-workflow>
@@ -301,9 +319,27 @@
             <case to="send_error_check_mediawiki_history_email">
                 ${fs:exists(check_errors_folder) and fs:dirSize(check_errors_folder) gt 0}
             </case>
-            <default to="add_page_history_table_partition"/>
+            <default to="mark_page_history_checked"/>
         </switch>
     </decision>
+
+    <action name="mark_page_history_checked">
+        <sub-workflow>
+            <app-path>${mark_directory_done_workflow_file}</app-path>
+            <configuration>
+                <property>
+                    <name>directory</name>
+                    <value>${page_history_location}</value>
+                </property>
+                <property>
+                    <name>done_file</name>
+                    <value>_CHECKED</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="add_page_history_table_partition"/>
+        <error to="send_error_email"/>
+    </action>
 
     <action name="add_page_history_table_partition">
         <sub-workflow>
@@ -394,10 +430,27 @@
             <case to="send_error_check_mediawiki_history_email">
                 ${fs:exists(check_errors_folder) and fs:dirSize(check_errors_folder) gt 0}
             </case>
-            <default to="add_denormalized_history_table_partition"/>
+            <default to="mark_denormalized_history_checked"/>
         </switch>
     </decision>
 
+    <action name="mark_denormalized_history_checked">
+        <sub-workflow>
+            <app-path>${mark_directory_done_workflow_file}</app-path>
+            <configuration>
+                <property>
+                    <name>directory</name>
+                    <value>${denormalized_history_location}</value>
+                </property>
+                <property>
+                    <name>done_file</name>
+                    <value>_CHECKED</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="add_denormalized_history_table_partition"/>
+        <error to="send_error_email"/>
+    </action>
 
     <action name="add_denormalized_history_table_partition">
         <sub-workflow>
