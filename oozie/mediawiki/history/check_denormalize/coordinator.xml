@@ -109,7 +109,7 @@
             <configuration>
                 <property>
                     <name>previous_snapshot</name>
-                    <value>${coord:formatTime(coord:nominalTime(), "yyyy")}-${coord:formatTime(coord:dateOffset(coord:nominalTime(), -1, "MONTH"), "MM")}</value>
+                    <value>${coord:formatTime(coord:dateOffset(coord:nominalTime(), -1, "MONTH"), "yyyy")}-${coord:formatTime(coord:dateOffset(coord:nominalTime(), -1, "MONTH"), "MM")}</value>
                 </property>
                 <property>
                     <name>new_snapshot</name>
