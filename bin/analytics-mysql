@@ -1,0 +1,39 @@
+#!/usr/bin/python3
+
+# Note: using argparse because docopt doesn't support
+# unknown arguments for passing on
+import argparse
+import getpass
+import glob
+import re
+import sys
+import subprocess
+
+from refinery.util import get_dbstore_host_port
+
+
+def main(dbname, mw_config_path, use_x1, mysql_args):
+    if mw_config_path:
+        host, port = get_dbstore_host_port(use_x1, dbname, mw_config_path=mw_config_path)
+    else:
+        host, port = get_dbstore_host_port(use_x1, dbname)
+    mysql_args.extend(['-h', host, '-P', str(port)])
+
+    args = ['/usr/bin/mysql']
+    args.extend(mysql_args)
+    args.append(dbname)
+
+    print("Executing: {}".format(args))
+    subprocess.call(args)
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Test script to generate mysql conn string')
+    parser.add_argument('database', type=str, help='Database name to connect to (like "enwiki")')
+    parser.add_argument('--use-x1', dest='x1', action='store_true', default=False,
+                        help='Use the x1 section (all dbs) or the sX sections.')
+    parser.add_argument('--mw-config-path', dest='mw_config_path',
+                        help='Path of the MediaWiki config repository.')
+
+    args, unknown = parser.parse_known_args()
+    main(args.database, args.mw_config_path, args.x1, unknown)

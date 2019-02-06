@@ -20,6 +20,7 @@ Wikimedia Anaytics Refinery python utilities.
 from collections import defaultdict, OrderedDict
 from dateutil import parser
 import datetime
+import dns.resolver
 import logging
 import os
 import subprocess
@@ -1051,3 +1052,39 @@ class DruidUtils(object):
         except Exception:
             import traceback
             logger.error('generic exception: ' + traceback.format_exc())
+
+
+def get_mediawiki_section_dbname_mapping(mw_config_path, use_x1):
+    db_mapping = {}
+    if use_x1:
+        dblist_section_paths = [mw_config_path.rstrip('/') + '/dblists/all.dblist']
+    else:
+        dblist_section_paths = glob.glob(mw_config_path.rstrip('/') + '/dblists/s[0-9]*.dblist')
+    for dblist_section_path in dblist_section_paths:
+        with open(dblist_section_path, 'r') as f:
+            for db in f.readlines():
+                db_mapping[db.strip()] = dblist_section_path.strip().rstrip('.dblist').split('/')[-1]
+
+    return db_mapping
+
+
+def get_dbstore_host_port(use_x1, dbname, db_mapping=None,
+                          mw_config_path='/srv/mediawiki-config'):
+    if not db_mapping:
+        db_mapping = get_mediawiki_section_dbname_mapping(mw_config_path, use_x1)
+    if not db_mapping:
+        raise RuntimeError("No database mapping found at {}. Have you configured correctly the mediawiki-config path?"
+                           .format(mw_config_path))
+    if dbname == 'staging':
+        shard = 'staging'
+    elif use_x1:
+        shard = 'x1'
+    else:
+        try:
+            shard = db_mapping[dbname]
+        except KeyError:
+            raise RuntimeError("The database {} is not listed among the dblist files of the supported sections."
+                               .format(dbname))
+    answers = dns.resolver.query('_' + shard + '-analytics._tcp.eqiad.wmnet', 'SRV')
+    host, port = str(answers[0].target), answers[0].port
+    return (host,port)
