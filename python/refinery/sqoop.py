@@ -218,6 +218,47 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp,
         'split-by': 'ar_id',
     }
 
+    queries['change_tag'] = {
+        'query': '''
+             select ct_id,
+                    ct_log_id,
+                    ct_rev_id,
+                    convert(ct_tag using utf8) ct_tag,
+                    ct_tag_id,
+                    convert(ct_params using utf8) ct_params
+
+               from change_tag
+              where $CONDITIONS
+        ''',
+        'map-types': '"{}"'.format(','.join([
+            'ct_id=Long',
+            'ct_log_id=Long',
+            'ct_rev_id=Long',
+            'ct_tag_id=Long',
+        ])),
+
+        'split-by': 'ct_id',
+    }
+
+    queries['change_tag_def'] = {
+        'query': '''
+             select ctd_id,
+                    convert(ctd_name using utf8) ctd_name,
+                    ctd_user_defined,
+                    ctd_count
+
+               from change_tag_def
+              where $CONDITIONS
+        ''',
+        'map-types': '"{}"'.format(','.join([
+            'ctd_id=Long',
+            'ctd_user_defined=Boolean',
+            'ctd_count=Long'
+        ])),
+
+        'split-by': 'ctd_id',
+    }
+
     queries['ipblocks'] = {
         'query': '''
              select ipb_id,
