@@ -28,6 +28,7 @@
         <property><name>mw_user_history_table</name></property>
         <property><name>geoeditors_daily_table</name></property>
         <property><name>geoeditors_monthly_table</name></property>
+        <property><name>geoeditors_edits_monthly_table</name></property>
 
         <property><name>hive_site_xml</name></property>
         <property><name>mark_directory_done_workflow_file</name></property>
@@ -51,7 +52,7 @@
         <!--
             datasets_raw_private_file   : mw_cu_changes_table_partitioned
             datasets_file               : mw_user_history_partitioned
-            datasets_private_file       : geoeditors_daily, geoeditors_monthly
+            datasets_private_file       : geoeditors_daily, geoeditors_monthly, geoeditors_edits_monthly
         -->
         <include>${datasets_raw_private_file}</include>
         <include>${datasets_file}</include>
@@ -75,6 +76,9 @@
         <data-out name="geoeditors_monthly" dataset="geoeditors_monthly">
             <instance>${coord:current(0)}</instance>
         </data-out>
+        <data-out name="geoeditors_edits_monthly" dataset="geoeditors_edits_monthly">
+            <instance>${coord:current(0)}</instance>
+        </data-out>
     </output-events>
 
     <action>
@@ -92,6 +96,10 @@
                 <property>
                     <name>geoeditors_monthly_location</name>
                     <value>${coord:dataOut('geoeditors_monthly')}</value>
+                </property>
+                <property>
+                    <name>geoeditors_edits_monthly_location</name>
+                    <value>${coord:dataOut('geoeditors_edits_monthly')}</value>
                 </property>
             </configuration>
         </workflow>
