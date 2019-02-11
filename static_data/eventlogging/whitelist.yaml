@@ -1,8 +1,9 @@
 __defaults__:
     dt: keep
-    recvFrom: keep
+    recvfrom: keep
     revision: keep
-    seqId: keep
+    schema: keep
+    seqid: keep
     timestamp: keep
     topic: keep
     uuid: keep
@@ -12,7 +13,7 @@ ChangesListFilterGrouping:
         action: keep
         filter: keep
         groupIdentifier: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 ChangesListFilters:
@@ -43,21 +44,21 @@ ChangesListFilters:
         pagename: keep
         tagfilter: keep
         userExpLevel: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 DiacriticsPoll:
     event:
         country: keep
         text: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 DiacriticsVisibility:
     event:
         country: keep
         issues: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 EchoInteraction:
@@ -67,14 +68,14 @@ EchoInteraction:
         mobile: keep
         notificationType: keep
         version: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 EchoMail:
     event:
         emailDeliveryMode: keep
         version: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 Edit:
@@ -115,7 +116,7 @@ Edit:
         user.id: keep
         userId: keep
         version: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 EditAttemptStep:
@@ -146,14 +147,14 @@ EditAttemptStep:
         user_editcount: keep
         user_id: keep
         version: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 EditorActivation:
     event:
         month: keep
         userId: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 FlowReplies:
@@ -163,7 +164,7 @@ FlowReplies:
         funnelId: keep
         isAnon: keep
         pageNs: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 GatherClicks:
@@ -176,7 +177,7 @@ GatherClicks:
         skin: keep
         source: keep
         userEditCount: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 GatherFlags:
@@ -186,14 +187,14 @@ GatherFlags:
         editCountBucket: keep
         userEditCount: keep
         userGroups: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 GettingStartedNavbarNoArticle:
     event:
         funnel: keep
         version: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 GettingStartedOnRedirect:
@@ -209,7 +210,7 @@ GettingStartedOnRedirect:
         source: keep
         userId: keep
         version: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 GettingStartedRedirectImpression:
@@ -221,7 +222,7 @@ GettingStartedRedirectImpression:
         pageId: keep
         pageNS: keep
         userId: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 GuidedTour:
@@ -233,7 +234,7 @@ GuidedTour:
         tour: keep
         tourName: keep
         userId: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 GuidedTourButtonClick:
@@ -246,7 +247,7 @@ GuidedTourButtonClick:
         tour: keep
         userId: keep
         userText: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 GuidedTourExited:
@@ -256,7 +257,7 @@ GuidedTourExited:
         tour: keep
         userId: keep
         userText: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 GuidedTourExternalLinkActivation:
@@ -268,7 +269,7 @@ GuidedTourExternalLinkActivation:
         tour: keep
         userId: keep
         userText: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 GuidedTourGuiderHidden:
@@ -278,7 +279,7 @@ GuidedTourGuiderHidden:
         tour: keep
         userId: keep
         userText: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 GuidedTourGuiderImpression:
@@ -288,7 +289,7 @@ GuidedTourGuiderImpression:
         tour: keep
         userId: keep
         userText: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 GuidedTourInternalLinkActivation:
@@ -300,7 +301,7 @@ GuidedTourInternalLinkActivation:
         tour: keep
         userId: keep
         userText: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 Kartographer:
@@ -314,7 +315,7 @@ Kartographer:
         mobile: keep
         sampling: keep
         userToken: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 MediaViewer:
@@ -322,7 +323,7 @@ MediaViewer:
         action: keep
         samplingFactor: keep
         variant: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 MediaWikiPingback:
@@ -335,7 +336,7 @@ MediaWikiPingback:
         machine: keep
         memoryLimit: keep
         serverSoftware: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 MobileOptionsTracking:
@@ -345,7 +346,7 @@ MobileOptionsTracking:
         beta: keep
         errorText: keep
         images: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 MobileWebBrowse:
@@ -355,7 +356,7 @@ MobileWebBrowse:
         articleIndex: keep
         mobileMode: keep
         tag: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 MobileWebClickTracking:
@@ -365,7 +366,7 @@ MobileWebClickTracking:
         mobileMode: keep
         name: keep
         userEditCount: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 MobileWebCta:
@@ -377,7 +378,7 @@ MobileWebCta:
         mobileMode: keep
         status: keep
         userEditCount: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 MobileWebDiffClickTracking:
@@ -387,7 +388,7 @@ MobileWebDiffClickTracking:
         mobileMode: keep
         name: keep
         userEditCount: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 MobileWebEditing:
@@ -404,7 +405,7 @@ MobileWebEditing:
         section: keep
         token: keep
         userEditCount: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 MobileWebInfobox:
@@ -416,7 +417,7 @@ MobileWebInfobox:
         start: keep
         wasInteraction: keep
         width: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 MobileWebLanguageSwitcher:
@@ -434,7 +435,7 @@ MobileWebLanguageSwitcher:
         positionOfLanguageTapped: keep
         primaryLanguageOfUser: keep
         searchInputHasQuery: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 MobileWebMainMenuClickTracking:
@@ -444,7 +445,7 @@ MobileWebMainMenuClickTracking:
         mobileMode: keep
         name: keep
         userEditCount: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 MobileWebSearch:
@@ -459,7 +460,7 @@ MobileWebSearch:
         timeOffsetSinceStart: keep
         timeToDisplayResults: keep
         userSessionToken: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 MobileWebSectionUsage:
@@ -472,7 +473,7 @@ MobileWebSectionUsage:
         pageId: keep
         section: keep
         sectionCount: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 MobileWebUIClickTracking:
@@ -482,7 +483,7 @@ MobileWebUIClickTracking:
         mobileMode: keep
         name: keep
         userEditCount: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 MobileWebUploads:
@@ -494,7 +495,7 @@ MobileWebUploads:
         mobileMode: keep
         pageId: keep
         token: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 MobileWebWatching:
@@ -505,7 +506,7 @@ MobileWebWatching:
         isWatched: keep
         mobileMode: keep
         userEditCount: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 MobileWebWatchlistClickTracking:
@@ -515,7 +516,7 @@ MobileWebWatchlistClickTracking:
         mobileMode: keep
         name: keep
         userEditCount: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 MobileWebWikiGrok:
@@ -532,7 +533,7 @@ MobileWebWikiGrok:
         username: keep
         version: keep
         widgetOffset: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 MobileWebWikiGrokError:
@@ -544,7 +545,7 @@ MobileWebWikiGrokError:
         taskType: keep
         testing: keep
         userToken: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 MobileWebWikiGrokResponse:
@@ -564,7 +565,7 @@ MobileWebWikiGrokResponse:
         userToken: keep
         value: keep
         valueId: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 MobileWikiAppAppearanceSettings:
@@ -575,10 +576,10 @@ MobileWikiAppAppearanceSettings:
         appearanceAppInstallID: hash
         currentValue: keep
         newValue: keep
-    userAgent:
+    useragent:
         os_family: keep
         wmf_app_version: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 MobileWikiAppArticleSuggestions:
@@ -590,10 +591,10 @@ MobileWikiAppArticleSuggestions:
         readMoreIndex: keep
         readMoreSource: keep
         version: keep
-    userAgent:
+    useragent:
         os_family: keep
         wmf_app_version: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 MobileWikiAppCreateAccount:
@@ -603,10 +604,10 @@ MobileWikiAppCreateAccount:
         errorText: keep
         loginSessionToken: keep
         source: keep
-    userAgent:
+    useragent:
         os_family: keep
         wmf_app_version: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 MobileWikiAppDailyStats:
@@ -614,10 +615,10 @@ MobileWikiAppDailyStats:
         appInstallAgeDays: keep
         appInstallID: hash
         app_install_id: hash
-    userAgent:
+    useragent:
         os_family: keep
         wmf_app_version: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 MobileWikiAppEdit:
@@ -632,10 +633,10 @@ MobileWikiAppEdit:
         userID: keep
         userName: keep
         wikidataDescriptionEdit: keep
-    userAgent:
+    useragent:
         os_family: keep
         wmf_app_version: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 MobileWikiAppFeed:
@@ -648,10 +649,10 @@ MobileWikiAppFeed:
         position: keep
         sessionToken: keep
         timeSpent: keep
-    userAgent:
+    useragent:
         os_family: keep
         wmf_app_version: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 MobileWikiAppFindInPage:
@@ -662,20 +663,20 @@ MobileWikiAppFindInPage:
         numFindPrev: keep
         pageHeight: keep
         timeSpent: keep
-    userAgent:
+    useragent:
         os_family: keep
         wmf_app_version: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 MobileWikiAppInstallReferrer:
     event:
         campaign_id: keep
         referrer_url: keep
-    userAgent:
+    useragent:
         os_family: keep
         wmf_app_version: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 MobileWikiAppIntents:
@@ -683,10 +684,10 @@ MobileWikiAppIntents:
         action: keep
         appInstallID: hash
         app_install_id: hash
-    userAgent:
+    useragent:
         os_family: keep
         wmf_app_version: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 MobileWikiAppLangSelect:
@@ -699,10 +700,10 @@ MobileWikiAppLangSelect:
         sessionToken: keep
         source: keep
         timeSpent: keep
-    userAgent:
+    useragent:
         os_family: keep
         wmf_app_version: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 MobileWikiAppLinkPreview:
@@ -713,10 +714,10 @@ MobileWikiAppLinkPreview:
         previewSessionToken: keep
         timeSpent: keep
         version: keep
-    userAgent:
+    useragent:
         os_family: keep
         wmf_app_version: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 MobileWikiAppLogin:
@@ -726,10 +727,10 @@ MobileWikiAppLogin:
         errorText: keep
         loginSessionToken: keep
         source: keep
-    userAgent:
+    useragent:
         os_family: keep
         wmf_app_version: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 MobileWikiAppMediaGallery:
@@ -740,10 +741,10 @@ MobileWikiAppMediaGallery:
         gallerySessionToken: keep
         source: keep
         timeSpent: keep
-    userAgent:
+    useragent:
         os_family: keep
         wmf_app_version: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 MobileWikiAppNavMenu:
@@ -753,20 +754,20 @@ MobileWikiAppNavMenu:
         app_install_id: hash
         menuItem: keep
         sessionToken: keep
-    userAgent:
+    useragent:
         os_family: keep
         wmf_app_version: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 MobileWikiAppOnboarding:
     event:
         action: keep
         onboardingToken: keep
-    userAgent:
+    useragent:
         os_family: keep
         wmf_app_version: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 MobileWikiAppPageScroll:
@@ -777,19 +778,19 @@ MobileWikiAppPageScroll:
         scrollFluxDown: keep
         scrollFluxUp: keep
         timeSpent: keep
-    userAgent:
+    useragent:
         os_family: keep
         wmf_app_version: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 MobileWikiAppProtectedEditAttempt:
     event:
         protectionStatus: keep
-    userAgent:
+    useragent:
         os_family: keep
         wmf_app_version: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 MobileWikiAppReadingLists:
@@ -800,10 +801,10 @@ MobileWikiAppReadingLists:
         app_install_id: hash
         itemcount: keep
         listcount: keep
-    userAgent:
+    useragent:
         os_family: keep
         wmf_app_version: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 MobileWikiAppSavedPages:
@@ -812,10 +813,10 @@ MobileWikiAppSavedPages:
         appInstallID: hash
         app_install_id: hash
         savedPagesAppInstallToken: keep
-    userAgent:
+    useragent:
         os_family: keep
         wmf_app_version: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 MobileWikiAppSearch:
@@ -829,10 +830,10 @@ MobileWikiAppSearch:
         source: keep
         timeToDisplayResults: keep
         typeOfSearch: keep
-    userAgent:
+    useragent:
         os_family: keep
         wmf_app_version: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 MobileWikiAppSessions:
@@ -864,10 +865,10 @@ MobileWikiAppSessions:
         restLatency: keep
         totalPages: keep
         totalPagesViewed: keep
-    userAgent:
+    useragent:
         os_family: keep
         wmf_app_version: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 MobileWikiAppShareAFact:
@@ -881,20 +882,20 @@ MobileWikiAppShareAFact:
         text: keep
         tutorialFeatureEnabled: keep
         tutorialShown: keep
-    userAgent:
+    useragent:
         os_family: keep
         wmf_app_version: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 MobileWikiAppStuffHappens:
     event:
         applicationContext: keep
         failedEndpoint: keep
-    userAgent:
+    useragent:
         os_family: keep
         wmf_app_version: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 MobileWikiAppTabs:
@@ -905,10 +906,10 @@ MobileWikiAppTabs:
         tabCount: keep
         tabIndex: keep
         tabsSessionToken: keep
-    userAgent:
+    useragent:
         os_family: keep
         wmf_app_version: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 MobileWikiAppToCInteraction:
@@ -920,10 +921,10 @@ MobileWikiAppToCInteraction:
         sectionIndex: keep
         timeSpent: keep
         tocInteractionToken: keep
-    userAgent:
+    useragent:
         os_family: keep
         wmf_app_version: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 MobileWikiAppWidgets:
@@ -931,20 +932,20 @@ MobileWikiAppWidgets:
         action: keep
         appInstallID: hash
         app_install_id: hash
-    userAgent:
+    useragent:
         os_family: keep
         wmf_app_version: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 MobileWikiAppWiktionaryPopup:
     event:
         text: keep
         timeSpent: keep
-    userAgent:
+    useragent:
         os_family: keep
         wmf_app_version: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 MobileWikiAppiOSUserHistory:
@@ -985,13 +986,13 @@ MobileWikiAppiOSUserHistory:
             rp: keep
             cr: keep
             pd: keep
-    userAgent:
+    useragent:
         os_family: keep
         os_major: keep
         wmf_app_version: keep
     geocoded_data:
         country: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 MultimediaViewerAttribution:
@@ -1001,7 +1002,7 @@ MultimediaViewerAttribution:
         loggedIn: keep
         samplingFactor: keep
         sourcePresent: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 MultimediaViewerDuration:
@@ -1012,7 +1013,7 @@ MultimediaViewerDuration:
         samplingFactor: keep
         type: keep
         uploadTimestamp: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 MultimediaViewerNetworkPerformance:
@@ -1048,7 +1049,7 @@ MultimediaViewerNetworkPerformance:
         varnish3hits: keep
         varnish4: keep
         varnish4hits: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 MultimediaViewerVersusPageFilePerformance:
@@ -1057,7 +1058,7 @@ MultimediaViewerVersusPageFilePerformance:
         duration: keep
         type: keep
         windowSize: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 NavigationTiming:
@@ -1117,7 +1118,7 @@ NavigationTiming:
         unloadEventEnd: keep
         unloadEventStart: keep
         waiting: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 Popups:
@@ -1142,7 +1143,7 @@ Popups:
         sessionToken: keep
         totalInteractionTime: keep
         version: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 PrefUpdate:
@@ -1153,7 +1154,7 @@ PrefUpdate:
         userId: keep
         value: keep
         version: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 Print:
@@ -1172,7 +1173,7 @@ QuickSurveyInitiation:
         surveyCodeName: keep
         surveyInstanceToken: keep
         surveySessionToken: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 QuickSurveysResponses:
@@ -1189,7 +1190,7 @@ QuickSurveysResponses:
         surveyInstanceToken: keep
         surveyResponseValue: keep
         surveySessionToken: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 ReadingDepth:
@@ -1204,7 +1205,7 @@ ReadingDepth:
         skin: keep
         totalLength: keep
         visibleLength: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 RelatedArticles:
@@ -1214,7 +1215,7 @@ RelatedArticles:
         pageId: keep
         skin: keep
         userSessionToken: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 ResourceTiming:
@@ -1241,7 +1242,7 @@ ResourceTiming:
         startTime: keep
         transferSize: keep
         workerStart: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 SaveTiming:
@@ -1250,7 +1251,7 @@ SaveTiming:
         mediaWikiVersion: keep
         runtime: keep
         saveTiming: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 ServerSideAccountCreation:
@@ -1265,7 +1266,7 @@ ServerSideAccountCreation:
         userBuckets: keep
         userId: keep
         userName: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 ServerTiming:
@@ -1280,14 +1281,14 @@ TaskRecommendation:
         offset: keep
         pageId: keep
         setId: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 TaskRecommendationClick:
     event:
         pageId: keep
         setId: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 TaskRecommendationImpression:
@@ -1297,14 +1298,14 @@ TaskRecommendationImpression:
         pageId: keep
         setId: keep
         userId: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 TaskRecommendationLightbulbClick:
     event:
         pageId: keep
         userId: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 TestSearchSatisfaction:
@@ -1314,7 +1315,7 @@ TestSearchSatisfaction:
         logId: keep
         pageId: keep
         searchSessionId: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 UploadWizardErrorFlowEvent:
@@ -1324,7 +1325,7 @@ UploadWizardErrorFlowEvent:
         flowPosition: keep
         message: keep
         step: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 UploadWizardExceptionFlowEvent:
@@ -1335,7 +1336,7 @@ UploadWizardExceptionFlowEvent:
         line: keep
         stack: keep
         url: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 UploadWizardFlowEvent:
@@ -1343,7 +1344,7 @@ UploadWizardFlowEvent:
         event: keep
         flowId: keep
         flowPosition: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 UploadWizardStep:
@@ -1352,7 +1353,7 @@ UploadWizardStep:
         flowPosition: keep
         skipped: keep
         step: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 UploadWizardTutorialActions:
@@ -1360,7 +1361,7 @@ UploadWizardTutorialActions:
         action: keep
         language: keep
         username: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 UploadWizardUploadFlowEvent:
@@ -1373,13 +1374,13 @@ UploadWizardUploadFlowEvent:
         flowPosition: keep
         quantity: keep
         size: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 VET135171:
     event:
         msg: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 VisualEditorFeatureUse:
@@ -1394,7 +1395,7 @@ WikimediaBlogVisit:
     event:
         referrerUrl: keep
         requestUrl: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
 
 WikipediaZeroUsage:
@@ -1403,5 +1404,5 @@ WikipediaZeroUsage:
         net: keep
         time: keep
         xcs: keep
-    webHost: keep
+    webhost: keep
     wiki: keep
