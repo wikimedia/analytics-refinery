@@ -875,13 +875,21 @@ MobileWikiAppShareAFact:
     event:
         action: keep
         article: keep
+        client_dt: keep
         pageID: keep
+        page_id: keep
         revID: keep
+        rev_id: keep
         shareSessionToken: keep
+        session_token: keep
         sharemode: keep
+        share_mode: keep
+        target: keep
         text: keep
         tutorialFeatureEnabled: keep
+        tutorial_feature_enabled: keep
         tutorialShown: keep
+        tutorial_shown: keep
     useragent:
         os_family: keep
         wmf_app_version: keep
