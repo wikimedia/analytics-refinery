@@ -1209,10 +1209,15 @@ ReadingDepth:
         isAnon: keep
         namespaceId: keep
         pageTitle: keep
+        pageID: keep
+        revisionID: keep
         pageToken: keep
         skin: keep
         totalLength: keep
         visibleLength: keep
+        default_sample: keep
+        page_issues_a_sample: keep
+        page_issues_b_sample: keep
     webhost: keep
     wiki: keep
 
