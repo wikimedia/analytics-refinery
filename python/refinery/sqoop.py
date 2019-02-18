@@ -223,7 +223,6 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp,
              select ct_id,
                     ct_log_id,
                     ct_rev_id,
-                    convert(ct_tag using utf8) ct_tag,
                     ct_tag_id,
                     convert(ct_params using utf8) ct_params
 
@@ -452,20 +451,6 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp,
         ''',
 
         'split-by': 'ug_user',
-    }
-
-    queries['change_tag'] = {
-        'query': '''
-             select ct_rev_id,
-                    ct_tag_id,
-                    ctd_name
-               from change_tag
-                        inner join
-                    change_tag_def  on ct_tag_id = ctd_id
-              where $CONDITIONS
-        ''',
-
-        'split-by': 'ct_rev_id',
     }
 
     # documented at https://www.mediawiki.org/wiki/Extension:CheckUser/cu_changes_table
