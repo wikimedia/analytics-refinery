@@ -102,7 +102,8 @@ AFFECTED_TABLES = {
         'mediawiki_metrics',
         'mediawiki_page_history',
         'mediawiki_user_history',
-        'mediawiki_history_reduced'
+        'mediawiki_history_reduced',
+        'mediawiki_wikitext_history',
     ]
 }
 
@@ -118,6 +119,7 @@ WIKI_DB_TABLES = [
     'mediawiki_revision',
     'mediawiki_user',
     'mediawiki_user_groups',
+    'mediawiki_wikitext_history',
 ]
 
 
