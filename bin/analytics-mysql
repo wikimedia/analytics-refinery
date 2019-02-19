@@ -12,19 +12,16 @@ import subprocess
 from refinery.util import get_dbstore_host_port
 
 
-def main(dbname, mw_config_path, use_x1, mysql_args):
+def main(dbname, mw_config_path, use_x1, mysql_args, print_target=False):
     if mw_config_path:
         host, port = get_dbstore_host_port(use_x1, dbname, mw_config_path=mw_config_path)
     else:
         host, port = get_dbstore_host_port(use_x1, dbname)
-    mysql_args.extend(['-h', host, '-P', str(port)])
 
-    args = ['/usr/bin/mysql']
-    args.extend(mysql_args)
-    args.append(dbname)
-
-    print("Executing: {}".format(args))
-    subprocess.call(args)
+    if print_target:
+        print("{}:{}".format(host.strip('.'),str(port)))
+    else:
+        subprocess.call(['/usr/bin/mysql', '-h', host, '-P', str(port)] + mysql_args + [dbname])
 
 
 if __name__ == '__main__':
@@ -34,6 +31,9 @@ if __name__ == '__main__':
                         help='Use the x1 section (all dbs) or the sX sections.')
     parser.add_argument('--mw-config-path', dest='mw_config_path',
                         help='Path of the MediaWiki config repository.')
+    parser.add_argument('--print-target', dest='print_target', action='store_true', default=False,
+                        help='Print only the target hostname:port combination.')
 
-    args, unknown = parser.parse_known_args()
-    main(args.database, args.mw_config_path, args.x1, unknown)
+    known_args, other_args = parser.parse_known_args()
+    main(known_args.database, known_args.mw_config_path, known_args.x1,
+         other_args, print_target=known_args.print_target)
