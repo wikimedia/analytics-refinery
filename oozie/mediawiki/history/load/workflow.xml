@@ -33,10 +33,14 @@
             <name>mw_archive_table</name>
             <description>Archive table imported from Mediawiki</description>
         </property>
-        <!-- <property>
+        <property>
             <name>mw_change_tag_table</name>
-            <description>Change tag table imported from Mediawiki</description>
-        </property> -->
+            <description>Change_tag table imported from Mediawiki</description>
+        </property>
+        <property>
+            <name>mw_change_tag_def_table</name>
+            <description>Change_tag_def table imported from Mediawiki</description>
+        </property>
         <property>
             <name>mw_ipblocks_table</name>
             <description>Ipblocks table imported from Mediawiki</description>
@@ -89,10 +93,14 @@
             <name>mw_archive_table_location</name>
             <description>Path to archive table data on HDFS</description>
         </property>
-        <!-- <property>
+        <property>
             <name>mw_change_tag_table_location</name>
             <description>Path to change tag table data on HDFS</description>
-        </property> -->
+        </property>
+        <property>
+            <name>mw_change_tag_def_table_location</name>
+            <description>Path to change_tag_def table data on HDFS</description>
+        </property>
         <property>
             <name>mw_ipblocks_table_location</name>
             <description>Path to ipblocks table data on HDFS</description>
@@ -210,12 +218,11 @@
                 </property>
             </configuration>
         </sub-workflow>
-        <!-- <ok to="repair_mw_change_tag_table_partitions"/> -->
-        <ok to="repair_mw_ipblocks_table_partitions"/>
+        <ok to="repair_mw_change_tag_table_partitions"/>
         <error to="send_error_email"/>
     </action>
 
-    <!-- change_tag
+    <!-- change_tag  -->
     <action name="repair_mw_change_tag_table_partitions">
         <sub-workflow>
             <app-path>${repair_partitions_workflow_file}</app-path>
@@ -242,9 +249,40 @@
                 </property>
             </configuration>
         </sub-workflow>
+        <ok to="repair_mw_change_tag_def_table_partitions"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <!-- change_tag_def  -->
+    <action name="repair_mw_change_tag_def_table_partitions">
+        <sub-workflow>
+            <app-path>${repair_partitions_workflow_file}</app-path>
+            <propagate-configuration/>
+            <configuration>
+                <property><name>table</name><value>${mw_change_tag_def_table}</value></property>
+            </configuration>
+        </sub-workflow>
+        <ok to="mark_mw_change_tag_def_table_hive_done"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <action name="mark_mw_change_tag_def_table_hive_done">
+        <sub-workflow>
+            <app-path>${mark_directory_done_workflow_file}</app-path>
+            <configuration>
+                <property>
+                    <name>directory</name>
+                    <value>${mw_change_tag_def_table_location}</value>
+                </property>
+                <property>
+                    <name>done_file</name>
+                    <value>_PARTITIONED</value>
+                </property>
+            </configuration>
+        </sub-workflow>
         <ok to="repair_mw_ipblocks_table_partitions"/>
         <error to="send_error_email"/>
-    </action> -->
+    </action>
 
     <!-- ipblocks -->
     <action name="repair_mw_ipblocks_table_partitions">
