@@ -1083,8 +1083,11 @@ def get_dbstore_host_port(use_x1, dbname, db_mapping=None,
         try:
             shard = db_mapping[dbname]
         except KeyError:
-            raise RuntimeError("The database {} is not listed among the dblist files of the supported sections."
-                               .format(dbname))
+            message = (
+                "The database {} is not listed among the dblist files of the supported sections." +
+                " Perhaps try --use-x1 if your database is on the x1 cluster (eg. centralauth)"
+            ).format(dbname)
+            raise RuntimeError(message)
     answers = dns.resolver.query('_' + shard + '-analytics._tcp.eqiad.wmnet', 'SRV')
     host, port = str(answers[0].target), answers[0].port
-    return (host,port)
+    return (host, port)
