@@ -14,28 +14,26 @@ logger = logging.getLogger()
 class SqoopConfig:
 
     def __init__(self, yarn_job_name_prefix,
-                 user, password_file, jdbc_host,
+                 user, password_file, jdbc_string,
                  num_mappers, output_format, tmp_base_path,
-                 table_path_template, dbname, dbpostfix, table,
-                 query, split_by, map_types,
-                 generate_jar, jar_file,
+                 table_path_template, dbname, table, queries,
+                 target_jar_dir, jar_file,
                  current_try, dry_run):
 
         self.yarn_job_name_prefix = yarn_job_name_prefix
         self.user = user
         self.password_file = password_file
-        self.jdbc_host = jdbc_host
+        self.jdbc_string = jdbc_string
         self.num_mappers = num_mappers
         self.output_format = output_format
         self.tmp_base_path = tmp_base_path
         self.table_path_template = table_path_template
         self.dbname = dbname
-        self.dbpostfix = dbpostfix
         self.table = table
-        self.query = query
-        self.split_by = split_by
-        self.map_types = map_types
-        self.generate_jar = generate_jar
+        self.query = queries[table].get('query')
+        self.split_by = queries[table]['split-by']
+        self.map_types = queries[table]['map-types'] if ('map-types' in queries[table]) else None
+        self.target_jar_dir = target_jar_dir
         self.jar_file = jar_file
         self.current_try = current_try
         self.dry_run = dry_run
@@ -61,7 +59,7 @@ def sqoop_wiki(config):
     try:
         query = config.query
         command = 'import'
-        if config.generate_jar:
+        if config.target_jar_dir:
             query = query + ' and 1=0'
             command = 'codegen'
 
@@ -72,15 +70,15 @@ def sqoop_wiki(config):
                 config.yarn_job_name_prefix, full_table),
             '--username'        , config.user,
             '--password-file'   , config.password_file,
-            '--connect'         , config.jdbc_host + config.dbname + config.dbpostfix,
+            '--connect'         , config.jdbc_string,
             '--query'           , config.query,
         ]
 
-        if config.generate_jar:
+        if config.target_jar_dir:
             sqoop_arguments += [
                 '--class-name'      , config.table,
-                '--outdir'          , config.generate_jar,
-                '--bindir'          , config.generate_jar,
+                '--outdir'          , config.target_jar_dir,
+                '--bindir'          , config.target_jar_dir,
             ]
         else:
             # We don't use the hive-partition folder style since
@@ -123,7 +121,7 @@ def sqoop_wiki(config):
         # This step is needed particularly in case of retry - tmp_target_directory
         # Folder is created at first try, so we need to delete it (if it exists)
         # before trying again.
-        if not config.generate_jar:
+        if not config.target_jar_dir:
             logger.info('Deleting temporary target directory {} if it exists'.format(tmp_target_directory))
             if not config.dry_run:
                 try:
@@ -136,7 +134,7 @@ def sqoop_wiki(config):
         # Ignore sqoop output because it's in Yarn and grabbing output is way complicated
         if not config.dry_run:
             check_call(sqoop_arguments, stdout=DEVNULL, stderr=DEVNULL)
-        if not config.generate_jar:
+        if not config.target_jar_dir:
             logger.info('Moving sqooped forlder from {} to {}'.format(tmp_target_directory, target_directory))
             if not config.dry_run:
                 HdfsUtils.mv(tmp_target_directory, target_directory, inParent=False)
@@ -162,7 +160,7 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp,
         filter_tables: list of tables to return queries for, None for all tables
         from_timestamp: imported timestamps must be newer than this, (YYYYMMDDHHmmss)
         to_timestamp: timestamps must be *strictly* older than this, (YYYYMMDDHHmmss)
-        labsdb: True or False, whether _p should be appended to table names
+        labsdb: True or False, helps inform small differences in queries
 
     Returns
         An object of the form:
@@ -205,9 +203,7 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp,
               where $CONDITIONS
                 and ar_timestamp >= '{f}'
                 and ar_timestamp <  '{t}'
-        '''.format(model="''" if labsdb else 'ar_content_model',
-                   format="''" if labsdb else 'ar_content_format',
-                   f=from_timestamp, t=to_timestamp),
+        '''.format(f=from_timestamp, t=to_timestamp),
         'map-types': '"{}"'.format(','.join([
             'ar_minor_edit=Boolean',
             'ar_deleted=Integer',
@@ -318,7 +314,7 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp,
                     log_actor,
                     log_comment_id
 
-               from logging_compat
+               from logging
               where $CONDITIONS
                 and log_timestamp >= '{f}'
                 and log_timestamp <  '{t}'

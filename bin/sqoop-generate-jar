@@ -15,7 +15,6 @@
 #
 # Example run:
 #   python3 sqoop-generate-jar \
-#       --jdbc-host analytics-store.eqiad.wmnet \
 #       --output-dir /home/milimetric/sqoop-jar \
 #       --user research \
 #       --password-file /user/milimetric/mysql-analytics-research-client-pw.txt \
@@ -30,7 +29,7 @@ in docopt that makes it fail if -- is the first thing on a line, we should
 upstream a fix for that.
 
 Usage:
-  sqoop-generate-jar --jdbc-host HOST --output-dir JAR_OUT
+  sqoop-generate-jar --output-dir JAR_OUT
           [--labsdb] --user NAME --password-file FILE
           [--verbose] [--job-name JOB_NAME]
 
@@ -38,7 +37,6 @@ Options:
     -h --help                           Show this help message and exit.
     -v --verbose                        Turn on verbose debug logging.
 
-    -H HOST --jdbc-host HOST            Domain name of the mysql db
     -d JAR_OUT --output-dir JAR_OUT     Target directory to write the jar to
 
     -u NAME --user NAME                 mysql user to use
@@ -47,7 +45,8 @@ Options:
     -j JOB_NAME --job-name JOB_NAME     The yarn job name prefix, only one job with
                                         a certain prefix can run at a time.
                                         [optional] default is sqoop-generate-jar
-    -l --labsdb                         Add '_p' postfix to table names for labsdb
+    -l --labsdb                         Use the cloud cluster with different dbnames
+                                        and potentially different queries
 """
 __author__ = 'Dan Andreesu <milimetric@wikimedia.org>'
 
@@ -64,8 +63,11 @@ from traceback import format_exc
 from tempfile import mkstemp
 
 from refinery.logging_setup import configure_logging
-from refinery.util import is_yarn_application_running, HdfsUtils
-from refinery.sqoop import sqoop_wiki, SqoopConfig, validate_tables_and_get_queries
+from refinery.sqoop import (
+    check_already_running_or_exit,
+    SqoopConfig, sqoop_wiki, validate_tables_and_get_queries,
+)
+from refinery.util import get_mediawiki_section_dbname_mapping, get_jdbc_string
 
 logger = logging.getLogger()
 
@@ -77,44 +79,36 @@ if __name__ == '__main__':
     labsdb                              = arguments.get('--labsdb')
     yarn_job_name_prefix                = arguments.get('--job-name')
 
-    host                                = arguments.get('--jdbc-host')
     target_jar_directory                = arguments.get('--output-dir')
     user                                = arguments.get('--user')
     password_file                       = arguments.get('--password-file')
     timestamp                           = '20010101000000'
 
+    db_mapping                          = get_mediawiki_section_dbname_mapping()
+
     level = logging.DEBUG if verbose else logging.INFO
     configure_logging(logger, level)
 
     yarn_job_name_prefix = yarn_job_name_prefix or 'sqoop-generate-jar'
-    # This works since the check doesn't involve 'full word' matching
-    if is_yarn_application_running(yarn_job_name_prefix):
-        logger.warn('{} is already running, exiting.'.format(yarn_job_name_prefix))
-        sys.exit(1)
-
-    jdbc_host = 'jdbc:mysql://' + host + '/'
+    check_already_running_or_exit(yarn_job_name_prefix)
 
     logger.info('Started Shell with with {}'.format(' '.join(arguments)))
 
     queries = validate_tables_and_get_queries(None, timestamp, timestamp, labsdb)
-    dbpostfix = '_p' if labsdb else ''
-
     jar_path = os.path.join(target_jar_directory, 'mediawiki-tables-sqoop-orm.jar')
 
     failed_jobs = []
     executor_config_list = []
 
+    # NOTE: using etwiki to generate schema for all wikis,
+    # but it might not always be in sync with the other dbs
+    example_dbname = 'etwiki'
+    jdbc_string = get_jdbc_string(example_dbname, labsdb, db_mapping)
     for table in queries.keys():
-        query = queries[table].get('query')
-        map_types = queries[table]['map-types'] if ('map-types' in queries[table]) else None
-        split_by = queries[table]['split-by']
         executor_config_list.append(
-            SqoopConfig(yarn_job_name_prefix, user, password_file, jdbc_host, 1,
-                        # NOTE: using etwiki to generate schema for all wikis,
-                        # but it might not always be in sync with the other dbs
-                        None, 'etwiki', dbpostfix, table,
-                        query, split_by, map_types,
-                        target_jar_directory, None, 1)
+            SqoopConfig(yarn_job_name_prefix, user, password_file, jdbc_string, 1,
+                        None, None, None, example_dbname, table, queries,
+                        target_jar_directory, None, 1, False)
         )
 
     with futures.ProcessPoolExecutor(1) as executor:

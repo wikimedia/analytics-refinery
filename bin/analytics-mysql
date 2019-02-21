@@ -19,9 +19,9 @@ def main(dbname, mw_config_path, use_x1, mysql_args, print_target=False):
         host, port = get_dbstore_host_port(use_x1, dbname)
 
     if print_target:
-        print("{}:{}".format(host.strip('.'),str(port)))
+        print("{}:{}".format(host, port))
     else:
-        subprocess.call(['/usr/bin/mysql', '-h', host, '-P', str(port)] + mysql_args + [dbname])
+        subprocess.call(['/usr/bin/mysql', '-h', host, '-P', port] + mysql_args + [dbname])
 
 
 if __name__ == '__main__':

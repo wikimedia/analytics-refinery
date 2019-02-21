@@ -40,6 +40,12 @@ except ImportError:
     from urllib.error import HTTPError, URLError
 
 logger = logging.getLogger('refinery-util')
+MW_CONFIG_PATH = '/srv/mediawiki-config'
+
+CLOUD_DB_HOST = 'labsdb-analytics.eqiad.wmnet'
+CLOUD_DB_POSTFIX = '_p'
+JDBC_TEMPLATE = 'jdbc:mysql://{host}/{dbname}'
+JDBC_TEMPLATE_WITH_PORT = 'jdbc:mysql://{host}:{port}/{dbname}'
 
 
 def is_yarn_application_running(job_name):
@@ -1054,7 +1060,7 @@ class DruidUtils(object):
             logger.error('generic exception: ' + traceback.format_exc())
 
 
-def get_mediawiki_section_dbname_mapping(mw_config_path, use_x1):
+def get_mediawiki_section_dbname_mapping(mw_config_path=MW_CONFIG_PATH, use_x1=False):
     db_mapping = {}
     if use_x1:
         dblist_section_paths = [mw_config_path.rstrip('/') + '/dblists/all.dblist']
@@ -1069,7 +1075,7 @@ def get_mediawiki_section_dbname_mapping(mw_config_path, use_x1):
 
 
 def get_dbstore_host_port(use_x1, dbname, db_mapping=None,
-                          mw_config_path='/srv/mediawiki-config'):
+                          mw_config_path=MW_CONFIG_PATH):
     if not db_mapping:
         db_mapping = get_mediawiki_section_dbname_mapping(mw_config_path, use_x1)
     if not db_mapping:
@@ -1089,5 +1095,22 @@ def get_dbstore_host_port(use_x1, dbname, db_mapping=None,
             ).format(dbname)
             raise RuntimeError(message)
     answers = dns.resolver.query('_' + shard + '-analytics._tcp.eqiad.wmnet', 'SRV')
-    host, port = str(answers[0].target), answers[0].port
+    host, port = str(answers[0].target).strip('.'), str(answers[0].port)
     return (host, port)
+
+
+def get_jdbc_string(dbname, labsdb, db_mapping=None):
+    """
+    Params
+        dbname      the database name, like enwiki, etwiki, etc
+        labsdb      True: use the cloud cluster, False: use production replica cluster
+        db_mapping  (None) if not specified, fetch this from mediawiki-config
+    """
+
+    # for labsdb, hostname must be specified, we append db_postfix to the dbname
+    if labsdb:
+        return JDBC_TEMPLATE.format(host=CLOUD_DB_HOST, dbname=dbname + CLOUD_DB_POSTFIX)
+    # for production replicas, we have to query for the hostname and port
+    else:
+        (host, port) = get_dbstore_host_port(False, dbname, db_mapping)
+        return JDBC_TEMPLATE_WITH_PORT.format(host=host, port=port, dbname=dbname)

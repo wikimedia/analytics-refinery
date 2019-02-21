@@ -18,17 +18,16 @@
 # Example command that can be run in a cron:
 #   export PYTHONPATH=/home/milimetric/refinery/python
 #   python3 sqoop-mediawiki-tables \
-#     --jdbc-host analytics-store.eqiad.wmnet \
 #     --output-dir /user/milimetric/wmf/data/raw/mediawiki/tables \
 #     --user research \
 #     --password-file /user/milimetric/mysql-analytics-research-client-pw.txt \
-#     --wiki-file \
-# "/mnt/hdfs/wmf/refinery/current/static_data/mediawiki/grouped_wikis/grouped_wikis_test.csv" \
-#     --tables user_groups,ipblocks \
-#     --from-timestamp YYYYMMDD000000 \
-#     --to-timestamp YYYYMMDD000000 \
+#     --wiki-file "/mnt/hdfs/wmf/refinery/current/static_data/mediawiki/grouped_wikis/grouped_wikis_test.csv" \
+#     --tables revision,archive,page,logging,user,user_groups \
+#     --from-timestamp 20010101000000 \
+#     --to-timestamp 20180301000000 \
 #     --partition-name snapshot \
-#     --partition-value 2018_02_20_test \
+#     --partition-value test \
+#     --output-format avrodata \
 #     --log-file sqoop-info-and-above.log
 
 """
@@ -38,7 +37,7 @@ in docopt that makes it fail if -- is the first thing on a line, we should
 upstream a fix for that.
 
 Usage:
-  sqoop-mediawiki-tables --jdbc-host HOST --output-dir HDFS_PATH
+  sqoop-mediawiki-tables --output-dir HDFS_PATH
           [--labsdb] --user NAME --password-file FILE
           [--max-tries TRIES] --wiki-file WIKIS --tables TABLES
           [--verbose] --from-timestamp FROM --to-timestamp TO
@@ -52,7 +51,6 @@ Options:
     -h --help                           Show this help message and exit.
     -v --verbose                        Turn on verbose debug logging.
 
-    -H HOST --jdbc-host HOST            Domain name of the mysql db
     -d HDFS_PATH --output-dir HDFS_PATH Target hdfs directory to write to
 
     -w FILE --wiki-file FILE            File with list of wiki dbs to sqoop
@@ -105,7 +103,8 @@ Options:
                                         before renaming. [default: /tmp/sqoop-mediawiki-tables]
     -G LTMP --local-tmp-path LTMP       Local folder where to temporary store generated
                                         jar files. [default: /tmp/sqoop-jars]
-    -l --labsdb                         Add '_p' postfix to table names for labsdb
+    -l --labsdb                         If set, add '_p' postfix to table names for labsdb,
+                                        otherwise look up the hostname for each db
     -f --force                          Deleting existing folders before importing
                                         instead of failing
     -r JAR_IN --jar-file JAR_IN         Disable code generation and use a jar file
@@ -137,6 +136,7 @@ from refinery.sqoop import (
     check_hdfs_path_or_exit, check_already_running_or_exit,
     SqoopConfig, sqoop_wiki, validate_tables_and_get_queries,
 )
+from refinery.util import get_mediawiki_section_dbname_mapping, get_jdbc_string
 
 logger = logging.getLogger()
 
@@ -148,7 +148,6 @@ if __name__ == '__main__':
     yarn_job_name_prefix                = arguments.get('--job-name')
 
     target_hdfs_directory               = arguments.get('--output-dir')
-    host                                = arguments.get('--jdbc-host')
     user                                = arguments.get('--user')
     password_file                       = arguments.get('--password-file')
 
@@ -173,6 +172,8 @@ if __name__ == '__main__':
     force                               = arguments.get('--force')
     jar_file                            = arguments.get('--jar-file')
     log_file                            = arguments.get('--log-file')
+
+    db_mapping                          = get_mediawiki_section_dbname_mapping()
 
     level = logging.DEBUG if verbose else logging.INFO
     configure_logging(logger, level, log_file=log_file)
@@ -213,9 +214,6 @@ if __name__ == '__main__':
     check_hdfs_path_or_exit(queries.keys(), table_path_template, hdfs_tmp_path, force, dry_run)
     logger.debug('All table paths are empty or force cleaned')
 
-    jdbc_host = 'jdbc:mysql://' + host + '/'
-    dbpostfix = '_p' if labsdb else ''
-
     failed_jobs = []
     executor_config_list = []
 
@@ -229,15 +227,13 @@ if __name__ == '__main__':
 
         logger.info('Generating ORM jar at {}'.format(jar_path))
 
+        example_dbname = 'etwiki'
+        jdbc_string = get_jdbc_string(example_dbname, labsdb, db_mapping)
         for table in queries.keys():
-            query = queries[table].get('query')
-            map_types = queries[table]['map-types'] if ('map-types' in queries[table]) else None
-            split_by = queries[table]['split-by']
             executor_config_list.append(
-                SqoopConfig(yarn_job_name_prefix, user, password_file, jdbc_host, 1,
-                            None, None, None, 'etwiki', dbpostfix, table,
-                            query, split_by, map_types,
-                            target_jar_directory, None, 1, dry_run))
+                SqoopConfig(yarn_job_name_prefix, user, password_file, jdbc_string, 1,
+                            None, None, None, example_dbname, table, queries,
+                            target_jar_directory, None, 1, False))
 
         with futures.ProcessPoolExecutor(1) as executor:
             failed_jobs.extend(filter(None, list(executor.map(sqoop_wiki, executor_config_list))))
@@ -276,15 +272,12 @@ if __name__ == '__main__':
             num_processors_adjusted = num_processors
 
         for w in wikiList:
+            jdbc_string = get_jdbc_string(w[0], labsdb, db_mapping)
             for table in queries.keys():
-                query = queries[table].get('query')
-                map_types = queries[table]['map-types'] if ('map-types' in queries[table]) else None
-                split_by = queries[table]['split-by']
                 executor_config_list.append(
-                    SqoopConfig(yarn_job_name_prefix, user, password_file, jdbc_host,
+                    SqoopConfig(yarn_job_name_prefix, user, password_file, jdbc_string,
                                 num_mappers_adjusted, output_format, hdfs_tmp_path,
-                                table_path_template, w[0], dbpostfix, table,
-                                query, split_by, map_types,
+                                table_path_template, w[0], table, queries,
                                 None, jar_file, 1, dry_run))
 
         # sqoop all wikis in this group and wait for them all to finish with retry
