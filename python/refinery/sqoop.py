@@ -297,6 +297,18 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp,
         'split-by': 'ipb_id',
     }
 
+    queries['ipblocks_restrictions'] = {
+        'query': '''
+             select ir_ipb_id,
+                    ir_type,
+                    ir_value
+
+               from ipblocks_restrictions
+              where $CONDITIONS
+        ''',
+        'split-by': 'ir_ipb_id',
+    }
+
     queries['logging'] = {
         'query': '''
              select log_id,

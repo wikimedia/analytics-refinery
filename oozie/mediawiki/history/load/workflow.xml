@@ -42,6 +42,10 @@
             <description>Ipblocks table imported from Mediawiki</description>
         </property>
         <property>
+            <name>mw_ipblocks_restrictions_table</name>
+            <description>Ipblocks Restrictions table imported from Mediawiki</description>
+        </property>
+        <property>
             <name>mw_logging_table</name>
             <description>Logging table imported from Mediawiki</description>
         </property>
@@ -96,6 +100,10 @@
         <property>
             <name>mw_ipblocks_table_location</name>
             <description>Path to ipblocks table data on HDFS</description>
+        </property>
+        <property>
+            <name>mw_ipblocks_restrictions_table_location</name>
+            <description>Path to ipblocks_restrictions table data on HDFS</description>
         </property>
         <property>
             <name>mw_logging_table_location</name>
@@ -266,6 +274,37 @@
                 <property>
                     <name>directory</name>
                     <value>${mw_ipblocks_table_location}</value>
+                </property>
+                <property>
+                    <name>done_file</name>
+                    <value>_PARTITIONED</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="repair_mw_ipblocks_restrictions_table_partitions"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <!-- ipblocks_restrictions -->
+    <action name="repair_mw_ipblocks_restrictions_table_partitions">
+        <sub-workflow>
+            <app-path>${repair_partitions_workflow_file}</app-path>
+            <propagate-configuration/>
+            <configuration>
+                <property><name>table</name><value>${mw_ipblocks_restrictions_table}</value></property>
+            </configuration>
+        </sub-workflow>
+        <ok to="mark_mw_ipblocks_restrictions_table_hive_done"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <action name="mark_mw_ipblocks_restrictions_table_hive_done">
+        <sub-workflow>
+            <app-path>${mark_directory_done_workflow_file}</app-path>
+            <configuration>
+                <property>
+                    <name>directory</name>
+                    <value>${mw_ipblocks_restrictions_table_location}</value>
                 </property>
                 <property>
                     <name>done_file</name>
