@@ -131,7 +131,7 @@ def sh(command, check_return_code=True, strip_output=True, return_stderr=False):
     stdout, stderr = p.communicate()
     if check_return_code and p.returncode != 0:
         raise RuntimeError("Command: {0} failed with error code: {1}"
-            .format(command_string, p.returncode), stdout, stderr)
+                           .format(command_string, p.returncode), stdout, stderr)
     if strip_output:
         stdout = stdout.strip()
         stderr = stderr.strip()
@@ -152,7 +152,6 @@ class HiveUtils(object):
         options     : Other options to be passed directly to the Hive CLI.
     """
 
-
     partition_desc_separator = '/'
     partition_spec_separator = ','
 
@@ -166,11 +165,9 @@ class HiveUtils(object):
         self.hivecmd = ['hive'] + self.options + ['--service', 'cli', '--database', self.database]
         self.tables  = {}
 
-
     def _tables_get(self):
         """Returns a list of tables in the current database"""
         return self.query('SET hive.cli.print.header=false; SHOW TABLES').splitlines()
-
 
     def _tables_init(self, force=False):
         """
@@ -190,7 +187,6 @@ class HiveUtils(object):
 
         return self.tables
 
-
     def reset(self):
         """
         Destroy's this object's table info cache.
@@ -200,19 +196,16 @@ class HiveUtils(object):
         """
         self.tables = {}
 
-
     def get_tables(self):
         """Returns the list of tables in the database"""
         self._tables_init()
         return self.tables.keys()
 
-
-    def table_exists(self, table): # ,force=False
+    def table_exists(self, table):
         """Returns true if the table exists in the current database."""
         self._tables_init()
 
         return table in self.tables.keys()
-
 
     def table_schema(self, table):
         """Returns the table's CREATE schema."""
@@ -223,7 +216,6 @@ class HiveUtils(object):
             self.tables[table]['schema'] = self.query(q)
 
         return self.tables[table]['schema']
-
 
     def table_metadata(self, table):
         """
@@ -236,16 +228,15 @@ class HiveUtils(object):
             self.tables[table]['metadata'] = {}
             q = 'SET hive.cli.print.header=false; DESCRIBE FORMATTED {0};'.format(table)
             for line in self.query(q).splitlines():
-                  try:
-                      key, value = line.split(':', 1)
-                      if value:
-                          self.tables[table]['metadata'][key.strip()] = value.strip()
-                  except ValueError:
-                      # not at least two elements in line
-                      pass
+                try:
+                    key, value = line.split(':', 1)
+                    if value:
+                        self.tables[table]['metadata'][key.strip()] = value.strip()
+                except ValueError:
+                    # not at least two elements in line
+                    pass
 
         return self.tables[table]['metadata']
-
 
     def table_location(self, table, strip_nameservice=False):
         """Returns the table's base location by looking at the table's CREATE schema."""
@@ -258,7 +249,6 @@ class HiveUtils(object):
 
         return table_location
 
-
     def partition_specs(self, table):
         """
         Returns a list of partitions for the given Hive table in partition spec format.
@@ -270,7 +260,7 @@ class HiveUtils(object):
 
         # Cache results for later.
         # If we don't know the partitions yet, get them now.
-        if not 'partitions' in self.tables[table].keys():
+        if 'partitions' not in self.tables[table].keys():
             partition_descs = self.query('SET hive.cli.print.header=false; SHOW PARTITIONS {0};'.format(table)).splitlines()
             # Convert the desc format to spec format and return that
             self.tables[table]['partitions'] = [
@@ -279,7 +269,6 @@ class HiveUtils(object):
             ]
 
         return self.tables[table]['partitions']
-
 
     def partitions(self, table):
         """
@@ -293,7 +282,6 @@ class HiveUtils(object):
         # If we don't know the partitions yet, get them now.
         return [HivePartition(p) for p in self.partition_specs(table)]
 
-
     def drop_partitions(self, table, partition_specs):
         """
         Runs ALTER TABLE table DROP PARTITION ... for each of the partition_specs.
@@ -306,7 +294,6 @@ class HiveUtils(object):
         else:
             logger.info("Not dropping any partitions for table {0}.  No partition datetimes were given.".format(table))
 
-
     def drop_partitions_ddl(self, table, partition_specs):
         """
         Returns a complete hive statement to drop partitions from
@@ -314,7 +301,6 @@ class HiveUtils(object):
         """
         partition_specs.sort()
         return '\n'.join(['ALTER TABLE {0} DROP IF EXISTS PARTITION ({1});'.format(table, spec) for spec in partition_specs])
-
 
     @staticmethod
     def partition_spec_from_partition_desc(desc):
@@ -326,14 +312,13 @@ class HiveUtils(object):
         # Loop through each partition, adding quotes around strings.
         spec_parts = []
         for p in desc.split(HiveUtils.partition_desc_separator):
-            (key,value) = p.split('=')
+            (key, value) = p.split('=')
             if not value.isdigit():
                 value = '\'{0}\''.format(value)
             spec_parts.append('{0}={1}'.format(key, value))
 
         # Replace partition_desc_separators with partition_spec_separators.
         return HiveUtils.partition_spec_separator.join(spec_parts)
-
 
     @staticmethod
     def partition_spec_from_path(path, regex):
@@ -379,7 +364,6 @@ class HiveUtils(object):
 
         return HiveUtils.partition_spec_separator.join(spec_parts)
 
-
     @staticmethod
     def partition_datetime_from_spec(spec, regex):
         """
@@ -410,8 +394,8 @@ class HiveUtils(object):
         return datetime.datetime(
             int(match.groupdict().get('year')),
             int(match.groupdict().get('month', 1)),
-            int(match.groupdict().get('day',   1)),
-            int(match.groupdict().get('hour',  0))
+            int(match.groupdict().get('day', 1)),
+            int(match.groupdict().get('hour', 0))
         )
 
     @staticmethod
@@ -477,13 +461,11 @@ class HiveUtils(object):
         else:
             return self._command(['-e', query], check_return_code)
 
-
     def script(self, script, check_return_code=True):
         """Runs the contents of the given script in hive and returns stdout."""
         if not os.path.isfile(script):
             raise RuntimeError("Hive script: {0} does not exist.".format(script))
-        return self._command( ['-f', script], check_return_code)
-
+        return self._command(['-f', script], check_return_code)
 
     def _command(self, args, check_return_code=True):
         """Runs the `hive` from the command line, passing in the given args, and
@@ -529,7 +511,6 @@ class HivePartition(OrderedDict):
 
         super(HivePartition, self).__init__(partitions)
 
-
     def datetime(self):
         """
         Returns a datetime.datetime for this partition.
@@ -559,21 +540,19 @@ class HivePartition(OrderedDict):
             default=datetime.datetime(2000, 1, 1, 0, 0)
         )
 
-
     def list(self, quote=False):
         """
         Returns a list of Hive partition key=value strings.
         IF quote=True, string values will be quoted.
         """
-        l = []
+        partitions = []
         # Loop through each partition,
         # adding quotes around strings if quote=True
         for k, v in self.items():
             if quote and not v.isdigit():
                 v = '\'{}\''.format(v)
-            l.append('{}={}'.format(k, v))
-        return l
-
+            partitions.append('{}={}'.format(k, v))
+        return partitions
 
     def desc(self):
         """
@@ -581,13 +560,11 @@ class HivePartition(OrderedDict):
         """
         return HivePartition.desc_separator.join(self.list())
 
-
     def spec(self):
         """
         Returns a Hive spec string, e.g. datacenter='eqiad',year=2017,month=11,day=21,hour=0
         """
         return HivePartition.spec_separator.join(self.list(quote=True))
-
 
     def path(self, base_path=None):
         """
@@ -597,7 +574,6 @@ class HivePartition(OrderedDict):
         if base_path is not None:
             dirs = [base_path] + dirs
         return os.path.join(*dirs)
-
 
     def camus_path(self, base_path=None):
         """
@@ -944,7 +920,6 @@ class HdfsUtils(object):
 
         return src_files
 
-
     @staticmethod
     def _get_hdfs_files(hdfs_path):
         """
@@ -991,8 +966,7 @@ class DruidUtils(object):
         format:
         yyyy-MM-ddThh:mm:ss.fffZ/yyyy-MM-ddThh:mm:ss.fffZ
         """
-        url = (self.coordinator_url + '/datasources/'
-               + datasource + '/intervals')
+        url = (self.coordinator_url + '/datasources/' + datasource + '/intervals')
         intervals = json.loads(self.get(url))
         return intervals
 
@@ -1001,8 +975,7 @@ class DruidUtils(object):
         Sends a DELETE request to the druid coordinator for the selected
         datasource and interval.
         """
-        url = (self.coordinator_url + '/datasources/'
-               + datasource + '?kill=true&interval=' + interval)
+        url = (self.coordinator_url + '/datasources/' + datasource + '?kill=true&interval=' + interval)
         self.delete(url, dry_run=dry_run)
 
     def remove_datasource(self, datasource, deep=False, dry_run=False):
@@ -1015,8 +988,7 @@ class DruidUtils(object):
         If deep is true, removes each interval in the datasource, effectively deleting
         it from deep storage in hdfs.
         """
-        url = (self.coordinator_url + '/datasources/'
-            + datasource)
+        url = (self.coordinator_url + '/datasources/' + datasource)
         self.delete(url, dry_run=dry_run)
         # Removing the datasource from deep storage implies sending a kill signal
         # to each of the segments of the datasource.
