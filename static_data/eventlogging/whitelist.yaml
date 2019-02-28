@@ -576,6 +576,8 @@ MobileWikiAppAppearanceSettings:
         appearanceAppInstallID: hash
         currentValue: keep
         newValue: keep
+        current_value: keep
+        new_value: keep
     useragent:
         os_family: keep
         wmf_app_version: keep
@@ -591,6 +593,7 @@ MobileWikiAppArticleSuggestions:
         readMoreIndex: keep
         readMoreSource: keep
         version: keep
+        client_dt: keep
     useragent:
         os_family: keep
         wmf_app_version: keep
@@ -600,10 +603,13 @@ MobileWikiAppArticleSuggestions:
 MobileWikiAppCreateAccount:
     event:
         action: keep
-        createAccountSessionToken: keep
+        createAccountSessionToken: hash
         errorText: keep
-        loginSessionToken: keep
+        loginSessionToken: hash
+        session_token: hash
         source: keep
+        app_install_id: hash
+        client_dt: keep
     useragent:
         os_family: keep
         wmf_app_version: keep
@@ -612,6 +618,9 @@ MobileWikiAppCreateAccount:
 
 MobileWikiAppDailyStats:
     event:
+        is_anon: keep
+        languages: keep
+        client_dt: keep
         appInstallAgeDays: keep
         appInstallID: hash
         app_install_id: hash
@@ -643,12 +652,31 @@ MobileWikiAppFeed:
     event:
         action: keep
         age: keep
-        appInstallID: hash
-        app_install_id: hash
         cardType: keep
         position: keep
-        sessionToken: keep
+        language: keep
+        sessionToken: hash
+        session_token: hash
         timeSpent: keep
+        time_spent: keep
+        appInstallID: hash
+        app_install_id: hash
+        client_dt: keep
+    useragent:
+        os_family: keep
+        wmf_app_version: keep
+    webhost: keep
+    wiki: keep
+
+MobileWikiAppFeedConfigure:
+    event:
+        enabled_list: keep
+        order_list: keep
+        source: keep
+        time_spent: keep
+        languages: keep
+        app_install_id: hash
+        client_dt: keep
     useragent:
         os_family: keep
         wmf_app_version: keep
@@ -663,6 +691,7 @@ MobileWikiAppFindInPage:
         numFindPrev: keep
         pageHeight: keep
         timeSpent: keep
+        client_dt: keep
     useragent:
         os_family: keep
         wmf_app_version: keep
@@ -672,7 +701,11 @@ MobileWikiAppFindInPage:
 MobileWikiAppInstallReferrer:
     event:
         campaign_id: keep
-        referrer_url: keep
+        utm_medium: keep
+        utm_campaign: keep
+        utm_source: keep
+        app_install_id: hash
+        client_dt: keep
     useragent:
         os_family: keep
         wmf_app_version: keep
@@ -684,6 +717,7 @@ MobileWikiAppIntents:
         action: keep
         appInstallID: hash
         app_install_id: hash
+        client_dt: keep
     useragent:
         os_family: keep
         wmf_app_version: keep
@@ -700,6 +734,38 @@ MobileWikiAppLangSelect:
         sessionToken: keep
         source: keep
         timeSpent: keep
+        client_dt: keep
+    useragent:
+        os_family: keep
+        wmf_app_version: keep
+    webhost: keep
+    wiki: keep
+
+MobileWikiAppLanguageSearching:
+    event:
+        language_settings_token: hash
+        added: keep
+        language: keep
+        time_spent: keep
+        app_install_id: hash
+        client_dt: keep
+    useragent:
+        os_family: keep
+        wmf_app_version: keep
+    webhost: keep
+    wiki: keep
+
+MobileWikiAppLanguageSettings:
+    event:
+        source: keep
+        initial: keep
+        final: keep
+        interactions: keep
+        searched: keep
+        time_spent: keep
+        session_token: hash
+        app_install_id: hash
+        client_dt: keep
     useragent:
         os_family: keep
         wmf_app_version: keep
@@ -709,11 +775,15 @@ MobileWikiAppLangSelect:
 MobileWikiAppLinkPreview:
     event:
         action: keep
+        source: keep
         appInstallID: hash
         app_install_id: hash
-        previewSessionToken: keep
+        previewSessionToken: hash
+        session_token: hash
         timeSpent: keep
+        time_spent: keep
         version: keep
+        client_dt: keep
     useragent:
         os_family: keep
         wmf_app_version: keep
@@ -738,9 +808,12 @@ MobileWikiAppMediaGallery:
         action: keep
         appInstallID: hash
         app_install_id: hash
-        gallerySessionToken: keep
+        gallerySessionToken: hash
+        session_token: hash
         source: keep
         timeSpent: keep
+        time_spent: keep
+        client_dt: keep
     useragent:
         os_family: keep
         wmf_app_version: keep
@@ -754,6 +827,34 @@ MobileWikiAppNavMenu:
         app_install_id: hash
         menuItem: keep
         sessionToken: keep
+    useragent:
+        os_family: keep
+        wmf_app_version: keep
+    webhost: keep
+    wiki: keep
+
+MobileWikiAppNotificationInteraction:
+    event:
+        notification_id: keep
+        notification_wiki: keep
+        notification_type: keep
+        action_rank: keep
+        action_icon: keep
+        selection_token: keep
+        app_install_id: hash
+        client_dt: keep
+    useragent:
+        os_family: keep
+        wmf_app_version: keep
+    webhost: keep
+    wiki: keep
+
+MobileWikiAppNotificationPreferences:
+    event:
+        type_toggles: keep
+        background_fetch: keep
+        app_install_id: hash
+        client_dt: keep
     useragent:
         os_family: keep
         wmf_app_version: keep
@@ -774,10 +875,12 @@ MobileWikiAppPageScroll:
     event:
         maxPercentViewed: keep
         pageHeight: keep
-        pageID: keep
         scrollFluxDown: keep
         scrollFluxUp: keep
         timeSpent: keep
+        time_spent: keep
+        app_install_id: hash
+        client_dt: keep
     useragent:
         os_family: keep
         wmf_app_version: keep
@@ -787,6 +890,24 @@ MobileWikiAppPageScroll:
 MobileWikiAppProtectedEditAttempt:
     event:
         protectionStatus: keep
+        app_install_id: hash
+        client_dt: keep
+    useragent:
+        os_family: keep
+        wmf_app_version: keep
+    webhost: keep
+    wiki: keep
+
+MobileWikiAppRandomizer:
+    event:
+        fingerSwipesForward: keep
+        fingerSwipesBack: keep
+        diceClicks: keep
+        backClicks: keep
+        source: keep
+        time_spent: keep
+        app_install_id: keep
+        client_dt: keep
     useragent:
         os_family: keep
         wmf_app_version: keep
@@ -801,6 +922,7 @@ MobileWikiAppReadingLists:
         app_install_id: hash
         itemcount: keep
         listcount: keep
+        client_dt: keep
     useragent:
         os_family: keep
         wmf_app_version: keep
@@ -825,11 +947,18 @@ MobileWikiAppSearch:
         appInstallID: hash
         app_install_id: hash
         numberOfResults: keep
+        number_of_results: keep
         position: keep
-        searchSessionToken: keep
+        searchSessionToken: hash
+        session_token: hash
         source: keep
+        invoke_source: keep
+        language: keep
         timeToDisplayResults: keep
+        time_to_display_results: keep
         typeOfSearch: keep
+        type_of_search: keep
+        client_dt: keep
     useragent:
         os_family: keep
         wmf_app_version: keep
@@ -865,6 +994,8 @@ MobileWikiAppSessions:
         restLatency: keep
         totalPages: keep
         totalPagesViewed: keep
+        languages: keep
+        client_dt: keep
     useragent:
         os_family: keep
         wmf_app_version: keep
@@ -880,8 +1011,8 @@ MobileWikiAppShareAFact:
         page_id: keep
         revID: keep
         rev_id: keep
-        shareSessionToken: keep
-        session_token: keep
+        shareSessionToken: hash
+        session_token: hash
         sharemode: keep
         share_mode: keep
         target: keep
@@ -890,6 +1021,7 @@ MobileWikiAppShareAFact:
         tutorial_feature_enabled: keep
         tutorialShown: keep
         tutorial_shown: keep
+        client_dt: keep
     useragent:
         os_family: keep
         wmf_app_version: keep
@@ -914,6 +1046,7 @@ MobileWikiAppTabs:
         tabCount: keep
         tabIndex: keep
         tabsSessionToken: keep
+        client_dt: keep
     useragent:
         os_family: keep
         wmf_app_version: keep
@@ -926,9 +1059,14 @@ MobileWikiAppToCInteraction:
         appInstallID: hash
         app_install_id: hash
         numSections: keep
+        num_sections: keep
         sectionIndex: keep
+        section_index: keep
         timeSpent: keep
+        time_spent: keep
         tocInteractionToken: keep
+        interaction_token: keep
+        client_dt: keep
     useragent:
         os_family: keep
         wmf_app_version: keep
@@ -950,6 +1088,9 @@ MobileWikiAppWiktionaryPopup:
     event:
         text: keep
         timeSpent: keep
+        time_spent: keep
+        app_install_id: hash
+        client_dt: keep
     useragent:
         os_family: keep
         wmf_app_version: keep
