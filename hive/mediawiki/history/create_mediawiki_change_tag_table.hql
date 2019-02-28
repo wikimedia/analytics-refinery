@@ -14,7 +14,7 @@ CREATE EXTERNAL TABLE `mediawiki_change_tag`(
   `ct_log_id`                     bigint  COMMENT 'log_id for the change.',
   `ct_rev_id`                     bigint  COMMENT 'rev_id for the change. Note that this will not be unique: for each tag applied to a change, a distinct row is added.',
   `ct_tag_id`                     bigint  COMMENT 'Foreign key to primary key of Manual:Change tag def table (change_tag_def.ctd_id).',
-  `ct_params`                     string  COMMENT 'Parameters for the tag. Example: gerrit:139881 in Extension:ContentTranslation.',
+  `ct_params`                     string  COMMENT 'Parameters for the tag. Example: gerrit:139881 in Extension:ContentTranslation.'
 )
 COMMENT
   'See most up to date documentation at https://www.mediawiki.org/wiki/Manual:Change_tag_table'

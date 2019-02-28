@@ -13,7 +13,7 @@ CREATE EXTERNAL TABLE `mediawiki_change_tag_def`(
   `ctd_id`                     bigint  COMMENT 'Numerical ID of the tag (change_tag.ct_tag_id refers to this)',
   `ctd_name`                   string  COMMENT 'Symbolic name of the tag (what would previously be put in change_tag.ct_tag)',
   `ctd_user_defined`           boolean COMMENT 'Whether this tag was defined manually by a privileged user using Special:Tags',
-  `ctd_count`                  bigint  COMMENT 'Number of times this tag was used',
+  `ctd_count`                  bigint  COMMENT 'Number of times this tag was used'
 )
 COMMENT
   'See most up to date documentation at https://www.mediawiki.org/wiki/Manual:Change_tag_def_table'
