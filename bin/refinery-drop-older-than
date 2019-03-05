@@ -298,7 +298,8 @@ def main(args):
     try:
         threshold = datetime.strptime(older_than, '%Y-%m-%d')
     except Exception:
-        threshold = datetime.now() - timedelta(days=int(older_than))
+        now_hourly_truncated = datetime.now().replace(minute=0, second=0, microsecond=0)
+        threshold = now_hourly_truncated - timedelta(days=int(older_than))
 
     # Check and format security checksum.
     checksum = get_security_checksum(args)
