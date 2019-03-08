@@ -15,7 +15,7 @@ class SqoopConfig:
 
     def __init__(self, yarn_job_name_prefix,
                  user, password_file, jdbc_string,
-                 num_mappers, output_format, tmp_base_path,
+                 num_mappers, fetch_size, output_format, tmp_base_path,
                  table_path_template, dbname, table, queries,
                  target_jar_dir, jar_file,
                  current_try, dry_run):
@@ -24,13 +24,16 @@ class SqoopConfig:
         self.user = user
         self.password_file = password_file
         self.jdbc_string = jdbc_string
-        self.num_mappers = num_mappers
+        self.num_mappers_base = num_mappers
+        self.num_mappers_weighted = max(int(num_mappers * queries[table]['mappers-weight']), 1)
+        self.fetch_size = fetch_size
         self.output_format = output_format
         self.tmp_base_path = tmp_base_path
         self.table_path_template = table_path_template
         self.dbname = dbname
         self.table = table
         self.query = queries[table].get('query')
+        self.boundary_query = queries[table]['boundary-query'] if ('boundary-query' in queries[table]) else None
         self.split_by = queries[table]['split-by']
         self.map_types = queries[table]['map-types'] if ('map-types' in queries[table]) else None
         self.target_jar_dir = target_jar_dir
@@ -71,7 +74,7 @@ def sqoop_wiki(config):
             '--username'        , config.user,
             '--password-file'   , config.password_file,
             '--connect'         , config.jdbc_string,
-            '--query'           , config.query,
+            '--query'           , query,
         ]
 
         if config.target_jar_dir:
@@ -93,13 +96,18 @@ def sqoop_wiki(config):
 
             sqoop_arguments += [
                 '--target-dir'      , tmp_target_directory,
-                '--num-mappers'     , str(config.num_mappers),
+                '--num-mappers'     , str(config.num_mappers_weighted),
                 '--as-{}file'.format(config.output_format),
             ]
-            if config.num_mappers > 1:
-                sqoop_arguments += [
-                    '--split-by'    , config.split_by,
-                ]
+
+            if config.fetch_size:
+                sqoop_arguments += ['--fetch-size', str(config.fetch_size)]
+
+            if config.num_mappers_weighted > 1:
+                if config.boundary_query:
+                    sqoop_arguments += ['--boundary-query', config.boundary_query]
+                sqoop_arguments += ['--split-by', config.split_by]
+
 
         if config.jar_file:
             sqoop_arguments += [
@@ -129,13 +137,13 @@ def sqoop_wiki(config):
                 except(Exception):
                     pass
 
-        logger.info('Sqooping with: {}'.format(sqoop_arguments))
+        logger.debug('Sqooping with: {}'.format(sqoop_arguments))
         logger.debug('You can copy the parameters above and execute the sqoop command manually')
         # Ignore sqoop output because it's in Yarn and grabbing output is way complicated
         if not config.dry_run:
             check_call(sqoop_arguments, stdout=DEVNULL, stderr=DEVNULL)
         if not config.target_jar_dir:
-            logger.info('Moving sqooped forlder from {} to {}'.format(tmp_target_directory, target_directory))
+            logger.info('Moving sqooped folder from {} to {}'.format(tmp_target_directory, target_directory))
             if not config.dry_run:
                 HdfsUtils.mv(tmp_target_directory, target_directory, inParent=False)
         logger.info('FINISHED: {}'.format(log_message))
@@ -144,6 +152,19 @@ def sqoop_wiki(config):
         logger.exception('ERROR: {}'.format(log_message))
         config.current_try += 1
         return config
+
+
+def make_timestamp_clause(field_name, from_timestamp, to_timestamp):
+    """
+    Returns a valid SQL boolean clause using the timetamp_field as field-name
+    and from_timestamp and to_timestamp as limit values if defined
+    """
+    timestamp_clause = ''
+    if from_timestamp:
+        timestamp_clause += '''  and {n} >= '{f}' '''.format(n=field_name, f=from_timestamp)
+    if to_timestamp:
+        timestamp_clause += '''  and {n} < '{t}' '''.format(n=field_name, t=to_timestamp)
+    return timestamp_clause
 
 
 def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp, labsdb):
@@ -166,9 +187,10 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp,
         An object of the form:
             {
                 'table-name': {
-                    'query'     : <<the sql query to run on mysql>>,
-                    'map-types' : <<any info to pass as --map-column-java>>,
-                    'split-by'  : <<the column to use to parallelize imports>>,
+                    'query'         : <<the sql query to run on mysql>>,
+                    'boundary-query': <<the sql query to get min and max values for split-by>>,
+                    'split-by'      : <<the column to use to parallelize imports>>,
+                    'map-types'     : <<any info to pass as --map-column-java>>,
                 },
                 ...
             }
@@ -201,17 +223,17 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp,
 
                from archive
               where $CONDITIONS
-                and ar_timestamp >= '{f}'
-                and ar_timestamp <  '{t}'
-        '''.format(f=from_timestamp, t=to_timestamp),
+                {ts_clause}
+        '''.format(ts_clause=make_timestamp_clause('ar_timestamp', from_timestamp, to_timestamp)),
         'map-types': '"{}"'.format(','.join([
             'ar_minor_edit=Boolean',
             'ar_deleted=Integer',
             'ar_actor=Long',
             'ar_comment_id=Long',
         ])),
-
+        'boundary-query': 'SELECT MIN(ar_id), MAX(ar_id) FROM archive',
         'split-by': 'ar_id',
+        'mappers-weight': 0.5,
     }
 
     queries['change_tag'] = {
@@ -231,8 +253,9 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp,
             'ct_rev_id=Long',
             'ct_tag_id=Long',
         ])),
-
+        'boundary-query': 'SELECT MIN(ct_id), MAX(ct_id) FROM change_tag',
         'split-by': 'ct_id',
+        'mappers-weight': 0.5,
     }
 
     queries['change_tag_def'] = {
@@ -250,8 +273,9 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp,
             'ctd_user_defined=Boolean',
             'ctd_count=Long'
         ])),
-
+        'boundary-query': 'SELECT MIN(ctd_id), MAX(ctd_id) FROM change_tag_def',
         'split-by': 'ctd_id',
+        'mappers-weight': 0.0,
     }
 
     queries['ipblocks'] = {
@@ -279,9 +303,8 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp,
 
                from ipblocks
               where $CONDITIONS
-                and ipb_timestamp >= '{f}'
-                and ipb_timestamp <  '{t}'
-        '''.format(f=from_timestamp, t=to_timestamp),
+                {ts_clause}
+        '''.format(ts_clause=make_timestamp_clause('ipb_timestamp', from_timestamp, to_timestamp)),
         'map-types': '"{}"'.format(','.join([
             'ipb_auto=Boolean',
             'ipb_anon_only=Boolean',
@@ -293,8 +316,9 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp,
             'ipb_by_actor=Long',
             'ipb_reason_id=Long',
         ])),
-
+        'boundary-query': 'SELECT MIN(ipb_id), MAX(ipb_id) FROM ipblocks',
         'split-by': 'ipb_id',
+        'mappers-weight': 0.0,
     }
 
     queries['ipblocks_restrictions'] = {
@@ -306,7 +330,9 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp,
                from ipblocks_restrictions
               where $CONDITIONS
         ''',
+        'boundary-query': 'SELECT MIN(ir_ipb_id), MAX(ir_ipb_id) FROM ipblocks_restrictions',
         'split-by': 'ir_ipb_id',
+        'mappers-weight': 0.0,
     }
 
     queries['logging'] = {
@@ -328,15 +354,16 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp,
 
                from logging
               where $CONDITIONS
-                and log_timestamp >= '{f}'
-                and log_timestamp <  '{t}'
-        '''.format(t=to_timestamp, f=from_timestamp),
+                {ts_clause}
+        '''.format(ts_clause=make_timestamp_clause('log_timestamp', from_timestamp, to_timestamp)),
         'map-types': '"{}"'.format(','.join([
             'log_user=Long',
             'log_actor=Long',
             'log_comment_id=Long',
         ])),
+        'boundary-query': 'SELECT MIN(log_id), MAX(log_id) FROM logging',
         'split-by': 'log_id',
+        'mappers-weight': 1.0,
     }
 
     queries['page'] = {
@@ -361,8 +388,9 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp,
             'page_is_redirect=Boolean',
             'page_is_new=Boolean',
         ])),
-
+        'boundary-query': 'SELECT MIN(page_id), MAX(page_id) FROM page',
         'split-by': 'page_id',
+        'mappers-weight': 0.5,
     }
 
     queries['pagelinks'] = {
@@ -375,8 +403,9 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp,
                from pagelinks
               where $CONDITIONS
         ''',
-
+        'boundary-query': 'SELECT MIN(pl_from), MAX(pl_from) FROM pagelinks',
         'split-by': 'pl_from',
+        'mappers-weight': 1.0,
     }
 
     queries['redirect'] = {
@@ -390,8 +419,9 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp,
                from redirect
               where $CONDITIONS
         ''',
-
+        'boundary-query': 'SELECT MIN(rd_from), MAX(rd_from) FROM redirect',
         'split-by': 'rd_from',
+        'mappers-weight': 0.125,
     }
 
     queries['revision'] = {
@@ -414,11 +444,9 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp,
 
                from revision
               where $CONDITIONS
-                and rev_timestamp >= '{f}'
-                and rev_timestamp <  '{t}'
+                {ts_clause}
         '''.format(
-            f=from_timestamp,
-            t=to_timestamp,
+            ts_clause=make_timestamp_clause('rev_timestamp', from_timestamp, to_timestamp),
             labsdb=',rev_actor,coalesce(rev_comment_id,0) rev_comment_id' if labsdb else ',null rev_actor,null rev_comment_id'),
         'map-types': '"{}"'.format(','.join([
             'rev_minor_edit=Boolean',
@@ -426,8 +454,9 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp,
             'rev_actor=Long',
             'rev_comment_id=Long',
         ])),
-
+        'boundary-query': 'SELECT MIN(rev_id), MAX(rev_id) FROM revision',
         'split-by': 'rev_id',
+        'mappers-weight': 1.0,
     }
 
     queries['user'] = {
@@ -445,8 +474,9 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp,
                from user
               where $CONDITIONS
         ''',
-
+        'boundary-query': 'SELECT MIN(user_id), MAX(user_id) FROM user',
         'split-by': 'user_id',
+        'mappers-weight': 0.5,
     }
 
     queries['user_groups'] = {
@@ -457,8 +487,9 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp,
                from user_groups
               where $CONDITIONS
         ''',
-
+        'boundary-query': 'SELECT MIN(ug_user), MAX(ug_user) FROM user_groups',
         'split-by': 'ug_user',
+        'mappers-weight': 0.0,
     }
 
     # documented at https://www.mediawiki.org/wiki/Extension:CheckUser/cu_changes_table
@@ -481,13 +512,14 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp,
                     cuc_agent
                from cu_changes
               where $CONDITIONS
-                and cuc_timestamp >= '{f}'
-                and cuc_timestamp <  '{t}'
-        '''.format(f=from_timestamp, t=to_timestamp),
+                {ts_clause}
+        '''.format(ts_clause=make_timestamp_clause('cuc_timestamp', from_timestamp, to_timestamp)),
         'map-types': '"{}"'.format(','.join([
             'cuc_minor=Boolean',
         ])),
+        'boundary-query': 'SELECT MIN(cuc_id), MAX(cuc_id) FROM cu_changes',
         'split-by': 'cuc_id',
+        'mappers-weight': 0.5,
     }
 
     queries['actor'] = {
@@ -500,7 +532,9 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp,
                from actor
               where $CONDITIONS
         ''',
+        'boundary-query': 'SELECT MIN(actor_id), MAX(actor_id) FROM actor',
         'split-by': 'actor_id',
+        'mappers-weight': 0.5,
     }
 
     queries['comment'] = {
@@ -511,7 +545,9 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp,
                from comment
               where $CONDITIONS
         ''',
+        'boundary-query': 'SELECT MIN(comment_id), MAX(comment_id) FROM comment',
         'split-by': 'comment_id',
+        'mappers-weight': 1.0,
     }
 
     if filter_tables:
