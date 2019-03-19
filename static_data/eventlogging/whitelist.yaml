@@ -982,6 +982,7 @@ MobileWikiAppSessions:
         fromRandom: keep
         fromReadingList: keep
         fromSearch: keep
+        fromSuggestedEdits: keep
         leadLatency: keep
         length: keep
         noDescription: keep
@@ -995,6 +996,7 @@ MobileWikiAppSessions:
         totalPages: keep
         totalPagesViewed: keep
         languages: keep
+        session_token: hash
         client_dt: keep
     useragent:
         os_family: keep
@@ -1032,6 +1034,22 @@ MobileWikiAppStuffHappens:
     event:
         applicationContext: keep
         failedEndpoint: keep
+    useragent:
+        os_family: keep
+        wmf_app_version: keep
+    webhost: keep
+    wiki: keep
+
+MobileWikiAppSuggestedEdits:
+    event:
+        time_spent: keep
+        edit_tasks: keep
+        help_opened: keep
+        scorecard_opened: keep
+        source: keep
+        session_token: hash
+        app_install_id: hash
+        client_dt: keep
     useragent:
         os_family: keep
         wmf_app_version: keep
