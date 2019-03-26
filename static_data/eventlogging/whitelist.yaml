@@ -47,6 +47,11 @@ ChangesListFilters:
     webhost: keep
     wiki: keep
 
+CpuBenchmark:
+    event:
+        score: keep
+        pageviewToken: hash
+
 DiacriticsPoll:
     event:
         country: keep
@@ -1265,7 +1270,7 @@ NavigationTiming:
         namespaceId: keep
         netSpeed: keep
         netinfoEffectiveConnectionType: keep
-        pageviewToken: keep
+        pageviewToken: hash
         oversampleReason: keep
         receiving: keep
         redirectCount: keep
@@ -1335,7 +1340,7 @@ Print:
 QuickSurveyInitiation:
     event:
         eventName: keep
-        pageviewToken: keep
+        pageviewToken: hash
         performanceNow: keep
         surveyCodeName: keep
         surveyInstanceToken: keep
@@ -1351,7 +1356,7 @@ QuickSurveysResponses:
         namespaceId: keep
         pageId: keep
         pageTitle: keep
-        pageviewToken: keep
+        pageviewToken: hash
         platform: keep
         surveyCodeName: keep
         surveyInstanceToken: keep
@@ -1404,7 +1409,7 @@ ResourceTiming:
         label: keep
         name: keep
         nextHopProtocol: keep
-        pageviewToken: keep
+        pageviewToken: hash
         redirectEnd: keep
         redirectStart: keep
         requestStart: keep
@@ -1446,7 +1451,7 @@ ServerTiming:
         description: keep
         duration: keep
         name: keep
-        pageviewToken: keep
+        pageviewToken: hash
 
 TaskRecommendation:
     event:
