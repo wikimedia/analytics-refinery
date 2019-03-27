@@ -42,7 +42,7 @@ except ImportError:
 logger = logging.getLogger('refinery-util')
 MW_CONFIG_PATH = '/srv/mediawiki-config'
 
-CLOUD_DB_HOST = 'labsdb-analytics.eqiad.wmnet'
+CLOUD_DB_HOST = 'labsdb1012.eqiad.wmnet'
 CLOUD_DB_POSTFIX = '_p'
 JDBC_TEMPLATE = 'jdbc:mysql://{host}/{dbname}'
 JDBC_TEMPLATE_WITH_PORT = 'jdbc:mysql://{host}:{port}/{dbname}'

@@ -107,7 +107,7 @@ if __name__ == '__main__':
     for table in queries.keys():
         executor_config_list.append(
             SqoopConfig(yarn_job_name_prefix, user, password_file, jdbc_string, 1,
-                        None, None, None, example_dbname, table, queries,
+                        None, None, None, None, example_dbname, table, queries,
                         target_jar_directory, None, 1, False)
         )
 

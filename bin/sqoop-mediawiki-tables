@@ -23,8 +23,6 @@
 #     --password-file /user/milimetric/mysql-analytics-research-client-pw.txt \
 #     --wiki-file "/mnt/hdfs/wmf/refinery/current/static_data/mediawiki/grouped_wikis/grouped_wikis_test.csv" \
 #     --tables revision,archive,page,logging,user,user_groups \
-#     --from-timestamp 20010101000000 \
-#     --to-timestamp 20180301000000 \
 #     --partition-name snapshot \
 #     --partition-value test \
 #     --output-format avrodata \
@@ -40,9 +38,9 @@ Usage:
   sqoop-mediawiki-tables --output-dir HDFS_PATH
           [--labsdb] --user NAME --password-file FILE
           [--max-tries TRIES] --wiki-file WIKIS --tables TABLES
-          [--verbose] --from-timestamp FROM --to-timestamp TO
+          [--verbose] [--from-timestamp FROM] [--to-timestamp TO]
           [--force] --partition-name PART --partition-value PVAL
-          [--mappers NUM] [--processors NUM]
+          [--mappers NUM] [--processors NUM]  [--fetch-size NUM]
           [--hdfs-tmp-path HTMP]  [--local-tmp-path LTMP]
           [--job-name JOB_NAME] [--jar-file JAR_IN] --output-format FMT
           [--log-file LOG] [--dry-run]
@@ -68,8 +66,10 @@ Options:
                                         in two different ways.
     -F FROM --from-timestamp FROM       Get records with time >= this for all tables that
                                         have timestamps.  Format is YYYYMMDD000000
+                                        [optional]
     -T TO --to-timestamp TO             Get records with time <  this for all tables that
                                         have timestamps.  Format is YYYYMMDD000000
+                                        [optional]
     -s PART --partition-name PART       The name of the partition to use for this data.
                                         (for example, in month=2018-02, --partition-name
                                         is snapshot)
@@ -79,19 +79,20 @@ Options:
     -u NAME --user NAME                 mysql user to use
     -p FILE --password-file FILE        File with mysql password to use
 
-    -m NUM --mappers NUM                The number of mappers to use to sqoop big tables
-                                        If the group of wikis from --wiki-file is larger
-                                        than 3 wikis, this number will get changed to 1
-                                        regardless of what is passed in, to prevent too
-                                        many parallel connections to the source database
+    -m NUM --mappers NUM                The maximum number of mappers to use to sqoop big tables.
+                                        The actual number of mappers used for each wiki depends
+                                        on the number of processors used (see below) and the
+                                        number of wikis grouped together. If the number of wikis
+                                        in the group is bigger than the number of processors, use
+                                        1 mapper, otherwise use the number of mappers defined here
                                         [optional] default is 1
-    -k NUM --processors NUM             The number of parallel processors sqooping
-                                        If the group of wikis from --wiki-file is smaller
-                                        than 3 wikis, this number will be changed to 1
-                                        regardless of what is passed in, to prevent too
-                                        many parallel sqoop jobs on a big wiki
+    -k NUM --processors NUM             The maximum number of parallel processors sqooping.
+                                        Pools are build depending on mappers defined per job,
+                                        so that no more that '--mappers' run in parallel
                                         [optional] default is the number of
                                         processors on the machine
+    -c NUM --fetch-size NUM             The number of rows to fetch at once from mysql.
+                                        [optional] default is None
     -j JOB_NAME --job-name JOB_NAME     The yarn job name prefix, only one job with
                                         a certain prefix can run at a time.
                                         [optional] default is sqoop-mediawiki-tables
@@ -162,6 +163,8 @@ if __name__ == '__main__':
 
     num_mappers                         = int(arguments.get('--mappers') or '1')
     num_processors                      = int(arguments.get('--processors')) if arguments.get('--processors') else None
+    fetch_size                          = int(arguments.get('--fetch-size')) if arguments.get('--fetch-size') else None
+
     output_format                       = arguments.get('--output-format')
 
     hdfs_tmp_path                       = arguments.get('--hdfs-tmp-path')
@@ -215,7 +218,7 @@ if __name__ == '__main__':
     logger.debug('All table paths are empty or force cleaned')
 
     failed_jobs = []
-    executor_config_list = []
+    sqoop_commands = []
 
     ####################################################
     # First Step - Generate JAR using etwiki if no jar_file specifiec
@@ -230,13 +233,13 @@ if __name__ == '__main__':
         example_dbname = 'etwiki'
         jdbc_string = get_jdbc_string(example_dbname, labsdb, db_mapping)
         for table in queries.keys():
-            executor_config_list.append(
+            sqoop_commands.append(
                 SqoopConfig(yarn_job_name_prefix, user, password_file, jdbc_string, 1,
-                            None, None, None, example_dbname, table, queries,
+                            None, None, None, None, example_dbname, table, queries,
                             target_jar_directory, None, 1, False))
 
-        with futures.ProcessPoolExecutor(1) as executor:
-            failed_jobs.extend(filter(None, list(executor.map(sqoop_wiki, executor_config_list))))
+        with futures.ProcessPoolExecutor(num_processors) as executor:
+            failed_jobs.extend(filter(None, list(executor.map(sqoop_wiki, sqoop_commands))))
             if len(failed_jobs):
                 failed_tables = ', '.join([c.table for c in failed_jobs])
                 logger.error('ERROR generating ORM jar for {}'.format(failed_tables))
@@ -257,36 +260,48 @@ if __name__ == '__main__':
         flat_wikis = [row for row in csv.reader(dbs_file) if not row[0].startswith('#')]
 
     failed_jobs = []
+    sqoop_commands_map = {}
     for group, wikis in groupby(flat_wikis, lambda w: w[1]):
         logger.debug('Processing group {}'.format(group))
-        executor_config_list = []
-        wikiList = list(wikis)
 
-        # If there are many wikis in a group set num_mappers to 1
-        # This is because you don't want to sqoop in parallel when the amount of data is small
-        # Also, do the opposite with num_processors for the same reason
-        num_mappers_adjusted = num_mappers
-        num_processors_adjusted = 1
-        if len(wikiList) > 3:
+        # get wiki_db from rows containing: wiki, group, size
+        wikiList = [w[0] for w in list(wikis)]
+
+        # Use as many processors as wikis in the list, up to num_processors
+        num_processors_adjusted = min(len(wikiList), num_processors)
+        # Use a number of mappers that sum up to num_mappers
+        # when having more than one processors
+        num_mappers_adjusted = num_mappers / num_processors_adjusted
+        # use 1 mapper only if number of wikis in group is higher
+        # than number of processors
+        if len(wikiList) > num_processors:
             num_mappers_adjusted = 1
-            num_processors_adjusted = num_processors
 
-        for w in wikiList:
-            jdbc_string = get_jdbc_string(w[0], labsdb, db_mapping)
+        for wiki_db in wikiList:
+            jdbc_string = get_jdbc_string(wiki_db, labsdb, db_mapping)
             for table in queries.keys():
-                executor_config_list.append(
-                    SqoopConfig(yarn_job_name_prefix, user, password_file, jdbc_string,
-                                num_mappers_adjusted, output_format, hdfs_tmp_path,
-                                table_path_template, w[0], table, queries,
-                                None, jar_file, 1, dry_run))
+                config = SqoopConfig(yarn_job_name_prefix, user, password_file, jdbc_string,
+                                     num_mappers_adjusted, fetch_size, output_format,
+                                     hdfs_tmp_path, table_path_template, wiki_db, table,
+                                     queries, None, jar_file, 1, dry_run)
+                # Pool-size is at maximum num_processors, or the number of parallel jobs
+                # to be possibly run in parallel: num_mappers / num_mappers_adjusted
+                pool_size = min(int(num_mappers / num_mappers_adjusted), num_processors)
 
-        # sqoop all wikis in this group and wait for them all to finish with retry
-        with futures.ProcessPoolExecutor(num_processors_adjusted) as executor:
+                if pool_size not in sqoop_commands_map:
+                    sqoop_commands_map[pool_size] = []
+                sqoop_commands_map[pool_size].append(config)
+
+    for pool_size in sqoop_commands_map:
+        # sqoop all (wiki, table) pairs in this pool-size
+        # and wait for them all to finish with retry
+        sqoop_commands = sqoop_commands_map[pool_size]
+        with futures.ProcessPoolExecutor(pool_size) as executor:
             current_try = 0
-            while (executor_config_list and current_try < max_tries):
-                executor_config_list = filter(None, list(executor.map(sqoop_wiki, executor_config_list)))
+            while (sqoop_commands and current_try < max_tries):
+                sqoop_commands = filter(None, list(executor.map(sqoop_wiki, sqoop_commands)))
                 current_try += 1
-        failed_jobs.extend(executor_config_list)
+        failed_jobs.extend(sqoop_commands)
 
     # Write success flags for tables NOT having failed-job
     # Get tables having at least one failed job
