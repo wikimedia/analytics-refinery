@@ -27,4 +27,12 @@ Use this dataset in your coordinator.xml files by setting:
         <done-flag>_SUCCESS</done-flag>
     </dataset>
 
+    <dataset name="geoeditors_edits_monthly"
+             frequency="${coord:months(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${mw_private_directory}/geoeditors_edits_monthly/month=${YEAR}-${MONTH}</uri-template>
+        <done-flag>_SUCCESS</done-flag>
+    </dataset>
+
 </datasets>
