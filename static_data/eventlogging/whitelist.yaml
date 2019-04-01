@@ -130,6 +130,7 @@ EditAttemptStep:
         abort_mechanism: keep
         abort_timing: keep
         abort_type: keep
+        bucket: keep
         init_mechanism: keep
         init_timing: keep
         init_type: keep
