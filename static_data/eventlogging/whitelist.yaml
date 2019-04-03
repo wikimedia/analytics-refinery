@@ -309,6 +309,21 @@ GuidedTourInternalLinkActivation:
     webhost: keep
     wiki: keep
 
+HelpPanel:
+    event:
+        action: keep
+        action_data: keep
+        user_id: keep
+        user_editcount: keep
+        editor_interface: keep
+        is_mobile: keep
+        page_ns: keep
+        user_can_edit: keep
+        page_protection: keep
+        help_panel_session_id: keep
+    webhost: keep
+    wiki: keep
+
 Kartographer:
     event:
         action: keep
