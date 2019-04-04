@@ -18,7 +18,8 @@
 
 """
 Automatically drops old partitions from the mediawiki raw and historical
-tables. See AFFECTED_TABLES dict for a comprehensive list.
+tables, and tables derived from them, that keep the same snapshot structure.
+See AFFECTED_TABLES dict for a comprehensive list.
 
 As this data sets are historical (they span from the beginning of time
 to latest import), the dimension used to determine which partitions need
@@ -105,6 +106,7 @@ AFFECTED_TABLES = {
         'mediawiki_user_history',
         'mediawiki_history_reduced',
         'mediawiki_wikitext_history',
+        'edit_hourly'
     ]
 }
 
