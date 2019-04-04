@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coordinator-app xmlns="uri:oozie:coordinator:0.4"
+    xmlns:sla="uri:oozie:sla:0.2"
+    name="edit-hourly-coord"
+    frequency="${coord:months(1)}"
+    start="${start_time}"
+    end="${stop_time}"
+    timezone="Universal">
+
+    <parameters>
+        <property><name>start_time</name></property>
+        <property><name>stop_time</name></property>
+        <property><name>mediawiki_history_datasets_file</name></property>
+        <property><name>mw_directory</name></property>
+        <property><name>edit_datasets_file</name></property>
+        <property><name>edit_data_directory</name></property>
+        <property><name>workflow_file</name></property>
+    </parameters>
+
+    <controls>
+        <timeout>-1</timeout>
+        <concurrency>2</concurrency>
+        <throttle>2</throttle>
+    </controls>
+
+    <datasets>
+        <include>${mediawiki_history_datasets_file}</include>
+        <include>${mediawiki_history_datasets_raw_file}</include>
+        <include>${edit_datasets_file}</include>
+    </datasets>
+
+    <input-events>
+        <data-in name="mediawiki_history_input" dataset="mw_denormalized_history_partitioned">
+            <instance>${coord:current(0)}</instance>
+        </data-in>
+        <data-in name="project_map_input" dataset="mw_project_namespace_map_partitioned">
+            <instance>${coord:current(0)}</instance>
+        </data-in>
+    </input-events>
+
+    <output-events>
+        <data-out name="edit_hourly_output" dataset="edit_hourly">
+            <instance>${coord:current(0)}</instance>
+        </data-out>
+    </output-events>
+
+    <action>
+        <workflow>
+            <app-path>${workflow_file}</app-path>
+            <configuration>
+                <property>
+                    <name>snapshot</name>
+                    <value>${coord:formatTime(coord:nominalTime(), "yyyy")}-${coord:formatTime(coord:nominalTime(), "MM")}</value>
+                </property>
+                <property>
+                    <name>done_flag_destination_directory</name>
+                    <value>${coord:dataOut('edit_hourly_output')}</value>
+                </property>
+            </configuration>
+        </workflow>
+    </action>
+</coordinator-app>
