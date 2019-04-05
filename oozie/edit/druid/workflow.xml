@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow-app xmlns="uri:oozie:workflow:0.4"
+    name="edit-hourly-druid-wf-${snapshot}">
+
+    <parameters>
+
+        <!-- Required properties. -->
+        <property><name>name_node</name></property>
+        <property><name>job_tracker</name></property>
+        <property><name>queue_name</name></property>
+        <property><name>snapshot</name></property>
+        <property><name>loaded_period</name></property>
+        <property><name>edit_hourly_location</name></property>
+        <property><name>druid_template_file</name></property>
+        <property><name>druid_overlord_url</name></property>
+        <property><name>druid_datasource</name></property>
+        <property><name>load_druid_workflow_file</name></property>
+        <property><name>send_error_email_workflow_file</name></property>
+
+        <!-- Inner properties. -->
+        <property>
+            <name>oozie_launcher_queue_name</name>
+            <value>${queue_name}</value>
+        </property>
+        <property>
+            <name>oozie_launcher_memory</name>
+            <value>2048</value>
+        </property>
+
+    </parameters>
+
+    <start to="index_druid"/>
+
+    <action name="index_druid">
+        <sub-workflow>
+            <app-path>${load_druid_workflow_file}</app-path>
+            <propagate-configuration/>
+            <configuration>
+                <property>
+                    <name>source_directory</name>
+                    <value>${edit_hourly_location}</value>
+                </property>
+                <property>
+                    <name>template_file</name>
+                    <value>${druid_template_file}</value>
+                </property>
+                <property>
+                    <name>loaded_period</name>
+                    <value>${loaded_period}</value>
+                </property>
+                <property>
+                    <name>druid_overlord_url</name>
+                    <value>${druid_overlord_url}</value>
+                </property>
+                <property>
+                    <name>target_datasource</name>
+                    <value>${druid_datasource}</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="end"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <action name="send_error_email">
+        <sub-workflow>
+            <app-path>${send_error_email_workflow_file}</app-path>
+            <propagate-configuration/>
+            <configuration>
+                <property>
+                    <name>parent_name</name>
+                    <value>${wf:name()}</value>
+                </property>
+                <property>
+                    <name>parent_failed_action</name>
+                    <value>${wf:lastErrorNode()}</value>
+                </property>
+                <property>
+                    <name>parent_error_code</name>
+                    <value>${wf:errorCode(wf:lastErrorNode())}</value>
+                </property>
+                <property>
+                    <name>parent_error_message</name>
+                    <value>${wf:errorMessage(wf:lastErrorNode())}</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="kill"/>
+        <error to="kill"/>
+    </action>
+
+    <kill name="kill">
+        <message>Action failed, error message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+    </kill>
+    <end name="end"/>
+</workflow-app>
