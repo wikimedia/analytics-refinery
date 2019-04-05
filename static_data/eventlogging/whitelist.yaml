@@ -482,6 +482,16 @@ MobileWebSectionUsage:
     webhost: keep
     wiki: keep
 
+MobileWebShareButton:
+    event:
+        action: keep
+        isAnon: keep
+        pageTitle: keep
+        pageToken: keep
+        namespaceId: keep
+    webhost: keep
+    wiki: keep
+
 MobileWebUIClickTracking:
     editCountBucket: keep
     event:
