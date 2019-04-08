@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow-app xmlns="uri:oozie:workflow:0.4" name="article-recommender-wf">
+    <parameters>
+        <property>
+            <name>oozie.action.sharelib.for.spark</name>
+            <value>${oozie_spark_lib}</value>
+        </property>
+
+        <!-- Default values for inner oozie settings -->
+        <property>
+            <name>oozie_launcher_queue_name</name>
+            <value>${queue_name}</value>
+        </property>
+        <property>
+            <name>oozie_launcher_memory</name>
+            <value>${oozie_launcher_memory}</value>
+        </property>
+
+        <property>
+            <name>spark_master</name>
+            <description>The spark master</description>
+        </property>
+        <property>
+            <name>spark_deploy</name>
+            <description>The spark deploy mode</description>
+        </property>
+        <property>
+            <name>spark_app_name</name>
+            <description>The spark application name</description>
+        </property>
+
+        <property>
+            <name>spark_executor_cores</name>
+            <description>CPU cores to allocate for each spark executor</description>
+        </property>
+        <property>
+            <name>spark_executor_memory</name>
+            <description>Memory to allocate for each spark executor</description>
+        </property>
+        <property>
+            <name>spark_executor_memory_overhead</name>
+            <description>Memory-overhead to allocate for each spark executor</description>
+        </property>
+        <property>
+            <name>spark_driver_memory</name>
+            <description>Memory to allocate for spark driver process</description>
+        </property>
+        <property>
+            <name>spark_max_executors</name>
+            <description>Maximum concurrent number of executors for spark dynamic allocation</description>
+        </property>
+        <property>
+            <name>spark_app_jar</name>
+            <description>Main Python entry point</description>
+        </property>
+        <property>
+            <name>yarn_archives</name>
+            <description>Python virtual environment zip</description>
+        </property>
+        <property>
+            <name>spark_pyspark_python</name>
+            <description>Location of the Python executable in the virtual environment</description>
+        </property>
+        <property>
+            <name>script_language_pairs_file</name>
+            <description>TSV file that contains a list of languages to generate output for</description>
+        </property>
+        <property>
+            <name>script_end_date</name>
+            <description>End date for calculating page views (YYYYMMDD)</description>
+        </property>
+        <property>
+            <name>script_wikidata_dir</name>
+            <description>Location of Wikidata dumps in parquet format</description>
+        </property>
+        <property>
+            <name>script_topsites_file</name>
+            <description>List of top 50 Wikipedias by edit count</description>
+        </property>
+        <property>
+            <name>script_output_dir</name>
+            <description>Location for saving generated scores</description>
+        </property>
+        <property>
+            <name>script_tmp_dir</name>
+            <description>Location for saving temporary files</description>
+        </property>
+
+        <property>
+            <name>send_error_email_workflow_file</name>
+            <description>Workflow for sending an email</description>
+        </property>
+    </parameters>
+
+    <start to="recommend"/>
+
+    <action name="recommend">
+        <spark xmlns="uri:oozie:spark-action:0.1">
+            <job-tracker>${job_tracker}</job-tracker>
+            <name-node>${name_node}</name-node>
+            <master>${spark_master}</master>
+            <mode>${spark_deploy}</mode>
+            <name>${spark_app_name}</name>
+            <jar>${spark_app_jar}</jar>
+            <spark-opts>--archives ${yarn_archives} --conf spark.pyspark.python=${spark_pyspark_python} --conf spark.dynamicAllocation.maxExecutors=${spark_max_executors} --executor-memory ${spark_executor_memory} --driver-memory ${spark_driver_memory} --num-executors ${spark_max_executors} --queue ${queue_name}</spark-opts>
+            <!-- arguments for pyspark script -->
+            <arg>${script_end_date}</arg>
+            <arg>--spark_app_name</arg>
+            <arg>${spark_app_name}</arg>
+            <arg>--language_pairs_file</arg>
+            <arg>${script_language_pairs_file}</arg>
+            <arg>--wikidata_dir</arg>
+            <arg>${script_wikidata_dir}</arg>
+            <arg>--topsites_file</arg>
+            <arg>${script_topsites_file}</arg>
+            <arg>--output_dir</arg>
+            <arg>${script_output_dir}</arg>
+            <arg>--tmp_dir</arg>
+            <arg>${script_tmp_dir}</arg>
+        </spark>
+        <ok to="end"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <action name="send_error_email">
+        <sub-workflow>
+            <app-path>${send_error_email_workflow_file}</app-path>
+            <propagate-configuration/>
+            <configuration>
+                <property>
+                    <name>parent_name</name>
+                    <value>${wf:name()}</value>
+                </property>
+                <property>
+                    <name>parent_failed_action</name>
+                    <value>${wf:lastErrorNode()}</value>
+                </property>
+                <property>
+                    <name>to</name>
+                    <value>research-alerts@wikimedia.org</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="kill"/>
+        <error to="kill"/>
+    </action>
+
+    <kill name="kill">
+        <message>Action failed, error message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+    </kill>
+    <end name="end"/>
+</workflow-app>

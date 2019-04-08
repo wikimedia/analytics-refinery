@@ -1,0 +1,5 @@
+source	target
+de	en
+en	es
+en	fa
+ru	uz
