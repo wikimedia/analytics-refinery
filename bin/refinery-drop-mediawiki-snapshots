@@ -40,7 +40,8 @@ Options:
 
 
 from docopt import docopt
-from refinery.util import HiveUtils, HdfsUtils
+from refinery.hive import Hive
+from refinery.hdfs import Hdfs
 import datetime
 import logging
 import os
@@ -139,7 +140,7 @@ def get_partition_age(hive):
 def get_partitions_to_drop(hive, table, keep_snapshots):
     logger.debug('Getting partitions to drop...')
     partitions = hive.partition_specs(table)
-    spec_separator = HiveUtils.partition_spec_separator
+    spec_separator = Hive.partition_spec_separator
 
     # For tables partitioned by dimensions other than snapshot
     # extract just the snapshot spec:
@@ -162,7 +163,7 @@ def get_partitions_to_drop(hive, table, keep_snapshots):
     partitions_to_drop = partitions[keep_snapshots:]
 
     # HACK: For tables partitioned by dimensions other than snapshot
-    # add <dimension>!='' to snapshot spec, so that HiveUtils deletes
+    # add <dimension>!='' to snapshot spec, so that Hive deletes
     # the whole snapshot partition with all sub-partitions in it.
     if table in WIKI_DB_TABLES:
         partitions_to_drop = [
@@ -191,7 +192,7 @@ def get_directories_to_remove(hive, table, keep_snapshots):
 
     # Get partition directories
     glob = os.path.join(table_location, '*')
-    directories = HdfsUtils.ls(glob, include_children=False)
+    directories = Hdfs.ls(glob, include_children=False)
 
     # Filter out private snapshots
     directories = [
@@ -205,7 +206,7 @@ def get_directories_to_remove(hive, table, keep_snapshots):
 
 # Raises an error if partitions and directories do not match
 def check_partitions_vs_directories(partitions, directories):
-    spec_separator = HiveUtils.partition_spec_separator
+    spec_separator = Hive.partition_spec_separator
     partition_snapshots = set([p.split(spec_separator)[0].replace("'", '') for p in partitions])
     directory_snapshots = set([os.path.basename(d) for d in directories])
     if partition_snapshots != directory_snapshots:
@@ -247,7 +248,7 @@ def remove_directories(hive, table, directories, dry_run):
             )
             for directory in directories:
                 logger.debug(directory)
-            HdfsUtils.rm(' '.join(directories))
+            Hdfs.rm(' '.join(directories))
     else:
         logger.info('No directories need to be removed for {0}'.format(table_location))
 
@@ -270,8 +271,8 @@ if __name__ == '__main__':
         sys.exit(1)
 
     for database, tables in AFFECTED_TABLES.items():
-        # Instantiate HiveUtils
-        hive = HiveUtils(database)
+        # Instantiate Hive
+        hive = Hive(database)
 
         # Apply the cleaning to each table
         for table in tables:

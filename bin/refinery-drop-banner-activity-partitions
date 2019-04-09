@@ -35,7 +35,7 @@ Options:
 from docopt import docopt
 from datetime import datetime
 from dateutil import relativedelta
-from refinery.util import HdfsUtils
+from refinery.hdfs import Hdfs
 import logging
 import sys
 import os
@@ -90,7 +90,7 @@ if __name__ == '__main__':
 
     # iterate year folders
     year_glob = os.path.join(location, 'daily/*')
-    for year_path in HdfsUtils.ls(year_glob, include_children=False):
+    for year_path in Hdfs.ls(year_glob, include_children=False):
         year = int(year_path[year_path.rindex('=') + 1:])
 
         # check if whole year can be deleted
@@ -101,7 +101,7 @@ if __name__ == '__main__':
         else:
             # iterate month folders
             month_glob = os.path.join(location, 'daily/year=%d/*' % year)
-            for month_path in HdfsUtils.ls(month_glob, include_children=False):
+            for month_path in Hdfs.ls(month_glob, include_children=False):
                 month = int(month_path[month_path.rindex('=') + 1:])
 
                 # check if whole month can be deleted
@@ -112,7 +112,7 @@ if __name__ == '__main__':
                 else:
                     # iterate day folders
                     day_glob = os.path.join(location, 'daily/year=%d/month=%d/*' % (year, month))
-                    for day_path in HdfsUtils.ls(day_glob, include_children=False):
+                    for day_path in Hdfs.ls(day_glob, include_children=False):
                         day = int(day_path[day_path.rindex('=') + 1:])
 
                         # check if day can be deleted
@@ -128,7 +128,7 @@ if __name__ == '__main__':
             logger.info('Dry run finished!')
         else:
             logger.info('Removing {0} directories from {1} ...'.format(len(paths_to_delete), location))
-            HdfsUtils.rm(' '.join(paths_to_delete))
+            Hdfs.rm(' '.join(paths_to_delete))
             logger.info('Done!')
     else:
         logger.info('No directories need to be removed from {0}.'.format(location))

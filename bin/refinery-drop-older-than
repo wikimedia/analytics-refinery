@@ -88,7 +88,8 @@ Options:
 from datetime import datetime, timedelta
 from docopt import docopt
 from refinery.logging_setup import configure_logging
-from refinery.util import HiveUtils, HdfsUtils
+from refinery.hive import Hive
+from refinery.hdfs import Hdfs
 import calendar
 import hashlib
 import logging
@@ -308,7 +309,7 @@ def main(args):
 
     if database is not None:
         drop_partitions(
-            HiveUtils(database),
+            Hive(database),
             database,
             tables_regex,
             threshold,
@@ -316,7 +317,7 @@ def main(args):
 
     if base_path is not None:
         remove_directories(
-            HdfsUtils,
+            Hdfs,
             base_path,
             path_format,
             threshold,
@@ -338,7 +339,7 @@ class TestRefineryDropOlderThan(unittest.TestCase):
     measure to prevent execution if the code is not behaving as expected.
     """
 
-    class FakeHiveUtils(object):
+    class FakeHive(object):
         def __init__(self, tables, partitions):
             self.get_tables = MagicMock(return_value=tables)
             self.partitions = MagicMock(return_value=partitions)
@@ -350,7 +351,7 @@ class TestRefineryDropOlderThan(unittest.TestCase):
             self.datetime = MagicMock(return_value=dt)
             self.spec = MagicMock(return_value=spec)
 
-    class FakeHdfsUtils(object):
+    class FakeHdfs(object):
         def __init__(self, paths):
             self.ls = MagicMock(return_value=paths)
             self.rm = MagicMock()
@@ -466,7 +467,7 @@ class TestRefineryDropOlderThan(unittest.TestCase):
         self.assertEqual(should_remove(path, format, threshold2), False)
 
     def test_remove_directories_does_delete_with_execute(self):
-        fake_hdfs = self.FakeHdfsUtils(['/some/due/path/2018/11/01'])
+        fake_hdfs = self.FakeHdfs(['/some/due/path/2018/11/01'])
         remove_directories(
             fake_hdfs,
             '/some/due/path',
@@ -478,7 +479,7 @@ class TestRefineryDropOlderThan(unittest.TestCase):
         fake_hdfs.rm.assert_called_with('/some/due/path/2018/11/01', skip_trash=False)
 
     def test_remove_directories_does_nothing_with_dryrun(self):
-        fake_hdfs = self.FakeHdfsUtils(['/some/due/path/2018/11/01'])
+        fake_hdfs = self.FakeHdfs(['/some/due/path/2018/11/01'])
         remove_directories(
             fake_hdfs,
             '/some/due/path',
@@ -490,7 +491,7 @@ class TestRefineryDropOlderThan(unittest.TestCase):
         fake_hdfs.rm.assert_not_called()
 
     def test_remove_directories_sets_skip_trash_parameter(self):
-        fake_hdfs = self.FakeHdfsUtils(['/some/due/path/2018/11/01'])
+        fake_hdfs = self.FakeHdfs(['/some/due/path/2018/11/01'])
         remove_directories(
             fake_hdfs,
             '/some/due/path',
@@ -503,7 +504,7 @@ class TestRefineryDropOlderThan(unittest.TestCase):
 
     def test_drop_partitions_does_delete_with_execute(self):
         partition1 = self.FakePartition(datetime(2018, 11, 22, 0), 'spec1')
-        fake_hive = self.FakeHiveUtils(['t1'], [partition1])
+        fake_hive = self.FakeHive(['t1'], [partition1])
         drop_partitions(fake_hive, 'db1', 't1', datetime(2018, 12, 1, 0), True)
         fake_hive.get_tables.assert_called()
         fake_hive.partitions.assert_called_with('t1')
@@ -511,7 +512,7 @@ class TestRefineryDropOlderThan(unittest.TestCase):
 
     def test_drop_partitions_does_nothing_with_dryrun(self):
         partition1 = self.FakePartition(datetime(2018, 11, 22, 0), 'spec1')
-        fake_hive = self.FakeHiveUtils(['t1'], [partition1])
+        fake_hive = self.FakeHive(['t1'], [partition1])
         drop_partitions(fake_hive, 'db1', 't1', datetime(2018, 12, 1, 0), False)
         fake_hive.get_tables.assert_called()
         fake_hive.partitions.assert_called_with('t1')
