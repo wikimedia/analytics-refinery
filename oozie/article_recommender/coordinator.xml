@@ -18,6 +18,19 @@
         <property><name>send_error_email_workflow_file</name></property>
     </parameters>
 
+    <datasets>
+        <dataset name="wikidata" frequency="${coord:months(3)}" initial-instance="${start_time}" timezone="Universal">
+            <!-- TODO: Change this path to the output of T209655. -->
+            <uri-template>${name_node}/user/joal/wmf/data/wmf/mediawiki/wikidata_parquet/${YEAR}${MONTH}${DAY}</uri-template>
+        </dataset>
+    </datasets>
+
+    <input-events>
+        <data-in name="coordWikidata" dataset="wikidata">
+            <instance>${coord:current(0)}</instance>
+        </data-in>
+    </input-events>
+
     <action>
         <workflow>
             <app-path>${workflow_file}</app-path>
@@ -25,6 +38,10 @@
                 <property>
                     <name>script_end_date</name>
                     <value>${coord:formatTime(coord:nominalTime(), "YYYY")}${coord:formatTime(coord:nominalTime(), "MM")}${coord:formatTime(coord:nominalTime(), "dd")}</value>
+                </property>
+                <property>
+                    <name>script_wikidata_dir</name>
+                    <value>${coord:dataIn('wikidata')}</value>
                 </property>
             </configuration>
         </workflow>
