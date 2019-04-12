@@ -42,10 +42,11 @@ import re
 import os
 import logging
 
-from refinery.util import HiveUtils, HdfsUtils
+from refinery.hive import Hive
+from refinery.hdfs import Hdfs
 
 # Allows easy extraction of partition fields from the partition spec.
-# This regex is used with HiveUtils partition_datetime_from_spec.
+# This regex is used with Hive partition_datetime_from_spec.
 # and could be used with HDFS partition paths that match the default
 # Hive partition layout (I.e. key1=val1/key2=val2, etc.)
 partition_spec_regex   = re.compile(r'webrequest_source=(?P<webrequest_source>[^/,]+)[/,]year=(?P<year>[^/,]+)[/,]month=(?P<month>[^/,]+)[/,]day=(?P<day>[^/]+)[/,]hour=(?P<hour>[^/,]+)')
@@ -96,7 +97,7 @@ def webrequest_add_partition_statements(database='wmf_raw', table='webrequest', 
     else:
         hive_options = ''
 
-    hive = HiveUtils(database, options=hive_options)
+    hive = Hive(database, options=hive_options)
 
     # The base location of this webrequest table in HDFS.
     # If it was not provided via the CLI, then attempt to
@@ -104,7 +105,7 @@ def webrequest_add_partition_statements(database='wmf_raw', table='webrequest', 
     if location == None:
         location = hive.table_location(table)
 
-    if not HdfsUtils.validate_path(location):
+    if not Hdfs.validate_path(location):
         logging.error('{0} table location \'{1}\' is not a valid HDFS path.  Path must start with \'/\' or \'hdfs://\'.  Aborting.'
             .format(table, location))
         sys.exit(1)

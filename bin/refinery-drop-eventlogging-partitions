@@ -38,7 +38,8 @@ import logging
 import re
 import os
 import sys
-from refinery.util import HiveUtils, HdfsUtils
+from refinery.hive import Hive
+from refinery.hdfs import Hdfs
 
 
 if __name__ == '__main__':
@@ -59,7 +60,7 @@ if __name__ == '__main__':
                         datefmt='%Y-%m-%dT%H:%M:%S')
 
 
-    if not HdfsUtils.validate_path(location):
+    if not Hdfs.validate_path(location):
         logging.error('Location \'{0}\' is not a valid HDFS path.  Path must start with \'/\' or \'hdfs://\'.  Aborting.'
             .format(location))
         sys.exit(1)
@@ -68,14 +69,14 @@ if __name__ == '__main__':
     # This glob will be used to list out all partition paths in HDFS.
     partition_glob = os.path.join(location, '*', 'hourly', '*', '*', '*', '*')
 
-    # This regex tells HiveUtils partition_datetime_from_path
+    # This regex tells Hive partition_datetime_from_path
     # how to extract just the date portion from a partition path.
     # The first match group will be passed to datetime.datetime.strptime
     # using one of the below date_formats.
     date_regex = re.compile(r'.*/hourly/(.+)$')
 
     # This regex will be used to extract a datetime object from the string
-    # matched by date_regex in HiveUtils partition_datetime_from_path
+    # matched by date_regex in Hive partition_datetime_from_path
     date_format = '%Y/%m/%d/%H'
 
     # Delete partitions older than this.
@@ -85,16 +86,16 @@ if __name__ == '__main__':
 
     # Loop through all the partition directory paths for this table
     # and check if any of them are old enough for deletion.
-    for partition_path in HdfsUtils.ls(partition_glob, include_children=False):
+    for partition_path in Hdfs.ls(partition_glob, include_children=False):
         try:
-            partition_datetime = HiveUtils.partition_datetime_from_path(
+            partition_datetime = Hive.partition_datetime_from_path(
                 partition_path,
                 date_regex,
                 date_format
             )
         except ValueError as e:
             logging.error(
-                'HiveUtils.partition_datetime_from_path could not parse date found in {0} using pattern {1}. Skipping. ({2})'
+                'Hive.partition_datetime_from_path could not parse date found in {0} using pattern {1}. Skipping. ({2})'
                 .format(partition_path, date_regex.pattern, e)
             )
             continue
@@ -111,6 +112,6 @@ if __name__ == '__main__':
             logging.info('Removing {0} eventlogging partition directories from {1}.'
                 .format(len(partition_paths_to_delete), location)
             )
-            HdfsUtils.rm(' '.join(partition_paths_to_delete))
+            Hdfs.rm(' '.join(partition_paths_to_delete))
     else:
         logging.info('No eventlogging partition directories need to be removed')

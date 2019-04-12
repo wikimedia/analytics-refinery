@@ -37,7 +37,7 @@ from datetime import datetime, timezone
 from dateutil import parser as datetime_parser, relativedelta
 from docopt import docopt
 from refinery.logging_setup import configure_logging
-from refinery.util import HdfsUtils
+from refinery.hdfs import Hdfs
 import logging
 import os
 import random
@@ -68,7 +68,7 @@ def create_salt():
 def check_salt(hdfs_path, salt):
     logger.debug('Checking salt file integrity...')
     try:
-        read_salt = HdfsUtils.cat(hdfs_path)
+        read_salt = Hdfs.cat(hdfs_path)
     except Exception as e:
         logger.error('Unable to read updated salt file.')
         raise e
@@ -79,7 +79,7 @@ def check_salt(hdfs_path, salt):
 
 def delete_salt(hdfs_path):
     try:
-        HdfsUtils.rm([hdfs_path])
+        Hdfs.rm([hdfs_path])
     except Exception as e:
         logger.error('Unable to delete backup file.')
         raise e
@@ -87,9 +87,9 @@ def delete_salt(hdfs_path):
 def rotate_salt(hdfs_path, backup=False):
     if backup:
         logger.debug('Copying old salt to backup file...')
-        backup_salt = HdfsUtils.cat(hdfs_path)
+        backup_salt = Hdfs.cat(hdfs_path)
         backup_path = hdfs_path + BACKUP_EXTENSION
-        HdfsUtils.cp(hdfs_path, backup_path, force=True)
+        Hdfs.cp(hdfs_path, backup_path, force=True)
         check_salt(backup_path, backup_salt)
     new_salt = create_salt()
     logger.debug('Writing new salt to local temporary file...')
@@ -100,20 +100,20 @@ def rotate_salt(hdfs_path, backup=False):
     with open(local_path, 'w') as salt_file:
         salt_file.write(new_salt)
     logger.debug('Copying salt file over to HDFS...')
-    HdfsUtils.put(local_path, hdfs_path, force=True)
+    Hdfs.put(local_path, hdfs_path, force=True)
     logger.debug('Removing local temporary salt file...')
     os.remove(local_path)
     check_salt(hdfs_path, new_salt)
 
 def process_salt(file_path, period_timedelta, backup, start_datetime, dry_run):
     logger.debug('Checking for existing salt file...')
-    file_exists = len(HdfsUtils.ls([file_path])) > 0
+    file_exists = len(Hdfs.ls([file_path])) > 0
     if file_exists:
         logger.debug('Salt file exists.')
         logger.debug('Checking whether salt needs rotation...')
         if period_timedelta is not None:
             current_datetime = datetime.now(timezone.utc)
-            mod_datetime = HdfsUtils.get_modified_datetime(file_path)
+            mod_datetime = Hdfs.get_modified_datetime(file_path)
             rotate_datetime = start_datetime
             while rotate_datetime <= mod_datetime:
                 rotate_datetime += period_timedelta
@@ -134,13 +134,13 @@ def process_salt(file_path, period_timedelta, backup, start_datetime, dry_run):
 
 def clean_backup(backup_path, period_timedelta, backup_timedelta, start_datetime, dry_run):
     logger.debug('Checking for existing backup file...')
-    backup_exists = len(HdfsUtils.ls([backup_path])) > 0
+    backup_exists = len(Hdfs.ls([backup_path])) > 0
     if backup_exists:
         logger.debug('Backup file exists.')
         logger.debug('Checking whether backup needs deletion...')
         if backup_timedelta is not None:
             current_datetime = datetime.now(timezone.utc)
-            mod_datetime = HdfsUtils.get_modified_datetime(backup_path)
+            mod_datetime = Hdfs.get_modified_datetime(backup_path)
             rotate_datetime = start_datetime
             while rotate_datetime <= mod_datetime:
                 rotate_datetime += period_timedelta

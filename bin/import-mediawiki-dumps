@@ -54,7 +54,7 @@ import docopt
 import json
 
 from refinery.logging_setup import configure_logging
-from refinery.util import HdfsUtils as hdfs
+from refinery.hdfs import Hdfs
 
 
 logger = logging.getLogger()
@@ -112,7 +112,7 @@ def exists_success_flag(folder):
     Checks if hdfs folder contains a file named as
     as defined by the global variable SUCCESS_FLAG
     """
-    output_content = hdfs.ls(folder)
+    output_content = Hdfs.ls(folder)
     for path in output_content:
         # HdfsUtils.ls returns bytes - Need to convert them
         path_str = path.decode('utf-8')
@@ -221,21 +221,21 @@ class MediawikiDumpsImporter(object):
         """
         logger.info('Preparing HDFS before importing projects')
         # Delete global destination if overwrite
-        if (self.overwrite and hdfs.ls(self.output_base_full, include_children=False)):
+        if (self.overwrite and Hdfs.ls(self.output_base_full, include_children=False)):
             logger.info('--overwrite parameter set. Deleting ' +
                         '{} on HDFS.'.format(self.output_base_full))
             if not self.dry_run:
-                hdfs.rm(self.output_base_full, recurse=True)
+                Hdfs.rm(self.output_base_full, recurse=True)
 
         # Create global destination if doesn't exist
-        if not hdfs.ls(self.output_base_full, include_children=False):
+        if not Hdfs.ls(self.output_base_full, include_children=False):
             logger.info('Creating destination folder {} on HDFS.'.format(
                 self.output_base_full))
             if not self.dry_run:
-                hdfs.mkdir(self.output_base_full, create_parent=True)
+                Hdfs.mkdir(self.output_base_full, create_parent=True)
 
         # Check that global destination exists and is a directory
-        output_details = hdfs.ls(self.output_base_full, include_children=False, with_details=True)
+        output_details = Hdfs.ls(self.output_base_full, include_children=False, with_details=True)
         if not output_details or output_details[0]['file_type'] != 'd':
             raise ValueError('HDFS destination path ' + self.output_base_full +
                              ' either doesn\'t exists or is not a directory')
@@ -322,7 +322,7 @@ class MediawikiProjectDumpImporter(object):
 
         while (not self.status and tries < self.max_tries):
             logger.info('RSyncing files for project {} (try {})'.format(self.project, tries + 1))
-            if hdfs.rsync(self.input_path, self.output_path, local_to_hdfs=True,
+            if Hdfs.rsync(self.input_path, self.output_path, local_to_hdfs=True,
                           should_delete=True, dry_run=self.dry_run):
                 logger.info('Project {} succesfully imported'.format(self.project))
                 write_success_flag(self.output_path, self.dry_run)
@@ -381,14 +381,14 @@ class MediawikiProjectDumpImporter(object):
         """
         logger.info('Prepare HDFS output project path ' + self.output_path)
         # Create project folder if it doesn't exist
-        if not hdfs.ls(self.output_path, include_children=False):
+        if not Hdfs.ls(self.output_path, include_children=False):
             logger.info(
                 'Creating project folder {} on HDFS.'.format(self.output_path))
             if not self.dry_run:
-                hdfs.mkdir(self.output_path, create_parent=True)
+                Hdfs.mkdir(self.output_path, create_parent=True)
 
         # Check that project folder exists and is a directory
-        output_details = hdfs.ls(self.output_path, include_children=False, with_details=True)
+        output_details = Hdfs.ls(self.output_path, include_children=False, with_details=True)
         if not output_details or output_details[0]['file_type'] != 'd':
             logger.warn('HDFS project folder ' + self.output_path +
                         ' either doesn\'t exists or is not a directory')

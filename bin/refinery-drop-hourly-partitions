@@ -46,7 +46,8 @@ import logging
 import re
 import os
 import sys
-from refinery.util import HiveUtils, HdfsUtils
+from refinery.hive import Hive
+from refinery.hdfs import Hdfs
 
 
 if __name__ == '__main__':
@@ -75,14 +76,14 @@ if __name__ == '__main__':
                         datefmt='%Y-%m-%dT%H:%M:%S')
 
 
-    if table_location and not HdfsUtils.validate_path(table_location):
+    if table_location and not Hdfs.validate_path(table_location):
         logging.error('{0} table location \'{1}\' is not a valid HDFS path.  Path must start with \'/\' or \'hdfs://\'.  Aborting.'
             .format(table, table_location))
         sys.exit(1)
 
 
-    # Instantiate HiveUtils.
-    hive = HiveUtils(database, hive_options)
+    # Instantiate Hive.
+    hive = Hive(database, hive_options)
 
     # The base location of this table in HDFS.
     # If it was not provided via the CLI, then attempt to
@@ -92,7 +93,7 @@ if __name__ == '__main__':
 
 
     # Allows easy extraction of partition fields from the partition spec.
-    # This regex is used with HiveUtils partition_datetime_from_spec.
+    # This regex is used with Hive partition_datetime_from_spec.
     # and could be used with HDFS partition paths that match the default
     # Hive partition layout (I.e. key1=val1/key2=val2, etc.)
     partition_spec_regex   = re.compile(r'^year=(?P<year>[^/,]+)[/,]month=(?P<month>[^/,]+)[/,]day=(?P<day>[^/]+)[/,]hour=(?P<hour>[^/,]+)')
@@ -103,7 +104,7 @@ if __name__ == '__main__':
         'hive':     os.path.join(table_location, '*', '*', '*', '*')
     }
 
-    # These regexes tells HiveUtils partition_datetime_from_path
+    # These regexes tells Hive partition_datetime_from_path
     # how to extract just the date portion from a partition path.
     # The first match group will be passed to datetime.datetime.strptime
     # using one of the below date_formats.
@@ -112,7 +113,7 @@ if __name__ == '__main__':
         'hive':     re.compile(r'.*/(year=\d+/month=\d+/day=\d+/hour=\d+)$')
     }
     # These will be used to extract a datetime object from the string
-    # matched by date_regex in HiveUtils partition_datetime_from_path
+    # matched by date_regex in Hive partition_datetime_from_path
     date_formats = {
         'camus':     '%Y/%m/%d/%H',
         'hive':      'year=%Y/month=%m/day=%d/hour=%H'
@@ -135,7 +136,7 @@ if __name__ == '__main__':
 
     # Loop through all the partition directory paths for this table
     # and check if any of them are old enough for deletion.
-    for partition_path in HdfsUtils.ls(partition_globs[partition_type], include_children=False):
+    for partition_path in Hdfs.ls(partition_globs[partition_type], include_children=False):
         try:
             partition_datetime = hive.partition_datetime_from_path(
                 partition_path,
@@ -173,6 +174,6 @@ if __name__ == '__main__':
             logging.info('Removing {0} partition directories for table {1}.{2} from {3}.'
                 .format(len(partition_paths_to_delete), database, table, table_location)
             )
-            HdfsUtils.rm(' '.join(partition_paths_to_delete))
+            Hdfs.rm(' '.join(partition_paths_to_delete))
     else:
         logging.info('No partition directories need removed for table {0}.{1}'.format(database, table))

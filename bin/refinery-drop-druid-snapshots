@@ -45,7 +45,7 @@ import re
 import sys
 from docopt import docopt
 import logging
-from refinery.util import DruidUtils
+from refinery.druid import Druid
 from refinery.logging_setup import configure_logging
 
 logger = logging.getLogger()
@@ -68,7 +68,7 @@ if __name__ == '__main__':
         print('################################################')
 
     logger.info('Using druid host {}...'.format(druid_host))
-    druid = DruidUtils(druid_host)
+    druid = Druid(druid_host)
 
     logger.info('Looking for snapshots to delete for {}...'.format(basename))
     datasources = druid.list_datasources()

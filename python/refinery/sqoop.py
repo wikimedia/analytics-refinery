@@ -6,7 +6,8 @@ import logging
 import re
 
 from subprocess import check_call, DEVNULL
-from refinery.util import is_yarn_application_running, HdfsUtils
+from refinery.hdfs import Hdfs
+from refinery.util import is_yarn_application_running
 
 logger = logging.getLogger()
 
@@ -133,7 +134,7 @@ def sqoop_wiki(config):
             logger.info('Deleting temporary target directory {} if it exists'.format(tmp_target_directory))
             if not config.dry_run:
                 try:
-                    HdfsUtils.rm(tmp_target_directory)
+                    Hdfs.rm(tmp_target_directory)
                 except(Exception):
                     pass
 
@@ -145,7 +146,7 @@ def sqoop_wiki(config):
         if not config.target_jar_dir:
             logger.info('Moving sqooped folder from {} to {}'.format(tmp_target_directory, target_directory))
             if not config.dry_run:
-                HdfsUtils.mv(tmp_target_directory, target_directory, inParent=False)
+                Hdfs.mv(tmp_target_directory, target_directory, inParent=False)
         logger.info('FINISHED: {}'.format(log_message))
         return None
     except(Exception):
@@ -579,16 +580,16 @@ def check_hdfs_path_or_exit(tables, table_path_template, tmp_base_path, force, d
         tmp_table_path = table_path_to_tmp_path(table_path, tmp_base_path)
 
         # Delete temporary folder if it exists in any case
-        if HdfsUtils.ls(tmp_table_path, include_children=False):
+        if Hdfs.ls(tmp_table_path, include_children=False):
             if not dry_run:
-                HdfsUtils.rm(tmp_table_path)
+                Hdfs.rm(tmp_table_path)
             logger.info('temporary path {} deleted from HDFS.'.format(tmp_table_path))
 
         # Check if real folder exist and delee it if --force flag is on
-        if HdfsUtils.ls(table_path, include_children=False):
+        if Hdfs.ls(table_path, include_children=False):
             if force:
                 if not dry_run:
-                    HdfsUtils.rm(table_path)
+                    Hdfs.rm(table_path)
                 logger.info('Forcing: {} deleted from HDFS.'.format(table_path))
             else:
                 logger.error('{} already exists in HDFS.'.format(table_path))
