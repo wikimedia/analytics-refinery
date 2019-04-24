@@ -62,8 +62,8 @@
             <description>Location of the Python executable in the virtual environment</description>
         </property>
         <property>
-            <name>script_language_pairs_file</name>
-            <description>TSV file that contains a list of languages to generate output for</description>
+            <name>script_language_pairs</name>
+            <description>Comma separated list of language pairs (each pair is separeted by a dash, where the first language is the source and the second is the target language) to generate output for, e.g. en-ru,ru-uz</description>
         </property>
         <property>
             <name>script_end_date</name>
@@ -104,11 +104,10 @@
             <jar>${spark_app_jar}</jar>
             <spark-opts>--archives ${yarn_archives} --conf spark.pyspark.python=${spark_pyspark_python} --conf spark.dynamicAllocation.maxExecutors=${spark_max_executors} --executor-memory ${spark_executor_memory} --driver-memory ${spark_driver_memory} --num-executors ${spark_max_executors} --queue ${queue_name}</spark-opts>
             <!-- arguments for pyspark script -->
+            <arg>${script_language_pairs}</arg>
             <arg>${script_end_date}</arg>
             <arg>--spark_app_name</arg>
             <arg>${spark_app_name}</arg>
-            <arg>--language_pairs_file</arg>
-            <arg>${script_language_pairs_file}</arg>
             <arg>--wikidata_dir</arg>
             <arg>${script_wikidata_dir}</arg>
             <arg>--topsites_file</arg>

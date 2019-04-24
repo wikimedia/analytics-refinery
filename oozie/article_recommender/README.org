@@ -4,10 +4,17 @@
 ** Requirements
    - A virtual environment zip that contains [[https://gerrit.wikimedia.org/r/#/admin/projects/research/article-recommender][article-recommender]]. See
      [[https://gerrit.wikimedia.org/r/#/admin/projects/research/article-recommender/deploy][the documentation]] on how to generate the zip file.
+   - Once the zip is generated, save it to ~/.
 
 ** How to update the dependency
    - Generate a new zip file by following instructions above.
-   - Upload the zip file to Archiva using the instructions at [fn:1]
+   - Upload the zip file to Archiva using the instructions at [fn:1].
+     Here are the values I used for uploading version 0.0.1:
+     + Repository Id :: Wikimedia Mirrored Repository
+     + Group ID :: article-recommender
+     + Artifact ID :: venv
+     + Version :: 0.0.1
+     + Packaging :: zip
    - Download the zip file from Archiva to the following location (save
      it as venv-X.X.X.zip (where X.X.X is the version number):
      `../../artifacts/article-recommender/
