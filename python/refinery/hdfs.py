@@ -137,8 +137,8 @@ class Hdfs(object):
 
         for i in range(len(from_paths)) :
             toParent = '/'.join(to_paths[i].split('/')[:-1])
-            if not HdfsUtils.ls(toParent, include_children=False):
-                HdfsUtils.mkdir(toParent)
+            if not Hdfs.ls(toParent, include_children=False):
+                Hdfs.mkdir(toParent)
             if (inParent):
                 sh(['hdfs', 'dfs', '-mv', from_paths[i], toParent])
             else:
@@ -235,12 +235,12 @@ class Hdfs(object):
 
         """
         # Check destination being a folder
-        if ((local_to_hdfs and not HdfsUtils._check_hdfs_dir(hdfs_path)) or
-                (not local_to_hdfs and not HdfsUtils._check_local_dir(local_path))):
+        if ((local_to_hdfs and not Hdfs._check_hdfs_dir(hdfs_path)) or
+                (not local_to_hdfs and not Hdfs._check_local_dir(local_path))):
             return False
 
         # Get files to copy by comparing src and dst files lists
-        files_left_to_copy = HdfsUtils._files_left_to_copy(
+        files_left_to_copy = Hdfs._files_left_to_copy(
             local_path, hdfs_path, local_to_hdfs, should_delete, dry_run)
         if len(files_left_to_copy) == 0:
             logger.info('No file to copy'.format(len(files_left_to_copy)))
@@ -248,9 +248,9 @@ class Hdfs(object):
 
         # Define copy and dst_path depending on local_to_hdfs
         if local_to_hdfs:
-            (copy, dst_path) = (HdfsUtils.put, hdfs_path)
+            (copy, dst_path) = (Hdfs.put, hdfs_path)
         else:
-            (copy, dst_path) = (HdfsUtils.get, local_path)
+            (copy, dst_path) = (Hdfs.get, local_path)
 
         # Do the actual copy
         logger.info('Copying {} files ...'.format(len(files_left_to_copy)))
@@ -261,7 +261,7 @@ class Hdfs(object):
                 copy(src_file, dst_path)
 
         # Check copy to return value
-        files_left_to_copy = HdfsUtils._files_left_to_copy(
+        files_left_to_copy = Hdfs._files_left_to_copy(
             local_path, hdfs_path, local_to_hdfs, should_delete, dry_run)
         if len(files_left_to_copy) == 0:
             logger.info('Successfull copy')
@@ -287,7 +287,7 @@ class Hdfs(object):
         """
         Returns True if given parameter is an existing hdfs directory
         """
-        output_details = HdfsUtils.ls(hdfs_path, include_children=False, with_details=True)
+        output_details = Hdfs.ls(hdfs_path, include_children=False, with_details=True)
         if not output_details or output_details[0]['file_type'] != 'd':
             logger.error('HDFS destination folder ' + hdfs_path +
                          ' either doesn\'t exists or is not a directory')
@@ -311,15 +311,15 @@ class Hdfs(object):
             hdfs_path if local_to_hdfs else local_path))
 
         # Get hdfs files
-        hdfs_files = HdfsUtils._get_hdfs_files(hdfs_path)
+        hdfs_files = Hdfs._get_hdfs_files(hdfs_path)
 
         # Get local files using local_path as a glob except if it is a folder
         local_glob = os.path.join(local_path, '*') if os.path.isdir(local_path) else local_path
-        local_files = HdfsUtils._get_local_files(local_glob)
+        local_files = Hdfs._get_local_files(local_glob)
 
         if local_to_hdfs:
             (src_files, dst_files) = (local_files, hdfs_files)
-            rm = HdfsUtils.rm
+            rm = Hdfs.rm
         else:
             (src_files, dst_files) = (hdfs_files, local_files)
             rm = os.remove
@@ -362,7 +362,7 @@ class Hdfs(object):
         """
         hdfs_files = {}
         # HDFS-ls works with path and globs
-        for f in HdfsUtils.ls(hdfs_path, with_details=True):
+        for f in Hdfs.ls(hdfs_path, with_details=True):
             # HDFS-ls returns bytes - Need to extract
             path = f['path'].decode("utf-8")
             file_size = int(f['file_size'].decode("utf-8"))

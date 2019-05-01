@@ -114,7 +114,7 @@ def exists_success_flag(folder):
     """
     output_content = Hdfs.ls(folder)
     for path in output_content:
-        # HdfsUtils.ls returns bytes - Need to convert them
+        # Hdfs.ls returns bytes - Need to convert them
         path_str = path.decode('utf-8')
         if os.path.basename(path_str) == SUCCESS_FLAG:
             return True
@@ -266,7 +266,7 @@ class MediawikiProjectDumpImporter(object):
     It first checks if the source-project is ready for import (local folder
     exists and dump is in done status in dumpruninfo.json). Then it prepares
     HDFS (create destination folder if it doesn't exist, and check if project
-    has previously been successfully imported). Finally it uses HdfsUtils.rsync
+    has previously been successfully imported). Finally it uses Hdfs.rsync
     to copy local files to hdfs, with multiple tries in case of failure.
     The variable self.status is used to report dump being successfully copied,
     unavailable or in failure.
@@ -300,7 +300,7 @@ class MediawikiProjectDumpImporter(object):
     def run(self):
         """
         Main function to copy dump-files. It checks local dump availability,
-        prepares hdfs destination, and runs the HdfsUtils.rsync, retrying
+        prepares hdfs destination, and runs the Hdfs.rsync, retrying
         in case of failure.
         self.status is used to manage success/unavailability/failure
         """
