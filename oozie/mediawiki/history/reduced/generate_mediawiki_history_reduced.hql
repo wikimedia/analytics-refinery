@@ -41,18 +41,19 @@ WITH
             pm.hostname AS project,
             CONCAT(SUBSTRING(event_timestamp, 0, 10), ' 00:00:00.0') AS event_timestamp_day,
             CONCAT(SUBSTRING(event_timestamp, 0, 7), '-01 00:00:00.0') AS event_timestamp_month,
-            CONCAT(COALESCE(nm.namespace_prefix, ''), COALESCE(page_title, page_title_historical)) AS page_title,
-            COALESCE(event_user_text, event_user_text_historical) AS user_text,
+            -- Coalesce null page_title to a value not to polute grouping-sets null (never seen, nullified in digests)
+            CONCAT(COALESCE(nm.namespace_prefix, ''), COALESCE(page_title, page_title_historical, 'UNKNOWN_PAGE_TITLE')) AS page_title,
+            -- Coalesce null user_text to a value not to polute grouping-sets null (never seen, nullified in digests)
+            COALESCE(event_user_text, event_user_text_historical, 'UNKNOWN_USER_TEXT') AS user_text,
             IF (COALESCE(page_namespace_is_content, page_namespace_is_content_historical), 'content', 'non_content') AS page_type,
             page_is_redirect,
             CASE
                 -- Using sequence to prevent writing NOT
                 WHEN event_user_is_anonymous THEN 'anonymous'
-                WHEN array_contains(event_user_groups, 'bot') THEN 'group_bot'
-                WHEN COALESCE(event_user_text, event_user_text_historical) RLIKE '(?i)^.*bot([^a-z].*$|$)' THEN 'name_bot'
+                WHEN array_contains(COALESCE(event_user_is_bot_by, event_user_is_bot_by_historical), 'group') THEN 'group_bot'
+                WHEN array_contains(COALESCE(event_user_is_bot_by, event_user_is_bot_by_historical), 'name') THEN 'name_bot'
                 ELSE 'user'
             END AS user_type,
-            revision_deleted_timestamp,
             revision_text_bytes_diff
         FROM ${mw_denormalized_history_table} mw
             INNER JOIN project_map pm
@@ -65,6 +66,8 @@ WITH
             AND event_entity = 'revision'
             AND event_type = 'create'
             AND event_timestamp IS NOT NULL
+            -- Explicitely remove deleted revisions from computation
+            AND NOT revision_is_deleted_by_page_deletion
     ),
 
     user_digests AS (
@@ -147,48 +150,19 @@ WITH
             CASE
                 -- Using sequence to prevent writing NOT
                 WHEN event_user_is_anonymous THEN 'anonymous'
-                WHEN array_contains(event_user_groups, 'bot') THEN 'group_bot'
-                WHEN COALESCE(event_user_text, event_user_text_historical) RLIKE '(?i)^.*bot([^a-z].*$|$)' THEN 'name_bot'
+                WHEN array_contains(COALESCE(event_user_is_bot_by, event_user_is_bot_by_historical), 'group') THEN 'group_bot'
+                WHEN array_contains(COALESCE(event_user_is_bot_by, event_user_is_bot_by_historical), 'name') THEN 'name_bot'
                 ELSE 'user'
             END AS user_type,
             CONCAT(COALESCE(nm.namespace_prefix, ''), COALESCE(page_title, page_title_historical)) AS page_title,
             page_namespace,
             CASE
-                WHEN page_namespace_is_content THEN 'content'
+                WHEN COALESCE(page_namespace_is_content, page_namespace_is_content_historical) THEN 'content'
                 ELSE 'non_content'
             END AS page_type,
             -- Trick to get an array of values without nulls
             SPLIT(CONCAT_WS('|',
-                    IF (unix_timestamp(event_timestamp) - unix_timestamp(event_user_creation_timestamp) <= 86400,
-                        'user_first_24_hours', NULL),
                     IF (page_is_redirect, 'redirect', NULL),
-                    IF (revision_is_deleted, 'deleted', NULL),
-                    CASE
-                        WHEN SUBSTRING(event_timestamp, 0, 10) = SUBSTRING(revision_deleted_timestamp, 0, 10) THEN 'deleted_day'
-                        WHEN SUBSTRING(event_timestamp, 0, 7) = SUBSTRING(revision_deleted_timestamp, 0, 7) THEN 'deleted_month'
-                        WHEN SUBSTRING(event_timestamp, 0, 4) = SUBSTRING(revision_deleted_timestamp, 0, 4) THEN 'deleted_year'
-                        ELSE NULL
-                    END,
-                    IF (revision_is_identity_reverted, 'reverted', NULL),
-                    -- Not needed as of now - Keeping for possible future
-                    -- CASE
-                    --     WHEN revision_seconds_to_identity_revert <= 60 THEN 'reverted_minute'
-                    --     WHEN revision_seconds_to_identity_revert <= 5 * 60 THEN 'reverted_5_minutes'
-                    --     WHEN revision_seconds_to_identity_revert <= 10 * 60 THEN 'reverted_10_minutes'
-                    --     WHEN revision_seconds_to_identity_revert <= 30 * 60 THEN 'reverted_30_minutes'
-                    --     WHEN revision_seconds_to_identity_revert <= 60 * 60 THEN 'reverted_hour'
-                    --     WHEN revision_seconds_to_identity_revert <= 12 * 60 * 60 THEN 'reverted_12_hours'
-                    --     WHEN revision_seconds_to_identity_revert <= 24 * 60 * 60 THEN 'reverted_day'
-                    --     WHEN revision_seconds_to_identity_revert <= 3 * 24 * 60 * 60 THEN 'reverted_3_days'
-                    --     WHEN revision_seconds_to_identity_revert <= 7 * 24 * 60 * 60 THEN 'reverted_week'
-                    --     WHEN revision_seconds_to_identity_revert <= 2 * 7 * 24 * 60 * 60 THEN 'reverted_2_weeks'
-                    --     WHEN revision_seconds_to_identity_revert <= 30 * 24 * 60 * 60 THEN 'reverted_month'
-                    --     WHEN revision_seconds_to_identity_revert <= 3 * 30 * 24 * 60 * 60 THEN 'reverted_3_months'
-                    --     WHEN revision_seconds_to_identity_revert <= 6 * 30 * 24 * 60 * 60 THEN 'reverted_6_months'
-                    --     WHEN revision_seconds_to_identity_revert <= 365 * 24 * 60 * 60 THEN 'reverted_year'
-                    --     ELSE NULL
-                    --END,
-                    IF (revision_is_identity_revert, 'revert', NULL),
                     IF (user_is_created_by_self, 'self_created', NULL)
             ), '\\|') AS other_tags,
             revision_text_bytes_diff AS text_bytes_diff,
@@ -204,6 +178,9 @@ WITH
             AND snapshot = '${snapshot}'
             -- Only export rows with valid timestamp format
             AND event_timestamp IS NOT NULL
+            -- Explicitly remove deleted events
+            AND (NOT event_entity = 'page' OR NOT page_is_deleted)
+            AND (NOT event_entity = 'revision' OR NOT revision_is_deleted_by_page_deletion)
     )
 
 INSERT OVERWRITE TABLE ${destination_table} partition (snapshot='${snapshot}')
