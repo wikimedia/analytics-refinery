@@ -50,7 +50,7 @@ WITH ungrouped_edit_hourly AS (
             END AS namespace_name,
         page_namespace_historical AS namespace_id,
         revision_parent_id == 0 AS creates_new_page,
-        revision_is_deleted AS is_deleted,
+        revision_is_deleted_by_page_deletion AS is_deleted,
         revision_is_identity_reverted AS is_reverted,
         CASE
             WHEN event_user_revision_count < 5 THEN '1-4'
