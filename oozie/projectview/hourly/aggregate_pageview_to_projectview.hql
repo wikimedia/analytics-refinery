@@ -34,7 +34,7 @@ INSERT OVERWRITE TABLE ${destination_table}
     SELECT
         project,
         access_method,
-        zero_carrier,
+        NULL AS zero_carrier,
         agent_type,
         referer_class,
         continent,
@@ -47,7 +47,6 @@ INSERT OVERWRITE TABLE ${destination_table}
     GROUP BY
         project,
         access_method,
-        zero_carrier,
         agent_type,
         referer_class,
         continent,

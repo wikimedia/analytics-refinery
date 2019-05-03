@@ -32,21 +32,18 @@ INSERT OVERWRITE DIRECTORY "${destination_directory}"
     FROM (
         SELECT
             CONCAT(
-                -- Core identifier and mobile/zero
+                -- Core identifier and mobile
                 CASE regexp_extract(project, '^([A-Za-z0-9-]+)\\.[a-z]*$')
                     WHEN '' THEN (
-                        --zero/mobile if any, www otherwise
+                        --mobile if any, www otherwise
                         CASE
-                            WHEN COALESCE(zero_carrier, '') <> '' THEN 'zero'
                             WHEN COALESCE(access_method, '') IN ('mobile web', 'mobile app') THEN 'm'
                             ELSE 'www'
                         END
                     )
                     ELSE (
-                        -- Project ident plus zero/mobile suffix if any
+                        -- Project ident plus mobile suffix if any
                         CASE
-                            WHEN COALESCE(zero_carrier, '') <> ''
-                                THEN CONCAT(regexp_extract(project, '^([A-Za-z0-9-]+)\\.[a-z]*$'), '.zero')
                             WHEN COALESCE(access_method, '') IN ('mobile web', 'mobile app')
                                 THEN CONCAT(regexp_extract(project, '^([A-Za-z0-9-]+)\\.[a-z]*$'), '.m')
                             ELSE regexp_extract(project, '^([A-Za-z0-9-]+)\\.[a-z]*$')
@@ -79,21 +76,18 @@ INSERT OVERWRITE DIRECTORY "${destination_directory}"
             AND agent_type = 'user'
         GROUP BY
             CONCAT(
-                -- Core identifier and mobile/zero
+                -- Core identifier and mobile
                 CASE regexp_extract(project, '^([A-Za-z0-9-]+)\\.[a-z]*$')
                     WHEN '' THEN (
-                        --zero/mobile if any, www otherwise
+                        --mobile if any, www otherwise
                         CASE
-                            WHEN COALESCE(zero_carrier, '') <> '' THEN 'zero'
                             WHEN COALESCE(access_method, '') IN ('mobile web', 'mobile app') THEN 'm'
                             ELSE 'www'
                         END
                     )
                     ELSE (
-                        -- Project ident plus zero/mobile suffix if any
+                        -- Project ident plus mobile suffix if any
                         CASE
-                            WHEN COALESCE(zero_carrier, '') <> ''
-                                THEN CONCAT(regexp_extract(project, '^([A-Za-z0-9-]+)\\.[a-z]*$'), '.zero')
                             WHEN COALESCE(access_method, '') IN ('mobile web', 'mobile app')
                                 THEN CONCAT(regexp_extract(project, '^([A-Za-z0-9-]+)\\.[a-z]*$'), '.m')
                             ELSE regexp_extract(project, '^([A-Za-z0-9-]+)\\.[a-z]*$')

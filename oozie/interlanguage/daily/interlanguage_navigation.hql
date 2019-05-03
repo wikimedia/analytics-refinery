@@ -51,7 +51,7 @@ INSERT OVERWRITE TABLE ${destination_table}
         AND agent_type = 'user'
         -- The project is the same as the referer project
         AND normalized_host.project_family = normalize_host(parse_url(referer, 'HOST')).project_family
-        -- The referer host has no .zero, .m, or other qualifiers
+        -- The referer host has no .m, or other qualifiers
         AND size(normalize_host(parse_url(referer, 'HOST')).qualifiers) = 0
         -- The referer path was something with a /wiki/ beginning, like a normal article path
         AND parse_url(referer,'PATH') LIKE '/wiki/%'

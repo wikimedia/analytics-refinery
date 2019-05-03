@@ -7,7 +7,6 @@
 --
 --     en         <->  en.wikipedia.org, desktop
 --     de.m.b     <->  de.wikibooks.org, mobile
---     es.zero.d  <->  es.wiktionary.org, zero
 --
 -- The contents from this table come from the execution of the script
 -- bin/generate-domain-abbrev-map in this repository.
@@ -17,9 +16,9 @@
 --
 
 CREATE EXTERNAL TABLE IF NOT EXISTS `domain_abbrev_map`(
-  `domain_abbrev`  string  COMMENT 'Webstatscollector domain abbreviation', 
-  `hostname`       string  COMMENT 'Full domain hostname (en.wikipedia.org)', 
-  `access_site`    string  COMMENT 'Accessed site (desktop|mobile|zero)'
+  `domain_abbrev`  string  COMMENT 'Webstatscollector domain abbreviation',
+  `hostname`       string  COMMENT 'Full domain hostname (en.wikipedia.org)',
+  `access_site`    string  COMMENT 'Accessed site (desktop|mobile)'
 )
 ROW FORMAT DELIMITED
 FIELDS TERMINATED BY '\t'
