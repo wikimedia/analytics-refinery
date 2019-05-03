@@ -58,7 +58,8 @@ INSERT OVERWRITE TABLE ${destination_table}
                     or  (   cuc_timestamp between
                                 coalesce(start_timestamp, '20010101000000') and
                                 coalesce(end_timestamp, '99999999999999')
-                        and not (array_contains(user_groups, 'bot') or is_bot_by_name)
+                        -- Removing bots
+                        and (SIZE(is_bot_by) = 0)
                         )
                     )
             ) geolocated_edits
