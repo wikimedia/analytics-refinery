@@ -66,10 +66,10 @@
     <decision name="check_user_datasource">
         <switch>
             <case to="check_source_directory">
-                ${(wf:user() eq "hdfs") or (replaceAll(target_datasource, "^test_.*$", "test") eq "test")}
+                ${(wf:user() eq "hdfs") or (wf:user() eq "analytics") or (replaceAll(target_datasource, "^test_.*$", "test") eq "test")}
             </case>
             <!-- Default to error-->
-            <default to="datasource_not_test_user_not_hdfs"/>
+            <default to="datasource_not_test_user_not_hdfs_or_analytics"/>
         </switch>
     </decision>
 
@@ -128,8 +128,8 @@
         <error to="kill"/>
     </action>
 
-    <kill name="datasource_not_test_user_not_hdfs">
-        <message>User ${wf:user()} can't index datasource ${target_datasource}. Either prefix the datasource name with `test_` or run the job as hdfs.</message>
+    <kill name="datasource_not_test_user_not_hdfs_or_analytics">
+        <message>User ${wf:user()} can't index datasource ${target_datasource}. Either prefix the datasource name with `test_` or run the job as analytics or run the job as hdfs.</message>
     </kill>
 
 
