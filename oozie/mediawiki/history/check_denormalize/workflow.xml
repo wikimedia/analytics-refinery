@@ -514,6 +514,14 @@
                     <name>to</name>
                     <value>${success_email_to}</value>
                 </property>
+                <property>
+                    <name>subject</name>
+                    <value>mediawiki_history for ${new_snapshot} now available</value>
+                </property>
+                <property>
+                    <name>body_prefix</name>
+                    <value>The Oozie job calculating and checking the ${new_snapshot} mediawiki_history snapshot has finished successfully and the data is now available :)</value>
+                </property>
             </configuration>
         </sub-workflow>
         <ok to="end"/>

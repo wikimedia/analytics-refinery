@@ -17,6 +17,12 @@
         </property>
 
         <property>
+            <name>body_prefix</name>
+            <value>The job has finished successfully and data is now available :)</value>
+            <description>Default email text, can be made friendlier by passing in</description>
+        </property>
+
+        <property>
             <name>parent_name</name>
             <!-- Provide a default value for the job not to fail if not set-->
             <value>UNSET</value>
@@ -41,11 +47,12 @@
 
         <property>
             <name>body</name>
-            <value>Job details:
+            <value>${body_prefix}
+
+Job details:
     - Job id: ${parent_name}
     - Hue link: ${hue_url}
 
-The job above has finished successfully and data is now available :)
 -- Oozie
             </value>
             <description>
