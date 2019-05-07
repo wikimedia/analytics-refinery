@@ -1475,14 +1475,12 @@ ServerSideAccountCreation:
     event:
         campaign: keep
         displayMobile: keep
+        isApi: keep
         isSelfMade: keep
         isStable: keep
-        returnTo: keep
-        returnToQuery: keep
-        token: keep
+        token: hash
         userBuckets: keep
         userId: keep
-        userName: keep
     webhost: keep
     wiki: keep
 
