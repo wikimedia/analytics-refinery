@@ -7,7 +7,7 @@ Per-project-family jobs are currently launched as:
 
 ```
 # Daily computation
-sudo -u hdfs oozie job --oozie $OOZIE_URL \
+sudo -u analytics oozie job --oozie $OOZIE_URL \
   -Drefinery_directory=hdfs://analytics-hadoop$(hdfs dfs -ls -d /wmf/refinery/2017* | tail -n 1 | awk '{print $NF}') \
   -Dqueue_name=production \
   -Doozie_launcher_queue_name=production \
@@ -17,7 +17,7 @@ sudo -u hdfs oozie job --oozie $OOZIE_URL \
   -run
 
 # Monthly computation
-sudo -u hdfs oozie job --oozie $OOZIE_URL \
+sudo -u analytics oozie job --oozie $OOZIE_URL \
   -Drefinery_directory=hdfs://analytics-hadoop$(hdfs dfs -ls -d /wmf/refinery/2017* | tail -n 1 | awk '{print $NF}') \
   -Dqueue_name=production \
   -Doozie_launcher_queue_name=production \
@@ -27,7 +27,7 @@ sudo -u hdfs oozie job --oozie $OOZIE_URL \
   -run
 
 # Daily druid loading
-sudo -u hdfs oozie job --oozie $OOZIE_URL \
+sudo -u analytics oozie job --oozie $OOZIE_URL \
   -Drefinery_directory=hdfs://analytics-hadoop$(hdfs dfs -ls -d /wmf/refinery/2017* | tail -n 1 | awk '{print $NF}') \
   -Dqueue_name=production \
   -Doozie_launcher_queue_name=production \
@@ -41,7 +41,7 @@ Per-domain jobs are currently launched as:
 
 ```
 # Daily computation
-sudo -u hdfs oozie job --oozie $OOZIE_URL \
+sudo -u analytics oozie job --oozie $OOZIE_URL \
   -Drefinery_directory=hdfs://analytics-hadoop$(hdfs dfs -ls -d /wmf/refinery/2017* | tail -n 1 | awk '{print $NF}') \
   -Dqueue_name=production \
   -Doozie_launcher_queue_name=production \
@@ -51,7 +51,7 @@ sudo -u hdfs oozie job --oozie $OOZIE_URL \
   -run
 
 # Monthly computation
-sudo -u hdfs oozie job --oozie $OOZIE_URL \
+sudo -u analytics oozie job --oozie $OOZIE_URL \
   -Drefinery_directory=hdfs://analytics-hadoop$(hdfs dfs -ls -d /wmf/refinery/2017* | tail -n 1 | awk '{print $NF}') \
   -Dqueue_name=production \
   -Doozie_launcher_queue_name=production \
@@ -61,7 +61,7 @@ sudo -u hdfs oozie job --oozie $OOZIE_URL \
   -run
 
 # Daily druid loading
-sudo -u hdfs oozie job --oozie $OOZIE_URL \
+sudo -u analytics oozie job --oozie $OOZIE_URL \
   -Drefinery_directory=hdfs://analytics-hadoop$(hdfs dfs -ls -d /wmf/refinery/2017* | tail -n 1 | awk '{print $NF}') \
   -Dqueue_name=production \
   -Doozie_launcher_queue_name=production \
