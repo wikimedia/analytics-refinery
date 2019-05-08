@@ -104,7 +104,7 @@ def write_success_flag(folder, dry_run):
     success_path = os.path.join(folder, SUCCESS_FLAG)
     logger.info('Writing success flag ' + success_path)
     if not dry_run:
-        hdfs.touchz(success_path)
+        Hdfs.touchz(success_path)
 
 
 def exists_success_flag(folder):
