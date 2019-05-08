@@ -42,7 +42,7 @@ WITH
             -- The formatting of the access_site final value needs to be done here in
             -- this previous step, otherwise the subsequent grouping sets won't work
             -- properly. Note that because of the inner join, the only possible values
-            -- are 'desktop', 'mobile' or 'zero': 'mobile' + 'zero' = 'mobile-site'.
+            -- are 'desktop' or 'mobile'.
             IF(access_site = 'desktop', 'desktop-site', 'mobile-site') AS access_site,
             year,
             month,

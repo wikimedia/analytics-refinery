@@ -99,7 +99,7 @@ INSERT OVERWRITE TABLE ${destination_table}
             WHEN ((ua_parser(user_agent)['device_family'] = 'Spider') OR (is_spider(user_agent))) THEN 'spider'
             ELSE 'user'
         END as agent_type,
-        (str_to_map(x_analytics, '\;', '=')['zero'] IS NOT NULL) as is_zero,
+        NULL as is_zero,
         referer_classify(referer) as referer_class,
         normalize_host(uri_host) as normalized_host,
         CASE
