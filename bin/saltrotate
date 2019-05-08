@@ -16,20 +16,20 @@
 """
 Creates, rotates and deletes criptographic salt files.
 
-Usage: saltrotate [options] <file_path>
+Usage: saltrotate [options] <directory>
 
 Options:
     -h --help                   Show this help message and exit.
-    -p --period=<period_code>   Rotate the salt every such period.
+    -p --period=<period_code>   Create a new salt every such period.
                                 Format: <N> <UNIT>. N must be a positive
                                 integer. UNIT must be one of: hours, days,
-                                months. Default: no rotation.
-    -b --backup=<period_code>   Keep the old salt for such period.
+                                months. Default: one-off creation.
+    -b --backup=<period_code>   Keep the salt for this much time
+                                after its active period has ended.
                                 Same format as -p/--period.
                                 Default: no backup.
-    -s --start=<iso_datetime>   Start counting rotation periods at this time.
+    -s --initial=<iso_datetime> Start counting periods at this time.
                                 Default: '1970-01-01T00:00:00Z'.
-    --verbose                   Turn on verbose logging.
     --dry-run                   Don't actually apply any changes.
 """
 
@@ -37,22 +37,145 @@ from datetime import datetime, timezone
 from dateutil import parser as datetime_parser, relativedelta
 from docopt import docopt
 from refinery.logging_setup import configure_logging
-from refinery.hdfs import Hdfs
 import logging
 import os
 import random
 import re
-import tempfile
+import sys
+import unittest
 
 
 SALT_LENGTH = 64
 SALT_ALPHABET = list('0123456789abcdef')
-BACKUP_EXTENSION = '.old'
+DATE_FORMAT = '%Y%m%d%H'
 
 logger = logging.getLogger()
 
 
+class Salt(object):
+    """
+    Represents a salt value and wraps its corresponding salt file.
+    """
+
+    @classmethod
+    def from_filename(cls, directory, file_name):
+        """
+        Extracts constructor arguments from a file name
+        and returns a new Salt object constructed with them.
+        The file name format should be:
+        <start_timestamp>_<end_timestamp>_<deletion_timestamp>
+        Timestamps should have the format: YYYYMMDDHH
+        <end_timestamp> and <deletion_timestamp> are optional.
+        Examples:
+        2018010100_2018020100_2018030100
+        2018010100_2018040100_
+        2018010100__
+        """
+        start_ts, end_ts, deletion_ts = file_name.split('_')
+        parse_datetime = lambda ts: datetime.strptime(ts + '+0000', DATE_FORMAT + '%z')
+        start_dt = parse_datetime(start_ts)
+        end_dt = parse_datetime(end_ts) if end_ts != '' else None
+        deletion_dt = parse_datetime(deletion_ts) if deletion_ts != '' else None
+        return cls(directory, start_dt, end_dt, deletion_dt)
+
+    def __init__(self, directory, start_datetime, end_datetime=None, deletion_datetime=None):
+        """
+        Constructor.
+        directory: Folder where to store the salt.
+        start_datetime: DateTime indicating when the salt should start to be used (inclusive).
+        end_datetime: DateTime indicating when the salt should stop to be used (exclusive).
+        deletion_datetime: DateTime indicating when the salt should be deleted.
+        """
+        self.start_datetime = start_datetime if start_datetime else Datetime(1970, 1, 1, 0)
+        self.end_datetime = end_datetime
+        self.deletion_datetime = deletion_datetime
+        self.path = self._path(directory)
+        self.value = None
+
+    def assign_value(self, salt_length=SALT_LENGTH, salt_alphabet=SALT_ALPHABET):
+        """
+        Assigns a random salt value of length salt_length
+        using characters in salt_alphabet.
+        """
+        logger.info('Creating new salt')
+        chosen_chars = [random.choice(SALT_ALPHABET) for i in range(SALT_LENGTH)]
+        self.value = ''.join(chosen_chars)
+
+    def exists(self):
+        """
+        Returns True if a corresponding salt file exists.
+        """
+        return os.path.exists(self.path)
+
+    def write(self):
+        """
+        Writes this salt to the corresponding salt file.
+        """
+        logger.info('Writing salt to file')
+        with open(self.path, 'w') as salt_file:
+            salt_file.write(self.value)
+        self._check()
+
+    def needs_deletion(self, current_datetime):
+        """
+        Returns True if this salt needs to be deleted, false otherwise.
+        If it has not end datetime, it can never be deleted.
+        If it does not have deletion datetime, it will be deleted
+        whenever the end datetime has passed.
+        """
+        return bool(self.end_datetime) and (
+            self.deletion_datetime and current_datetime >= self.deletion_datetime or
+            not self.deletion_datetime and current_datetime >= self.end_datetime
+        )
+
+    def delete(self):
+        """
+        Deletes the salt file corresponding to this salt.
+        """
+        logger.info('Deleting salt file %s' % self.path)
+        try:
+            os.remove(self.path)
+        except Exception as e:
+            logger.error('Unable to delete salt file %s' % self.path)
+            raise e
+
+    def _path(self, directory):
+        """
+        Returns a full path that corresponds to this salt. The format is:
+        <directory>/<start_timestamp>_<end_timestamp>_<deletion_datetime>
+        The timestamps will have the format: YYYYMMDDHH. If end_datetime or
+        deletion_datetime are None, an empty string will be used for them.
+        """
+        file_name = (
+            self.start_datetime.strftime(DATE_FORMAT) + '_' +
+            (self.end_datetime.strftime(DATE_FORMAT) if self.end_datetime else '') + '_' +
+            (self.deletion_datetime.strftime(DATE_FORMAT) if self.deletion_datetime else '')
+        )
+        return os.path.join(directory, file_name)
+
+    def _check(self):
+        """
+        Returns True if the contents of the salt file match
+        the value of this Salt object. Errors otherwise.
+        """
+        logger.info('Checking salt file integrity')
+        try:
+            with open(self.path, 'r') as salt_file:
+                read_salt = salt_file.read()
+        except Exception as e:
+            logger.error('Unable to read salt file')
+            raise e
+        if read_salt != self.value:
+            logger.error('Verification of salt file contents failed')
+            raise Exception()
+
+
 def parse_period(period):
+    """
+    Parses a period argument and returns a corresponding timedelta.
+    The format should be: <integer> <unit> (with a space in between).
+    The unit can be: hours, days or months.
+    """
     if period is not None:
         if not re.match(r"^[0-9]+ (hours|days|months)$", period):
             raise Exception('Invalid period string: ' + period)
@@ -61,140 +184,217 @@ def parse_period(period):
         params[unit] = int(count)
         return relativedelta.relativedelta(**params)
 
-def create_salt():
-    chosen_chars = [random.choice(SALT_ALPHABET) for i in range(SALT_LENGTH)]
-    return ''.join(chosen_chars)
 
-def check_salt(hdfs_path, salt):
-    logger.debug('Checking salt file integrity...')
-    try:
-        read_salt = Hdfs.cat(hdfs_path)
-    except Exception as e:
-        logger.error('Unable to read updated salt file.')
-        raise e
-    if read_salt != salt:
-        logger.error('Verification of salt file contents failed.')
-        raise Exception()
-    logger.debug('Salt file integrity checked.')
-
-def delete_salt(hdfs_path):
-    try:
-        Hdfs.rm([hdfs_path])
-    except Exception as e:
-        logger.error('Unable to delete backup file.')
-        raise e
-
-def rotate_salt(hdfs_path, backup=False):
-    if backup:
-        logger.debug('Copying old salt to backup file...')
-        backup_salt = Hdfs.cat(hdfs_path)
-        backup_path = hdfs_path + BACKUP_EXTENSION
-        Hdfs.cp(hdfs_path, backup_path, force=True)
-        check_salt(backup_path, backup_salt)
-    new_salt = create_salt()
-    logger.debug('Writing new salt to local temporary file...')
-    local_dir = '/tmp/saltrotate/'
-    if not os.path.exists(local_dir):
-        os.makedirs(local_dir)
-    file_descriptor, local_path = tempfile.mkstemp(dir=local_dir, text=True)
-    with open(local_path, 'w') as salt_file:
-        salt_file.write(new_salt)
-    logger.debug('Copying salt file over to HDFS...')
-    Hdfs.put(local_path, hdfs_path, force=True)
-    logger.debug('Removing local temporary salt file...')
-    os.remove(local_path)
-    check_salt(hdfs_path, new_salt)
-
-def process_salt(file_path, period_timedelta, backup, start_datetime, dry_run):
-    logger.debug('Checking for existing salt file...')
-    file_exists = len(Hdfs.ls([file_path])) > 0
-    if file_exists:
-        logger.debug('Salt file exists.')
-        logger.debug('Checking whether salt needs rotation...')
-        if period_timedelta is not None:
-            current_datetime = datetime.now(timezone.utc)
-            mod_datetime = Hdfs.get_modified_datetime(file_path)
-            rotate_datetime = start_datetime
-            while rotate_datetime <= mod_datetime:
-                rotate_datetime += period_timedelta
-            if rotate_datetime <= current_datetime:
-                logger.debug('Salt needs rotation.')
-                logger.info('Rotating existing salt...')
-                if not dry_run:
-                    rotate_salt(file_path, backup=backup)
-            else:
-                logger.info('Salt does not need rotation yet.')
-        else:
-            logger.info('No salt rotation specified.')
-    else:
-        logger.debug('Salt file does not exist.')
-        logger.info('Creating new salt...')
-        if not dry_run:
-            rotate_salt(file_path)
-
-def clean_backup(backup_path, period_timedelta, backup_timedelta, start_datetime, dry_run):
-    logger.debug('Checking for existing backup file...')
-    backup_exists = len(Hdfs.ls([backup_path])) > 0
-    if backup_exists:
-        logger.debug('Backup file exists.')
-        logger.debug('Checking whether backup needs deletion...')
+def get_salt_interval(
+    initial_datetime,
+    period_timedelta,
+    backup_timedelta,
+    current_datetime
+):
+    """
+    Calculates the start and end datetimes of a salt period
+    by iterating from the specified initial datetime in jumps
+    of the specified length. Also calculates when the salt
+    should be deleted.
+    """
+    if period_timedelta is not None:
+        end_datetime = initial_datetime
+        while end_datetime < current_datetime:
+            end_datetime += period_timedelta
+        start_datetime = end_datetime - period_timedelta
         if backup_timedelta is not None:
-            current_datetime = datetime.now(timezone.utc)
-            mod_datetime = Hdfs.get_modified_datetime(backup_path)
-            rotate_datetime = start_datetime
-            while rotate_datetime <= mod_datetime:
-                rotate_datetime += period_timedelta
-            deletion_datetime = rotate_datetime - period_timedelta + backup_timedelta
-            if deletion_datetime <= current_datetime:
-                logger.debug('Backup needs deletion.')
-                logger.info('Deleting existing backup...')
-                if not dry_run:
-                    delete_salt(backup_path)
-            else:
-                logger.info('Backup does not need deletion yet.')
+            deletion_datetime = end_datetime + backup_timedelta
+            return (start_datetime, end_datetime, deletion_datetime)
         else:
-            logger.debug('Backup needs deletion.')
-            logger.info('Deleting existing backup...')
-            if not dry_run:
-                delete_salt(backup_path)
+            return (start_datetime, end_datetime, None)
     else:
-        logger.debug('Backup file does not exist.')
+        return (initial_datetime, None, None)
+
+
+def main(arguments):
+    logger.info('Running saltrotate')
+
+    # Parse arguments.
+    directory = arguments['<directory>']
+    period_timedelta = parse_period(arguments['--period'])
+    backup_timedelta = parse_period(arguments['--backup'])
+    initial_datetime = datetime_parser.parse(
+        arguments['--initial'] if arguments['--initial'] else '1970-01-01T00:00:00Z'
+    )
+    dry_run = arguments['--dry-run']
+
+    # Delete all expired salt files.
+    current_datetime = datetime.now(timezone.utc)
+    logger.info('Looking for existing salts that need deletion')
+    for file_name in os.listdir(directory):
+        salt = Salt.from_filename(directory, file_name)
+        if salt.needs_deletion(current_datetime):
+            if dry_run:
+                logger.info('[DRY-RUN] Salt file %s would be deleted' % salt.path)
+            else:
+                salt.delete()
+
+    # Create a new salt file if needed.
+    start_dt, end_dt, deletion_dt = get_salt_interval(
+        initial_datetime,
+        period_timedelta,
+        backup_timedelta,
+        current_datetime
+    )
+    logger.info('Checking whether current salt is present')
+    salt = Salt(directory, start_dt, end_dt, deletion_dt)
+    if not salt.exists():
+        if dry_run:
+            logger.info('[DRY-RUN] Salt file %s would be created' % salt.path)
+        else:
+            salt.assign_value()
+            salt.write()
+
+    logger.info('Done!')
+
+
+class TestSaltrotate(unittest.TestCase):
+    """
+    These tests are run automatically every time this script is invoked.
+    Regardless whether in dry-run mode or execute mode. It is a security
+    measure to prevent execution if the code is not behaving as expected.
+    """
+
+    def setUp(self):
+        self.start_dt = datetime(2019, 1, 1, 0, tzinfo=timezone.utc)
+        self.end_dt = datetime(2019, 3, 1, 0, tzinfo=timezone.utc)
+        self.deletion_dt = datetime(2019, 3, 15, 0, tzinfo=timezone.utc)
+
+    def test_from_filename_with_start_end_and_deletion_datetimes(self):
+        salt = Salt.from_filename('', '2019010100_2019030100_2019031500')
+        self.assertEqual(salt.start_datetime, self.start_dt)
+        self.assertEqual(salt.end_datetime, self.end_dt)
+        self.assertEqual(salt.deletion_datetime, self.deletion_dt)
+
+    def test_from_filename_with_start_and_end_datetimes(self):
+        salt = Salt.from_filename('', '2019010100_2019030100_')
+        self.assertEqual(salt.start_datetime, self.start_dt)
+        self.assertEqual(salt.end_datetime, self.end_dt)
+        self.assertEqual(salt.deletion_datetime, None)
+
+    def test_from_filename_with_start_datetime_only(self):
+        salt = Salt.from_filename('', '2019010100__')
+        self.assertEqual(salt.start_datetime, self.start_dt)
+        self.assertEqual(salt.end_datetime, None)
+        self.assertEqual(salt.deletion_datetime, None)
+
+    def test_needs_deletion_with_start_end_and_deletion_datetimes(self):
+        salt = Salt('', self.start_dt, self.end_dt, self.deletion_dt)
+        current_dt_expected_pairs = [
+            (datetime(2018, 12, 31, 23, tzinfo=timezone.utc), False),
+            (datetime(2019, 1, 1, 0, tzinfo=timezone.utc), False),
+            (datetime(2019, 2, 28, 23, tzinfo=timezone.utc), False),
+            (datetime(2019, 3, 1, 0, tzinfo=timezone.utc), False),
+            (datetime(2019, 3, 14, 23, tzinfo=timezone.utc), False),
+            (datetime(2019, 3, 15, 1, tzinfo=timezone.utc), True)
+        ]
+        for current_dt, expected in current_dt_expected_pairs:
+            self.assertEqual(salt.needs_deletion(current_dt), expected)
+
+    def test_needs_deletion_with_start_and_end_datetimes(self):
+        salt = Salt('', self.start_dt, self.end_dt, None)
+        current_dt_expected_pairs = [
+            (datetime(2018, 12, 31, 23, tzinfo=timezone.utc), False),
+            (datetime(2019, 1, 1, 0, tzinfo=timezone.utc), False),
+            (datetime(2019, 2, 28, 23, tzinfo=timezone.utc), False),
+            (datetime(2019, 3, 1, 0, tzinfo=timezone.utc), True)
+        ]
+        for current_dt, expected in current_dt_expected_pairs:
+            self.assertEqual(salt.needs_deletion(current_dt), expected)
+
+    def test_needs_deletion_with_start_datetime_only(self):
+        salt = Salt('', self.start_dt, None, None)
+        current_dt_expected_pairs = [
+            (datetime(2018, 12, 31, 23, tzinfo=timezone.utc), False),
+            (datetime(2019, 1, 1, 0, tzinfo=timezone.utc), False)
+        ]
+        for current_dt, expected in current_dt_expected_pairs:
+            self.assertEqual(salt.needs_deletion(current_dt), expected)
+
+    def test_path(self):
+        # With start, end and deletion datetimes.
+        salt = Salt('directory', self.start_dt, self.end_dt, self.deletion_dt)
+        self.assertEqual(salt.path, 'directory/2019010100_2019030100_2019031500')
+        # With start and end datetimes.
+        salt = Salt('directory', self.start_dt, self.end_dt, None)
+        self.assertEqual(salt.path, 'directory/2019010100_2019030100_')
+        # With start datetime only.
+        salt = Salt('directory', self.start_dt, None, None)
+        self.assertEqual(salt.path, 'directory/2019010100__')
+
+    def test_parse_pediod(self):
+        with self.assertRaises(Exception):
+            parse_period('invalid format')
+        timedelta = relativedelta.relativedelta
+        self.assertEqual(parse_period('3 hours'), timedelta(hours=3))
+        self.assertEqual(parse_period('5 days'), timedelta(days=5))
+        self.assertEqual(parse_period('7 months'), timedelta(months=7))
+
+    def test_get_salt_interval_with_start_end_and_deletion_datetimes(self):
+        initial_dt = datetime(1970, 1, 1, 0, tzinfo=timezone.utc)
+        period_delta = relativedelta.relativedelta(months=2)
+        backup_delta = relativedelta.relativedelta(days=14)
+        current_dt = datetime(2019, 2, 10, 0, tzinfo=timezone.utc)
+        salt_interval = get_salt_interval(
+            initial_dt, period_delta, backup_delta, current_dt)
+        self.assertEqual(salt_interval[0], self.start_dt)
+        self.assertEqual(salt_interval[1], self.end_dt)
+        self.assertEqual(salt_interval[2], self.deletion_dt)
+
+    def test_get_salt_interval_with_start_and_end_datetimes(self):
+        initial_dt = datetime(1970, 1, 1, 0, tzinfo=timezone.utc)
+        period_delta = relativedelta.relativedelta(months=2)
+        current_dt = datetime(2019, 2, 10, 0, tzinfo=timezone.utc)
+        salt_interval = get_salt_interval(
+            initial_dt, period_delta, None, current_dt)
+        self.assertEqual(salt_interval[0], self.start_dt)
+        self.assertEqual(salt_interval[1], self.end_dt)
+        self.assertEqual(salt_interval[2], None)
+
+    def test_get_salt_interval_with_start_datetime_only(self):
+        initial_dt = datetime(1970, 1, 1, 0, tzinfo=timezone.utc)
+        current_dt = datetime(2019, 2, 10, 0, tzinfo=timezone.utc)
+        salt_interval = get_salt_interval(
+            initial_dt, None, None, current_dt)
+        self.assertEqual(salt_interval[0], initial_dt)
+        self.assertEqual(salt_interval[1], None)
+        self.assertEqual(salt_interval[2], None)
 
 
 if __name__ == '__main__':
-    logger.info('Starting saltrotate.')
-
-    # Parse arguments.
     arguments = docopt(__doc__)
-    file_path = arguments['<file_path>']
-    period_timedelta = parse_period(arguments['--period'])
-    backup_timedelta = parse_period(arguments['--backup'])
-    start_datetime = datetime_parser.parse(
-        arguments['--start']
-        if arguments['--start'] is not None
-        else '1970-01-01T00:00:00Z'
-    )
-    verbose = arguments['--verbose']
-    dry_run = arguments['--dry-run']
 
     # Configure logging.
-    log_level = logging.DEBUG if verbose else logging.INFO
-    configure_logging(logger, log_level, stdout=True)
+    configure_logging(logger, logging.INFO, stdout=True)
 
-    # Execute logic.
-    process_salt(
-        file_path,
-        period_timedelta,
-        backup_timedelta is not None,
-        start_datetime,
-        dry_run
-    )
-    clean_backup(
-        file_path + BACKUP_EXTENSION,
-        period_timedelta,
-        backup_timedelta,
-        start_datetime,
-        dry_run
-    )
+    # Disable logging for tests.
+    sys.stdout = open(os.devnull, 'w')
+    sys.stderr = open(os.devnull, 'w')
+    logger.disabled = True
 
-    logger.info('Done!')
+    # Apply unit tests before running the script.
+    # If they fail, print test results and exit.
+    test_results = unittest.main(argv=[''], exit=False).result
+
+    # Reenable logging after tests.
+    sys.stdout.close()
+    sys.stdout = sys.__stdout__
+    sys.stderr.close()
+    sys.stderr = sys.__stderr__
+    logger.disabled = False
+
+    # Check test results.
+    issues = test_results.errors + test_results.failures
+    if len(issues) == 0:
+        logger.info('Unit tests passed')
+    else:
+        for issue in issues:
+            print(issue[1].strip())
+        sys.exit(1)
+
+    main(arguments)
