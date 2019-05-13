@@ -34,6 +34,7 @@
                 "status_code",
                 "country",
                 "country_matches_geocode",
+                "device",
                 "sample_rate"
             ]
           },
