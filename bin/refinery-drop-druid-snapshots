@@ -28,15 +28,19 @@ represent the time ranges of the data, which we wouldn't want to delete.
 Usage: refinery-drop-druid-snapshots [options]
 
 Options:
-    -h --help                       Show this help message and exit.
-    -d --basename=<name>            Base name of the datasource from which data will
-                                    be deleted. Assumes that the datasources name will be
-                                    <BASE_NAME>_yyyy-MM
-    -t --druid-host=<host>:<port>   Druid's coordinator hostname and port
-    -s --keep-snapshots=<n>         Keep the <n> most recent snapshots. [default: 6]
-    -v --verbose                    Turn on verbose debug logging.
-    -f [FILE] --log-file [FILE]     File to send info logs to
-    -n --dry-run                    Don't actually drop any partitions, just output Hive queries.
+    -h --help                        Show this help message and exit.
+    -d --basename=<name>             Base name of the datasource from which data will
+                                     be deleted. Assumes that the datasources name will be
+                                     <BASE_NAME>_yyyy_MM
+    -t --druid-host=<host>           Druid's hostname (can be any node of the cluster)
+    -c --druid-coord-port=<port>     Port for druid coordinator [default: 8081]
+    -o --druid-overlord-port=<port>  Port for druid overlord [default: 8090]
+    -s --keep-snapshots=<n>          Keep the <n> most recent snapshots. [default: 6]
+    -v --verbose                     Turn on verbose debug logging.
+    -f --log-file=<file>             File to send info logs to
+    -w --wait-between-checks=<s>     Sleeping time in second between task status updates.
+                                     [default: 5]
+    -n --dry-run                     Don't actually drop any partitions, just output Hive queries.
 """
 
 __author__ = 'Francisco Dans <fdans@wikimedia.org>'
@@ -52,12 +56,16 @@ logger = logging.getLogger()
 
 if __name__ == '__main__':
     arguments = docopt(__doc__)
-    keep            = int(arguments['--keep-snapshots'])
-    basename        = arguments['--basename']
-    druid_host      = arguments['--druid-host']
-    verbose         = arguments['--verbose']
-    dry_run         = arguments['--dry-run']
-    log_file        = arguments['--log-file']
+
+    keep                = int(arguments['--keep-snapshots'])
+    basename            = arguments['--basename']
+    druid_host          = arguments['--druid-host']
+    druid_coord_port    = arguments['--druid-coord-port']
+    druid_overlord_port = arguments['--druid-overlord-port']
+    wait_seconds        = int(arguments['--wait-between-checks'])
+    verbose             = arguments['--verbose']
+    dry_run             = arguments['--dry-run']
+    log_file            = arguments['--log-file']
 
     log_level = logging.DEBUG if verbose else logging.INFO
     configure_logging(logger, log_level, log_file=log_file)
@@ -67,21 +75,21 @@ if __name__ == '__main__':
         print('DRY RUN MODE - THIS RUN WILL NOT CHANGE ANYTHING')
         print('################################################')
 
-    logger.info('Using druid host {}...'.format(druid_host))
-    druid = Druid(druid_host)
+    druid = Druid(druid_host, druid_coord_port, druid_overlord_port)
 
-    logger.info('Looking for snapshots to delete for {}...'.format(basename))
+    logger.info('Looking for snapshots to delete for basename {}'.format(basename))
     datasources = druid.list_datasources()
-    matched_snapshots = list(sorted(filter(lambda d: re.match(basename + '_\d{4}_\d\d', d), datasources), reverse = True))
-    if len(matched_snapshots) == 0:
-        sys.exit('The base name you specified does not match any datasources')
-    snapshots_to_remove = matched_snapshots[keep:]
-    if len(snapshots_to_remove) == 0:
-        logger.info('There are no datasources to remove (total available {}: {})'
-                    .format(len(matched_snapshots), str(matched_snapshots)))
+    matched_datasources = filter(lambda d: re.match(basename + '_\d{4}_\d\d', d),datasources)
+    ordered_matched_datasources = list(sorted(matched_datasources, reverse = True))
+    if len(ordered_matched_datasources) == 0:
+        sys.exit('No datasource match basename {}'.format(basename))
+    datasources_to_remove = ordered_matched_datasources[keep:]
+    if len(datasources_to_remove) == 0:
+        logger.info('No datasource to remove ({} available: {})'.format(
+                    len(ordered_matched_datasources), str(ordered_matched_datasources)))
         sys.exit(0)
-    for snapshot in snapshots_to_remove:
-        logger.info('Deleting snapshot {}...'.format(snapshot))
-        druid.remove_datasource(snapshot, deep=True, dry_run=dry_run)
+    for datasource in datasources_to_remove:
+        druid.delete_datasource(datasource, wait_seconds   , dry_run)
 
-    logger.info('Deleted {} snapshots from {}...'.format(len(snapshots_to_remove), basename))
+    logger.info('Deleted {} datasources: {}'.format(
+        len(datasources_to_remove), datasources_to_remove))
