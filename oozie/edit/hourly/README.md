@@ -19,7 +19,7 @@ And sets a SUCCESS flag when edit_hourly is successfully populated.
 Usage:
 ```
 # Create a new coordinator for production.
-sudo -u hdfs oozie job --oozie $OOZIE_URL \
+sudo -u analytics oozie job --oozie $OOZIE_URL \
     -Drefinery_directory=hdfs://analytics-hadoop$(hdfs dfs -ls -d /wmf/refinery/2018* | tail -n 1 | awk '{print $NF}') \
     -Dqueue_name=production \
     -Dstart_time='2019-01-01T00:00Z' \
@@ -29,7 +29,7 @@ sudo -u hdfs oozie job --oozie $OOZIE_URL \
 # Re-run a failed workflow.
 # The start time should be the same as the failed workflow.
 # The stop time should be before the next period.
-sudo -u hdfs oozie job --oozie $OOZIE_URL \
+sudo -u analytics oozie job --oozie $OOZIE_URL \
     -Dstart_time='2019-01-01T00:00Z' \
     -Dstop_time='2019-01-01T01:00Z' \
     -config /home/<USER>/refinery/oozie/edit/hourly/coordinator.properties \
@@ -38,7 +38,7 @@ sudo -u hdfs oozie job --oozie $OOZIE_URL \
 # Test changes to this job.
 # This way, the oozie code in the users hdfs directory is used,
 # and the output of the job will be written to a user database.
-sudo -u hdfs oozie job --oozie $OOZIE_URL \
+sudo -u analytics oozie job --oozie $OOZIE_URL \
     -Dstart_time='2019-01-01T00:00Z' \
     -Dstop_time='2019-01-01T01:00Z' \
     -Doozie_directory='hdfs://analytics-hadoop/user/<USER>/oozie' \

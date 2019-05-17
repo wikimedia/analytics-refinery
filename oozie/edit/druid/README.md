@@ -16,7 +16,7 @@ Usage:
 ```
 # Create a new coordinator for production.
 # Note that start time is not the start of data, rather the snapshot date.
-sudo -u hdfs oozie job --oozie $OOZIE_URL \
+sudo -u analytics oozie job --oozie $OOZIE_URL \
   -Drefinery_directory=hdfs://analytics-hadoop$(hdfs dfs -ls -d /wmf/refinery/2018* | tail -n 1 | awk '{print $NF}') \
   -Dqueue_name=production \
   -Dstart_time='2019-02-01T00:00Z' \
@@ -26,7 +26,7 @@ sudo -u hdfs oozie job --oozie $OOZIE_URL \
 # Rerun a failed workflow.
 # The start time should be the same as the failed workflow.
 # The stop time should be before the next period.
-sudo -u hdfs oozie job --oozie $OOZIE_URL \
+sudo -u analytics oozie job --oozie $OOZIE_URL \
   -Dstart_time='2019-02-01T00:00Z' \
   -Dstop_time='2019-02-01T01:00Z' \
   -config /home/mforns/refinery/oozie/edit/druid/coordinator.properties \
@@ -35,7 +35,7 @@ sudo -u hdfs oozie job --oozie $OOZIE_URL \
 # Test changes to this job.
 # This way, the oozie code in the user's hdfs directory is used,
 # and the output of the job will be written to the specified datasource.
-sudo -u hdfs oozie job --oozie $OOZIE_URL \
+sudo -u analytics oozie job --oozie $OOZIE_URL \
   -Dstart_time='2019-02-01T00:00Z' \
   -Dstop_time='2019-02-01T01:00Z' \
   -Doozie_directory='hdfs://analytics-hadoop/user/mforns/oozie' \
