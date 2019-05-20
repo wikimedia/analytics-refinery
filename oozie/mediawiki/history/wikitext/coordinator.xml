@@ -108,12 +108,12 @@
             <!--
                 Use action actual time as SLA base, since it's the time used
                 to compute timeout
-                Job is waiting for the month data to be present which happen a few
-                days after the 1st (due to dump generation). Waiting for 9 days
-                after new-month start should be enough.
+                Job is waiting for the month data to be present which happen
+                roughly the 17th of the month due to big wikis dump generation.
+                Waiting for 24 days after new-month start should be enough.
             -->
             <sla:nominal-time>${coord:actualTime()}</sla:nominal-time>
-            <sla:should-end>${40 * DAYS}</sla:should-end>
+            <sla:should-end>${55 * DAYS}</sla:should-end>
             <sla:alert-events>end_miss</sla:alert-events>
             <sla:alert-contact>${sla_alert_contact}</sla:alert-contact>
         </sla:info>
