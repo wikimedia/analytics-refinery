@@ -208,7 +208,7 @@ if __name__ == '__main__':
 
     yarn_job_name_prefix = yarn_job_name_prefix or 'sqoop-mediawiki-tables'
     queries = validate_tables_and_get_queries(
-        import_tables, from_timestamp, to_timestamp, labsdb
+        import_tables, from_timestamp, to_timestamp
     )
 
     check_already_running_or_exit(yarn_job_name_prefix)

@@ -167,7 +167,7 @@ def make_timestamp_clause(field_name, from_timestamp, to_timestamp):
     return timestamp_clause
 
 
-def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp, labsdb):
+def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp):
     """
     Returns a dictionary of mediawiki table names to the correct sqoop
     query to execute for import.
@@ -181,7 +181,6 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp,
         filter_tables: list of tables to return queries for, None for all tables
         from_timestamp: imported timestamps must be newer than this, (YYYYMMDDHHmmss)
         to_timestamp: timestamps must be *strictly* older than this, (YYYYMMDDHHmmss)
-        labsdb: True or False, helps inform small differences in queries
 
     Returns
         An object of the form:
@@ -202,13 +201,13 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp,
              select ar_id,
                     ar_namespace,
                     convert(ar_title using utf8) ar_title,
-                    convert('' using utf8) ar_text,
-                    convert('' using utf8) ar_comment,
+                    null ar_text,
+                    null ar_comment,
                     null ar_user,
                     null ar_user_text,
                     convert(ar_timestamp using utf8) ar_timestamp,
                     ar_minor_edit,
-                    convert('' using utf8) ar_flags,
+                    null ar_flags,
                     ar_rev_id,
                     ar_text_id,
                     ar_deleted,
@@ -216,20 +215,27 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp,
                     ar_page_id,
                     ar_parent_id,
                     convert(ar_sha1 using utf8) ar_sha1,
-                    convert('' using utf8) ar_content_model,
-                    convert('' using utf8) ar_content_format,
+                    null ar_content_model,
+                    null ar_content_format,
                     ar_actor,
-                    coalesce(ar_comment_id, 0) ar_comment_id
+                    ar_comment_id
 
                from archive
               where $CONDITIONS
                 {ts_clause}
         '''.format(ts_clause=make_timestamp_clause('ar_timestamp', from_timestamp, to_timestamp)),
         'map-types': '"{}"'.format(','.join([
-            'ar_minor_edit=Boolean',
-            'ar_deleted=Integer',
             'ar_actor=Long',
+            'ar_comment=String',
             'ar_comment_id=Long',
+            'ar_content_format=String',
+            'ar_content_model=String',
+            'ar_deleted=Integer',
+            'ar_flags=String',
+            'ar_minor_edit=Boolean',
+            'ar_text=String',
+            'ar_user=Long',
+            'ar_user_text=String',
         ])),
         'boundary-query': 'SELECT MIN(ar_id), MAX(ar_id) FROM archive',
         'split-by': 'ar_id',
@@ -269,9 +275,9 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp,
               where $CONDITIONS
         ''',
         'map-types': '"{}"'.format(','.join([
+            'ctd_count=Long',
             'ctd_id=Long',
             'ctd_user_defined=Boolean',
-            'ctd_count=Long'
         ])),
         'boundary-query': 'SELECT MIN(ctd_id), MAX(ctd_id) FROM change_tag_def',
         'split-by': 'ctd_id',
@@ -285,7 +291,7 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp,
                     ipb_user,
                     null ipb_by,
                     null ipb_by_text,
-                    convert('' using utf8) ipb_reason,
+                    null ipb_reason,
                     convert(ipb_timestamp using utf8) ipb_timestamp,
                     ipb_auto,
                     ipb_anon_only,
@@ -306,14 +312,17 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp,
                 {ts_clause}
         '''.format(ts_clause=make_timestamp_clause('ipb_timestamp', from_timestamp, to_timestamp)),
         'map-types': '"{}"'.format(','.join([
-            'ipb_auto=Boolean',
-            'ipb_anon_only=Boolean',
-            'ipb_create_account=Boolean',
-            'ipb_enable_autoblock=Boolean',
-            'ipb_deleted=Boolean',
-            'ipb_block_email=Boolean',
             'ipb_allow_usertalk=Boolean',
+            'ipb_anon_only=Boolean',
+            'ipb_auto=Boolean',
+            'ipb_block_email=Boolean',
+            'ipb_by=Long',
             'ipb_by_actor=Long',
+            'ipb_by_text=String',
+            'ipb_create_account=Boolean',
+            'ipb_deleted=Boolean',
+            'ipb_enable_autoblock=Boolean',
+            'ipb_reason=String',
             'ipb_reason_id=Long',
         ])),
         'boundary-query': 'SELECT MIN(ipb_id), MAX(ipb_id) FROM ipblocks',
@@ -344,7 +353,7 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp,
                     null log_user,
                     log_namespace,
                     convert(log_title using utf8) log_title,
-                    convert('' using utf8) log_comment,
+                    null log_comment,
                     convert(log_params using utf8) log_params,
                     log_deleted,
                     null log_user_text,
@@ -357,9 +366,11 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp,
                 {ts_clause}
         '''.format(ts_clause=make_timestamp_clause('log_timestamp', from_timestamp, to_timestamp)),
         'map-types': '"{}"'.format(','.join([
-            'log_user=Long',
             'log_actor=Long',
+            'log_comment=String',
             'log_comment_id=Long',
+            'log_user=Long',
+            'log_user_text=String',
         ])),
         'boundary-query': 'SELECT MIN(log_id), MAX(log_id) FROM logging',
         'split-by': 'log_id',
@@ -385,8 +396,8 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp,
               where $CONDITIONS
         ''',
         'map-types': '"{}"'.format(','.join([
-            'page_is_redirect=Boolean',
             'page_is_new=Boolean',
+            'page_is_redirect=Boolean',
         ])),
         'boundary-query': 'SELECT MIN(page_id), MAX(page_id) FROM page',
         'split-by': 'page_id',
@@ -429,7 +440,7 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp,
              select rev_id,
                     rev_page,
                     rev_text_id,
-                    convert('' using utf8) rev_comment,
+                    null rev_comment,
                     null rev_user,
                     null rev_user_text,
                     convert(rev_timestamp using utf8) rev_timestamp,
@@ -439,20 +450,24 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp,
                     rev_parent_id,
                     convert(rev_sha1 using utf8) rev_sha1,
                     convert(rev_content_model using utf8) rev_content_model,
-                    convert(rev_content_format using utf8) rev_content_format
-                    {labsdb}
+                    convert(rev_content_format using utf8) rev_content_format,
+                    rev_actor,
+                    rev_comment_id
 
                from revision
               where $CONDITIONS
                 {ts_clause}
         '''.format(
             ts_clause=make_timestamp_clause('rev_timestamp', from_timestamp, to_timestamp),
-            labsdb=',rev_actor,coalesce(rev_comment_id,0) rev_comment_id' if labsdb else ',null rev_actor,null rev_comment_id'),
+        ),
         'map-types': '"{}"'.format(','.join([
-            'rev_minor_edit=Boolean',
-            'rev_deleted=Integer',
             'rev_actor=Long',
+            'rev_comment=String',
             'rev_comment_id=Long',
+            'rev_deleted=Integer',
+            'rev_minor_edit=Boolean',
+            'rev_user=Long',
+            'rev_user_text=String',
         ])),
         'boundary-query': 'SELECT MIN(rev_id), MAX(rev_id) FROM revision',
         'split-by': 'rev_id',
