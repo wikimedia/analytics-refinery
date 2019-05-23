@@ -8,6 +8,11 @@ __defaults__:
     topic: keep
     uuid: keep
 
+CentralNoticeTiming:
+    event:
+        pageviewToken: hash
+        time: keep
+
 ChangesListFilterGrouping:
     event:
         action: keep
@@ -162,6 +167,31 @@ EditorActivation:
         userId: keep
     webhost: keep
     wiki: keep
+
+ElementTiming:
+    event:
+        pageviewToken: hash
+        name: keep
+        startTime: keep
+        responseEnd: keep
+        bottom: keep
+        height: keep
+        left: keep
+        right: keep
+        top: keep
+        width: keep
+        x: keep
+        y: keep
+
+EventTiming:
+    event:
+        pageviewToken: hash
+        name: keep
+        startTime: keep
+        processingStart: keep
+        processingEnd: keep
+        duration: keep
+        cancelable: keep
 
 ExternalGuidance:
     event:
@@ -352,6 +382,11 @@ Kartographer:
         userToken: keep
     webhost: keep
     wiki: keep
+
+LayoutJank:
+    event:
+        pageviewToken: hash
+        fraction: keep
 
 MediaViewer:
     event:
