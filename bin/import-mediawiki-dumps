@@ -370,8 +370,11 @@ class MediawikiProjectDumpImporter(object):
                         logger.warn('Dump status not done in json dump-info file '
                                     + project_dump_info)
                         self._set_unavailable()
-                except:
+                except json.decoder.JSONDecodeError:
                     logger.exception('Problem reading json dump-info file ' + project_dump_info)
+                    self._set_failure()
+                except:
+                    logger.exception('Runtime problem reading json dump-info file ' + project_dump_info)
                     self._set_failure()
 
     def _prepare_hdfs(self):
