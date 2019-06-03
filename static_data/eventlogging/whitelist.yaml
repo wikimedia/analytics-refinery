@@ -1497,6 +1497,11 @@ ResourceTiming:
     webhost: keep
     wiki: keep
 
+RUMSpeedIndex:
+    event:
+        pageviewToken: hash
+        RSI: keep
+
 SaveTiming:
     event:
         duration: keep
