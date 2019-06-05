@@ -28,13 +28,17 @@
               "user_is_bot",
               "user_is_administrator",
               "user_groups",
+              "user_tenure_bucket",
               "namespace_is_content",
               "namespace_is_talk",
               "namespace_name",
               "creates_new_page",
               "is_deleted",
               "is_reverted",
-              "user_edit_count_bucket"
+              "user_edit_count_bucket",
+              "platform",
+              "interface",
+              "revision_tags"
             ]
           },
           "timestampSpec": {
