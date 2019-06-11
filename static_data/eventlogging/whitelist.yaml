@@ -365,7 +365,37 @@ HelpPanel:
         page_ns: keep
         user_can_edit: keep
         page_protection: keep
-        help_panel_session_id: keep
+        help_panel_session_id: hash
+    webhost: keep
+    wiki: keep
+
+HomepageModule:
+    event:
+        action: keep
+        action_data: keep
+        user_id: keep
+        user_editcount: keep
+        module: keep
+        state: keep
+        is_mobile: keep
+        mode: keep
+        homepage_pageview_token: hash
+    webhost: keep
+    wiki: keep
+
+HomepageVisit:
+    event:
+        is_mobile: keep
+        referer_route: keep
+        referer_namespace: keep
+        referer_action: keep
+        user_id: keep
+        user_editcount: keep
+        impact_module_state: keep
+        start_tutorial_state: keep
+        start_userpage_state: keep
+        start_email_state: keep
+        homepage_pageview_token: hash
     webhost: keep
     wiki: keep
 
