@@ -214,8 +214,9 @@ def check_partitions_vs_directories(partitions, directories):
     if partition_snapshots != directory_snapshots:
         logger.error(
             'Selected partitions extracted from table specs ({0}) '
-            'does not match selected partitions extracted from data paths ({1}).'
-            .format(partition_snapshots, directory_snapshots)
+            'does not match selected partitions extracted from data paths ({1}). '
+            'HDFS directories to check: {2}'
+            .format(partition_snapshots, directory_snapshots, directories)
         )
         sys.exit(1)
 
