@@ -1376,6 +1376,7 @@ NavigationTiming:
         netSpeed: keep
         netinfoEffectiveConnectionType: keep
         pageviewToken: hash
+        phpEngine: keep
         oversampleReason: keep
         receiving: keep
         redirectCount: keep
