@@ -113,4 +113,9 @@ if __name__ == '__main__':
     itv_end = oldest_accepted_day + dt_day_postfix
     interval = '{}/{}'.format(itv_start, itv_end)
 
+
+    # note that this call is going to fail if segments have not been disabled 
+    # on the druid admin UI before 
+    # Please see: https://druid.apache.org/docs/latest/tutorials/tutorial-delete-data.html
+
     druid.delete_segments(datasource, interval, validated_wait_seconds, dry_run)
