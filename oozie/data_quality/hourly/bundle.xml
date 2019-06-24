@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bundle-app xmlns="uri:oozie:bundle:0.2"
+    name="data-quality-hourly-bundle">
+
+    <parameters>
+        <property><name>coordinator_file</name></property>
+    </parameters>
+
+    <coordinator name="data-quality-event.navigationtiming-eventcapsule_metrics-hourly-coord">
+        <app-path>${coordinator_file}</app-path>
+        <configuration>
+            <property><name>source_table</name><value>event.navigationtiming</value></property>
+            <property><name>source_directory</name><value>/wmf/data/event/NavigationTiming</value></property>
+            <property><name>query_name</name><value>eventcapsule_metrics</value></property>
+        </configuration>
+    </coordinator>
+
+</bundle-app>
