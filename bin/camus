@@ -87,7 +87,10 @@ if __name__ == '__main__':
         check_dry_run = '--dry-run' if arguments['--check-dry-run'] else ''
         check_email_report = '--send-email-report --to-emails %s' % arguments['--check-emails-to'] if arguments['--check-emails-to'] else ''
 
-        checker_command = '/usr/bin/java -cp "{0}" {1} org.wikimedia.analytics.refinery.camus.CamusPartitionChecker -c {2} {3} {4} {5}'.format(
+        # the /etc/hadoop/conf bit is needed to allow parameters to be picked
+        # up to allow things like kerberos auth to work properly.
+        # T226232
+        checker_command = '/usr/bin/java -cp "{0}:/etc/hadoop/conf" {1} org.wikimedia.analytics.refinery.camus.CamusPartitionChecker -c {2} {3} {4} {5}'.format(
             check_classpath,
             check_java_opts,
             properties_file,
