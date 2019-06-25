@@ -94,7 +94,7 @@ if __name__ == '__main__':
 
     logger.info('Started Shell with with {}'.format(' '.join(arguments)))
 
-    queries = validate_tables_and_get_queries(None, timestamp, timestamp, labsdb)
+    queries = validate_tables_and_get_queries(None, timestamp, timestamp)
     jar_path = os.path.join(target_jar_directory, 'mediawiki-tables-sqoop-orm.jar')
 
     failed_jobs = []

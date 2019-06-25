@@ -36,6 +36,7 @@ CREATE EXTERNAL TABLE `mediawiki_user_history`(
     caused_by_event_type            string          COMMENT 'Event that caused this state (create, move, delete or restore).',
     caused_by_user_id               bigint          COMMENT 'ID of the user that caused this state.',
     caused_by_user_text             string          COMMENT 'Name of the user that caused this state.',
+    caused_by_anonymous_user        boolean         COMMENT 'Whether the user that caused this state was anonymous',
     caused_by_block_expiration      string          COMMENT 'Block expiration value, if any.',
     inferred_from                   string          COMMENT 'If non-NULL, indicates that some of this state\'s fields have been inferred after an inconsistency in the source data.',
     source_log_id                   bigint          COMMENT 'ID of the logging table row that caused this state',
