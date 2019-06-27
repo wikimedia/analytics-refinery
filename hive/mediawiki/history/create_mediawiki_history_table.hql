@@ -51,8 +51,10 @@ CREATE EXTERNAL TABLE `mediawiki_history`(
   `page_namespace_is_content`                     boolean       COMMENT 'In revision/page events: current namespace of the page is categorized as content',
   `page_is_redirect`                              boolean       COMMENT 'In revision/page events: whether the page is currently a redirect',
   `page_is_deleted`                               boolean       COMMENT 'In revision/page events: Whether the page is rebuilt from a delete event',
-  `page_creation_timestamp`                       string        COMMENT 'In revision/page events: creation timestamp of the page',
+  `page_creation_timestamp`                       string        COMMENT 'In revision/page events: create event timestamp of the page',
   --`page_creation_timestamp`                       timestamp     COMMENT 'In revision/page events: creation timestamp of the page',
+  `page_first_edit_timestamp`                     string        COMMENT 'In revision/page events: first edit timestamp of the page',
+  --`page_first_edit_timestamp`                     timestamp     COMMENT 'In revision/page events: first edit timestamp of the page',
   `page_revision_count`                           bigint        COMMENT 'In revision/page events: Cumulative revision count per page for the current page_id (only available in revision-create events so far)',
   `page_seconds_since_previous_revision`          bigint        COMMENT 'In revision/page events: seconds elapsed since the previous revision made on the current page_id (only available in revision-create events so far)',
 
@@ -93,6 +95,7 @@ CREATE EXTERNAL TABLE `mediawiki_history`(
   `revision_first_identity_reverting_revision_id` bigint        COMMENT 'In revision events: id of the revision that reverted this revision',
   `revision_seconds_to_identity_revert`           bigint        COMMENT 'In revision events: seconds elapsed between revision posting and its revert (if there was one)',
   `revision_is_identity_revert`                   boolean       COMMENT 'In revision events: whether this revision reverts other revisions',
+  `revision_is_from_before_page_creation`         boolean       COMMENT 'In revision events: True if the revision timestamp is before the page creation (can happen with restore events)',
   `revision_tags`                                 array<string> COMMENT 'In revision events: Tags associated to the revision'
 )
 COMMENT
