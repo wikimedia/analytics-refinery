@@ -136,7 +136,7 @@ def drop_partitions(hive, database, tables_regex, threshold, execute):
 
         candidate_partitions = hive.partitions(table)
         for partition in candidate_partitions:
-            if partition.datetime() < threshold:
+            if should_drop_partition(partition, threshold):
                 partitions_to_drop.append(partition.spec())
 
         if len(partitions_to_drop) > 0:
@@ -153,6 +153,28 @@ def drop_partitions(hive, database, tables_regex, threshold, execute):
         else:
             logger.info('No Hive partitions dropped for table {0}.{1}.'
                 .format(database, table))
+
+
+def should_drop_partition(partition, threshold):
+    """
+    Returns True, if the given partition's end datetime is older
+    than the given threshold. Returns False otherwise.
+    """
+    partition_dt = partition.datetime()
+    if "hour" in partition:
+        partition_end = partition_dt.replace(minute=59, second=59)
+    elif "day" in partition:
+        partition_end = partition_dt.replace(hour=23, minute=59, second=59)
+    elif "month" in partition:
+        last_day_of_month = calendar.monthrange(partition_dt.year, partition_dt.month)[1]
+        partition_end = partition_dt.replace(
+            day=last_day_of_month, hour=23, minute=59, second=59)
+    elif "year" in partition:
+        partition_end = partition_dt.replace(
+            month=12, day=31, hour=23, minute=59, second=59)
+    else:
+        return False
+    return partition_end < threshold
 
 
 def remove_directories(hdfs, base_path, path_format, threshold, skip_trash, execute):
@@ -172,7 +194,7 @@ def remove_directories(hdfs, base_path, path_format, threshold, skip_trash, exec
 
         candidate_paths = hdfs.ls(glob, include_children=False)
         for path in candidate_paths:
-            if should_remove(path, full_path_format, threshold):
+            if should_remove_directory(path, full_path_format, threshold):
                 directories_to_remove.append(path)
 
         if len(directories_to_remove) > 0:
@@ -196,7 +218,7 @@ def remove_directories(hdfs, base_path, path_format, threshold, skip_trash, exec
                 .format(glob_depth))
 
 
-def should_remove(path, full_path_format, threshold):
+def should_remove_directory(path, full_path_format, threshold):
     """
     Returns True, if the given path matches the specified format,
     and the datetime extracted from it using the format's capture
@@ -347,9 +369,12 @@ class TestRefineryDropOlderThan(unittest.TestCase):
             self.drop_partitions_ddl = MagicMock()
 
     class FakePartition(object):
-        def __init__(self, dt, spec):
+        def __init__(self, dt, spec, keys=[]):
             self.datetime = MagicMock(return_value=dt)
             self.spec = MagicMock(return_value=spec)
+            self.keys = keys
+        def __iter__(self):
+            return iter(self.keys)
 
     class FakeHdfs(object):
         def __init__(self, paths):
@@ -428,43 +453,43 @@ class TestRefineryDropOlderThan(unittest.TestCase):
                 '--verbose': True,
                 '--log-file': 'path'}))
 
-    def test_should_remove_is_false_without_year_group(self):
+    def test_should_remove_directory_is_false_without_year_group(self):
         path = '/test/dataset'
         format = '/test/(?P<dataset>[0-9]+)'
-        result = should_remove(path, format, datetime(2018, 1, 1, 0))
+        result = should_remove_directory(path, format, datetime(2018, 1, 1, 0))
         self.assertEqual(result, False)
 
-    def test_should_remove_year_limits(self):
+    def test_should_remove_directory_year_limits(self):
         path = '/test/dataset/2017'
         format = '/test/dataset/(?P<year>[0-9]+)'
         threshold1 = datetime(2018, 1, 1, 0)
         threshold2 = datetime(2017, 12, 31, 23)
-        self.assertEqual(should_remove(path, format, threshold1), True)
-        self.assertEqual(should_remove(path, format, threshold2), False)
+        self.assertEqual(should_remove_directory(path, format, threshold1), True)
+        self.assertEqual(should_remove_directory(path, format, threshold2), False)
 
-    def test_should_remove_month_limits(self):
+    def test_should_remove_directory_month_limits(self):
         path = '/test/dataset/2017/09'
         format = '/test/dataset/(?P<year>[0-9]+)/(?P<month>[0-9]+)'
         threshold1 = datetime(2017, 10, 1, 0)
         threshold2 = datetime(2017, 9, 30, 23)
-        self.assertEqual(should_remove(path, format, threshold1), True)
-        self.assertEqual(should_remove(path, format, threshold2), False)
+        self.assertEqual(should_remove_directory(path, format, threshold1), True)
+        self.assertEqual(should_remove_directory(path, format, threshold2), False)
 
-    def test_should_remove_day_limits(self):
+    def test_should_remove_directory_day_limits(self):
         path = '/test/dataset/2017/09/29'
         format = '/test/dataset/(?P<year>[0-9]+)/(?P<month>[0-9]+)/(?P<day>[0-9]+)'
         threshold1 = datetime(2017, 9, 30, 0)
         threshold2 = datetime(2017, 9, 29, 23)
-        self.assertEqual(should_remove(path, format, threshold1), True)
-        self.assertEqual(should_remove(path, format, threshold2), False)
+        self.assertEqual(should_remove_directory(path, format, threshold1), True)
+        self.assertEqual(should_remove_directory(path, format, threshold2), False)
 
-    def test_should_remove_hour_limits(self):
+    def test_should_remove_directory_hour_limits(self):
         path = '/test/dataset/2017/09/29/03'
         format = '/test/dataset/(?P<year>[0-9]+)/(?P<month>[0-9]+)/(?P<day>[0-9]+)/(?P<hour>[0-9]+)'
         threshold1 = datetime(2017, 9, 29, 4)
         threshold2 = datetime(2017, 9, 29, 3, 59)
-        self.assertEqual(should_remove(path, format, threshold1), True)
-        self.assertEqual(should_remove(path, format, threshold2), False)
+        self.assertEqual(should_remove_directory(path, format, threshold1), True)
+        self.assertEqual(should_remove_directory(path, format, threshold2), False)
 
     def test_remove_directories_does_delete_with_execute(self):
         fake_hdfs = self.FakeHdfs(['/some/due/path/2018/11/01'])
@@ -502,17 +527,45 @@ class TestRefineryDropOlderThan(unittest.TestCase):
         fake_hdfs.ls.assert_called_with('/some/due/path/*/*/*', include_children=False)
         fake_hdfs.rm.assert_called_with('/some/due/path/2018/11/01', skip_trash=True)
 
+    def test_should_drop_partition_year_limits(self):
+        partition = self.FakePartition(datetime(2017, 1, 1), 'spec1', ['year'])
+        threshold1 = datetime(2018, 1, 1)
+        threshold2 = datetime(2017, 12, 1)
+        self.assertEqual(should_drop_partition(partition, threshold1), True)
+        self.assertEqual(should_drop_partition(partition, threshold2), False)
+
+    def test_should_drop_partition_month_limits(self):
+        partition = self.FakePartition(datetime(2017, 9, 1), 'spec1', ['month'])
+        threshold1 = datetime(2017, 10, 1)
+        threshold2 = datetime(2017, 9, 30)
+        self.assertEqual(should_drop_partition(partition, threshold1), True)
+        self.assertEqual(should_drop_partition(partition, threshold2), False)
+
+    def test_should_drop_partition_day_limits(self):
+        partition = self.FakePartition(datetime(2017, 9, 28), 'spec1', ['day'])
+        threshold1 = datetime(2017, 9, 29)
+        threshold2 = datetime(2017, 9, 28, 23)
+        self.assertEqual(should_drop_partition(partition, threshold1), True)
+        self.assertEqual(should_drop_partition(partition, threshold2), False)
+
+    def test_should_drop_partition_hour_limits(self):
+        partition = self.FakePartition(datetime(2017, 9, 29, 3), 'spec1', ['hour'])
+        threshold1 = datetime(2017, 9, 29, 4)
+        threshold2 = datetime(2017, 9, 29, 3, 59)
+        self.assertEqual(should_drop_partition(partition, threshold1), True)
+        self.assertEqual(should_drop_partition(partition, threshold2), False)
+
     def test_drop_partitions_does_delete_with_execute(self):
-        partition1 = self.FakePartition(datetime(2018, 11, 22, 0), 'spec1')
-        fake_hive = self.FakeHive(['t1'], [partition1])
+        partition = self.FakePartition(datetime(2018, 11, 30, 0), 'spec1', ['day'])
+        fake_hive = self.FakeHive(['t1'], [partition])
         drop_partitions(fake_hive, 'db1', 't1', datetime(2018, 12, 1, 0), True)
         fake_hive.get_tables.assert_called()
         fake_hive.partitions.assert_called_with('t1')
         fake_hive.drop_partitions.assert_called_with('t1', ['spec1'])
 
     def test_drop_partitions_does_nothing_with_dryrun(self):
-        partition1 = self.FakePartition(datetime(2018, 11, 22, 0), 'spec1')
-        fake_hive = self.FakeHive(['t1'], [partition1])
+        partition = self.FakePartition(datetime(2018, 11, 22, 0), 'spec1')
+        fake_hive = self.FakeHive(['t1'], [partition])
         drop_partitions(fake_hive, 'db1', 't1', datetime(2018, 12, 1, 0), False)
         fake_hive.get_tables.assert_called()
         fake_hive.partitions.assert_called_with('t1')
