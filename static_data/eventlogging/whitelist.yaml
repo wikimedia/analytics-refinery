@@ -744,13 +744,15 @@ MobileWikiAppEdit:
     event:
         abuseFilterName: keep
         action: keep
-        editSessionToken: keep
+        anon: keep
+        app_install_id: hash
+        client_dt: keep
+        editSessionToken: hash
         editSummaryTapped: keep
         errorText: keep
         pageNS: keep
-        revID: keep
-        userID: keep
-        userName: keep
+        session_token: hash
+        source: keep
         wikidataDescriptionEdit: keep
     useragent:
         os_family: keep
@@ -903,10 +905,12 @@ MobileWikiAppLinkPreview:
 MobileWikiAppLogin:
     event:
         action: keep
-        editSessionToken: keep
+        appInstallID: hash
+        editSessionToken: hash
         errorText: keep
-        loginSessionToken: keep
+        loginSessionToken: hash
         source: keep
+        ts: keep
     useragent:
         os_family: keep
         wmf_app_version: keep
@@ -936,7 +940,7 @@ MobileWikiAppNavMenu:
         appInstallID: hash
         app_install_id: hash
         menuItem: keep
-        sessionToken: keep
+        sessionToken: hash
     useragent:
         os_family: keep
         wmf_app_version: keep
@@ -1000,8 +1004,10 @@ MobileWikiAppPageScroll:
 MobileWikiAppProtectedEditAttempt:
     event:
         protectionStatus: keep
+        appInstallID: hash
         app_install_id: hash
         client_dt: keep
+        ts: keep
     useragent:
         os_family: keep
         wmf_app_version: keep
@@ -1044,7 +1050,7 @@ MobileWikiAppSavedPages:
         action: keep
         appInstallID: hash
         app_install_id: hash
-        savedPagesAppInstallToken: keep
+        savedPagesAppInstallToken: hash
     useragent:
         os_family: keep
         wmf_app_version: keep
@@ -1117,6 +1123,7 @@ MobileWikiAppSessions:
 MobileWikiAppShareAFact:
     event:
         action: keep
+        appInstallID: hash
         article: keep
         client_dt: keep
         pageID: keep
@@ -1124,11 +1131,13 @@ MobileWikiAppShareAFact:
         revID: keep
         rev_id: keep
         shareSessionToken: hash
+        sessionToken: hash
         session_token: hash
         sharemode: keep
         share_mode: keep
         target: keep
         text: keep
+        ts: keep
         tutorialFeatureEnabled: keep
         tutorial_feature_enabled: keep
         tutorialShown: keep
@@ -1192,8 +1201,9 @@ MobileWikiAppToCInteraction:
         section_index: keep
         timeSpent: keep
         time_spent: keep
-        tocInteractionToken: keep
-        interaction_token: keep
+        tocInteractionToken: hash
+        ts: keep
+        interaction_token: hash
         client_dt: keep
     useragent:
         os_family: keep
