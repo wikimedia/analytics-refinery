@@ -531,6 +531,8 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         '''.format(ts_clause=make_timestamp_clause('cuc_timestamp', from_timestamp, to_timestamp)),
         'map-types': '"{}"'.format(','.join([
             'cuc_minor=Boolean',
+            'cuc_user=Long',
+            'cuc_user_text=String',
         ])),
         'boundary-query': 'SELECT MIN(cuc_id), MAX(cuc_id) FROM cu_changes',
         'split-by': 'cuc_id',
