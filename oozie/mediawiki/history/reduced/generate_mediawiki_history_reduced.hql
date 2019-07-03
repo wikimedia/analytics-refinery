@@ -6,9 +6,9 @@
 -- deleted pages)
 --
 -- Usage:
---     hive -f generate_mediawiki_history.hql \
+--     hive -f generate_mediawiki_history_reduced.hql \
 --         -d mw_denormalized_history_table=wmf.mediawiki_history \
---         -d mw_project_namespace_map_table=wmf_raw.project_namespace_map \
+--         -d mw_project_namespace_map_table=wmf_raw.mediawiki_project_namespace_map \
 --         -d destination_table=wmf.mediawiki_history_reduced \
 --         -d snapshot=2017-08
 --
