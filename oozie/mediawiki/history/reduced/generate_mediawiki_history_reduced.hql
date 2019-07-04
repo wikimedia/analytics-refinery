@@ -145,7 +145,10 @@ WITH
             pm.hostname AS project,
             event_entity,
             event_type,
-            IF (event_entity = 'page' AND event_type = 'create', page_first_edit_timestamp, event_timestamp) AS event_timestamp,
+            CASE
+              WHEN event_entity = 'page' AND event_type = 'create' THEN COALESCE(page_first_edit_timestamp, event_timestamp)
+              ELSE event_timestamp
+            END AS event_timestamp,
             COALESCE(event_user_text, event_user_text_historical) AS user_text,
             CASE
                 -- Using sequence to prevent writing NOT
@@ -177,7 +180,7 @@ WITH
         WHERE TRUE
             AND snapshot = '${snapshot}'
             -- Only export rows with valid timestamp (page_first_edit_timestamp for page-create, event_timestamp otherwise)
-            AND ((event_entity = 'page' AND event_type = 'create' AND page_first_edit_timestamp IS NOT NULL)
+            AND ((event_entity = 'page' AND event_type = 'create' AND COALESCE(page_first_edit_timestamp, event_timestamp) IS NOT NULL)
                 OR  (event_timestamp IS NOT NULL))
             -- Explicitly remove deleted events
             AND (NOT event_entity = 'page' OR NOT page_is_deleted)
