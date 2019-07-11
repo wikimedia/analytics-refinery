@@ -11,7 +11,7 @@
 --     month                -- YYYY-MM to compute statistics for
 --
 -- Usage:
---     hive -f geoeditors_monthly.hql                                                       \
+--     hive -f insert_geoeditors_daily_data.hql                                             \
 --         -d refinery_jar_version=0.0.58                                                   \
 --         -d artifacts_directory=hdfs://analytics-hadoop/wmf/refinery/current/artifacts    \
 --         -d source_table=wmf_raw.mediawiki_private_cu_changes                             \
