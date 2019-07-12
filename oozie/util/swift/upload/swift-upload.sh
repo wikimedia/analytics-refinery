@@ -18,7 +18,7 @@
 # Exit on unset variable usage.
 set -u
 
-usage="Usage: $(basename $0) [-n|--dry-run] [-o|--overwrite <true|false>] -a|--auth-file <swift_auth_file> -c|--container <swift_container> [-s|--storage-policy <policy> (default: lowlatency)] <source_directory> <swift_object_prefix>"
+usage="Usage: $(basename $0) [-n|--dry-run] [-o|--overwrite <true|false>] -a|--auth-file <swift_auth_file> -c|--container <swift_container> [-s|--storage-policy <policy> (default: lowlatency)] [-d|--delete-after <seconds>] <source_directory> <swift_object_prefix>"
 
 # Logs a message to stdout
 function log {
@@ -45,6 +45,8 @@ swift_container=""
 # Default to using the 'lowlatency' SSD storage policy
 swift_storage_policy="lowlatency"
 dry_run="false"
+# Default delete after 90 days.
+delete_after=7776000
 
 # Default is to fail if the object prefix already exists in the container.
 # If should_overwrite is true, all existent object with the prefix will
@@ -75,6 +77,10 @@ while (( "$#" )); do
         if [[ "${should_overwrite}" != "true" && "${should_overwrite}" != "false" ]]; then
             fatal "--overwrite must either be 'true' or 'false'\n${usage}"
         fi
+        shift 2
+        ;;
+    -d|--delete-after)
+        delete_after="${2}"
         shift 2
         ;;
     -h|--help)
@@ -184,7 +190,7 @@ else
 fi
 
 
-swift_upload_command="/usr/bin/swift upload --header 'X-Storage-Policy:${swift_storage_policy}' --object-name ${swift_object_prefix} ${swift_container} ${upload_directory}"
+swift_upload_command="/usr/bin/swift upload --header 'X-Storage-Policy:${swift_storage_policy}' --header 'X-Delete-After:${delete_after}' --object-name ${swift_object_prefix} ${swift_container} ${upload_directory}"
 swift_upload_retval=0
 
 if [ "${dry_run}" == "false" ]; then
