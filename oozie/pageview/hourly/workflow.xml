@@ -130,7 +130,7 @@
     <start to="aggregate"/>
 
     <action name="aggregate">
-        <hive xmlns="uri:oozie:hive-action:0.2">
+        <hive2 xmlns="uri:oozie:hive2-action:0.2">
             <job-tracker>${job_tracker}</job-tracker>
             <name-node>${name_node}</name-node>
             <job-xml>${hive_site_xml}</job-xml>
@@ -153,6 +153,7 @@
                     <value>/tmp/hive-${user}</value>
                 </property>
             </configuration>
+            <jdbc-url>${hive2_jdbc_url}</jdbc-url>
             <script>${hive_pageview_script_aggregate}</script>
             <param>source_table=${webrequest_table}</param>
             <param>destination_table=${pageview_table}</param>
@@ -161,7 +162,7 @@
             <param>month=${month}</param>
             <param>day=${day}</param>
             <param>hour=${hour}</param>
-        </hive>
+        </hive2>
 
         <ok to="mark_aggregated_pageview_dataset_done"/>
         <error to="send_error_email"/>
@@ -182,7 +183,7 @@
     </action>
 
     <action name="transform">
-        <hive xmlns="uri:oozie:hive-action:0.2">
+        <hive2 xmlns="uri:oozie:hive2-action:0.2">
             <job-tracker>${job_tracker}</job-tracker>
             <name-node>${name_node}</name-node>
             <job-xml>${hive_site_xml}</job-xml>
@@ -205,7 +206,7 @@
                     <value>/tmp/hive-${user}</value>
                 </property>
             </configuration>
-
+            <jdbc-url>${hive2_jdbc_url}</jdbc-url>
             <script>${hive_pageview_script_transform}</script>
             <!-- Here, the source for archive is the
                  destination of the previous job -->
@@ -215,7 +216,7 @@
             <param>day=${day}</param>
             <param>hour=${hour}</param>
             <param>destination_directory=${temporary_directory}/${wf:id()}</param>
-        </hive>
+        </hive2>
 
         <ok to="mark_transformed_pageview_dataset_done"/>
         <error to="send_error_email"/>
@@ -264,7 +265,7 @@
     </action>
 
     <action name="whitelist_check">
-        <hive xmlns="uri:oozie:hive-action:0.2">
+        <hive2 xmlns="uri:oozie:hive2-action:0.2">
             <job-tracker>${job_tracker}</job-tracker>
             <name-node>${name_node}</name-node>
             <job-xml>${hive_site_xml}</job-xml>
@@ -287,7 +288,7 @@
                     <value>/tmp/hive-${user}</value>
                 </property>
             </configuration>
-
+            <jdbc-url>${hive2_jdbc_url}</jdbc-url>
             <script>${hive_whitelist_check_script}</script>
             <param>source_table=${pageview_table}</param>
             <param>whitelist_table=${whitelist_table}</param>
@@ -296,7 +297,7 @@
             <param>month=${month}</param>
             <param>day=${day}</param>
             <param>hour=${hour}</param>
-        </hive>
+        </hive2>
 
         <ok to="mark_unexpected_values_dataset_done"/>
         <error to="send_error_email"/>
