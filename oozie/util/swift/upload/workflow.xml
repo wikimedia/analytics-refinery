@@ -24,6 +24,15 @@
             </description>
         </property>
 
+        <property>
+            <name>delete_after</name>
+            <value>7776000</value>
+            <description>
+                Will cause the swift upload to pass the X-Delete-After header set
+                to this many seconds.  Defaults to 90 days.
+            </description>
+        </property>
+
         <!-- Required properties -->
         <property><name>queue_name</name></property>
         <property><name>name_node</name></property>
@@ -123,6 +132,8 @@
             <exec>swift-upload.sh</exec>
             <argument>--overwrite</argument>
             <argument>${should_overwrite}</argument>
+            <argument>--delete-after</argument>
+            <argument>${delete_after}</argument>
             <argument>--auth-file</argument>
             <argument>swift_auth.env</argument>
             <argument>--container</argument>
