@@ -162,6 +162,7 @@
             <param>month=${month}</param>
             <param>day=${day}</param>
             <param>hour=${hour}</param>
+            <argument>--verbose</argument>
         </hive2>
 
         <ok to="mark_aggregated_pageview_dataset_done"/>
@@ -216,6 +217,7 @@
             <param>day=${day}</param>
             <param>hour=${hour}</param>
             <param>destination_directory=${temporary_directory}/${wf:id()}</param>
+            <argument>--verbose</argument>
         </hive2>
 
         <ok to="mark_transformed_pageview_dataset_done"/>
@@ -297,6 +299,7 @@
             <param>month=${month}</param>
             <param>day=${day}</param>
             <param>hour=${hour}</param>
+            <argument>--verbose</argument>
         </hive2>
 
         <ok to="mark_unexpected_values_dataset_done"/>
