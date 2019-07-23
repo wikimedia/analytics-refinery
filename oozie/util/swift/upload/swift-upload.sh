@@ -190,10 +190,17 @@ else
 fi
 
 
-swift_upload_command="/usr/bin/swift upload --header 'X-Storage-Policy:${swift_storage_policy}' --header 'X-Delete-After:${delete_after}' --object-name ${swift_object_prefix} ${swift_container} ${upload_directory}"
+
+swift_upload_command="/usr/bin/swift upload --header X-Delete-After:${delete_after} --object-name ${swift_object_prefix} ${swift_container} ${upload_directory}"
 swift_upload_retval=0
 
 if [ "${dry_run}" == "false" ]; then
+    # If the container doesn't already exist, create it now.
+    run_command "/usr/bin/swift stat ${swift_container}" || run_command "/usr/bin/swift post ${swift_container} --read-acl .r:*,.rlistings --header X-Storage-Policy:${swift_storage_policy}"
+    if [ $? -ne 0 ]; then
+        fatal "Error: Swift container creation failed."
+    fi
+
     log "Beginning Swift upload..."
     run_command $swift_upload_command
     # Save the retval for checking after potential removal of $temp_dir.
