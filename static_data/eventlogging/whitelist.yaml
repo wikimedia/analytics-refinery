@@ -954,7 +954,7 @@ MobileWikiAppNotificationInteraction:
         notification_type: keep
         action_rank: keep
         action_icon: keep
-        selection_token: keep
+        selection_token: hash
         app_install_id: hash
         client_dt: keep
     useragent:
@@ -978,7 +978,7 @@ MobileWikiAppNotificationPreferences:
 MobileWikiAppOnboarding:
     event:
         action: keep
-        onboardingToken: keep
+        onboardingToken: hash
     useragent:
         os_family: keep
         wmf_app_version: keep
@@ -1124,19 +1124,13 @@ MobileWikiAppShareAFact:
     event:
         action: keep
         appInstallID: hash
-        article: keep
         client_dt: keep
-        pageID: keep
-        page_id: keep
-        revID: keep
-        rev_id: keep
         shareSessionToken: hash
         sessionToken: hash
         session_token: hash
         sharemode: keep
         share_mode: keep
         target: keep
-        text: keep
         ts: keep
         tutorialFeatureEnabled: keep
         tutorial_feature_enabled: keep
@@ -1182,7 +1176,7 @@ MobileWikiAppTabs:
         app_install_id: hash
         tabCount: keep
         tabIndex: keep
-        tabsSessionToken: keep
+        tabsSessionToken: hash
         client_dt: keep
     useragent:
         os_family: keep
@@ -1250,7 +1244,7 @@ MobileWikiAppiOSUserHistory:
         is_anon: keep
         app_install_id: hash
         event_dt: keep
-        session_id: keep
+        session_id: hash
         feed_enabled_list:
             fa:
                 !!str on: keep
