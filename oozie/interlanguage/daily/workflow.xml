@@ -72,7 +72,7 @@
     <start to="aggregate"/>
 
     <action name="aggregate">
-        <hive xmlns="uri:oozie:hive-action:0.2">
+        <hive2 xmlns="uri:oozie:hive2-action:0.2">
             <job-tracker>${job_tracker}</job-tracker>
             <name-node>${name_node}</name-node>
             <job-xml>${hive_site_xml}</job-xml>
@@ -95,6 +95,7 @@
                     <value>/tmp/hive-${user}</value>
                 </property>
             </configuration>
+            <jdbc-url>${hive2_jdbc_url}</jdbc-url>
             <script>${hive_interlanguage_aggregation}</script>
             <param>artifacts_directory=${artifacts_directory}</param>
             <param>refinery_jar_version=${refinery_jar_version}</param>
@@ -103,7 +104,8 @@
             <param>year=${year}</param>
             <param>month=${month}</param>
             <param>day=${day}</param>
-        </hive>
+            <argument>--verbose</argument>
+        </hive2>
 
         <ok to="mark_aggregated_interlanguage_navigation_dataset_done"/>
         <error to="send_error_email"/>
