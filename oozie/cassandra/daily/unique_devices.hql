@@ -54,6 +54,19 @@ WITH unique_devices_per_domain AS (
             END,
         CONCAT(LPAD(year, 4, "0"), LPAD(month, 2, "0"), LPAD(day, 2, "0"))
     HAVING SUM(uniques_estimate) > 1000
+), unique_devices_per_domain_all_sites AS (
+    SELECT
+        project,
+        'all-sites' AS access_site,
+        dt,
+        SUM(devices) AS devices,
+        SUM(offset) AS offset,
+        SUM(underestimate) AS underestimate
+    FROM
+        unique_devices_per_domain
+    GROUP BY
+        project,
+        dt
 ), unique_devices_per_project_family AS (
     SELECT
         CONCAT('all-', project_family, '-projects') AS project,
@@ -74,9 +87,11 @@ WITH unique_devices_per_domain AS (
         CONCAT(LPAD(year, 4, "0"), LPAD(month, 2, "0"), LPAD(day, 2, "0"))
     HAVING SUM(uniques_estimate) > 1000
 ), unique_devices AS (
-    SELECT * FROM unique_devices_per_project_family
-    UNION ALL
     SELECT * FROM unique_devices_per_domain
+    UNION ALL
+    SELECT * FROM unique_devices_per_domain_all_sites
+    UNION ALL
+    SELECT * FROM unique_devices_per_project_family
 )
 
 INSERT OVERWRITE DIRECTORY "${destination_directory}"
@@ -86,24 +101,12 @@ INSERT OVERWRITE DIRECTORY "${destination_directory}"
     SELECT
         CONCAT_WS('${separator}',
             project,
-            COALESCE(access_site, 'all-sites'),
+            access_site,
             dt,
-            CAST(SUM(devices) AS STRING),
-            CAST(SUM(offset) AS STRING),
-            CAST(SUM(underestimate) AS STRING)) as line
+            CAST(devices AS STRING),
+            CAST(offset AS STRING),
+            CAST(underestimate AS STRING)
+        ) as line
     FROM
         unique_devices
-    GROUP BY
-        project,
-        access_site,
-        dt
-    GROUPING SETS (
-        (
-            project,
-            access_site,
-            dt
-        ),(
-            project,
-            dt
-        )
-    );
+;
