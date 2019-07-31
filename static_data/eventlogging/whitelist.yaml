@@ -556,10 +556,10 @@ MobileWebSearch:
         platform: keep
         platformVersion: keep
         resultSetType: keep
-        searchSessionToken: keep
+        searchSessionToken: hash
         timeOffsetSinceStart: keep
         timeToDisplayResults: keep
-        userSessionToken: keep
+        userSessionToken: hash
     webhost: keep
     wiki: keep
 
@@ -1418,17 +1418,17 @@ Popups:
         editCountBucket: keep
         hovercardsSuppressedByGadget: keep
         isAnon: keep
-        linkInteractionToken: keep
+        linkInteractionToken: hash
         namespaceIdHover: keep
         namespaceIdSource: keep
-        pageToken: keep
+        pageToken: hash
         perceivedWait: keep
         popupDelay: keep
         popupEnabled: keep
         previewCountBucket: keep
         previewType: keep
-        sessionID: keep
-        sessionToken: keep
+        sessionID: hash
+        sessionToken: hash
         totalInteractionTime: keep
         version: keep
     webhost: keep
@@ -1491,7 +1491,7 @@ ReadingDepth:
         pageTitle: keep
         pageID: keep
         revisionID: keep
-        pageToken: keep
+        pageToken: hash
         skin: keep
         totalLength: keep
         visibleLength: keep
