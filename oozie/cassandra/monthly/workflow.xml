@@ -28,6 +28,10 @@
             <description>hive-site.xml file path in HDFS</description>
         </property>
         <property>
+            <name>refinery_hive_jar_path</name>
+            <description>path to add refinery hive jar if necessary</description>
+        </property>
+        <property>
             <name>source_table</name>
             <description>Hive table to use</description>
         </property>
@@ -177,6 +181,7 @@
             </configuration>
 
             <script>${hive_script}</script>
+            <param>refinery_hive_jar_path=${refinery_hive_jar_path}</param>
             <param>source_table=${source_table}</param>
             <!--
             The following two properties are only required by uniques. We're
