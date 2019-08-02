@@ -155,7 +155,7 @@
     <start to="prepare_data"/>
 
     <action name="prepare_data">
-        <hive2 xmlns="uri:oozie:hive2-action:0.2">
+        <hive xmlns="uri:oozie:hive-action:0.2">
             <job-tracker>${job_tracker}</job-tracker>
             <name-node>${name_node}</name-node>
             <job-xml>${hive_site_xml}</job-xml>
@@ -183,7 +183,7 @@
                     <value>/tmp/hive-${user}</value>
                 </property>
             </configuration>
-            <jdbc-url>${hive2_jdbc_url}</jdbc-url>
+
             <script>${hive_script}</script>
             <param>source_table=${source_table}</param>
             <param>separator=${hive_value_separator}</param>
@@ -192,8 +192,7 @@
             <param>month=${month}</param>
             <param>day=${day}</param>
             <param>hour=${hour}</param>
-            <argument>--verbose</argument>
-        </hive2>
+        </hive>
 
         <ok to="load_cassandra"/>
         <error to="send_error_email"/>
