@@ -1,0 +1,22 @@
+-- Creates table for hourly mediarequests dataset
+--
+--
+-- Usage
+--     hive -f create_mediarequests_table.hql --database wmf
+--
+
+CREATE EXTERNAL TABLE IF NOT EXISTS `mediarequests` (
+    `base_name`                string COMMENT 'Base name of media file',
+    `media_classification`     string COMMENT 'General classification of media (image, video, audio, data, document or other)',
+    `file_type`                string COMMENT 'Extension or suffix of the file (e.g. jpg, wav, pdf)',
+    `total_bytes`              bigint COMMENT 'Total number of bytes',
+    `request_count`            bigint COMMENT 'Total number of requests',
+    `transcoding`              string COMMENT 'Transcoding that the file was requested with, e.g. resized photo or image preview of a video',
+    `agent_type`               string COMMENT  'Agent accessing the media files, can be spider or user',
+    `referer`                  string COMMENT 'Wiki project that the request was refered from. If project is not available, it will be either internal, external, or unknown')
+PARTITIONED BY (
+    `timestamp`                string COMMENT 'Timestamp in yyyyMMddHH format'
+)
+STORED AS PARQUETFILE
+LOCATION '/wmf/data/wmf/mediarequests'
+;
