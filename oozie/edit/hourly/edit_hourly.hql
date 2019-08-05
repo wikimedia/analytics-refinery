@@ -14,7 +14,24 @@
 
 SET parquet.compression = SNAPPY;
 SET mapred.reduce.tasks = 8;
+
+-- Note about the following parameters:
+-- "hive.auto.convert.join" is currently set to false in hive-site.xml
+-- but used only for special cases like this script (that
+-- currently takes only one hour to complete and several hours without it).
+-- In hive actions the client communicates directly with the Hive Metastore
+-- and HDFS, so the local optimizations are executed on the client itself.
+-- In hive2 actions the local optimizations are done in the Hive Server2's local
+-- environment, by default spawning a new JVM (for safety). The main problem with
+-- this is that any HADOOP_OPTS that holds state (like Prometheus' jmx javaagent
+-- that binds a network port) will be inherited by the new JVM that will fail
+-- (in the Prometheus example due to the port already used/bound).
+--
+-- "hive.exec.submit.local.task.via.child = false" allows us to use hive2 actions,
+-- since the local optimizations are done in the Hive Server 2's JVM, without
+-- the risk of executing again HADOOP_OPTS.
 SET hive.auto.convert.join = true;
+SET hive.exec.submit.local.task.via.child = false;
 
 WITH edit_history AS (
     SELECT
