@@ -15,21 +15,57 @@
         </property>
 
         <property>
-            <name>should_overwrite</name>
+            <name>swift_overwrite</name>
             <value>false</value>
             <description>
-                If true, the --overwrite flag will be passed to swift-upload.sh,
+                If true, the --swift-overwrite flag will be passed to swift-upload.py,
                 and existing objects in swift will be deleted before the source
                 directory is uploaded.  Default: false.
             </description>
         </property>
 
         <property>
-            <name>delete_after</name>
+            <name>swift_delete_after</name>
             <value>7776000</value>
             <description>
                 Will cause the swift upload to pass the X-Delete-After header set
                 to this many seconds.  Defaults to 90 days.
+            </description>
+        </property>
+
+        <property>
+            <name>swift_auto_version</name>
+            <value>false</value>
+            <description>
+                If true, the current timestamp in milliseconds will be
+                prepended to the swift_object_prefix.
+            </description>
+        </property>
+
+        <property>
+            <name>event_per_object</name>
+            <value>false</value>
+            <description>
+                If this is 'true', then a swift/upload/complete event will be
+                emitted for every object uploaded.  If 'false', then only
+                one event will be emitted for this upload.
+            </description>
+        </property>
+
+        <property>
+            <name>event_service_url</name>
+            <value>http://eventgate-analytics.svc.eqiad.wmnet:31192/v1/events</value>
+            <description>
+                URL to which the swift/upload/events will be posted
+                (unless ${event_stream} == 'false')
+            </description>
+        </property>
+
+        <property>
+            <name>upload_user</name>
+            <value>${user}</value>
+            <description>
+                Username initiating the swift upload
             </description>
         </property>
 
@@ -38,10 +74,6 @@
         <property><name>name_node</name></property>
         <property><name>job_tracker</name></property>
 
-        <property><name>swift_auth_file</name></property>
-        <property><name>swift_container</name></property>
-        <property><name>source_directory</name></property>
-        <property><name>swift_object_prefix</name></property>
         <property>
             <name>mark_directory_done_workflow_file</name>
             <description>Workflow for marking a directory done</description>
@@ -84,6 +116,15 @@
             </description>
         </property>
 
+
+        <property>
+            <name>event_stream</name>
+            <value>swift.${swift_container}.upload-complete</value>
+            <description>
+                Name of the stream the swift/upload/complete event will be sent to.
+                Set this to 'false' to disable event sending.
+            </description>
+        </property>
 
     </parameters>
 
@@ -129,18 +170,27 @@
                     <value>${queue_name}</value>
                 </property>
             </configuration>
-            <exec>swift-upload.sh</exec>
-            <argument>--overwrite</argument>
-            <argument>${should_overwrite}</argument>
-            <argument>--delete-after</argument>
-            <argument>${delete_after}</argument>
-            <argument>--auth-file</argument>
+            <exec>swift_upload.py</exec>
+            <argument>--upload-user</argument>
+            <argument>${upload_user}</argument>
+            <argument>--swift-overwrite</argument>
+            <argument>${swift_overwrite}</argument>
+            <argument>--swift-delete-after</argument>
+            <argument>${swift_delete_after}</argument>
+            <argument>--swift-auto-version</argument>
+            <argument>${swift_auto_version}</argument>
+            <argument>--swift-object-prefix</argument>
+            <argument>${swift_object_prefix}</argument>
+            <argument>--event-per-object</argument>
+            <argument>${event_per_object}</argument>
+            <argument>--event-stream</argument>
+            <argument>${event_stream}</argument>
+            <argument>--event-service-url</argument>
+            <argument>${event_service_url}</argument>
             <argument>swift_auth.env</argument>
-            <argument>--container</argument>
             <argument>${swift_container}</argument>
             <argument>${source_directory}</argument>
-            <argument>${swift_object_prefix}</argument>
-            <file>swift-upload.sh#swift-upload.sh</file>
+            <file>swift_upload.py#swift_upload.py</file>
             <file>${swift_auth_file}#swift_auth.env</file>
         </shell>
         <ok to="mark_swift_upload_done"/>
