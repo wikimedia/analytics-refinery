@@ -1,21 +1,23 @@
 -- Parameters:
---     destination_directory -- HDFS path to write output files
---     source_table          -- Fully qualified table name to compute from.
---     separator             -- Separator for values
---     year                  -- year of partition to compute from.
---     month                 -- month of partition to compute from.
---     day                   -- day of partition to compute from.
+--     refinery_hive_jar_path -- HDFS path to refinery hive jar
+--     destination_directory  -- HDFS path to write output files
+--     source_table           -- Fully qualified table name to compute from.
+--     separator              -- Separator for values
+--     year                   -- year of partition to compute from.
+--     month                  -- month of partition to compute from.
 --
 -- Usage:
 --     hive -f pageview_top_articles.hql                          \
+--         -d refinery_hive_jar_path=hdfs://analytics-hadoop/wmf/refinery/current/artifacts/org/wikimedia/analytics/refinery/refinery-hive-0.0.53.jar \
 --         -d destination_directory=/tmp/pageview_top_articles    \
 --         -d source_table=wmf.pageview_hourly                    \
 --         -d separator=\t                                        \
 --         -d year=2015                                           \
---         -d month=5                                             \
---         -d day=1                                               \
+--         -d month=5
 --
 
+
+ADD JAR ${refinery_hive_jar_path};
 
 SET hive.exec.compress.output=true;
 SET mapreduce.output.fileoutputformat.compress.codec=org.apache.hadoop.io.compress.GzipCodec;
