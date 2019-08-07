@@ -43,6 +43,7 @@ CREATE EXTERNAL TABLE `mediawiki_history`(
   `event_user_seconds_since_previous_revision`    bigint        COMMENT 'In revision events: seconds elapsed since the previous revision made by the current event_user_id (only available in revision-create events so far)',
 
   `page_id`                                       bigint        COMMENT 'In revision/page events: id of the page',
+  --`page_artificial_id` NOTE: this column exists in the underlying parquet data, but not in the Hive table schema
   `page_title_historical`                         string        COMMENT 'In revision/page events: historical title of the page',
   `page_title`                                    string        COMMENT 'In revision/page events: current title of the page',
   `page_namespace_historical`                     int           COMMENT 'In revision/page events: historical namespace of the page.',
