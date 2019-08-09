@@ -98,7 +98,7 @@
     <start to="extract_error_data_loss"/>
 
     <action name="extract_error_data_loss">
-        <hive xmlns="uri:oozie:hive-action:0.3">
+        <hive2 xmlns="uri:oozie:hive2-action:0.2">
             <job-tracker>${job_tracker}</job-tracker>
             <name-node>${name_node}</name-node>
             <job-xml>${hive_site_xml}</job-xml>
@@ -117,7 +117,7 @@
                     <value>${queue_name}</value>
                 </property>
             </configuration>
-
+            <jdbc-url>${hive2_jdbc_url}</jdbc-url>
             <script>extract_data_loss.hql</script>
 
             <param>table=${statistics_hourly_table}</param>
@@ -129,7 +129,8 @@
             <param>month=${month}</param>
             <param>day=${day}</param>
             <param>hour=${hour}</param>
-        </hive>
+            <argument>--verbose</argument>
+        </hive2>
         <ok to="check_error_data_loss"/>
         <error to="kill"/>
     </action>
@@ -145,7 +146,7 @@
 
 
     <action name="extract_warning_data_loss">
-        <hive xmlns="uri:oozie:hive-action:0.3">
+        <hive2 xmlns="uri:oozie:hive2-action:0.2">
             <job-tracker>${job_tracker}</job-tracker>
             <name-node>${name_node}</name-node>
             <job-xml>${hive_site_xml}</job-xml>
@@ -164,7 +165,7 @@
                     <value>${queue_name}</value>
                 </property>
             </configuration>
-
+            <jdbc-url>${hive2_jdbc_url}</jdbc-url>
             <script>extract_data_loss.hql</script>
 
             <param>table=${statistics_hourly_table}</param>
@@ -176,7 +177,8 @@
             <param>month=${month}</param>
             <param>day=${day}</param>
             <param>hour=${hour}</param>
-        </hive>
+            <argument>--verbose</argument>
+        </hive2>
         <ok to="check_warning_data_loss"/>
         <error to="kill"/>
     </action>
