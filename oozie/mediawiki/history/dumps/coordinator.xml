@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<coordinator-app xmlns="uri:oozie:coordinator:0.4"
+    xmlns:sla="uri:oozie:sla:0.2"
+    name="mediawiki-history-dumps-coord"
+    frequency="${coord:months(1)}"
+    start="${start_time}"
+    end="${stop_time}"
+    timezone="Universal">
+
+    <parameters>
+        <property><name>start_time</name></property>
+        <property><name>stop_time</name></property>
+        <property><name>mediawiki_history_datasets_file</name></property>
+        <property><name>mw_directory</name></property>
+        <property><name>workflow_file</name></property>
+        <property><name>sla_alert_contact</name></property>
+        <property><name>sla_miss_after_days</name></property>
+    </parameters>
+
+    <controls>
+        <timeout>-1</timeout>
+        <concurrency>1</concurrency>
+        <throttle>2</throttle>
+    </controls>
+
+    <datasets>
+        <include>${mediawiki_history_datasets_file}</include>
+    </datasets>
+
+    <input-events>
+        <data-in name="mediawiki_history_input" dataset="mw_denormalized_history_partitioned">
+            <instance>${coord:current(0)}</instance>
+        </data-in>
+    </input-events>
+
+    <action>
+        <workflow>
+            <app-path>${workflow_file}</app-path>
+            <configuration>
+                <property>
+                    <name>year</name>
+                    <value>${coord:formatTime(coord:nominalTime(), "yyyy")}</value>
+                </property>
+                <property>
+                    <name>month</name>
+                    <value>${coord:formatTime(coord:nominalTime(), "MM")}</value>
+                </property>
+            </configuration>
+        </workflow>
+
+        <sla:info>
+            <sla:nominal-time>${coord:actualTime()}</sla:nominal-time>
+            <sla:should-end>${sla_miss_after_days * DAYS}</sla:should-end>
+            <sla:alert-events>end_miss</sla:alert-events>
+            <sla:alert-contact>${sla_alert_contact}</sla:alert-contact>
+        </sla:info>
+    </action>
+</coordinator-app>
