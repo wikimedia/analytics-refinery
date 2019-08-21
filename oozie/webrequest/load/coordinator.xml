@@ -98,10 +98,15 @@
     </input-events>
 
     <output-events>
-        <data-out name="raw_output" dataset="webrequest_${webrequest_source}_raw">
-            <instance>${coord:current(0)}</instance>
-        </data-out>
-
+        <!--
+          Note: This coordinator generates both the webrequest_${webrequest_source}_raw
+          (with a hive partition) and the webrequest_${webrequest_source} (refined)
+          datasets.
+          The webrequest_${webrequest_source}_raw one is not included here to prevent
+          accidentally deleting the raw-data folder if rerunning actions without the
+          nocleanup oozie flag.
+          See https://oozie.apache.org/docs/3.1.3-incubating/DG_CoordinatorRerun.html
+        -->
         <data-out name="refined_output" dataset="webrequest_${webrequest_source}">
             <instance>${coord:current(0)}</instance>
         </data-out>
