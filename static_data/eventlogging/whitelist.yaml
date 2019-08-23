@@ -1358,16 +1358,12 @@ NavigationTiming:
         domainLookupStart: keep
         deviceMemory: keep
         fetchStart: keep
-        firstImage: keep
-        firstPaint: keep
-        firstPaintAfterLoad: keep
         gaps: keep
         isAnon: keep
         isHiDPI: keep
         isHttp2: keep
         isHttps: keep
         isOversample: keep
-        lazyLoadImages: keep
         loadEventEnd: keep
         loadEventStart: keep
         loading: keep
@@ -1377,7 +1373,6 @@ NavigationTiming:
         mediaWikiVersion: keep
         mobileMode: keep
         namespaceId: keep
-        netSpeed: keep
         netinfoEffectiveConnectionType: keep
         pageviewToken: hash
         phpEngine: keep
@@ -1391,7 +1386,6 @@ NavigationTiming:
         requestStart: keep
         responseEnd: keep
         responseStart: keep
-        RSI: keep
         runtime: keep
         secureConnectionStart: keep
         sending: keep
@@ -1400,6 +1394,19 @@ NavigationTiming:
         unloadEventEnd: keep
         unloadEventStart: keep
         waiting: keep
+    webhost: keep
+    wiki: keep
+
+PaintTiming:
+    event:
+        pageviewToken: hash
+        name: keep
+        startTime: keep
+        isOversample: keep
+        oversampleReason: keep
+        isAnon: keep
+        mobileMode: keep
+        originCountry: keep
     webhost: keep
     wiki: keep
 
