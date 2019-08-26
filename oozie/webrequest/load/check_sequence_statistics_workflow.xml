@@ -132,7 +132,7 @@
             <argument>--verbose</argument>
         </hive2>
         <ok to="check_error_data_loss"/>
-        <error to="kill"/>
+        <error to="send_error_email"/>
     </action>
 
     <decision name="check_error_data_loss">
@@ -180,7 +180,7 @@
             <argument>--verbose</argument>
         </hive2>
         <ok to="check_warning_data_loss"/>
-        <error to="kill"/>
+        <error to="send_error_email"/>
     </action>
 
     <decision name="check_warning_data_loss">

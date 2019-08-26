@@ -88,7 +88,7 @@
             <delete path="${metrics_location}" />
         </fs>
         <ok to="compute_daily_edits"/>
-        <error to="kill"/>
+        <error to="send_error_email"/>
     </action>
 
     <action name="compute_daily_edits">

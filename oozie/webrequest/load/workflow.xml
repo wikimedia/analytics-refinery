@@ -260,6 +260,7 @@
             </configuration>
         </sub-workflow>
         <ok to="mark_raw_dataset_done"/>
+        <!-- The subworkflow sends email in case of error, not duplicating -->
         <error to="kill"/>
     </action>
 
