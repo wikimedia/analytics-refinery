@@ -12,10 +12,15 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `mediarequests` (
     `total_bytes`              bigint COMMENT 'Total number of bytes',
     `request_count`            bigint COMMENT 'Total number of requests',
     `transcoding`              string COMMENT 'Transcoding that the file was requested with, e.g. resized photo or image preview of a video',
-    `agent_type`               string COMMENT  'Agent accessing the media files, can be spider or user',
-    `referer`                  string COMMENT 'Wiki project that the request was refered from. If project is not available, it will be either internal, external, or unknown')
+    `agent_type`               string COMMENT 'Agent accessing the media files, can be spider or user',
+    `referer`                  string COMMENT 'Wiki project that the request was refered from. If project is not available, it will be either internal, external, or unknown',
+    `dt`                       string COMMENT 'UTC timestamp in ISO 8601 format (e.g. 2019-08-27T14:00:00Z)'
+)
 PARTITIONED BY (
-    `timestamp`                string COMMENT 'Timestamp in yyyyMMddHH format'
+    `year`                int    COMMENT 'Unpadded year',
+    `month`               int    COMMENT 'Unpadded month',
+    `day`                 int    COMMENT 'Unpadded day',
+    `hour`                int    COMMENT 'Unpadded hour'
 )
 STORED AS PARQUETFILE
 LOCATION '/wmf/data/wmf/mediarequests'

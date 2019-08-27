@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <workflow-app xmlns="uri:oozie:workflow:0.4"
-    name="mediarequests-hourly-wf-${timestamp}">
+    name="mediarequests-hourly-wf-${year}-${month}-${day}-${hour}">
 
     <parameters>
 
@@ -36,8 +36,20 @@
             </description>
         </property>
         <property>
-            <name>timestamp</name>
-            <description>The partition's timestamp, in yyyyMMddhh format</description>
+            <name>year</name>
+            <description>The partition's year</description>
+        </property>
+        <property>
+            <name>month</name>
+            <description>The partition's month</description>
+        </property>
+        <property>
+            <name>day</name>
+            <description>The partition's day</description>
+        </property>
+        <property>
+            <name>hour</name>
+            <description>The partition's hour</description>
         </property>
         <property>
             <name>mark_directory_done_workflow_file</name>
@@ -92,7 +104,10 @@
             <param>refinery_jar_version=${refinery_jar_version}</param>
             <param>source_table=${webrequest_table}</param>
             <param>destination_table=${mediarequests_table}</param>
-            <param>timestamp=${timestamp}</param>
+            <param>year=${year}</param>
+            <param>month=${month}</param>
+            <param>day=${day}</param>
+            <param>hour=${hour}</param>
             <argument>--verbose</argument>
         </hive2>
         <ok to="mark_dataset_done"/>

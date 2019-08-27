@@ -16,10 +16,10 @@ WITH upload_webrequests AS (
         agent_type
     FROM ${source_table}
         WHERE webrequest_source='upload'
-            AND year = SUBSTR(${timestamp}, 1, 4)
-            AND month = SUBSTR(${timestamp}, 5, 2)
-            AND day = SUBSTR(${timestamp}, 7, 2)
-            AND hour = SUBSTR(${timestamp}, 9, 2)
+            AND year = ${year}
+            AND month = ${month}
+            AND day = ${day}
+            AND hour = ${hour}
             AND uri_host = 'upload.wikimedia.org'
             AND (
                 http_status = 200 -- No 304 per RFC discussion
@@ -30,7 +30,7 @@ WITH upload_webrequests AS (
             )
 )
 INSERT OVERWRITE TABLE ${destination_table}
-    PARTITION(timestamp = ${timestamp})
+    PARTITION(year=${year}, month=${month}, day=${day}, hour=${hour})
     SELECT
         parsed_url.base_name base_name,
         parsed_url.media_classification media_classification,
@@ -39,7 +39,14 @@ INSERT OVERWRITE TABLE ${destination_table}
         COUNT(*) request_count,
         parsed_url.transcoding transcoding,
         agent_type,
-        IF(classified_referer = 'internal', COALESCE(referer_wiki, 'internal'), COALESCE(classified_referer, 'unknown')) referer
+        IF(classified_referer = 'internal', COALESCE(referer_wiki, 'internal'), COALESCE(classified_referer, 'unknown')) referer,
+        CONCAT(
+            LPAD(${year}, 4, "0"), '-',
+            LPAD(${month}, 2, "0"), '-',
+            LPAD(${day}, 2, "0"), 'T',
+            LPAD(${hour}, 2, "0"),
+            ':00:00Z'
+        ) dt
     FROM upload_webrequests
     WHERE parsed_url.base_name IS NOT NULL
     GROUP BY

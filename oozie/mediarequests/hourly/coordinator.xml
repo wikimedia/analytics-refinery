@@ -75,8 +75,20 @@
             <app-path>${workflow_file}</app-path>
             <configuration>
                 <property>
-                    <name>timestamp</name>
-                    <value>${coord:formatTime(coord:nominalTime(), 'yyyyMMddHH')}</value>
+                    <name>year</name>
+                    <value>${coord:formatTime(coord:nominalTime(), "y")}</value>
+                </property>
+                <property>
+                    <name>month</name>
+                    <value>${coord:formatTime(coord:nominalTime(), "M")}</value>
+                </property>
+                <property>
+                    <name>day</name>
+                    <value>${coord:formatTime(coord:nominalTime(), "d")}</value>
+                </property>
+                <property>
+                    <name>hour</name>
+                    <value>${coord:formatTime(coord:nominalTime(), "H")}</value>
                 </property>
                 <property>
                     <name>destination_dataset_directory</name>
