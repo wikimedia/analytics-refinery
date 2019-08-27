@@ -116,10 +116,6 @@
             <name-node>${name_node}</name-node>
             <job-xml>${hive_site_xml}</job-xml>
             <configuration>
-                <property>
-                    <name>mapreduce.job.queuename</name>
-                    <value>${queue_name}</value>
-                </property>
                 <!--make sure oozie:launcher runs in a low priority queue -->
                 <property>
                     <name>oozie.launcher.mapred.job.queue.name</name>
@@ -136,6 +132,8 @@
             </configuration>
             <jdbc-url>${hive2_jdbc_url}</jdbc-url>
             <script>${hive_script_aggregate}</script>
+
+            <!-- Query parameters -->
             <param>source_table=${source_table}</param>
             <param>destination_table=${destination_table}</param>
             <param>record_version=${record_version}</param>
@@ -143,7 +141,11 @@
             <param>month=${month}</param>
             <param>day=${day}</param>
             <param>hour=${hour}</param>
+
+            <!-- Beeline arguments -->
             <argument>--verbose</argument>
+            <argument>--hiveconf</argument>
+            <argument>mapreduce.job.queuename=${queue_name}</argument>
         </hive2>
 
         <ok to="mark_aggregated_projectview_dataset_done"/>
@@ -170,10 +172,6 @@
             <name-node>${name_node}</name-node>
             <job-xml>${hive_site_xml}</job-xml>
             <configuration>
-                <property>
-                    <name>mapreduce.job.queuename</name>
-                    <value>${queue_name}</value>
-                </property>
                 <!--make sure oozie:launcher runs in a low priority queue -->
                 <property>
                     <name>oozie.launcher.mapred.job.queue.name</name>
@@ -190,6 +188,8 @@
             </configuration>
             <jdbc-url>${hive2_jdbc_url}</jdbc-url>
             <script>${hive_script_transform}</script>
+
+            <!-- Query parameters -->
             <!-- Here, the source for archive is the
                  destination of the previous job -->
             <param>source_table=${destination_table}</param>
@@ -198,7 +198,11 @@
             <param>day=${day}</param>
             <param>hour=${hour}</param>
             <param>destination_directory=${temporary_directory}/${wf:id()}</param>
+
+            <!-- Beeline arguments -->
             <argument>--verbose</argument>
+            <argument>--hiveconf</argument>
+            <argument>mapreduce.job.queuename=${queue_name}</argument>
         </hive2>
 
         <ok to="mark_transformed_projectview_dataset_done"/>

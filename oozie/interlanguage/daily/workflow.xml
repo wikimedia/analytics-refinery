@@ -77,10 +77,6 @@
             <name-node>${name_node}</name-node>
             <job-xml>${hive_site_xml}</job-xml>
             <configuration>
-                <property>
-                    <name>mapreduce.job.queuename</name>
-                    <value>${queue_name}</value>
-                </property>
                 <!--make sure oozie:launcher runs in a low priority queue -->
                 <property>
                     <name>oozie.launcher.mapred.job.queue.name</name>
@@ -97,6 +93,8 @@
             </configuration>
             <jdbc-url>${hive2_jdbc_url}</jdbc-url>
             <script>${hive_interlanguage_aggregation}</script>
+
+            <!-- Query parameters -->
             <param>artifacts_directory=${artifacts_directory}</param>
             <param>refinery_jar_version=${refinery_jar_version}</param>
             <param>source_table=${webrequest_table}</param>
@@ -104,7 +102,11 @@
             <param>year=${year}</param>
             <param>month=${month}</param>
             <param>day=${day}</param>
+
+            <!-- Beeline arguments -->
             <argument>--verbose</argument>
+            <argument>--hiveconf</argument>
+            <argument>mapreduce.job.queuename=${queue_name}</argument>
         </hive2>
 
         <ok to="mark_aggregated_interlanguage_navigation_dataset_done"/>

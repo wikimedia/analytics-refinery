@@ -97,7 +97,7 @@
             <jdbc-url>${hive2_jdbc_url}</jdbc-url>
             <script>write_geoeditors_edits_yearly_data.hql</script>
 
-            <!-- Hive query parameters -->
+            <!-- Query parameters -->
             <param>project_map_table=${mw_project_namespace_map_table}</param>
             <param>country_map_table=${country_info_table}</param>
             <param>source_table=${geoeditors_edits_monthly_table}</param>

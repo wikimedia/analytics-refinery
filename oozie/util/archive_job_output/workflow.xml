@@ -104,11 +104,6 @@
                     <name>oozie.launcher.mapreduce.map.memory.mb</name>
                     <value>${oozie_launcher_memory}</value>
                 </property>
-
-                <property>
-                    <name>mapred.job.queue.name</name>
-                    <value>${queue_name}</value>
-                </property>
             </configuration>
             <exec>identify_content_file.sh</exec>
             <argument>${source_directory}</argument>
@@ -132,11 +127,6 @@
                 <property>
                     <name>oozie.launcher.mapreduce.map.memory.mb</name>
                     <value>${oozie_launcher_memory}</value>
-                </property>
-
-                <property>
-                    <name>mapreduce.job.queuename</name>
-                    <value>${queue_name}</value>
                 </property>
             </configuration>
             <delete path="${archive_file}"/>
