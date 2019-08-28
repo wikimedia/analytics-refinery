@@ -24,10 +24,12 @@
         <property><name>country_info_table</name></property>
 
         <property><name>geoeditors_yearly_edits_directory</name></property>
+        <property><name>temporary_directory</name></property>
         <property><name>edit_count_lower_bound</name></property>
 
         <property><name>hive_site_xml</name></property>
         <property><name>mark_directory_done_workflow_file</name></property>
+        <property><name>archive_job_output_workflow_file</name></property>
         <property><name>send_error_email_workflow_file</name></property>
 
         <property><name>sla_alert_contact</name></property>
@@ -55,10 +57,11 @@
 
     <input-events>
         <data-in name="mw_project_namespace_map_partitioned" dataset="mw_project_namespace_map_partitioned">
-            <instance>${coord:current(0)}</instance>
+            <instance>${coord:current(11)}</instance>
         </data-in>
         <data-in name="geoeditors_edits_monthly" dataset="geoeditors_edits_monthly">
-            <instance>${coord:current(0)}</instance>
+            <start-instance>${coord:current(0)}</start-instance>
+            <end-instance>${coord:current(11)}</end-instance>
         </data-in>
     </input-events>
 
@@ -68,7 +71,7 @@
             <configuration>
                 <property>
                     <name>year</name>
-                    <value>${coord:formatTime(coord:dateOffset(coord:nominalTime(), -1, "YEAR"), "yyyy")}</value>
+                    <value>${coord:formatTime(coord:nominalTime(), "yyyy")}</value>
                 </property>
             </configuration>
         </workflow>

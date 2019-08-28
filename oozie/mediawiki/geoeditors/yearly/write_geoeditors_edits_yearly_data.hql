@@ -21,11 +21,10 @@
 --
 
 SET hive.exec.compress.output = false;
-SET mapred.reduce.tasks       = 1;
 
 
    with output as (
- select c.country,
+ select c.name as country,
         sum(edit_count) as edits,
         sum(namespace_zero_edit_count) as namespace_zero_edits
 
@@ -37,17 +36,17 @@ SET mapred.reduce.tasks       = 1;
             and snapshot='${year}-12'
         ) w                                 on w.dbname = g.wiki_db
             inner join
-        ${country_map_table} c              on g.country_code = c.country_code
+        ${country_map_table} c              on g.country_code = c.iso_code
 
   where month like '${year}-%'
 
-  group by c.country
+  group by c.name
  having sum(edit_count) >= ${edit_count_lower_bound}
   order by country
   limit 10000
 )
 
- INSERT OVERWRITE DIRECTORY '${destination_directory}/${year}'
+ INSERT OVERWRITE DIRECTORY '${destination_directory}'
 
  select concat_ws(',',
             country,
@@ -56,6 +55,3 @@ SET mapred.reduce.tasks       = 1;
         )
    from output
 ;
-
-dfs -mv ${destination_directory}/${year}/000000_0 ${destination_directory}/${year}.csv;
-dfs -rm -r ${destination_directory}/${year};
