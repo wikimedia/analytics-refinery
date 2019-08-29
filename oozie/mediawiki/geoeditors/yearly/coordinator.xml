@@ -25,7 +25,7 @@
 
         <property><name>geoeditors_yearly_edits_directory</name></property>
         <property><name>temporary_directory</name></property>
-        <property><name>edit_count_lower_bound</name></property>
+        <property><name>namespace_zero_edit_count_threshold</name></property>
 
         <property><name>hive_site_xml</name></property>
         <property><name>mark_directory_done_workflow_file</name></property>

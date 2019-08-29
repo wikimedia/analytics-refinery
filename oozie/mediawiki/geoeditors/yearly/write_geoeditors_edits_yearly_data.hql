@@ -7,8 +7,11 @@
 --      country_map_table       -- Read country info from here
 --      source_table            -- Read monthly editors data from here
 --      destination_directory   -- Write yearly files here
---      edit_count_lower_bound  -- The lowest number of edits that qualifies a country to be in the yearly report
+--      namespace_zero_edit_count_threshold
+--                              -- The threshold of namespace-zero-edits over
+--                              -- which a country is included in the report
 --      year                    -- YYYY to compute statistics for
+--      project_family          -- The project family for which the report is computed
 --
 -- Usage:
 --     hive -f write_geoeditors_edits_yearly_data.hql                    \
@@ -16,9 +19,9 @@
 --         -d country_map_table=wmf.country_info                         \
 --         -d source_table=wmf.geoeditors_edits_monthly                  \
 --         -d destination_directory=/tmp/archive/geoeditors/edits/yearly \
---         -d edit_count_lower_bound=100000                              \
+--         -d namespace_zero_edit_count_threshold=100000                              \
 --         -d year=2018
---
+--         -d project_family=wikipedia
 
 SET hive.exec.compress.output = false;
 
@@ -32,7 +35,7 @@ SET hive.exec.compress.output = false;
             inner join
         (select distinct dbname
            from ${project_map_table}
-          where hostname like '%.wikipedia.%'
+          where hostname like '%.${project_family}.%'
             and snapshot='${year}-12'
         ) w                                 on w.dbname = g.wiki_db
             inner join
@@ -41,7 +44,7 @@ SET hive.exec.compress.output = false;
   where month like '${year}-%'
 
   group by c.name
- having sum(edit_count) >= ${edit_count_lower_bound}
+ having sum(namespace_zero_edit_count) >= ${namespace_zero_edit_count_threshold}
   order by country
   limit 10000
 )
