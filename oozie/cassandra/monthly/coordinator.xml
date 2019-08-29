@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <coordinator-app xmlns="uri:oozie:coordinator:0.4"
+    xmlns:sla="uri:oozie:sla:0.2"
     name="cassandra-monthly-coord-${cassandra_keyspace}"
     frequency="${coord:months(1)}"
     start="${start_time}"
@@ -57,6 +58,7 @@
         <property><name>constant_output_tid_value</name></property>
 
         <property><name>send_error_email_workflow_file</name></property>
+        <property><name>sla_alert_contact</name></property>
 
         <!--
             The following two properties are only required by uniques. We're
@@ -123,5 +125,18 @@
 
             </configuration>
         </workflow>
+
+        <sla:info>
+            <!--
+                Use action actual time as SLA base, since it's the time used
+                to compute timeout
+                We use 1 month and 5 days (36 days) as the dataset is generic
+                and needs a full month of data
+            -->
+            <sla:nominal-time>${coord:actualTime()}</sla:nominal-time>
+            <sla:should-end>${35 * DAYS}</sla:should-end>
+            <sla:alert-events>end_miss</sla:alert-events>
+            <sla:alert-contact>${sla_alert_contact}</sla:alert-contact>
+        </sla:info>
     </action>
 </coordinator-app>

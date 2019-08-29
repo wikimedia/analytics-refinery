@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <coordinator-app xmlns="uri:oozie:coordinator:0.4"
+    xmlns:sla="uri:oozie:sla:0.2"
     name="cassandra-daily-coord-${cassandra_keyspace}"
     frequency="${coord:days(1)}"
     start="${start_time}"
@@ -55,6 +56,7 @@
         <property><name>constant_output_tid_value</name></property>
 
         <property><name>send_error_email_workflow_file</name></property>
+        <property><name>sla_alert_contact</name></property>
 
         <!--
         The following properties are only required by uniques. We're adding a
@@ -125,5 +127,19 @@
 
             </configuration>
         </workflow>
+
+        <sla:info>
+            <!--
+                Use action actual time as SLA base, since it's the time used
+                to compute timeout
+                We use 1 day and a half (32 hours) as the dataset is generic
+                and needs a full day of data
+            -->
+            <sla:nominal-time>${coord:actualTime()}</sla:nominal-time>
+            <sla:should-end>${32 * HOURS}</sla:should-end>
+            <sla:alert-events>end_miss</sla:alert-events>
+            <sla:alert-contact>${sla_alert_contact}</sla:alert-contact>
+        </sla:info>
+
     </action>
 </coordinator-app>

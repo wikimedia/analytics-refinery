@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <coordinator-app xmlns="uri:oozie:coordinator:0.4"
+    xmlns:sla="uri:oozie:sla:0.2"
     name="unique_devices-per_project_family-daily-coord"
     frequency="${coord:days(1)}"
     start="${start_time}"
@@ -31,6 +32,8 @@
         <property><name>unique_devices_per_project_family_archive_directory</name></property>
 
         <property><name>temporary_directory</name></property>
+
+        <property><name>sla_alert_contact</name></property>
 
     </parameters>
 
@@ -103,5 +106,18 @@
                 </property>
           </configuration>
       </workflow>
+
+      <sla:info>
+            <!--
+                Use action actual time as SLA base, since it's the time used
+                to compute timeout
+                We use 30 hours as one day of webrequest is needed
+                and webrequest can wait for 5 hours
+            -->
+            <sla:nominal-time>${coord:actualTime()}</sla:nominal-time>
+            <sla:should-end>${30 * HOURS}</sla:should-end>
+            <sla:alert-events>end_miss</sla:alert-events>
+            <sla:alert-contact>${sla_alert_contact}</sla:alert-contact>
+        </sla:info>
   </action>
   </coordinator-app>

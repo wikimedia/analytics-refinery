@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <coordinator-app xmlns="uri:oozie:coordinator:0.4"
+    xmlns:sla="uri:oozie:sla:0.2"
     name="mobile_apps-uniques-monthly-coord"
     frequency="${coord:months(1)}"
     start="${start_time}"
@@ -30,6 +31,8 @@
 
         <property><name>webrequest_data_directory</name></property>
         <property><name>datasets_file</name></property>
+
+        <property><name>sla_alert_contact</name></property>
     </parameters>
 
     <controls>
@@ -82,5 +85,19 @@
               </property>
           </configuration>
       </workflow>
+
+      <sla:info>
+            <!--
+                Use action actual time as SLA base, since it's the time used
+                to compute timeout
+                We use 33 days as one month of webrequest is needed, the jobs
+                starts after 12 webrequest hours are computed after new-month,
+                and the job can be long (therefore 31+1 can be legit)
+            -->
+            <sla:nominal-time>${coord:actualTime()}</sla:nominal-time>
+            <sla:should-end>${33 * DAYS}</sla:should-end>
+            <sla:alert-events>end_miss</sla:alert-events>
+            <sla:alert-contact>${sla_alert_contact}</sla:alert-contact>
+        </sla:info>
   </action>
   </coordinator-app>

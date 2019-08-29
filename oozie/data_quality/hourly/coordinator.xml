@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <coordinator-app xmlns="uri:oozie:coordinator:0.4"
+    xmlns:sla="uri:oozie:sla:0.2"
     name="data-quality-${source_table}-${query_name}-hourly-coord"
     frequency="${coord:hours(1)}"
     start="${start_time}"
@@ -27,6 +28,7 @@
         <property><name>flag_directory_done_workflow_file</name></property>
         <property><name>done_flag_destination_directory</name> </property>
         <property><name>send_error_email_workflow_file</name></property>
+        <property><name>sla_alert_contact</name></property>
     </parameters>
 
     <controls>
@@ -91,5 +93,17 @@
                 </property>
             </configuration>
         </workflow>
+
+        <sla:info>
+            <!--
+                Use action actual time as SLA base, since it's the time used
+                to compute timeout
+                We use 6 hours as the maximum waiting time for hourly data is 6 hours
+            -->
+            <sla:nominal-time>${coord:actualTime()}</sla:nominal-time>
+            <sla:should-end>${6 * HOURS}</sla:should-end>
+            <sla:alert-events>end_miss</sla:alert-events>
+            <sla:alert-contact>${sla_alert_contact}</sla:alert-contact>
+        </sla:info>
     </action>
 </coordinator-app>

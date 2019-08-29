@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <coordinator-app xmlns="uri:oozie:coordinator:0.4"
+                 xmlns:sla="uri:oozie:sla:0.2"
                  name="article-recommender-coord"
                  frequency="${coord:months(3)}"
                  start="${start_time}"
@@ -16,6 +17,7 @@
 
         <property><name>workflow_file</name></property>
         <property><name>send_error_email_workflow_file</name></property>
+        <property><name>sla_alert_contact</name></property>
     </parameters>
 
     <datasets>
@@ -45,5 +47,18 @@
                 </property>
             </configuration>
         </workflow>
+
+        <sla:info>
+            <!--
+                Use action actual time as SLA base, since it's the time used
+                to compute timeout
+                We use 100 days as he job needs 3 month of pageviews and the
+                wikidata-parquet process to be done
+            -->
+            <sla:nominal-time>${coord:actualTime()}</sla:nominal-time>
+            <sla:should-end>${100 * DAYS}</sla:should-end>
+            <sla:alert-events>end_miss</sla:alert-events>
+            <sla:alert-contact>${sla_alert_contact}</sla:alert-contact>
+        </sla:info>
     </action>
 </coordinator-app>

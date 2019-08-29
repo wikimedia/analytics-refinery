@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <coordinator-app xmlns="uri:oozie:coordinator:0.4"
+    xmlns:sla="uri:oozie:sla:0.2"
     name="mediacounts-archive-coord"
     frequency="${coord:days(1)}"
     start="${start_time}"
@@ -25,6 +26,7 @@
         <property><name>mediacounts_daily_archive_directory</name></property>
         <property><name>archive_job_output_workflow_file</name></property>
         <property><name>send_error_email_workflow_file</name></property>
+        <property><name>sla_alert_contact</name></property>
     </parameters>
 
     <controls>
@@ -80,5 +82,18 @@
                 </property>
             </configuration>
         </workflow>
+
+        <sla:info>
+            <!--
+                Use action actual time as SLA base, since it's the time used
+                to compute timeout
+                We use 6 hours as webrequest data needs to be present for the job
+                to process and webrequest-sla is 5 hours
+            -->
+            <sla:nominal-time>${coord:actualTime()}</sla:nominal-time>
+            <sla:should-end>${6 * HOURS}</sla:should-end>
+            <sla:alert-events>end_miss</sla:alert-events>
+            <sla:alert-contact>${sla_alert_contact}</sla:alert-contact>
+        </sla:info>
     </action>
 </coordinator-app>

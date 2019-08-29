@@ -51,6 +51,7 @@
         <property><name>constant_output_tid_field</name></property>
         <property><name>constant_output_tid_value</name></property>
 
+        <property><name>sla_alert_contact</name></property>
 
         <!--**************************************************
                        Pageview Per Article Flat parameters
