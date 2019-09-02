@@ -308,6 +308,59 @@
             <value>_domain,project,access-site,granularity,timestamp,_tid</value>
         </property>
 
+        <!--**************************************************
+                    Mediarequests per file parameters
+        **************************************************-->
+
+        <property>
+            <name>mediarequest_per_file_datasets_file</name>
+            <value>${mediarequest_datasets_file}</value>
+        </property>
+        <property>
+            <name>mediarequest_per_file_dataset_name</name>
+            <value>mediarequest</value>
+        </property>
+        <property>
+            <name>mediarequest_per_file_dataset_freq</name>
+            <value>hour</value>
+        </property>
+        <property>
+            <name>mediarequest_per_file_hive_script</name>
+            <value>mediarequest_per_file.hql</value>
+        </property>
+        <property>
+            <name>mediarequest_per_file_source_table</name>
+            <value>wmf.mediarequest</value>
+        </property>
+        <property>
+            <name>mediarequest_per_file_parallel_loaders</name>
+            <value>6</value>
+        </property>
+        <property>
+            <name>mediarequest_per_file_keyspace</name>
+            <value>local_group_default_T_mediarequest_per_file</value>
+        </property>
+        <property>
+            <name>per_article_flat_cql</name>
+            <value>UPDATE "${mediarequest_per_file_keyspace}"."data" SET "spider" = ?, "user" = ?</value>
+        </property>
+        <property>
+            <name>mediarequest_per_file_hive_fields</name>
+            <value>referer,file_path,timestamp,spider,user</value>
+        </property>
+        <property>
+            <name>mediarequest_per_file_hive_fields_types</name>
+            <value>text,text,text,int_nullable,int_nullable</value>
+        </property>
+        <property>
+            <name>mediarequest_per_file_cassandra_fields</name>
+            <value>spider,user</value>
+        </property>
+        <property>
+            <name>mediarequest_per_file_cassandra_primary_keys</name>
+            <value>_domain,referer,file_path,granularity,timestamp,_tid</value>
+        </property>
+
     </parameters>
 
 
@@ -923,5 +976,75 @@
             </property>
         </configuration>
     </coordinator>
+    <!--**************************************************
+            Mediarequests per file coordinators
+        **************************************************-->
+
+    <coordinator name="cassandra-coord-mediarequests-per-file-daily">
+        <app-path>${coordinator_file_daily}</app-path>
+        <configuration>
+            <property>
+                <name>workflow_file</name>
+                <value>${workflow_file_daily}</value>
+            </property>
+
+            <!-- Dataset the job depends on -->
+            <property>
+                <name>datasets_file</name>
+                <value>${mediarequest_per_file_datasets_file}</value>
+            </property>
+            <property>
+                <name>dataset_name</name>
+                <value>${mediarequest_per_file_dataset_name}</value>
+            </property>
+            <!-- frequency of the dataset to manage different datasets
+                 correctly in coordinator -->
+            <property>
+                <name>dataset_freq</name>
+                <value>${mediarequest_per_file_dataset_freq}</value>
+            </property>
+
+            <!-- Hive data preparation job stuff -->
+            <property>
+                <name>hive_script</name>
+                <value>${mediarequest_per_file_hive_script}</value>
+            </property>
+            <property>
+                <name>source_table</name>
+                <value>${mediarequest_per_file_source_table}</value>
+            </property>
+
+            <!-- cassandra loader job stuff -->
+            <property>
+                <name>cassandra_parallel_loaders</name>
+                <value>${mediarequest_per_file_parallel_loaders}</value>
+            </property>
+            <property>
+                <name>cassandra_cql</name>
+                <value>${mediarequest_per_file_cql}</value>
+            </property>
+            <property>
+                <name>cassandra_keyspace</name>
+                <value>${mediarequest_per_file_keyspace}</value>
+            </property>
+            <property>
+                <name>hive_fields</name>
+                <value>${mediarequest_per_file_hive_fields}</value>
+            </property>
+            <property>
+                <name>hive_fields_types</name>
+                <value>${mediarequest_per_file_hive_fields_types}</value>
+            </property>
+            <property>
+                <name>cassandra_fields</name>
+                <value>${mediarequest_per_file_cassandra_fields}</value>
+            </property>
+            <property>
+                <name>cassandra_primary_keys</name>
+                <value>${mediarequest_per_file_cassandra_primary_keys}</value>
+            </property>
+        </configuration>
+    </coordinator>
+
 
 </bundle-app>
