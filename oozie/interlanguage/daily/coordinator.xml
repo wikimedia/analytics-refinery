@@ -12,6 +12,7 @@
         <!-- Required properties. -->
         <property><name>name_node</name></property>
         <property><name>job_tracker</name></property>
+        <property><name>hive2_jdbc_url</name></property>
         <property><name>queue_name</name></property>
         <property><name>artifacts_directory</name></property>
         <property><name>refinery_jar_version</name></property>

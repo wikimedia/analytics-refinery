@@ -8,6 +8,7 @@
         <property><name>queue_name</name></property>
         <property><name>name_node</name></property>
         <property><name>job_tracker</name></property>
+        <property><name>hive2_jdbc_url</name></property>
 
         <property><name>coordinator_file_hourly</name></property>
         <property><name>coordinator_file_daily</name></property>

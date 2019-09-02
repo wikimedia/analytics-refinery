@@ -12,6 +12,7 @@
         <property><name>queue_name</name></property>
         <property><name>name_node</name></property>
         <property><name>job_tracker</name></property>
+        <property><name>hive2_jdbc_url</name></property>
         <property><name>workflow_file</name></property>
         <property><name>start_time</name></property>
         <property><name>stop_time</name></property>
@@ -88,7 +89,7 @@
             <!--
                 Use action actual time as SLA base, since it's the time used
                 to compute timeout
-                Sqooping happens on the 5th, waiting a few days to alarm 
+                Sqooping happens on the 5th, waiting a few days to alarm
             -->
             <sla:nominal-time>${coord:actualTime()}</sla:nominal-time>
             <sla:should-end>${39 * DAYS}</sla:should-end>

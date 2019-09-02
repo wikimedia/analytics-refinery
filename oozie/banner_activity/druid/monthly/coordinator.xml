@@ -14,7 +14,6 @@
         <property><name>job_tracker</name></property>
         <property><name>queue_name</name></property>
 
-        <property><name>hive_site_xml</name></property>
         <property><name>workflow_file</name></property>
         <property><name>banner_activity_datasets_file</name></property>
         <property><name>banner_activity_directory</name></property>
