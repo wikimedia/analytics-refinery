@@ -26,7 +26,6 @@
         <property><name>workflow_file</name></property>
 
         <property><name>flag_directory_done_workflow_file</name></property>
-        <property><name>done_flag_destination_directory</name> </property>
         <property><name>send_error_email_workflow_file</name></property>
         <property><name>sla_alert_contact</name></property>
     </parameters>

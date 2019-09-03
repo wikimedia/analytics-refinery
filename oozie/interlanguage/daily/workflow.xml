@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <workflow-app xmlns="uri:oozie:workflow:0.4"
-    name="interlanguage-navigation-daily-wf-${year}-${month}-${day}">
+    name="interlanguage-daily-wf-${year}-${month}-${day}">
 
     <parameters>
 

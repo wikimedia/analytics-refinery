@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <workflow-app xmlns="uri:oozie:workflow:0.4"
-    name="mediarequests-hourly-wf-${year}-${month}-${day}-${hour}">
+    name="mediarequest-hourly-wf-${year}-${month}-${day}-${hour}">
 
     <parameters>
 
@@ -31,9 +31,9 @@
             </description>
         </property>
         <property>
-            <name>mediarequests_table</name>
+            <name>mediarequest_table</name>
             <description>
-                Hive table to write mediarequests aggregates to.
+                Hive table to write mediarequest aggregates to.
             </description>
         </property>
         <property>
@@ -66,9 +66,9 @@
         </property>
     </parameters>
 
-    <start to="insert_hourly_mediarequests"/>
+    <start to="insert_hourly_mediarequest"/>
 
-    <action name="insert_hourly_mediarequests">
+    <action name="insert_hourly_mediarequest">
         <hive2 xmlns="uri:oozie:hive2-action:0.2">
             <job-tracker>${job_tracker}</job-tracker>
             <name-node>${name_node}</name-node>
@@ -95,13 +95,13 @@
                 </property>
             </configuration>
             <jdbc-url>${hive2_jdbc_url}</jdbc-url>
-            <script>mediarequests_hourly.hql</script>
+            <script>mediarequest_hourly.hql</script>
 
             <!-- Query parameters -->
             <param>artifacts_directory=${artifacts_directory}</param>
             <param>refinery_jar_version=${refinery_jar_version}</param>
             <param>source_table=${webrequest_table}</param>
-            <param>destination_table=${mediarequests_table}</param>
+            <param>destination_table=${mediarequest_table}</param>
             <param>year=${year}</param>
             <param>month=${month}</param>
             <param>day=${day}</param>

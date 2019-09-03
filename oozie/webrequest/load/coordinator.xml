@@ -139,7 +139,7 @@
                 </property>
                 <property>
                     <name>webrequest_raw_location</name>
-                    <value>${coord:dataOut('raw_output')}</value>
+                    <value>${coord:dataIn('raw_unchecked_input')}</value>
                 </property>
                 <property>
                     <name>webrequest_location</name>

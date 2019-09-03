@@ -1,3 +1,30 @@
+-- Parameters:
+--  artifacts_directory  -- The hdfs refinery-artificats folder to use
+--  refinery_jar_version -- The refinery-hive jar version to use for UDFs
+--  source_table         -- Fully qualified table name to compute the
+--                          aggregation for.
+--  destination_table    -- Fully qualified table name to fill in
+--                          aggregated values.
+--  record_version       -- record_version keeping track of changes
+--                          in the table content definition.
+--  year                 -- year of partition to compute aggregation for.
+--  month                -- month of partition to compute aggregation for.
+--  day                  -- day of partition to compute aggregation for.
+--  hour                 -- hour of partition to compute aggregation for.
+--
+-- Usage:
+--     hive -f mediarequest_hourly.hql                                    \
+--         -d artifacts_directory=hdfs:///wmf/refinery/current/artifacts  \
+--         -d refinery_jar_version=0.0.98                                 \
+--         -d source_table=wmf.webrequest                                 \
+--         -d destination_table=wmf.pageview_hourly                       \
+--         -d year=2015                                                   \
+--         -d month=6                                                     \
+--         -d day=1                                                       \
+--         -d hour=1
+--
+
+
 SET parquet.compression              = SNAPPY;
 SET hive.enforce.bucketing           = true;
 SET mapreduce.job.reduces            = 64;

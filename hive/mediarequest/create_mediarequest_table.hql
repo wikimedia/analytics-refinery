@@ -1,11 +1,11 @@
--- Creates table for hourly mediarequests dataset
+-- Creates table for hourly mediarequest dataset
 --
 --
 -- Usage
---     hive -f create_mediarequests_table.hql --database wmf
+--     hive -f create_mediarequest_table.hql --database wmf
 --
 
-CREATE EXTERNAL TABLE IF NOT EXISTS `mediarequests` (
+CREATE EXTERNAL TABLE IF NOT EXISTS `mediarequest` (
     `base_name`                string COMMENT 'Base name of media file',
     `media_classification`     string COMMENT 'General classification of media (image, video, audio, data, document or other)',
     `file_type`                string COMMENT 'Extension or suffix of the file (e.g. jpg, wav, pdf)',
@@ -23,5 +23,5 @@ PARTITIONED BY (
     `hour`                int    COMMENT 'Unpadded hour'
 )
 STORED AS PARQUETFILE
-LOCATION '/wmf/data/wmf/mediarequests'
+LOCATION '/wmf/data/wmf/mediarequest'
 ;
