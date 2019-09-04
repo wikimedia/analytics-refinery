@@ -87,11 +87,11 @@
             <!--
                 Use action actual time as SLA base, since it's the time used
                 to compute timeout
-                We use 6 hours as webrequest data needs to be present for the job
-                to process and webrequest-sla is 5 hours
+                We use 30 hours as one day of webrequest data needs to be
+                present for the job to process and webrequest-sla is 5 hours
             -->
             <sla:nominal-time>${coord:actualTime()}</sla:nominal-time>
-            <sla:should-end>${6 * HOURS}</sla:should-end>
+            <sla:should-end>${30 * HOURS}</sla:should-end>
             <sla:alert-events>end_miss</sla:alert-events>
             <sla:alert-contact>${sla_alert_contact}</sla:alert-contact>
         </sla:info>
