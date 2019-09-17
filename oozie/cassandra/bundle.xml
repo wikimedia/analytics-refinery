@@ -361,6 +361,59 @@
             <value>_domain,referer,file_path,granularity,timestamp,_tid</value>
         </property>
 
+        <!--**************************************************
+            Mediarequests per referer parameters
+        **************************************************-->
+
+        <property>
+            <name>mediarequest_per_referer_datasets_file</name>
+            <value>${mediarequest_datasets_file}</value>
+        </property>
+        <property>
+            <name>mediarequest_per_referer_dataset_name</name>
+            <value>mediarequest</value>
+        </property>
+        <property>
+            <name>mediarequest_per_referer_dataset_freq</name>
+            <value>hour</value>
+        </property>
+        <property>
+            <name>mediarequest_per_referer_hive_script</name>
+            <value>mediarequest_per_referer.hql</value>
+        </property>
+        <property>
+            <name>mediarequest_per_referer_source_table</name>
+            <value>wmf.mediarequest</value>
+        </property>
+        <property>
+            <name>mediarequest_per_referer_parallel_loaders</name>
+            <value>1</value>
+        </property>
+        <property>
+            <name>mediarequest_per_referer_keyspace</name>
+            <value>local_group_default_T_mediarequest_per_referer</value>
+        </property>
+        <property>
+            <name>mediarequest_per_referer_cql</name>
+            <value>UPDATE "${mediarequest_per_referer_keyspace}"."data" SET "requests"</value>
+        </property>
+        <property>
+            <name>mediarequest_per_referer_hive_fields</name>
+            <value>referer,media_type,agent,timestamp,requests</value>
+        </property>
+        <property>
+            <name>mediarequest_per_referer_hive_fields_types</name>
+            <value>text,text,text,text,bigint</value>
+        </property>
+        <property>
+            <name>mediarequest_per_referer_cassandra_fields</name>
+            <value>requests</value>
+        </property>
+        <property>
+            <name>mediarequest_per_referer_cassandra_primary_keys</name>
+            <value>_domain,referer,media_type,agent,granularity,timestamp,_tid</value>
+        </property>
+
     </parameters>
 
 
@@ -1045,6 +1098,203 @@
             </property>
         </configuration>
     </coordinator>
+
+    <!--**************************************************
+            Mediarequests per referer coordinators
+        **************************************************-->
+
+    <coordinator name="cassandra-coord-mediarequest-per-referer-hourly">
+        <app-path>${coordinator_file_hourly}</app-path>
+        <configuration>
+            <property>
+                <name>workflow_file</name>
+                <value>${workflow_file_hourly}</value>
+            </property>
+
+            <!-- Dataset the job depends on -->
+            <property>
+                <name>datasets_file</name>
+                <value>${mediarequest_per_referer_datasets_file}</value>
+            </property>
+            <property>
+                <name>dataset_name</name>
+                <value>${mediarequest_per_referer_dataset_name}</value>
+            </property>
+
+            <!-- Hive data preparation job stuff -->
+            <property>
+                <name>hive_script</name>
+                <value>${mediarequest_per_referer_hive_script}</value>
+            </property>
+            <property>
+                <name>source_table</name>
+                <value>${mediarequest_per_referer_source_table}</value>
+            </property>
+
+            <!-- cassandra loader job stuff -->
+            <property>
+                <name>cassandra_parallel_loaders</name>
+                <value>${mediarequest_per_referer_parallel_loaders}</value>
+            </property>
+            <property>
+                <name>cassandra_cql</name>
+                <value>${mediarequest_per_referer_cql}</value>
+            </property>
+            <property>
+                <name>cassandra_keyspace</name>
+                <value>${mediarequest_per_referer_keyspace}</value>
+            </property>
+            <property>
+                <name>hive_fields</name>
+                <value>${mediarequest_per_referer_hive_fields}</value>
+            </property>
+            <property>
+                <name>hive_fields_types</name>
+                <value>${mediarequest_per_referer_hive_fields_types}</value>
+            </property>
+            <property>
+                <name>cassandra_fields</name>
+                <value>${mediarequest_per_referer_cassandra_fields}</value>
+            </property>
+            <property>
+                <name>cassandra_primary_keys</name>
+                <value>${mediarequest_per_referer_cassandra_primary_keys}</value>
+            </property>
+        </configuration>
+    </coordinator>
+
+    <coordinator name="cassandra-coord-mediarequest-per-referer-daily">
+        <app-path>${coordinator_file_daily}</app-path>
+        <configuration>
+            <property>
+                <name>workflow_file</name>
+                <value>${workflow_file_daily}</value>
+            </property>
+
+            <!-- Dataset the job depends on -->
+            <property>
+                <name>datasets_file</name>
+                <value>${mediarequest_per_referer_datasets_file}</value>
+            </property>
+            <property>
+                <name>dataset_name</name>
+                <value>${mediarequest_per_referer_dataset_name}</value>
+            </property>
+            <!-- frequency of the dataset to manage different datasets
+                 correctly in coordinator -->
+            <property>
+                <name>dataset_freq</name>
+                <value>${mediarequest_per_referer_dataset_freq}</value>
+            </property>
+
+            <!-- Hive data preparation job stuff -->
+            <property>
+                <name>hive_script</name>
+                <value>${mediarequest_per_referer_hive_script}</value>
+            </property>
+            <property>
+                <name>source_table</name>
+                <value>${mediarequest_per_referer_source_table}</value>
+            </property>
+
+            <!-- cassandra loader job stuff -->
+            <property>
+                <name>cassandra_parallel_loaders</name>
+                <value>${mediarequest_per_referer_parallel_loaders}</value>
+            </property>
+            <property>
+                <name>cassandra_cql</name>
+                <value>${mediarequest_per_referer_cql}</value>
+            </property>
+            <property>
+                <name>cassandra_keyspace</name>
+                <value>${mediarequest_per_referer_keyspace}</value>
+            </property>
+            <property>
+                <name>hive_fields</name>
+                <value>${mediarequest_per_referer_hive_fields}</value>
+            </property>
+            <property>
+                <name>hive_fields_types</name>
+                <value>${mediarequest_per_referer_hive_fields_types}</value>
+            </property>
+            <property>
+                <name>cassandra_fields</name>
+                <value>${mediarequest_per_referer_cassandra_fields}</value>
+            </property>
+            <property>
+                <name>cassandra_primary_keys</name>
+                <value>${mediarequest_per_referer_cassandra_primary_keys}</value>
+            </property>
+        </configuration>
+    </coordinator>
+
+    <coordinator name="cassandra-coord-mediarequet-per-referer-monthly">
+        <app-path>${coordinator_file_monthly}</app-path>
+        <configuration>
+            <property>
+                <name>workflow_file</name>
+                <value>${workflow_file_monthly}</value>
+            </property>
+
+            <!-- Dataset the job depends on -->
+            <property>
+                <name>datasets_file</name>
+                <value>${mediarequest_per_referer_datasets_file}</value>
+            </property>
+            <property>
+                <name>dataset_name</name>
+                <value>${mediarequest_per_referer_dataset_name}</value>
+            </property>
+            <!-- frequency of the dataset to manage different datasets
+                 correctly in coordinator -->
+            <property>
+                <name>dataset_freq</name>
+                <value>${mediarequest_per_referer_dataset_freq}</value>
+            </property>
+
+            <!-- Hive data preparation job stuff -->
+            <property>
+                <name>hive_script</name>
+                <value>${mediarequest_per_referer_hive_script}</value>
+            </property>
+            <property>
+                <name>source_table</name>
+                <value>${mediarequest_per_referer_source_table}</value>
+            </property>
+
+            <!-- cassandra loader job stuff -->
+            <property>
+                <name>cassandra_parallel_loaders</name>
+                <value>${mediarequest_per_referer_parallel_loaders}</value>
+            </property>
+            <property>
+                <name>cassandra_cql</name>
+                <value>${mediarequest_per_referer_cql}</value>
+            </property>
+            <property>
+                <name>cassandra_keyspace</name>
+                <value>${mediarequest_per_referer_keyspace}</value>
+            </property>
+            <property>
+                <name>hive_fields</name>
+                <value>${mediarequest_per_referer_hive_fields}</value>
+            </property>
+            <property>
+                <name>hive_fields_types</name>
+                <value>${mediarequest_per_referer_hive_fields_types}</value>
+            </property>
+            <property>
+                <name>cassandra_fields</name>
+                <value>${mediarequest_per_referer_cassandra_fields}</value>
+            </property>
+            <property>
+                <name>cassandra_primary_keys</name>
+                <value>${mediarequest_per_referer_cassandra_primary_keys}</value>
+            </property>
+        </configuration>
+    </coordinator>
+
 
 
 </bundle-app>
