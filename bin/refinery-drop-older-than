@@ -264,7 +264,7 @@ def get_security_checksum(args):
     excluded_args = ['--verbose', '--log-file', '--execute']
 
     hash_args = {k: v for k, v in args.items() if k not in excluded_args}
-    hash_message = bytes(sorted(hash_args.items()))
+    hash_message = str.encode(str(sorted(hash_args.items())))
 
     md5 = hashlib.md5()
     md5.update(hash_message)
