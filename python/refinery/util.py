@@ -124,9 +124,9 @@ def sh(command, check_return_code=True, strip_output=True, return_stderr=False):
         stderr = stderr.strip()
 
     if return_stderr:
-        return (stdout, stderr)
+        return (stdout.decode(), stderr.decode())
     else:
-        return stdout
+        return stdout.decode()
 
 
 def get_mediawiki_section_dbname_mapping(mw_config_path=MW_CONFIG_PATH, use_x1=False):
