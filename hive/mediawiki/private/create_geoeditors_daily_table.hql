@@ -16,7 +16,8 @@ CREATE EXTERNAL TABLE `geoeditors_daily` (
   `date`                        string      COMMENT 'The YYYY-MM-DD date for this group of edits',
 
   `edit_count`                  bigint      COMMENT 'The total count of edits for this grouping',
-  `namespace_zero_edit_count`   bigint      COMMENT 'The total count of edits to namespace zero for this grouping'
+  `namespace_zero_edit_count`   bigint      COMMENT 'The total count of edits to namespace zero for this grouping',
+  `network_origin`              string      COMMENT 'The network-origin as computed by GetNetworkOriginUDF (can be Internet, Wikimedia, Wikimedia_labs)'
 )
 COMMENT
   'NOTE: This table has private location, IP, and user agent data in it.  It should be truncated so no data older than 90 days is available.  See up to date schema documentation for the source table at https://www.mediawiki.org/wiki/Extension:CheckUser/cu_changes_table'

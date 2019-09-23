@@ -22,6 +22,7 @@
 -- TODO: Change user_groups to user_groups_historical, adding user_groups_latest to help searchers find this line
 ADD JAR ${artifacts_directory}/org/wikimedia/analytics/refinery/refinery-hive-${refinery_jar_version}.jar;
 CREATE TEMPORARY FUNCTION geocode as 'org.wikimedia.analytics.refinery.hive.GeocodedDataUDF';
+CREATE TEMPORARY FUNCTION network_origin as 'org.wikimedia.analytics.refinery.hive.GetNetworkOriginUDF';
 
 
 INSERT OVERWRITE TABLE ${destination_table}
@@ -33,10 +34,12 @@ INSERT OVERWRITE TABLE ${destination_table}
             user_is_anonymous,
             date,
             count(*) as edit_count,
-            sum(page_is_namespace_zero) as namespace_zero_edit_count
+            sum(page_is_namespace_zero) as namespace_zero_edit_count,
+            network_origin
 
        FROM (select cuc.wiki_db,
                     geocode(cuc_ip)['country_code'] as country_code,
+                    network_origin(cuc_ip) as network_origin,
                     if(cuc_user = 0, md5(concat(cuc_ip, cuc_agent)), cuc_user) as user_fingerprint_or_id,
                     if(cuc_user = 0, 1, 0) as user_is_anonymous,
                     if(cuc_namespace = 0, 1, 0) as page_is_namespace_zero,
@@ -68,5 +71,6 @@ INSERT OVERWRITE TABLE ${destination_table}
             country_code,
             date,
             user_fingerprint_or_id,
-            user_is_anonymous
+            user_is_anonymous,
+            network_origin
 ;
