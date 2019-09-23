@@ -348,7 +348,7 @@ class Hive(object):
         """
 
         if use_tempfile:
-            with tempfile.NamedTemporaryFile(prefix='tmp-hive-query-', suffix='.hiveql') as f:
+            with tempfile.NamedTemporaryFile(mode='w', prefix='tmp-hive-query-', suffix='.hiveql') as f:
                 logger.debug('Writing Hive query to tempfile {0}.'.format(f.name))
                 f.write(query)
                 f.flush()
