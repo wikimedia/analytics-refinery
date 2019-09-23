@@ -57,13 +57,13 @@ class Hdfs(object):
                 # Not checking return code here so we don't
                 # fail paths do not exist.
                 check_return_code=False
-            ).splitlines() if not line.startswith(b'Found ')
+            ).splitlines() if not line.startswith('Found ')
         ]
 
         if with_details:
             return [
                 {
-                    'file_type': 'f' if parts[0].decode('utf-8')[0] == '-' else 'd',
+                    'file_type': 'f' if parts[0][0] == '-' else 'd',
                     'permission': parts[0][1:],
                     'replication': parts[1],
                     'owner': parts[2],
@@ -167,14 +167,14 @@ class Hdfs(object):
         Be careful with file size, it will be returned as an in-memory string.
         """
         command = ['hdfs', 'dfs', '-cat', path]
-        return sh(command).decode('utf-8')
+        return sh(command)
 
     @staticmethod
     def get_modified_datetime(path):
         """
         Runs 'hdfs dfs -stat' and returns the modified datetime for the given path.
         """
-        stat_str = sh(['hdfs', 'dfs', '-stat', path]).decode('utf-8')
+        stat_str = sh(['hdfs', 'dfs', '-stat', path])
         date_str, time_str = stat_str.strip().split()
         iso_datetime_str = date_str + 'T' + time_str + 'Z'
         return parser.parse(iso_datetime_str)
@@ -363,9 +363,8 @@ class Hdfs(object):
         hdfs_files = {}
         # HDFS-ls works with path and globs
         for f in Hdfs.ls(hdfs_path, with_details=True):
-            # HDFS-ls returns bytes - Need to extract
-            path = f['path'].decode("utf-8")
-            file_size = int(f['file_size'].decode("utf-8"))
+            path = f['path']
+            file_size = int(f['file_size'])
             file_type = f['file_type']
             fname = os.path.basename(path)
             hdfs_files[fname] = {'path': path, 'file_size': file_size, 'file_type': file_type}

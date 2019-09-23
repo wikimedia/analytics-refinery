@@ -114,9 +114,7 @@ def exists_success_flag(folder):
     """
     output_content = Hdfs.ls(folder)
     for path in output_content:
-        # Hdfs.ls returns bytes - Need to convert them
-        path_str = path.decode('utf-8')
-        if os.path.basename(path_str) == SUCCESS_FLAG:
+        if os.path.basename(path) == SUCCESS_FLAG:
             return True
     return False
 
