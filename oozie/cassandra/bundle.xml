@@ -414,6 +414,59 @@
             <value>_domain,referer,media_type,agent,granularity,timestamp,_tid</value>
         </property>
 
+        <!--**************************************************
+            Mediarequest Top Files parameters
+        **************************************************-->
+
+        <property>
+            <name>mediarequest_top_files_datasets_file</name>
+            <value>${mediarequest_datasets_file}</value>
+        </property>
+        <property>
+            <name>mediarequest_top_files_dataset_name</name>
+            <value>mediarequest_hourly</value>
+        </property>
+        <property>
+            <name>mediarequest_top_files_dataset_freq</name>
+            <value>hour</value>
+        </property>
+        <property>
+            <name>mediarequest_top_files_hive_script</name>
+            <value>mediarequest_top_files.hql</value>
+        </property>
+        <property>
+            <name>mediarequest_top_files_source_table</name>
+            <value>wmf.mediarequest</value>
+        </property>
+        <property>
+            <name>mediarequest_top_files_parallel_loaders</name>
+            <value>3</value>
+        </property>
+        <property>
+            <name>mediarequest_top_files_keyspace</name>
+            <value>local_group_default_T_mediarequest_top_files</value>
+        </property>
+        <property>
+            <name>mediarequest_top_files_cql</name>
+            <value>UPDATE "${mediarequest_top_files_keyspace}"."data" SET "filesJSON" = ?</value>
+        </property>
+        <property>
+            <name>mediarequest_top_files_hive_fields</name>
+            <value>referer,media_type,year,month,day,filesJSON</value>
+        </property>
+        <property>
+            <name>mediarequest_top_files_hive_fields_types</name>
+            <value>text,text,text,text,text,text</value>
+        </property>
+        <property>
+            <name>mediarequest_top_files_cassandra_fields</name>
+            <value>filesJSON</value>
+        </property>
+        <property>
+            <name>mediarequest_top_files_cassandra_primary_keys</name>
+            <value>_domain,referer,media_type,year,month,day,_tid</value>
+        </property>
+
     </parameters>
 
 
@@ -1291,6 +1344,142 @@
             <property>
                 <name>cassandra_primary_keys</name>
                 <value>${mediarequest_per_referer_cassandra_primary_keys}</value>
+            </property>
+        </configuration>
+    </coordinator>
+
+    <!--**************************************************
+            Mediarequest Top Files coordinators
+        **************************************************-->
+
+    <coordinator name="cassandra-coord-mediarequest-top-files-daily">
+        <app-path>${coordinator_file_daily}</app-path>
+        <configuration>
+            <property>
+                <name>workflow_file</name>
+                <value>${workflow_file_daily}</value>
+            </property>
+
+            <!-- Dataset the job depends on -->
+            <property>
+                <name>datasets_file</name>
+                <value>${mediarequest_top_files_datasets_file}</value>
+            </property>
+            <property>
+                <name>dataset_name</name>
+                <value>${mediarequest_top_files_dataset_name}</value>
+            </property>
+            <!-- frequency of the dataset to manage different datasets
+                 correctly in coordinator -->
+            <property>
+                <name>dataset_freq</name>
+                <value>${mediarequest_top_files_dataset_freq}</value>
+            </property>
+
+            <!-- Hive data preparation job stuff -->
+            <property>
+                <name>hive_script</name>
+                <value>${mediarequest_top_files_hive_script}</value>
+            </property>
+            <property>
+                <name>source_table</name>
+                <value>${mediarequest_top_files_source_table}</value>
+            </property>
+
+            <!-- cassandra loader job stuff -->
+            <property>
+                <name>cassandra_parallel_loaders</name>
+                <value>${mediarequest_top_files_parallel_loaders}</value>
+            </property>
+            <property>
+                <name>cassandra_cql</name>
+                <value>${mediarequest_top_files_cql}</value>
+            </property>
+            <property>
+                <name>cassandra_keyspace</name>
+                <value>${mediarequest_top_files_keyspace}</value>
+            </property>
+            <property>
+                <name>hive_fields</name>
+                <value>${mediarequest_top_files_hive_fields}</value>
+            </property>
+            <property>
+                <name>hive_fields_types</name>
+                <value>${mediarequest_top_files_hive_fields_types}</value>
+            </property>
+            <property>
+                <name>cassandra_fields</name>
+                <value>${mediarequest_top_files_cassandra_fields}</value>
+            </property>
+            <property>
+                <name>cassandra_primary_keys</name>
+                <value>${mediarequest_top_files_cassandra_primary_keys}</value>
+            </property>
+        </configuration>
+    </coordinator>
+
+    <coordinator name="cassandra-coord-mediarequest-top-files-monthly">
+        <app-path>${coordinator_file_monthly}</app-path>
+        <configuration>
+            <property>
+                <name>workflow_file</name>
+                <value>${workflow_file_monthly}</value>
+            </property>
+
+            <!-- Dataset the job depends on -->
+            <property>
+                <name>datasets_file</name>
+                <value>${mediarequest_top_files_datasets_file}</value>
+            </property>
+            <property>
+                <name>dataset_name</name>
+                <value>${mediarequest_top_files_dataset_name}</value>
+            </property>
+            <!-- frequency of the dataset to manage different datasets
+                 correctly in coordinator -->
+            <property>
+                <name>dataset_freq</name>
+                <value>${mediarequest_top_files_dataset_freq}</value>
+            </property>
+
+            <!-- Hive data preparation job stuff -->
+            <property>
+                <name>hive_script</name>
+                <value>${mediarequest_top_files_hive_script}</value>
+            </property>
+            <property>
+                <name>source_table</name>
+                <value>${mediarequest_top_files_source_table}</value>
+            </property>
+
+            <!-- cassandra loader job stuff -->
+            <property>
+                <name>cassandra_parallel_loaders</name>
+                <value>${mediarequest_top_files_parallel_loaders}</value>
+            </property>
+            <property>
+                <name>cassandra_cql</name>
+                <value>${mediarequest_top_files_cql}</value>
+            </property>
+            <property>
+                <name>cassandra_keyspace</name>
+                <value>${mediarequest_top_files_keyspace}</value>
+            </property>
+            <property>
+                <name>hive_fields</name>
+                <value>${mediarequest_top_files_hive_fields}</value>
+            </property>
+            <property>
+                <name>hive_fields_types</name>
+                <value>${mediarequest_top_files_hive_fields_types}</value>
+            </property>
+            <property>
+                <name>cassandra_fields</name>
+                <value>${mediarequest_top_files_cassandra_fields}</value>
+            </property>
+            <property>
+                <name>cassandra_primary_keys</name>
+                <value>${mediarequest_top_files_cassandra_primary_keys}</value>
             </property>
         </configuration>
     </coordinator>

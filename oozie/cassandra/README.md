@@ -2,13 +2,14 @@
 
 The bundle is responsible for data transformation and load
 into cassandra for the Analytics Query Service. It has these main datasets:
-* pageview per article
-* pageview per project
-* pageview top articles
+* Pageviews per article
+* Pageviews per project
+* Pageviews top articles
 * Unique devices
 * Historical pagecounts per project
 * Mediarequests per file
 * Mediarequests aggregated per referer
+* Top files by mediarequests
 
 First data is written in TSV files with aggregates computed
 in a cube fashion for some dimensions, then those flat files are
