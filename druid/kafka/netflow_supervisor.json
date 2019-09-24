@@ -1,0 +1,62 @@
+{
+  "type": "kafka",
+  "dataSchema": {
+    "dataSource": "wmf_netflow",
+    "parser": {
+      "type": "string",
+      "parseSpec": {
+        "format": "json",
+        "flattenSpec": {
+          "useFieldDiscovery": false,
+          "fields": [
+              "as_dst","as_path","peer_as_dst","as_src","ip_dst","ip_proto","ip_src","peer_as_src","port_dst","port_src","country_ip_src","country_ip_dst","tag2","tcp_flags","packets","bytes"
+          ]
+        },
+        "timestampSpec": {
+          "column": "stamp_inserted",
+          "format": "auto"
+        },
+        "dimensionsSpec": {
+          "dimensions": [
+              "as_dst","as_path","peer_as_dst","as_src","ip_dst","ip_proto","ip_src","peer_as_src","port_dst","port_src","country_ip_src","country_ip_dst","tag2","tcp_flags"
+          ]
+        }
+      }
+    },
+    "transformSpec": {},
+    "metricsSpec": [
+      {
+        "name": "count",
+        "type": "count"
+      },
+      {
+        "name": "bytes",
+        "type": "doubleSum",
+        "fieldName": "bytes"
+      },
+      {
+        "name": "packets",
+        "type": "doubleSum",
+        "fieldName": "packets"
+      }
+    ],
+    "granularitySpec": {
+      "type": "uniform",
+      "segmentGranularity": "HOUR",
+      "queryGranularity": "SECOND"
+    }
+  },
+  "tuningConfig": {
+    "type": "kafka",
+    "maxRowsPerSegment": 5000000
+  },
+  "ioConfig": {
+    "topic": "netflow",
+    "consumerProperties": {
+      "bootstrap.servers": "kafka-jumbo1001.eqiad.wmnet:9092"
+    },
+    "taskCount": 1,
+    "replicas": 3,
+    "taskDuration": "PT1H"
+  }
+}
