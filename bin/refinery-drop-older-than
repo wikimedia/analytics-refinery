@@ -87,6 +87,7 @@ Options:
 
 from datetime import datetime, timedelta
 from docopt import docopt
+from mock import MagicMock
 from refinery.logging_setup import configure_logging
 from refinery.hive import Hive
 from refinery.hdfs import Hdfs
@@ -97,21 +98,30 @@ import os
 import re
 import sys
 import time
-
-# Import unittest with muted stderr to avoid prints. Needs to be done
-# at import time, unittest seems to keep a copy of it when imported.
-# Restore stderr immediately after the import to enable logs.
-sys.stderr = open(os.devnull, 'w')
 import unittest
-from mock import MagicMock
-sys.stderr = sys.__stderr__
 
 
 logger = logging.getLogger()
 
 # Add here base paths and databases that should never be deleted.
+# Under undeletable_base_paths you can use prefixes as well.
 undeletable_base_paths = [
-    '/wmf/data/archive',
+    # We can not add the full /wmf/data/archive directory to this list,
+    # because we need to delete data from /wmf/data/archive/mediawiki.
+    # Therefore, we include all other subdirectories from /wmf/data/archive.
+    # TODO: Remove /wmf/data/archive/* subdirectories that aren't critical.
+    '/wmf/data/archive/backup',
+    '/wmf/data/archive/browser',
+    '/wmf/data/archive/clickstream',
+    '/wmf/data/archive/domain_abbrev_map',
+    '/wmf/data/archive/eventlogging',
+    '/wmf/data/archive/geo',
+    '/wmf/data/archive/mediacounts',
+    '/wmf/data/archive/mobile_apps',
+    '/wmf/data/archive/page',
+    '/wmf/data/archive/project',
+    '/wmf/data/archive/unique_devices',
+    '/wmf/data/archive/webrequest',
     '/wmf/data/event_sanitized']
 undeletable_databases = [
     'archive',
@@ -149,7 +159,7 @@ def drop_partitions(hive, database, tables_regex, threshold, execute):
                     ('DRY RUN: {0} Hive partitions from table {1}.{2} ' +
                     'would be dropped with the following command:')
                     .format(len(partitions_to_drop), database, table))
-                print(hive.drop_partitions_ddl(table, partitions_to_drop))
+                logger.info(hive.drop_partitions_ddl(table, partitions_to_drop))
         else:
             logger.info('No Hive partitions dropped for table {0}.{1}.'
                 .format(database, table))
@@ -209,7 +219,7 @@ def remove_directories(hdfs, base_path, path_format, threshold, skip_trash, exec
                     ('DRY RUN: {0} directories for tree depth {1} ' +
                     'would be removed with the following command:')
                     .format(len(directories_to_remove), glob_depth))
-                print(
+                logger.info(
                     'hdfs dfs -rm -R ' +
                     ('-skipTrash ' if skip_trash else '') +
                     ' '.join(directories_to_remove))
@@ -382,13 +392,9 @@ class TestRefineryDropOlderThan(unittest.TestCase):
             self.rm = MagicMock()
 
     def setUp(self):
-        sys.stdout = open(os.devnull, 'w')
-        sys.stderr = open(os.devnull, 'w')
         logger.disabled = True
 
     def tearDown(self):
-        sys.stdout = sys.__stdout__
-        sys.stderr = sys.__stderr__
         logger.disabled = False
 
     def run_main(self, override):
@@ -419,7 +425,9 @@ class TestRefineryDropOlderThan(unittest.TestCase):
 
     def test_raises_error_with_undeletable_base_path(self):
         with self.assertRaises(Exception):
-            self.run_main({'--base-path': '/wmf/data/archive'})
+            self.run_main({'--base-path': '/wmf/data/archive/backup'})
+        with self.assertRaises(Exception):
+            self.run_main({'--base-path': '/wmf/data/archive/pageviews'})
         with self.assertRaises(Exception):
             self.run_main({'--base-path': '/wmf/data/event_sanitized'})
 
