@@ -36,7 +36,8 @@ Options:
                                     comment-lines started with #)
                                     [default: /mnt/hdfs/wmf/refinery/current/static_data/mediawiki/grouped_wikis/labs_grouped_wikis.csv]
     -t TYPE --dump-type TYPE      The dump-type to import. Should be one of: pages-meta-history,
-                                    pages-meta-current, stub-meta-history, stub-meta-current
+                                    pages-meta-current, stub-meta-history, stub-meta-current,
+                                    siteinfo-namespaces
                                     [default: pages-meta-history]
     -m INT --max-tries INT        Maximum number of import tries per project
                                     [default: 3]
@@ -73,14 +74,16 @@ DUMP_TYPES = [
     'pages-meta-history',
     'pages-meta-current',
     'stub-meta-history',
-    'stub-meta-current'
+    'stub-meta-current',
+    'siteinfo-namespaces'
 ]
 
 GLOB_PATTERNS = {
   'pages-meta-history': '{}-{}-pages-meta-history*.xml*.bz2',
   'pages-meta-current': '{}-{}-pages-meta-current*.xml*.bz2',
   'stub-meta-history': '{}-{}-stub-meta-history*.xml*.gz',
-  'stub-meta-current': '{}-{}-stub-meta-current*.xml*.gz'
+  'stub-meta-current': '{}-{}-stub-meta-current*.xml*.gz',
+  'siteinfo-namespaces': '{}-{}-siteinfo-namespaces.json.gz'
 }
 
 # Used to check if job is finished in DUMP_INFO_FILE.
@@ -92,7 +95,8 @@ JSON_NAMES = {
   'pages-meta-history': 'metahistorybz2dump',
   'pages-meta-current': 'metacurrentdump',
   'stub-meta-history': 'xmlstubsdump',
-  'stub-meta-current': 'xmlstubsdump'
+  'stub-meta-current': 'xmlstubsdump',
+  'siteinfo-namespaces': 'namespaces'
 }
 
 
