@@ -318,7 +318,7 @@
         </property>
         <property>
             <name>mediarequest_per_file_dataset_name</name>
-            <value>mediarequest</value>
+            <value>mediarequest_hourly</value>
         </property>
         <property>
             <name>mediarequest_per_file_dataset_freq</name>
@@ -371,7 +371,7 @@
         </property>
         <property>
             <name>mediarequest_per_referer_dataset_name</name>
-            <value>mediarequest</value>
+            <value>mediarequest_hourly</value>
         </property>
         <property>
             <name>mediarequest_per_referer_dataset_freq</name>
