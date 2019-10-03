@@ -46,6 +46,7 @@ import json
 import csv
 import logging
 import os
+import sys
 
 from docopt import docopt
 from traceback import format_exc
@@ -145,7 +146,9 @@ logging.info('Fetching namespace info for {} wikis'.format(len(wikis)))
 # content       : whether or not this namespace is a content namespace
 ###
 
-with open(outfile, 'wb') as w:
+wiki_mappings_written = 0
+
+with open(outfile, 'w', encoding='utf-8') as w:
     spamwriter = csv.writer(w)
 
     for wiki in wikis:
@@ -169,10 +172,16 @@ with open(outfile, 'wb') as w:
                     v.get('*', ''),
                     is_content,
                 ]
-                spamwriter.writerow([unicode(s).encode("utf-8") for s in row])
+                spamwriter.writerow(row)
+                wiki_mappings_written += 1
 
         except Exception:
-            logging.error(site + ' FAILED!!! with ' + format_exc())
+            logging.exception(site + ' FAILED!!!')
+
+
+if wiki_mappings_written == 0:
+    logging.error('The number of wiki mappings written to the CSV file is zero.')
+    sys.exit(1)
 
 if output_to_hdfs:
     if (snapshot is not None):
