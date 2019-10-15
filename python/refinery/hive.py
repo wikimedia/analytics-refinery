@@ -240,7 +240,7 @@ class Hive(object):
             )
             returns: 'webrequest_source='text',year=2014,month=05,day=14,hour=23
         """
-        if isinstance(regex, basestring):
+        if isinstance(regex, str):
             regex = re.compile(regex)
 
         group_matches_in_order = [
@@ -284,7 +284,7 @@ class Hive(object):
             )
             returns: datetime.datetime(2014, 5, 14, 23, 0)
         """
-        if isinstance(regex, basestring):
+        if isinstance(regex, str):
             regex = re.compile(regex)
 
         match = regex.search(spec)
@@ -323,7 +323,7 @@ class Hive(object):
             returns: datetime.datetime(2015, 1, 9, 0, 0)
 
         """
-        if isinstance(regex, basestring):
+        if isinstance(regex, str):
             regex = re.compile(regex)
 
         match = regex.search(path)
