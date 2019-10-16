@@ -373,7 +373,7 @@ class Hive(object):
 
 
 class HivePartition(OrderedDict):
-    partition_regex          = re.compile(r'(\w+)=["\']?([\w\-]+)["\']?')
+    partition_regex          = re.compile(r'(\w+)=["\']?([\w\-.]+)["\']?')
     camus_regex              = re.compile(r'.*/hourly/(?P<year>\d+)\/(?P<month>\d+)\/(?P<day>\d+)\/(?P<hour>\d+)')
 
     desc_separator = '/'
@@ -492,4 +492,3 @@ class HivePartition(OrderedDict):
         if base_path is not None:
             globs = [base_path] + globs
         return os.path.join(*globs)
-
