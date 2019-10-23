@@ -26,7 +26,7 @@ CREATE EXTERNAL TABLE `tmp_druid_geoeditors_monthly` (
   `wiki_db`             string      COMMENT 'The wiki database the editors worked in',
   `country_code`        string      COMMENT 'The 2-letter ISO country code this group of editors geolocated to, including Unknown (--)',
   `users_are_anonymous` int         COMMENT 'Whether or not this group of editors edited anonymously',
-  `activity_level`      string      COMMENT 'How many edits this group of editors performed, can be "at least 1", "at least 5", or "at least 100"',
+  `activity_level`      string      COMMENT 'How many edits this group of editors performed, can be "1 to 4", "5 to 99", or "100 or more"',
   `distinct_editors`                bigint      COMMENT 'Number of editors meeting this activity level',
   `namespace_zero_distinct_editors` bigint      COMMENT 'Number of editors meeting this activity level with only namespace zero edits'
 )
