@@ -79,8 +79,8 @@ INSERT OVERWRITE DIRECTORY "${destination_directory}"
             wiki_db,
             country,
             activity_level,
-            cast(floor(distinct_editors / 10) * 10          as string), -- editors lower bound
-            cast(ceil((distinct_editors + 1) / 10) * 10 - 1 as string)  -- editors upper bound
+            cast(floor((distinct_editors - 1) / 10) * 10 + 1 as string), -- editors lower bound
+            cast(ceil ( distinct_editors      / 10) * 10     as string)  -- editors upper bound
 
         ) tab_separated
    FROM exact_counts
