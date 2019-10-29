@@ -103,7 +103,7 @@ SELECT
     day,
     CONCAT('[',
         CONCAT_WS(',', collect_set(
-            CONCAT('{"file_path":"', file_path,
+            CONCAT('{"file_path":"', regexp_replace(file_path, '"', '\\\\"'),
                 '","requests":', CAST(requests AS STRING),
                 ',"rank":', CAST(rank AS STRING), '}'))
         ),']')
