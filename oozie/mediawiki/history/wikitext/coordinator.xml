@@ -67,7 +67,7 @@
     </datasets>
 
     <input-events>
-        <data-in name="pages_history_meta_xml_dump" dataset="pages_history_meta_xml_dump">
+        <data-in name="pages_meta_history_xml_dump" dataset="pages_meta_history_xml_dump">
             <!--
               Use a one month shift in input-event as dump generated at month YYYYMM
               contains data for month MM-1 and we want to name it snapshot=YYYY-(MM-1)
@@ -96,7 +96,7 @@
                 </property>
                 <property>
                     <name>xmldumps_location</name>
-                    <value>${coord:dataIn('pages_history_meta_xml_dump')}</value>
+                    <value>${coord:dataIn('pages_meta_history_xml_dump')}</value>
                 </property>
                 <property>
                     <name>mw_wikitext_history_location</name>
