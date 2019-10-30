@@ -1,68 +1,84 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <coordinator-app xmlns="uri:oozie:coordinator:0.4"
     xmlns:sla="uri:oozie:sla:0.2"
-    name="data-quality-${source_table}-${query_name}-hourly-coord"
+    name="data-quality-stats-${source_table}-${query_name}-hourly-coord"
     frequency="${coord:hours(1)}"
     start="${start_time}"
     end="${stop_time}"
     timezone="Universal">
 
     <parameters>
+        <property><name>start_time</name></property>
+        <property><name>stop_time</name></property>
+        <property><name>workflow_file</name></property>
+        <property><name>sla_alert_contact</name></property>
+
         <property><name>name_node</name></property>
         <property><name>job_tracker</name></property>
         <property><name>hive_principal</name></property>
         <property><name>hive2_jdbc_url</name></property>
+        <property><name>hive_metastore_uri</name></property>
         <property><name>hive_site_xml</name></property>
         <property><name>queue_name</name></property>
         <property><name>user</name></property>
         <property><name>artifacts_directory</name></property>
         <property><name>refinery_jar_version</name></property>
+        <property><name>oozie_spark_lib</name></property>
+        <property><name>temp_directory</name></property>
 
         <property><name>source_table</name></property>
-        <property><name>source_directory</name></property>
-        <property><name>data_quality_table</name></property>
+        <property><name>source_base_path</name></property>
+        <property><name>source_done_flag</name></property>
         <property><name>query_name</name></property>
-        <property><name>start_time</name></property>
-        <property><name>stop_time</name></property>
-        <property><name>workflow_file</name></property>
+        <property><name>data_quality_stats_table</name></property>
+        <property><name>data_quality_stats_base_path</name></property>
+        <property><name>data_quality_stats_incoming_table</name></property>
 
-        <property><name>flag_directory_done_workflow_file</name></property>
+        <property><name>updater_spark_master</name></property>
+        <property><name>updater_spark_deploy</name></property>
+        <property><name>updater_spark_job_name</name></property>
+        <property><name>updater_spark_job_class</name></property>
+        <property><name>updater_spark_job_jar</name></property>
+        <property><name>updater_spark_driver_memory</name></property>
+        <property><name>updater_spark_executor_memory</name></property>
+        <property><name>updater_spark_executor_cores</name></property>
+        <property><name>updater_spark_max_num_executors</name></property>
+
         <property><name>send_error_email_workflow_file</name></property>
-        <property><name>sla_alert_contact</name></property>
     </parameters>
 
     <controls>
         <timeout>-1</timeout>
-        <concurrency>2</concurrency>
-        <throttle>2</throttle>
+        <concurrency>1</concurrency>
+        <throttle>1</throttle>
     </controls>
 
     <datasets>
-        <dataset name="source_dataset"
+        <dataset name="source_data_set"
                  frequency="${coord:hours(1)}"
                  initial-instance="${start_time}"
                  timezone="Universal">
-            <uri-template>${source_directory}/year=${YEAR}/month=${"$"}{MONTH + 0}/day=${"$"}{DAY + 0}/hour=${"$"}{HOUR + 0}</uri-template>
-            <done-flag>${done_flag}</done-flag>
+            <uri-template>${source_base_path}/year=${YEAR}/month=${"$"}{MONTH + 0}/day=${"$"}{DAY + 0}/hour=${"$"}{HOUR + 0}</uri-template>
+            <done-flag>${source_done_flag}</done-flag>
         </dataset>
 
-        <dataset name="data_quality_hourly"
+        <dataset name="data_quality_stats"
                  frequency="${coord:hours(1)}"
                  initial-instance="${start_time}"
                  timezone="Universal">
-             <uri-template>${data_quality_directory}/source_table=${source_table}/query_name=${query_name}/year=${YEAR}/month=${"$"}{MONTH + 0}/day=${"$"}{DAY + 0}/hour=${"$"}{HOUR + 0}</uri-template>
+             <uri-template>${data_quality_stats_base_path}/source_table=${source_table}/query_name=${query_name}/granularity=hourly</uri-template>
              <done-flag>_SUCCESS</done-flag>
         </dataset>
     </datasets>
 
     <input-events>
-        <data-in name="input" dataset="source_dataset">
+        <data-in name="input" dataset="source_data_set">
             <instance>${coord:current(0)}</instance>
         </data-in>
     </input-events>
 
     <output-events>
-        <data-out name="output" dataset="data_quality_hourly">
+        <data-out name="output" dataset="data_quality_stats">
             <instance>${coord:current(0)}</instance>
         </data-out>
     </output-events>
@@ -71,6 +87,10 @@
         <workflow>
             <app-path>${workflow_file}</app-path>
             <configuration>
+                <property>
+                    <name>granularity</name>
+                    <value>hourly</value>
+                </property>
                 <property>
                     <name>year</name>
                     <value>${coord:formatTime(coord:nominalTime(), "y")}</value>
@@ -87,19 +107,11 @@
                     <name>hour</name>
                     <value>${coord:formatTime(coord:nominalTime(), "H")}</value>
                 </property>
-                <property>
-                    <name>done_flag_destination_directory</name>
-                    <value>${coord:dataOut('output')}</value>
-                </property>
             </configuration>
         </workflow>
 
         <sla:info>
-            <!--
-                Use action actual time as SLA base, since it's the time used
-                to compute timeout
-                We use 6 hours as the maximum waiting time for hourly data is 6 hours
-            -->
+            <!-- We use 6 hours, the maximum waiting time for hourly data. -->
             <sla:nominal-time>${coord:actualTime()}</sla:nominal-time>
             <sla:should-end>${6 * HOURS}</sla:should-end>
             <sla:alert-events>end_miss</sla:alert-events>

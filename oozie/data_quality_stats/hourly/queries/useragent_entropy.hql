@@ -1,21 +1,22 @@
 --
--- Extracts data quality metrics from the EventCapsule of a given EventLogging
--- table and stores them in the given data quality hourly table.
+-- Extracts UserAgent entropy stats from a given EventLogging table
+-- and stores them in the given data quality stats table.
 --
 -- Usage:
---     hive -f eventcapsule_metrics.hql \
+--     sudo -u analytics hive -f useragent_entropy.hql \
 --         -d artifacts_directory='hdfs://analytics-hadoop/wmf/refinery/current/artifacts' \
---         -d refinery_jar_version='0.0.91' \
+--         -d refinery_jar_version='0.0.104' \
 --         -d source_table='event.navigationtiming' \
---         -d destination_table='wmf.data_quality_hourly' \
+--         -d destination_table='analytics.data_quality_stats_incoming' \
 --         -d year=2019 \
 --         -d month=9 \
 --         -d day=29 \
---         -d hour=1
+--         -d hour=0
 --
 
 ADD JAR ${artifacts_directory}/org/wikimedia/analytics/refinery/refinery-hive-${refinery_jar_version}.jar;
 CREATE TEMPORARY FUNCTION entropy AS 'org.wikimedia.analytics.refinery.hive.EntropyUDAF';
+SET dt = CONCAT('${year}-', LPAD(${month}, 2, '0'), '-', LPAD(${day}, 2, '0'), 'T', LPAD(${hour}, 2, '0'), ':00:00Z');
 
 WITH base_data AS (
     SELECT useragent
@@ -29,14 +30,12 @@ WITH base_data AS (
 
 INSERT OVERWRITE TABLE ${destination_table} PARTITION (
     source_table = '${source_table}',
-    query_name = 'eventcapsule_metrics',
-    year = ${year},
-    month = ${month},
-    day = ${day},
-    hour = ${hour}
+    query_name = 'useragent_entropy',
+    granularity = 'hourly'
 )
 
 SELECT
+    ${hiveconf:dt} AS dt,
     'useragent_combined_entropy' AS metric,
     entropy(counts) AS value
 FROM (
@@ -58,6 +57,7 @@ FROM (
 UNION ALL
 
 SELECT
+    ${hiveconf:dt} AS dt,
     'useragent_os_family_entropy' AS metric,
     entropy(counts) AS value
 FROM (
@@ -71,6 +71,7 @@ FROM (
 UNION ALL
 
 SELECT
+    ${hiveconf:dt} AS dt,
     'useragent_browser_family_entropy' AS metric,
     entropy(counts) AS value
 FROM (
@@ -84,6 +85,7 @@ FROM (
 UNION ALL
 
 SELECT
+    ${hiveconf:dt} AS dt,
     'useragent_device_family_entropy' AS metric,
     entropy(counts) AS value
 FROM (
@@ -92,4 +94,5 @@ FROM (
         count(*) AS counts
     FROM base_data
     GROUP BY useragent.device_family
-) AS aux;
+) AS aux
+;
