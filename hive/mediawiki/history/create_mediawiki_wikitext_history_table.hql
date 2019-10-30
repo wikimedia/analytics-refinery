@@ -41,7 +41,7 @@ COMMENT
 PARTITIONED BY (
   `snapshot` string COMMENT 'Versioning information to keep multiple datasets (YYYY-MM for regular imports)',
   `wiki_db` string COMMENT 'The wiki_db project')
-STORED AS PARQUET
+STORED AS AVRO
 LOCATION
   'hdfs://analytics-hadoop/wmf/data/wmf/mediawiki/wikitext_history'
 ;
