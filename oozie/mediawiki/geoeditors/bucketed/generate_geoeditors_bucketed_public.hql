@@ -6,6 +6,7 @@
 --  * only reports numbers for Wikipedia projects or central projects like commons
 --  * only considers wikis with 3 or more active editors
 --  * buckets output to obscure exact numbers
+--  * uses the mediawiki_project_namespace_map table to exclude private or closed wikis
 --
 -- See https://stats.wikimedia.org/EN/ProjectTrendsActiveWikis.html for rationale
 -- on the 3 or more active editors decision, basically wikis don't really take off
@@ -15,7 +16,8 @@
 --     hive -f generate_geoeditors_bucketed_public.hql \
 --         -d source_table=wmf.geoeditors_monthly \
 --         -d country_info_table=canonical_data.countries \
---         -d blacklist_country_table=wmf_raw.geoeditors_blacklist_country \
+--         -d blacklist_country_table=wmf.geoeditors_blacklist_country \
+--         -d project_namespace_map_table=wmf_raw.mediawiki_project_namespace_map \
 --         -d destination_directory=/tmp/druid_private/geoeditors_monthly_public \
 --         -d month=2019-07
 --
@@ -33,10 +35,12 @@ WITH active_wiki as (
 
  SELECT wiki_db
    FROM ${source_table}
+            INNER JOIN
+        ${project_namespace_map_table}  on dbname = wiki_db
+                                        and snapshot='${month}'
+                                        and hostname like '%.wikipedia.org'
+                                        and hostname not like 'test%'
   WHERE month = '${month}'
-    AND wiki_db like '%wiki'
-    AND wiki_db not like 'wikimania%'
-    AND wiki_db not like 'test%'
     AND activity_level in ('5 to 99', '100 or more')
   GROUP BY wiki_db
  HAVING SUM(distinct_editors) > 2
@@ -84,4 +88,5 @@ INSERT OVERWRITE DIRECTORY "${destination_directory}"
 
         ) tab_separated
    FROM exact_counts
+  WHERE distinct_editors > 0
 ;

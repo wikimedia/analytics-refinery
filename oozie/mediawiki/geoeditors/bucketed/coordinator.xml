@@ -19,11 +19,14 @@
         <property><name>stop_time</name></property>
         <property><name>hive_site_xml</name></property>
 
+        <property><name>datasets_raw_file</name></property>
+        <property><name>mw_raw_directory</name></property>
         <property><name>datasets_private_file</name></property>
         <property><name>mw_private_directory</name></property>
 
         <property><name>geoeditors_monthly_table</name></property>
         <property><name>geoeditors_blacklist_country_table</name></property>
+        <property><name>mw_project_namespace_map_table</name></property>
         <property><name>country_info_table</name></property>
 
         <property><name>destination_directory</name></property>
@@ -47,10 +50,14 @@
 
     <datasets>
         <include>${datasets_private_file}</include>
+        <include>${datasets_raw_file}</include>
     </datasets>
 
     <input-events>
         <data-in name="geoeditors_monthly" dataset="geoeditors_monthly">
+            <instance>${coord:current(0)}</instance>
+        </data-in>
+        <data-in name="mw_project_namespace_map" dataset="mw_project_namespace_map">
             <instance>${coord:current(0)}</instance>
         </data-in>
     </input-events>

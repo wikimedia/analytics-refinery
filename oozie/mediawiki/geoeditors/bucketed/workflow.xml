@@ -39,6 +39,10 @@
             <description>Country codes that we don't want to output information on, regardless of other privacy mitigation</description>
         </property>
         <property>
+            <name>mw_project_namespace_map_table</name>
+            <description>A download of the sitematrix used to filter out private or closed wikis (these are not in the project map)</description>
+        </property>
+        <property>
             <name>month_partition</name>
             <description>The partition to load from, as YYYY-MM</description>
         </property>
@@ -89,6 +93,7 @@
             <param>source_table=${geoeditors_monthly_table}</param>
             <param>country_info_table=${country_info_table}</param>
             <param>blacklist_country_table=${geoeditors_blacklist_country_table}</param>
+            <param>project_namespace_map_table=${mw_project_namespace_map_table}</param>
             <param>destination_directory=${temporary_directory}/${wf:id()}</param>
             <param>month=${month_partition}</param>
 

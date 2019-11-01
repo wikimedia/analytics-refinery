@@ -63,6 +63,7 @@ WITH overall AS (
                     end as activity_level
                from ${source_table}
               where month = '${month}'
+                and namespace_zero_edit_count > 0
               group by wiki_db,
                     country_code,
                     user_is_anonymous,
