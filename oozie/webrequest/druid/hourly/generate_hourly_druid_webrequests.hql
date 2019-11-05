@@ -41,6 +41,10 @@ CREATE EXTERNAL TABLE IF NOT EXISTS tmp_hourly_druid_webrequests_${year}_${month
     `isp`                   string,
     `as_number`             string,
     `is_pageview`           boolean,
+    `tls_version`           string,
+    `tls_key_exchange`      string,
+    `tls_auth`              string,
+    `tls_cipher`            string,
     `hits`                  bigint
 )
 ROW FORMAT SERDE 'org.apache.hive.hcatalog.data.JsonSerDe'
@@ -70,6 +74,10 @@ SELECT
     isp_data['isp'] as isp,
     isp_data['autonomous_system_number'] as as_number,
     is_pageview,
+    tls_map['vers'] as tls_version,
+    tls_map['keyx'] as tls_key_exchange,
+    tls_map['auth'] as tls_auth,
+    tls_map['ciph'] as tls_cipher,
     count(1) as hits
 FROM ${source_table}
   TABLESAMPLE(BUCKET 1 OUT OF 128 ON hostname, sequence)
@@ -99,7 +107,11 @@ GROUP BY
     geocoded_data['country_code'],
     isp_data['isp'],
     isp_data['autonomous_system_number'],
-    is_pageview
+    is_pageview,
+    tls_map['vers'],
+    tls_map['keyx'],
+    tls_map['auth'],
+    tls_map['ciph']
 ;
 
 

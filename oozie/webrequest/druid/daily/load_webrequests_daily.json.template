@@ -40,7 +40,11 @@
                 "country_code",
                 "isp",
                 "as_number",
-                "is_pageview"
+                "is_pageview",
+                "tls_version",
+                "tls_key_exchange",
+                "tls_auth",
+                "tls_cipher"
             ]
           },
           "timestampSpec" : {
