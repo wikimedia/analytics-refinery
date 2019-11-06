@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# Runs HDFSCleaner main
+
+/usr/bin/java -cp /srv/deployment/analytics/refinery/artifacts/refinery-job.jar:$(/usr/bin/hadoop classpath) org.wikimedia.analytics.refinery.job.HDFSCleaner $@
