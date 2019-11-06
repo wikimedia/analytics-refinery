@@ -57,7 +57,9 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `webrequest`(
     `namespace_id`      int     COMMENT 'MediaWiki namespace_id for this page title. This may not always be set, even if the page is actually a pageview.',
     `tags`              array<string> COMMENT 'List containing tags qualifying the request, ex: [portal, wikidata]. Will be used to split webrequest into smaller subsets.',
     `isp_data`          map<string, string>  COMMENT 'Internet Service Provider data in a map with keys isp, organization, autonomous_system_organization and autonomous_system_number',
-    `accept`            string  COMMENT 'Accept header of request'
+    `accept`            string  COMMENT 'Accept header of request',
+    `tls`               string  COMMENT 'TLS information of request',
+    `tls_map`           map<string, string>  COMMENT 'Map view of TLS information (keys are vers, keyx, auth and ciph)'
 )
 PARTITIONED BY (
     `webrequest_source` string  COMMENT 'Source cluster',

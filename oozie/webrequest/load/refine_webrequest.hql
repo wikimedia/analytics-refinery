@@ -116,7 +116,12 @@ INSERT OVERWRITE TABLE ${destination_table}
         END as namespace_id,
         get_tags(uri_host, uri_path, uri_query, http_status, content_type, user_agent, x_analytics) as tags,
         isp_data(ip) as isp_data,
-        accept
+        accept,
+        tls,
+        CASE COALESCE(tls, '-')
+          WHEN '-' THEN NULL
+          ELSE str_to_map(tls, '\;', '=')
+        END as tls_map
     FROM
         ${source_table}
     WHERE

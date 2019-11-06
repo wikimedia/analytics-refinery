@@ -39,8 +39,9 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `webrequest` (
     `x_analytics`       string  COMMENT 'X-Analytics header of response',
     `range`             string  COMMENT 'Range header of response',
     `x_cache`           string  COMMENT 'Cache path of request',
-    `accept`            string  COMMENT 'Accept header of request')
-PARTITIONED BY (
+    `accept`            string  COMMENT 'Accept header of request',
+    `tls`               string  COMMENT 'TLS information of request'
+) PARTITIONED BY (
     `webrequest_source` string  COMMENT 'Source cluster',
     `year`              int     COMMENT 'Unpadded year of request',
     `month`             int     COMMENT 'Unpadded month of request',
