@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <coordinator-app xmlns="uri:oozie:coordinator:0.4"
     xmlns:sla="uri:oozie:sla:0.2"
-    name="cassandra-daily-coord-${cassandra_keyspace}-${YEAR}${MONTH}${DAY}"
+    name="cassandra-daily-coord-${cassandra_keyspace}"
     frequency="${coord:days(1)}"
     start="${start_time}"
     end="${stop_time}"
@@ -136,7 +136,7 @@
                 and needs a full day of data
             -->
             <sla:nominal-time>${coord:actualTime()}</sla:nominal-time>
-            <sla:should-end>${18 * HOURS}</sla:should-end>
+            <sla:should-end>${32 * HOURS}</sla:should-end>
             <sla:alert-events>end_miss</sla:alert-events>
             <sla:alert-contact>${sla_alert_contact}</sla:alert-contact>
         </sla:info>
