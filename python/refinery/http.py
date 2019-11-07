@@ -14,18 +14,14 @@
 # limitations under the License.
 
 """
-Wikimedia Anaytics Refinery python HTTP utility functions.
+Wikimedia Analytics Refinery python HTTP utility functions.
 
 See util.py, hive.py, hdfs.py in the same folder
 """
 
 import logging
 
-# Ugly but need python3 support
-try:
-    from urllib2 import build_opener, Request, HTTPHandler
-except ImportError:
-    from urllib.request import build_opener, Request, HTTPHandler, urlopen
+from urllib.request import build_opener, Request, HTTPHandler, urlopen
 
 
 logger = logging.getLogger('http-util')
