@@ -14,7 +14,7 @@
 # limitations under the License.
 
 """
-Wikimedia Anaytics Refinery python Druid utility functions.
+Wikimedia Analytics Refinery python Druid utility functions.
 
 See util.py, hive.py, hdfs.py in the same folder
 """
@@ -25,16 +25,9 @@ import datetime
 import time
 
 from refinery.http import HTTP
-
-# Ugly but need python3 support
-try:
-    from urlparse import urlparse
-    from urllib2 import (build_opener, Request, HTTPHandler, HTTPError,
-                         URLError, urlopen)
-except ImportError:
-    from urllib.parse import urlparse
-    from urllib.request import build_opener, Request, HTTPHandler, urlopen
-    from urllib.error import HTTPError, URLError
+from urllib.parse import urlparse
+from urllib.request import build_opener, Request, HTTPHandler, urlopen
+from urllib.error import HTTPError, URLError
 
 
 logger = logging.getLogger('druid-util')

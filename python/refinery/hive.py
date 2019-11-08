@@ -14,7 +14,7 @@
 # limitations under the License.
 
 """
-Wikimedia Anaytics Refinery python Hive utility functions.
+Wikimedia Analytics Refinery python Hive utility functions.
 
 See util.py, hdfs.py, druid.py in the same folder
 """
@@ -27,12 +27,7 @@ import os
 import re
 import tempfile
 
-# Ugly but need python3 support
-try:
-    from urlparse import urlparse
-except ImportError:
-    from urllib.parse import urlparse
-
+from urllib.parse import urlparse
 from refinery.util import sh
 
 

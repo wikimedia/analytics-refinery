@@ -14,7 +14,7 @@
 # limitations under the License.
 
 """
-Wikimedia Anaytics Refinery python utility functions.
+Wikimedia Analytics Refinery python utility functions.
 
 See hive.py, hdfs.py, druid.py in the same folder
 """
