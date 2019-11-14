@@ -23,7 +23,9 @@
         <property><name>queue_name</name></property>
         <property><name>name_node</name></property>
         <property><name>job_tracker</name></property>
+        <property><name>hive_principal</name></property>
         <property><name>hive2_jdbc_url</name></property>
+        <property><name>hive_metastore_uri</name></property>
 
         <property>
             <name>hive_site_xml</name>
@@ -148,6 +150,20 @@
         </property>
     </parameters>
 
+    <credentials>
+        <credential name="hcat-cred" type="hcat">
+            <property>
+                <name>hcat.metastore.principal</name>
+                <value>${hive_principal}</value>
+            </property>
+            <property>
+               <name>hcat.metastore.uri</name>
+               <value>${hive_metastore_uri}</value>
+            </property>
+        </credential>
+    </credentials>
+
+
     <start to="check_preexisting_errors_folder"/>
 
     <!-- delete preexisting check-errors folder to prevent rerun failures -->
@@ -170,7 +186,7 @@
     </action>
 
     <!-- Check and repair hive user history -->
-    <action name="check_user_history">
+    <action name="check_user_history" cred="hcat-cred">
         <spark xmlns="uri:oozie:spark-action:0.1">
             <job-tracker>${job_tracker}</job-tracker>
             <name-node>${name_node}</name-node>
@@ -281,7 +297,7 @@
     </action>
 
     <!-- Check and repair hive page history -->
-    <action name="check_page_history">
+    <action name="check_page_history" cred="hcat-cred">
         <spark xmlns="uri:oozie:spark-action:0.1">
             <job-tracker>${job_tracker}</job-tracker>
             <name-node>${name_node}</name-node>
@@ -392,7 +408,7 @@
     </action>
 
     <!-- Check and repair hive denormalized history -->
-    <action name="check_denormalized_history">
+    <action name="check_denormalized_history" cred="hcat-cred">
         <spark xmlns="uri:oozie:spark-action:0.1">
             <job-tracker>${job_tracker}</job-tracker>
             <name-node>${name_node}</name-node>

@@ -18,6 +18,7 @@
         <property><name>queue_name</name></property>
         <property><name>name_node</name></property>
         <property><name>job_tracker</name></property>
+        <property><name>hive_principal</name></property>
         <property><name>hive2_jdbc_url</name></property>
 
         <property>
@@ -64,6 +65,20 @@
         </property>
     </parameters>
 
+    <credentials>
+        <credential name="hive2-cred" type="hive2">
+            <property>
+                <name>hive2.server.principal</name>
+                <value>${hive_principal}</value>
+            </property>
+            <property>
+               <name>hive2.jdbc.url</name>
+               <value>${hive2_jdbc_url}</value>
+            </property>
+        </credential>
+    </credentials>
+
+
     <start to="check_existing_metrics"/>
 
     <!--
@@ -92,7 +107,7 @@
         <error to="send_error_email"/>
     </action>
 
-    <action name="compute_daily_edits">
+    <action name="compute_daily_edits" cred="hive2-cred">
         <hive2 xmlns="uri:oozie:hive2-action:0.2">
             <job-tracker>${job_tracker}</job-tracker>
             <name-node>${name_node}</name-node>
@@ -128,7 +143,7 @@
         <error to="send_error_email"/>
     </action>
 
-    <action name="compute_daily_edits_by_anonymous_users">
+    <action name="compute_daily_edits_by_anonymous_users" cred="hive2-cred">
         <hive2 xmlns="uri:oozie:hive2-action:0.2">
             <job-tracker>${job_tracker}</job-tracker>
             <name-node>${name_node}</name-node>
@@ -164,7 +179,7 @@
         <error to="send_error_email"/>
     </action>
 
-    <action name="compute_daily_edits_by_bot_users">
+    <action name="compute_daily_edits_by_bot_users" cred="hive2-cred">
         <hive2 xmlns="uri:oozie:hive2-action:0.2">
             <job-tracker>${job_tracker}</job-tracker>
             <name-node>${name_node}</name-node>
@@ -200,7 +215,7 @@
         <error to="send_error_email"/>
     </action>
 
-    <action name="compute_daily_edits_by_registered_users">
+    <action name="compute_daily_edits_by_registered_users" cred="hive2-cred">
         <hive2 xmlns="uri:oozie:hive2-action:0.2">
             <job-tracker>${job_tracker}</job-tracker>
             <name-node>${name_node}</name-node>
@@ -236,7 +251,7 @@
         <error to="send_error_email"/>
     </action>
 
-    <action name="compute_daily_unique_anonymous_editors">
+    <action name="compute_daily_unique_anonymous_editors" cred="hive2-cred">
         <hive2 xmlns="uri:oozie:hive2-action:0.2">
             <job-tracker>${job_tracker}</job-tracker>
             <name-node>${name_node}</name-node>
@@ -272,7 +287,7 @@
         <error to="send_error_email"/>
     </action>
 
-    <action name="compute_daily_unique_bot_editors">
+    <action name="compute_daily_unique_bot_editors" cred="hive2-cred">
         <hive2 xmlns="uri:oozie:hive2-action:0.2">
             <job-tracker>${job_tracker}</job-tracker>
             <name-node>${name_node}</name-node>
@@ -308,7 +323,7 @@
         <error to="send_error_email"/>
     </action>
 
-    <action name="compute_daily_unique_editors">
+    <action name="compute_daily_unique_editors" cred="hive2-cred">
         <hive2 xmlns="uri:oozie:hive2-action:0.2">
             <job-tracker>${job_tracker}</job-tracker>
             <name-node>${name_node}</name-node>
@@ -344,7 +359,7 @@
         <error to="send_error_email"/>
     </action>
 
-    <action name="compute_daily_unique_page_creators">
+    <action name="compute_daily_unique_page_creators" cred="hive2-cred">
         <hive2 xmlns="uri:oozie:hive2-action:0.2">
             <job-tracker>${job_tracker}</job-tracker>
             <name-node>${name_node}</name-node>
@@ -380,7 +395,7 @@
         <error to="send_error_email"/>
     </action>
 
-    <action name="compute_daily_unique_registered_editors">
+    <action name="compute_daily_unique_registered_editors" cred="hive2-cred">
         <hive2 xmlns="uri:oozie:hive2-action:0.2">
             <job-tracker>${job_tracker}</job-tracker>
             <name-node>${name_node}</name-node>
@@ -416,7 +431,7 @@
         <error to="send_error_email"/>
     </action>
 
-    <action name="compute_monthly_new_editors">
+    <action name="compute_monthly_new_editors" cred="hive2-cred">
         <hive2 xmlns="uri:oozie:hive2-action:0.2">
             <job-tracker>${job_tracker}</job-tracker>
             <name-node>${name_node}</name-node>
@@ -452,7 +467,7 @@
         <error to="send_error_email"/>
     </action>
 
-    <action name="compute_monthly_new_registered_users">
+    <action name="compute_monthly_new_registered_users" cred="hive2-cred">
         <hive2 xmlns="uri:oozie:hive2-action:0.2">
             <job-tracker>${job_tracker}</job-tracker>
             <name-node>${name_node}</name-node>
@@ -488,7 +503,7 @@
         <error to="send_error_email"/>
     </action>
 
-    <action name="compute_monthly_surviving_new_editors">
+    <action name="compute_monthly_surviving_new_editors" cred="hive2-cred">
         <hive2 xmlns="uri:oozie:hive2-action:0.2">
             <job-tracker>${job_tracker}</job-tracker>
             <name-node>${name_node}</name-node>

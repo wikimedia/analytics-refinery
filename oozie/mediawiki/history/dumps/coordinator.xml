@@ -14,8 +14,28 @@
         <property><name>mediawiki_history_datasets_file</name></property>
         <property><name>mw_directory</name></property>
         <property><name>workflow_file</name></property>
+        <property><name>hive_principal</name></property>
+        <property><name>hive_metastore_uri</name></property>
         <property><name>sla_alert_contact</name></property>
         <property><name>sla_miss_after_days</name></property>
+        <property><name>oozie_launcher_queue_name</name></property>
+        <property><name>oozie_launcher_memory</name></property>
+        <property><name>oozie_spark_lib</name></property>
+        <property><name>spark_master</name></property>
+        <property><name>spark_deploy_mode</name></property>
+        <property><name>spark_job_name</name></property>
+        <property><name>spark_job_class</name></property>
+        <property><name>spark_job_jar</name></property>
+        <property><name>spark_driver_memory</name></property>
+        <property><name>spark_executor_memory</name></property>
+        <property><name>spark_executor_memory_overhead</name></property>
+        <property><name>spark_executor_cores</name></property>
+        <property><name>spark_max_num_executors</name></property>
+        <property><name>spark_temp_partitions</name></property>
+        <property><name>input_base_path</name></property>
+        <property><name>temporary_directory</name></property>
+        <property><name>output_base_path</name></property>
+        <property><name>send_error_email_workflow_file</name></property>
     </parameters>
 
     <controls>

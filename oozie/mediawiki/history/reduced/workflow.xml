@@ -24,7 +24,9 @@
         <property><name>name_node</name></property>
         <property><name>job_tracker</name></property>
         <property><name>queue_name</name></property>
+        <property><name>hive_principal</name></property>
         <property><name>hive2_jdbc_url</name></property>
+        <property><name>hive_metastore_uri</name></property>
 
         <property>
             <name>hive_site_xml</name>
@@ -155,9 +157,34 @@
 
     </parameters>
 
+    <credentials>
+        <credential name="hcat-cred" type="hcat">
+            <property>
+                <name>hcat.metastore.principal</name>
+                <value>${hive_principal}</value>
+            </property>
+            <property>
+               <name>hcat.metastore.uri</name>
+               <value>${hive_metastore_uri}</value>
+            </property>
+        </credential>
+
+        <credential name="hive2-cred" type="hive2">
+            <property>
+                <name>hive2.server.principal</name>
+                <value>${hive_principal}</value>
+            </property>
+            <property>
+               <name>hive2.jdbc.url</name>
+               <value>${hive2_jdbc_url}</value>
+            </property>
+        </credential>
+    </credentials>
+
+
     <start to="generate_mediawiki_history_reduced"/>
 
-    <action name="generate_mediawiki_history_reduced">
+    <action name="generate_mediawiki_history_reduced" cred="hive2-cred">
         <hive2 xmlns="uri:oozie:hive2-action:0.2">
             <job-tracker>${job_tracker}</job-tracker>
             <name-node>${name_node}</name-node>
@@ -203,7 +230,7 @@
 
 
     <!-- Check and index reduced history -->
-    <action name="check_mediawiki_history_reduced">
+    <action name="check_mediawiki_history_reduced" cred="hcat-cred">
         <spark xmlns="uri:oozie:spark-action:0.1">
             <job-tracker>${job_tracker}</job-tracker>
             <name-node>${name_node}</name-node>

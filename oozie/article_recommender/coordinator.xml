@@ -10,6 +10,8 @@
         <!-- Required properties. -->
         <property><name>name_node</name></property>
         <property><name>job_tracker</name></property>
+        <property><name>hive_principal</name></property>
+        <property><name>hive_metastore_uri</name></property>
         <property><name>queue_name</name></property>
 
         <property><name>start_time</name></property>

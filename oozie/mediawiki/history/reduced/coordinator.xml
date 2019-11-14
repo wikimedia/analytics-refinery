@@ -12,7 +12,9 @@
         <property><name>queue_name</name></property>
         <property><name>name_node</name></property>
         <property><name>job_tracker</name></property>
+        <property><name>hive_principal</name></property>
         <property><name>hive2_jdbc_url</name></property>
+        <property><name>hive_metastore_uri</name></property>
         <property><name>workflow_file</name></property>
         <property><name>start_time</name></property>
         <property><name>stop_time</name></property>

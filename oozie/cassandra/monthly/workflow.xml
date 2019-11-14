@@ -18,6 +18,7 @@
         <property><name>queue_name</name></property>
         <property><name>name_node</name></property>
         <property><name>job_tracker</name></property>
+        <property><name>hive_principal</name></property>
         <property><name>hive2_jdbc_url</name></property>
 
         <property>
@@ -149,9 +150,23 @@
 
     </parameters>
 
+    <credentials>
+        <credential name="hive2-cred" type="hive2">
+            <property>
+                <name>hive2.server.principal</name>
+                <value>${hive_principal}</value>
+            </property>
+            <property>
+               <name>hive2.jdbc.url</name>
+               <value>${hive2_jdbc_url}</value>
+            </property>
+        </credential>
+    </credentials>
+
+
     <start to="prepare_data"/>
 
-    <action name="prepare_data">
+    <action name="prepare_data" cred="hive2-cred">
         <hive2 xmlns="uri:oozie:hive2-action:0.2">
             <job-tracker>${job_tracker}</job-tracker>
             <name-node>${name_node}</name-node>

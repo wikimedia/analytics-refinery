@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <workflow-app xmlns="uri:oozie:workflow:0.4" name="article-recommender-wf">
     <parameters>
+        <property><name>hive_principal</name></property>
+        <property><name>hive_metastore_uri</name></property>
+
         <property>
             <name>oozie.action.sharelib.for.spark</name>
             <value>${oozie_spark_lib}</value>
@@ -92,9 +95,23 @@
         </property>
     </parameters>
 
+    <credentials>
+        <credential name="hcat-cred" type="hcat">
+            <property>
+                <name>hcat.metastore.principal</name>
+                <value>${hive_principal}</value>
+            </property>
+            <property>
+               <name>hcat.metastore.uri</name>
+               <value>${hive_metastore_uri}</value>
+            </property>
+        </credential>
+    </credentials>
+
+
     <start to="recommend"/>
 
-    <action name="recommend">
+    <action name="recommend" cred="hcat-cred">
         <spark xmlns="uri:oozie:spark-action:0.1">
             <job-tracker>${job_tracker}</job-tracker>
             <name-node>${name_node}</name-node>

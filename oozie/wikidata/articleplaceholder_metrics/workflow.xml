@@ -22,6 +22,8 @@
         <!-- Required properties -->
         <property><name>name_node</name></property>
         <property><name>job_tracker</name></property>
+        <property><name>hive_principal</name></property>
+        <property><name>hive_metastore_uri</name></property>
         <property><name>queue_name</name></property>
 
         <property>
@@ -90,9 +92,23 @@
         </property>
     </parameters>
 
+    <credentials>
+        <credential name="hcat-cred" type="hcat">
+            <property>
+                <name>hcat.metastore.principal</name>
+                <value>${hive_principal}</value>
+            </property>
+            <property>
+               <name>hcat.metastore.uri</name>
+               <value>${hive_metastore_uri}</value>
+            </property>
+        </credential>
+    </credentials>
+
+
     <start to="generate_wikidata_articleplaceholder_metrics"/>
 
-    <action name="generate_wikidata_articleplaceholder_metrics">
+    <action name="generate_wikidata_articleplaceholder_metrics" cred="hcat-cred">
         <spark xmlns="uri:oozie:spark-action:0.1">
 
             <job-tracker>${job_tracker}</job-tracker>
