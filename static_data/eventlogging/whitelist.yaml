@@ -586,6 +586,16 @@ MobileWebShareButton:
     webhost: keep
     wiki: keep
 
+MobileWebUIActionsTracking:
+    event:
+        action: keep
+        name: keep
+        modes: keep
+        isAnon: keep
+        editCountBucket: keep
+    webhost: keep
+    wiki: keep
+
 MobileWebUIClickTracking:
     editCountBucket: keep
     event:
