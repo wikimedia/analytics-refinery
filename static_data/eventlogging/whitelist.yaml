@@ -1572,6 +1572,7 @@ ServerSideAccountCreation:
         token: hash
         userBuckets: keep
         userId: keep
+        userName: keep
     webhost: keep
     wiki: keep
 
