@@ -27,7 +27,7 @@
 
         <property><name>mw_cu_changes_table</name></property>
         <property><name>mw_user_history_table</name></property>
-        <property><name>geoeditors_daily_table</name></property>
+        <property><name>editors_daily_table</name></property>
         <property><name>geoeditors_monthly_table</name></property>
         <property><name>geoeditors_edits_monthly_table</name></property>
 
@@ -53,7 +53,7 @@
         <!--
             datasets_raw_private_file   : mw_cu_changes_table_partitioned
             datasets_file               : mw_user_history_partitioned
-            datasets_private_file       : geoeditors_daily, geoeditors_monthly, geoeditors_edits_monthly
+            datasets_private_file       : editors_daily, geoeditors_monthly, geoeditors_edits_monthly
         -->
         <include>${datasets_raw_private_file}</include>
         <include>${datasets_file}</include>
@@ -71,7 +71,7 @@
 
     <output-events>
         <!-- Completed Geoeditors datasets -->
-        <data-out name="geoeditors_daily" dataset="geoeditors_daily">
+        <data-out name="editors_daily" dataset="editors_daily">
             <instance>${coord:current(0)}</instance>
         </data-out>
         <data-out name="geoeditors_monthly" dataset="geoeditors_monthly">
@@ -91,8 +91,8 @@
                     <value>${coord:formatTime(coord:nominalTime(), "yyyy")}-${coord:formatTime(coord:nominalTime(), "MM")}</value>
                 </property>
                 <property>
-                    <name>geoeditors_daily_location</name>
-                    <value>${coord:dataOut('geoeditors_daily')}</value>
+                    <name>editors_daily_location</name>
+                    <value>${coord:dataOut('editors_daily')}</value>
                 </property>
                 <property>
                     <name>geoeditors_monthly_location</name>

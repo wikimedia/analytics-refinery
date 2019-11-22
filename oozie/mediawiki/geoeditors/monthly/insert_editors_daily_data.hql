@@ -1,4 +1,4 @@
--- Geolocate and group edits by wiki, country, and user
+-- Geolocate and group edits by wiki, country, user, user_is_bot_by and action_type.
 -- This data will be used to generate monthly geoeditors reports,
 -- and deleted after 90 days for privacy reasons.
 --
@@ -11,15 +11,14 @@
 --     month                -- YYYY-MM to compute statistics for
 --
 -- Usage:
---     hive -f insert_geoeditors_daily_data.hql                                             \
+--     hive -f insert_editors_daily_data.hql                                                \
 --         -d refinery_jar_version=0.0.58                                                   \
 --         -d artifacts_directory=hdfs://analytics-hadoop/wmf/refinery/current/artifacts    \
 --         -d source_table=wmf_raw.mediawiki_private_cu_changes                             \
 --         -d user_history_table=wmf.mediawiki_user_history                                 \
---         -d destination_table=wmf.geoeditors_daily                                        \
+--         -d destination_table=wmf.editors_daily                                           \
 --         -d month=2018-02
 --
--- TODO: Change user_groups to user_groups_historical, adding user_groups_latest to help searchers find this line
 ADD JAR ${artifacts_directory}/org/wikimedia/analytics/refinery/refinery-hive-${refinery_jar_version}.jar;
 CREATE TEMPORARY FUNCTION geocode as 'org.wikimedia.analytics.refinery.hive.GeocodedDataUDF';
 CREATE TEMPORARY FUNCTION network_origin as 'org.wikimedia.analytics.refinery.hive.GetNetworkOriginUDF';
@@ -35,11 +34,15 @@ INSERT OVERWRITE TABLE ${destination_table}
             date,
             count(*) as edit_count,
             sum(page_is_namespace_zero) as namespace_zero_edit_count,
-            network_origin
+            network_origin,
+            user_is_bot_by,
+            action_type
 
        FROM (select cuc.wiki_db,
                     geocode(cuc_ip)['country_code'] as country_code,
                     network_origin(cuc_ip) as network_origin,
+                    coalesce(is_bot_by_historical, array()) as user_is_bot_by,
+                    cuc_type as action_type,
                     if(cuc_user = 0, md5(concat(cuc_ip, cuc_agent)), cuc_user) as user_fingerprint_or_id,
                     if(cuc_user = 0, 1, 0) as user_is_anonymous,
                     if(cuc_namespace = 0, 1, 0) as page_is_namespace_zero,
@@ -56,14 +59,14 @@ INSERT OVERWRITE TABLE ${destination_table}
                                                 and user_id = cuc_user
 
               where cuc.month='${month}'
-                and cuc_type in (0, 1)
-                and (   uh.user_id is null
-                    or  (   cuc_timestamp between
-                                coalesce(start_timestamp, '20010101000000') and
-                                coalesce(end_timestamp, '99999999999999')
-                        -- Removing bots
-                        and (SIZE(is_bot_by) = 0)
-                        )
+                and (
+                    uh.user_id is null  --  either no user-event match
+
+                    -- Keep user-event whose start and end date encompass
+                    -- cuc_timestamp for historically correct values
+                    or cuc_timestamp between
+                          coalesce(start_timestamp, '20010101000000') and
+                          coalesce(end_timestamp, '99999999999999')
                     )
             ) geolocated_edits
 
@@ -72,5 +75,7 @@ INSERT OVERWRITE TABLE ${destination_table}
             date,
             user_fingerprint_or_id,
             user_is_anonymous,
-            network_origin
+            network_origin,
+            user_is_bot_by,
+            action_type
 ;
