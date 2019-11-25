@@ -42,5 +42,8 @@ class HTTP(object):
     def post(self, url, data, headers={}):
         return self._http_call(url, 'POST', data, headers)
 
+    def put(self, url, data=None, headers={}):
+        return self._http_call(url, 'PUT', data, headers)
+
     def delete(self, url, data=None, headers={}):
         return self._http_call(url, 'DELETE', data, headers)

@@ -1,0 +1,120 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Note: You should make sure to put refinery/python on your PYTHONPATH.
+#   export PYTHONPATH=$PYTHONPATH:/path/to/refinery/python
+
+'''
+Output a json version of currently running oozie jobs status.
+
+Usage:
+    refinery-dump-oozie-status [options]
+
+
+Options:
+    --oozie-url=<url>   The base oozie URL to access oozie server
+                        (defaults to the OOZIE_URL environment variable)
+    -p --pretty         Print pretty-fied version of json
+    --log-file FILE     The file path to write logs. If none provided,
+                        logging to console.
+                        Note: The result of this script is written to stdout,
+                              this parameter is for logs only.
+    -v --verbose        Makes logging more verbose
+    -h --help           Show this help message and exit.
+'''
+__author__ = "Joseph Allemandou <joal@wikimedia.org>"
+
+
+import docopt
+import json
+
+from refinery.logging_setup import configure_logging
+from refinery.oozie import *
+
+logger = logging.getLogger()
+
+def get_reduced_info(oozie, job_type, job):
+    '''
+    Extract information to dump depending on job_type
+    '''
+    logger.debug('Getting reduced info for job with job_type ${0} jobs'.format(job_type))
+    reduced_info = { 'user': job['user'] }
+    if job_type == JOB_TYPE_WORKFLOW:
+        reduced_info['id'] = job['id']
+        reduced_info['parent_id'] = job['parentId']
+        reduced_info['name'] = job['appName']
+    elif job_type == JOB_TYPE_COORD:
+        coord_id = job['coordJobId']
+        reduced_info['id'] = coord_id
+        reduced_info['name'] = job['coordJobName']
+        coord_info = oozie.get_job_info(coord_id)
+        reduced_info['next_date'] = oozie.coordinator_next_date(coord_id,
+                coord_info = coord_info).isoformat()
+        if 'bundleId' in coord_info:
+            reduced_info['parent_id'] = coord_info['bundleId']
+    else:  # Bundle case
+        bundle_id = job['bundleJobId']
+        reduced_info['id'] = bundle_id
+        reduced_info['name'] = job['bundleJobName']
+        reduced_info['next_date'] = oozie.bundle_next_date(bundle_id).isoformat()
+
+    return reduced_info
+
+
+def main(args):
+    oozie_url = args["--oozie-url"]
+    pretty = args["--pretty"]
+    log_file = args["--log-file"]
+    log_level = logging.DEBUG if args["--verbose"] else logging.INFO
+
+    if log_file:
+        configure_logging(logger, log_level, log_file=log_file)
+    else:
+        configure_logging(logger, log_level, stdout=True)
+
+    logger.debug('Creating oozie ')
+    oozie = Oozie(url=oozie_url)
+    results = {}
+    for job_type in VALID_JOB_TYPES:
+        results[job_type] = []
+        offset = 1
+        len_ = 50
+        all_done = False
+        while not all_done:
+            logger.debug('Listing ${0} jobs (${1} to ${2})'.format(
+                    job_type, offset, offset + len_))
+            jobs_batch = oozie.list_jobs(job_types = [ job_type ],
+                                         statuses = [ JOB_STATUS_RUNNING ],
+                                         offset = offset,
+                                         len_ = len_)
+            for job in jobs_batch[JSON_JOB_TYPES[job_type]]:
+                reduced_info = get_reduced_info(oozie, job_type, job)
+                results[job_type].append(reduced_info)
+
+            offset += len_
+            all_done = offset > jobs_batch['total']
+    if pretty:
+        print(json.dumps(results, sort_keys=True, indent=4,
+                         separators=(',', ': ')))
+    else:
+        print(json.dumps(results))
+
+
+if __name__ == "__main__":
+    try:
+        main(docopt.docopt(__doc__))
+    except RuntimeError as e:
+        logger.error(e)
+        sys.exit(1)
