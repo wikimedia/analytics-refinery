@@ -33,6 +33,7 @@ CLOUD_DB_HOST = 'labsdb1012.eqiad.wmnet'
 CLOUD_DB_POSTFIX = '_p'
 JDBC_TEMPLATE = 'jdbc:mysql://{host}/{dbname}'
 JDBC_TEMPLATE_WITH_PORT = 'jdbc:mysql://{host}:{port}/{dbname}'
+MW_CONFIG_DBLISTS_FOLDER = 'dblists'
 
 
 def is_yarn_application_running(job_name):
@@ -129,24 +130,84 @@ def sh(command, check_return_code=True, strip_output=True, return_stderr=False):
         return stdout.decode()
 
 
-def get_mediawiki_section_dbname_mapping(mw_config_path=MW_CONFIG_PATH, use_x1=False):
+def get_dbnames_from_mw_config(filenames,
+                              mw_config_path=MW_CONFIG_PATH,
+                              mw_config_dblists_folder=MW_CONFIG_DBLISTS_FOLDER,
+                              with_filepath=False):
+    """
+    This function reads mediawiki db-config file(s) (see
+    https://github.com/wikimedia/operations-mediawiki-config/tree/master/dblists).
+    This is usefull to get the set of dbnames for which an extension is defined
+    (wikidataclient for instance), or to get the set of dbnames stored in an instance
+    (s1 to s11 for instance).
+    Note: Lines starting with # are discarded.
+
+    Parameters
+        filenames                : The list of filenames to be read in the
+                                   dblists folder.
+        mw_config_path           : The mediawiki configuration base path
+                                   Defaults to MW_CONFIG_PATH
+        mw_config_dblists_folder : The mediawiki configuration dblists folder
+                                   Defaults to MW_CONFIG_DBLISTS_FOLDER
+        with_filepath            : A boolean defining if filepaths are to be
+                                   returned with dbnames (see below)
+                                   Defaults to False
+
+    Returns
+        The set of dbnames read from the filenames. If with_filepath is set to True,
+        the set contains tuples (dbname, filepath), allowing to know in which file
+        the dbname has been read.
+    """
+    dbnames = set()
+    for filename in filenames:
+        filepath = os.path.join(mw_config_path, mw_config_dblists_folder, filename)
+        with open(filepath, 'r') as f:
+            for line in f.readlines():
+                if not line.startswith('#'):
+                    if with_filepath:
+                        dbnames.add((line.strip(), filepath))
+                    else:
+                        dbnames.add(line.strip())
+    return dbnames
+
+
+def get_mediawiki_section_dbname_mapping(mw_config_path=MW_CONFIG_PATH,
+                                         mw_config_dblists_folder=MW_CONFIG_DBLISTS_FOLDER,
+                                         use_x1=False):
+    """
+    This function returns a dictionnary with dbname keys and mediawiki database section
+    values. Database sections split the databases into multiple subsections (s1 to s11
+    when writing these lines), allowing for more easily shard them among multiple servers.
+    """
     db_mapping = {}
     if use_x1:
-        dblist_section_paths = [mw_config_path.rstrip('/') + '/dblists/all.dblist']
+        dblist_section_filename_s = [ 'all.dblist' ]
     else:
-        dblist_section_paths = glob.glob(mw_config_path.rstrip('/') + '/dblists/s[0-9]*.dblist')
-    for dblist_section_path in dblist_section_paths:
-        with open(dblist_section_path, 'r') as f:
-            for db in f.readlines():
-                db_mapping[db.strip()] = dblist_section_path.strip().rstrip('.dblist').split('/')[-1]
+        dblist_section_paths = glob.glob(os.path.join(mw_config_path, mw_config_dblists_folder, 's[0-9]*.dblist'))
+        dblist_section_filename_s = [ filepath.split('/')[-1] for  filepath in dblist_section_paths ]
+
+    dbnames_and_filepaths = get_dbnames_from_mw_config(dblist_section_filename_s,
+                                                       mw_config_path=mw_config_path,
+                                                       mw_config_dblists_folder=mw_config_dblists_folder,
+                                                       with_filepath=True)
+
+    for (dbname, dblist_section_path) in dbnames_and_filepaths:
+        db_mapping[dbname] = dblist_section_path.strip().rstrip('.dblist').split('/')[-1]
 
     return db_mapping
 
 
 def get_dbstore_host_port(use_x1, dbname, db_mapping=None,
-                          mw_config_path=MW_CONFIG_PATH):
+                          mw_config_path=MW_CONFIG_PATH,
+                          mw_config_dblists_folder=MW_CONFIG_DBLISTS_FOLDER
+                          ):
+    """
+    This functions uses a mapping between database and mediawiki database section
+    (see get_mediawiki_section_dbname_mapping) to generate host and port for the
+    given database.
+    """
     if not db_mapping:
-        db_mapping = get_mediawiki_section_dbname_mapping(mw_config_path, use_x1)
+        db_mapping = get_mediawiki_section_dbname_mapping(mw_config_path, mw_config_dblists_folder, use_x1)
     if not db_mapping:
         raise RuntimeError("No database mapping found at {}. Have you configured correctly the mediawiki-config path?"
                            .format(mw_config_path))

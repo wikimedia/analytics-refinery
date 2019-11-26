@@ -222,6 +222,10 @@ if __name__ == '__main__':
 
     ####################################################
     # First Step - Generate JAR using etwiki if no jar_file specifiec
+    # Note: We need to make sure the database we use to generate the ORM jar is
+    #       sqoopable on all tables we want to sqoop for ORM classes to be
+    #       available in the jar for all sqooped tables.
+    #       See sqoopable_dbnames in sqoop.py.
 
     if not jar_file:
         now_dt = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
@@ -253,6 +257,11 @@ if __name__ == '__main__':
 
     ####################################################
     # Second Step - Sqoop data using generated jar
+    # Note: We need to make sure the database we want to sqoop contains all the
+    #       tables defined for the sqooping, for some tables are present only if some
+    #       extension is enabled for the database.
+    #       We keep track of database being sqoopable per table in sqoop.py
+    #       See sqoopable_dbnames in sqoop.py
 
     # read in the wikis to process and sqoop each one
     with open(db_list_file) as dbs_file:

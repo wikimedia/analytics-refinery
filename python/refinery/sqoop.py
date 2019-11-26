@@ -23,7 +23,7 @@ import re
 
 from subprocess import check_call, DEVNULL
 from refinery.hdfs import Hdfs
-from refinery.util import is_yarn_application_running
+from refinery.util import is_yarn_application_running, get_dbnames_from_mw_config
 
 logger = logging.getLogger()
 
@@ -53,6 +53,9 @@ class SqoopConfig:
         self.boundary_query = queries[table]['boundary-query'] if ('boundary-query' in queries[table]) else None
         self.split_by = queries[table]['split-by']
         self.map_types = queries[table]['map-types'] if ('map-types' in queries[table]) else None
+        # If sqoopable_dbnames is not defined for this table, it means there is no restriction
+        # on dbnames for that table, meaning all dbnames are sqoopable.
+        self.is_sqoopable = (('sqoopable_dbnames' not in queries[table]) or (dbname in queries[table]['sqoopable_dbnames']))
         self.target_jar_dir = target_jar_dir
         self.jar_file = jar_file
         self.current_try = current_try
@@ -64,15 +67,19 @@ class SqoopConfig:
 
 def sqoop_wiki(config):
     """
-    Imports a pre-determined list of tables from dbname
+    Run a single sqoop import (1 database, 1 table)
 
     Parameters
         config: SqoopConfig object filed in with needed parameters
 
     Returns
-        True if the sqoop worked
-        False if the sqoop errored or failed in any way
+        None if the sqoop worked
+        The config object with updated try number if the sqoop errored or failed in any way
     """
+    if not config.is_sqoopable:
+        logger.info('SKIPPING: Table {} is not available for database {}'.format(config.table, config.dbname))
+        return None
+
     full_table = '.'.join([config.dbname, config.table])
     log_message = '{} (try {})'.format(full_table, config.current_try)
     logger.info('STARTING: {}'.format(log_message))
@@ -300,6 +307,46 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         'mappers-weight': 0.0,
     }
 
+    queries['content'] = {
+        'query': '''
+             select content_id,
+                    content_size,
+                    convert(content_sha1 using utf8) content_sha1,
+                    content_model,
+                    convert(content_address using utf8) content_address
+
+               from content
+              where $CONDITIONS
+        ''',
+        'map-types': '"{}"'.format(','.join([
+            'content_id=Long',
+            'content_size=Integer',
+            'content_model=Integer',
+        ])),
+        'boundary-query': 'SELECT MIN(content_id), MAX(content_id) FROM content',
+        'split-by': 'content_id',
+        'mappers-weight': 1.0,
+        # Sqooping content table for commonswiki only for now
+        # https://phabricator.wikimedia.org/T238878
+        'sqoopable_dbnames': [ 'commonswiki' ]
+    }
+
+    queries['content_models'] = {
+        'query': '''
+             select model_id,
+                    convert(model_name using utf8) model_name
+
+               from content_models
+              where $CONDITIONS
+        ''',
+        'map-types': '"{}"'.format(','.join([
+            'model_id=Integer',
+        ])),
+        'boundary-query': 'SELECT MIN(model_id), MAX(model_id) FROM content_models',
+        'split-by': 'model_id',
+        'mappers-weight': 0.0,
+    }
+
     queries['ipblocks'] = {
         'query': '''
              select ipb_id,
@@ -490,6 +537,34 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         'mappers-weight': 1.0,
     }
 
+    queries['slots'] = {
+        'query': '''
+             select slot_revision_id,
+                    slot_role_id,
+                    slot_content_id,
+                    slot_origin
+
+               from slots
+              where $CONDITIONS
+        ''',
+        'boundary-query': 'SELECT MIN(slot_revision_id), MAX(slot_revision_id) FROM slots',
+        'split-by': 'slot_revision_id',
+        'mappers-weight': 1.0,
+    }
+
+    queries['slot_roles'] = {
+        'query': '''
+             select role_id,
+                    convert(role_name using utf8) role_name
+
+               from slot_roles
+              where $CONDITIONS
+        ''',
+        'boundary-query': 'SELECT MIN(role_id), MAX(role_id) FROM slot_roles',
+        'split-by': 'role_id',
+        'mappers-weight': 0.0,
+    }
+
     queries['user'] = {
         'query': '''
              select user_id,
@@ -521,6 +596,28 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         'boundary-query': 'SELECT MIN(ug_user), MAX(ug_user) FROM user_groups',
         'split-by': 'ug_user',
         'mappers-weight': 0.0,
+    }
+
+    queries['wbc_entity_usage'] = {
+        'query': '''
+             select eu_row_id,
+                    convert(eu_entity_id using utf8) eu_entity_id,
+                    convert(eu_aspect using utf8) eu_aspect,
+                    eu_page_id
+
+               from wbc_entity_usage
+              where $CONDITIONS
+        ''',
+        'boundary-query': 'SELECT MIN(eu_row_id), MAX(eu_row_id) FROM wbc_entity_usage',
+        'split-by': 'eu_row_id',
+        'map-types': '"{}"'.format(','.join([
+            'eu_row_id=Long',
+            'eu_entity_id=String',
+            'eu_aspect=String',
+            'eu_page_id=Long'
+        ])),
+        'mappers-weight': 1.0,
+        'sqoopable_dbnames': get_dbnames_from_mw_config([ 'wikidataclient.dblist' ]),
     }
 
     # documented at https://www.mediawiki.org/wiki/Extension:CheckUser/cu_changes_table
