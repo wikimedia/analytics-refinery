@@ -45,6 +45,22 @@ Use this dataset in your coordinator.xml files by setting:
         <done-flag>_SUCCESS</done-flag>
     </dataset>
 
+    <dataset name="mw_content_table"
+             frequency="${coord:months(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${mw_raw_directory}/tables/content/snapshot=${YEAR}-${MONTH}</uri-template>
+        <done-flag>_SUCCESS</done-flag>
+    </dataset>
+
+    <dataset name="mw_content_models_table"
+             frequency="${coord:months(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${mw_raw_directory}/tables/content_models/snapshot=${YEAR}-${MONTH}</uri-template>
+        <done-flag>_SUCCESS</done-flag>
+    </dataset>
+
     <dataset name="mw_ipblocks_table"
              frequency="${coord:months(1)}"
              initial-instance="${start_time}"
@@ -101,6 +117,22 @@ Use this dataset in your coordinator.xml files by setting:
         <done-flag>_SUCCESS</done-flag>
     </dataset>
 
+    <dataset name="mw_slot_roles_table"
+             frequency="${coord:months(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${mw_raw_directory}/tables/slot_roles/snapshot=${YEAR}-${MONTH}</uri-template>
+        <done-flag>_SUCCESS</done-flag>
+    </dataset>
+
+    <dataset name="mw_slots_table"
+             frequency="${coord:months(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${mw_raw_directory}/tables/slots/snapshot=${YEAR}-${MONTH}</uri-template>
+        <done-flag>_SUCCESS</done-flag>
+    </dataset>
+
     <dataset name="mw_user_table"
              frequency="${coord:months(1)}"
              initial-instance="${start_time}"
@@ -114,6 +146,14 @@ Use this dataset in your coordinator.xml files by setting:
              initial-instance="${start_time}"
              timezone="Universal">
         <uri-template>${mw_raw_directory}/tables/user_groups/snapshot=${YEAR}-${MONTH}</uri-template>
+        <done-flag>_SUCCESS</done-flag>
+    </dataset>
+
+    <dataset name="mw_wbc_entity_usage_table"
+             frequency="${coord:months(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${mw_raw_directory}/tables/wbc_entity_usage/snapshot=${YEAR}-${MONTH}</uri-template>
         <done-flag>_SUCCESS</done-flag>
     </dataset>
 
@@ -148,6 +188,22 @@ Use this dataset in your coordinator.xml files by setting:
              initial-instance="${start_time}"
              timezone="Universal">
         <uri-template>${mw_raw_directory}/tables/change_tag_def/snapshot=${YEAR}-${MONTH}</uri-template>
+        <done-flag>_PARTITIONED</done-flag>
+    </dataset>
+
+    <dataset name="mw_content_table_partitioned"
+             frequency="${coord:months(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${mw_raw_directory}/tables/content/snapshot=${YEAR}-${MONTH}</uri-template>
+        <done-flag>_PARTITIONED</done-flag>
+    </dataset>
+
+    <dataset name="mw_content_models_table_partitioned"
+             frequency="${coord:months(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${mw_raw_directory}/tables/content_models/snapshot=${YEAR}-${MONTH}</uri-template>
         <done-flag>_PARTITIONED</done-flag>
     </dataset>
 
@@ -207,6 +263,22 @@ Use this dataset in your coordinator.xml files by setting:
         <done-flag>_PARTITIONED</done-flag>
     </dataset>
 
+    <dataset name="mw_slot_roles_table_partitioned"
+             frequency="${coord:months(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${mw_raw_directory}/tables/slot_roles/snapshot=${YEAR}-${MONTH}</uri-template>
+        <done-flag>_PARTITIONED</done-flag>
+    </dataset>
+
+    <dataset name="mw_slots_table_partitioned"
+             frequency="${coord:months(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${mw_raw_directory}/tables/slots/snapshot=${YEAR}-${MONTH}</uri-template>
+        <done-flag>_PARTITIONED</done-flag>
+    </dataset>
+
     <dataset name="mw_user_table_partitioned"
              frequency="${coord:months(1)}"
              initial-instance="${start_time}"
@@ -220,6 +292,14 @@ Use this dataset in your coordinator.xml files by setting:
              initial-instance="${start_time}"
              timezone="Universal">
         <uri-template>${mw_raw_directory}/tables/user_groups/snapshot=${YEAR}-${MONTH}</uri-template>
+        <done-flag>_PARTITIONED</done-flag>
+    </dataset>
+
+    <dataset name="mw_wbc_entity_usage_table_partitioned"
+             frequency="${coord:months(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${mw_raw_directory}/tables/wbc_entity_usage/snapshot=${YEAR}-${MONTH}</uri-template>
         <done-flag>_PARTITIONED</done-flag>
     </dataset>
 

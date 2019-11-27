@@ -27,6 +27,8 @@
         <property><name>mw_archive_table</name></property>
         <property><name>mw_change_tag_table</name></property>
         <property><name>mw_change_tag_def_table</name></property>
+        <property><name>mw_content_table</name></property>
+        <property><name>mw_content_models_table</name></property>
         <property><name>mw_ipblocks_table</name></property>
         <property><name>mw_ipblocks_restrictions_table</name></property>
         <property><name>mw_logging_table</name></property>
@@ -34,8 +36,11 @@
         <property><name>mw_pagelinks_table</name></property>
         <property><name>mw_redirect_table</name></property>
         <property><name>mw_revision_table</name></property>
+        <property><name>mw_slot_roles_table</name></property>
+        <property><name>mw_slots_table</name></property>
         <property><name>mw_user_table</name></property>
         <property><name>mw_user_groups_table</name></property>
+        <property><name>mw_wbc_entity_usage_table</name></property>
 
         <property><name>mw_private_actor_table</name></property>
         <property><name>mw_private_comment_table</name></property>
@@ -81,6 +86,12 @@
         <data-in name="mw_change_tag_def_table" dataset="mw_change_tag_def_table">
             <instance>${coord:current(0)}</instance>
         </data-in>
+        <data-in name="mw_content_table" dataset="mw_content_table">
+            <instance>${coord:current(0)}</instance>
+        </data-in>
+        <data-in name="mw_content_models_table" dataset="mw_content_models_table">
+            <instance>${coord:current(0)}</instance>
+        </data-in>
         <data-in name="mw_ipblocks_table" dataset="mw_ipblocks_table">
             <instance>${coord:current(0)}</instance>
         </data-in>
@@ -102,10 +113,19 @@
         <data-in name="mw_revision_table" dataset="mw_revision_table">
             <instance>${coord:current(0)}</instance>
         </data-in>
+        <data-in name="mw_slot_roles_table" dataset="mw_slot_roles_table">
+            <instance>${coord:current(0)}</instance>
+        </data-in>
+        <data-in name="mw_slots_table" dataset="mw_slots_table">
+            <instance>${coord:current(0)}</instance>
+        </data-in>
         <data-in name="mw_user_table" dataset="mw_user_table">
             <instance>${coord:current(0)}</instance>
         </data-in>
         <data-in name="mw_user_groups_table" dataset="mw_user_groups_table">
+            <instance>${coord:current(0)}</instance>
+        </data-in>
+        <data-in name="mw_wbc_entity_usage_table" dataset="mw_wbc_entity_usage_table">
             <instance>${coord:current(0)}</instance>
         </data-in>
         <!-- Private datasets dependancies -->
@@ -131,6 +151,12 @@
         <data-out name="mw_change_tag_def_table_partitioned" dataset="mw_change_tag_def_table_partitioned">
             <instance>${coord:current(0)}</instance>
         </data-out>
+        <data-out name="mw_content_table_partitioned" dataset="mw_content_table_partitioned">
+            <instance>${coord:current(0)}</instance>
+        </data-out>
+        <data-out name="mw_content_models_table_partitioned" dataset="mw_content_models_table_partitioned">
+            <instance>${coord:current(0)}</instance>
+        </data-out>
         <data-out name="mw_ipblocks_table_partitioned" dataset="mw_ipblocks_table_partitioned">
             <instance>${coord:current(0)}</instance>
         </data-out>
@@ -152,10 +178,19 @@
         <data-out name="mw_revision_table_partitioned" dataset="mw_revision_table_partitioned">
             <instance>${coord:current(0)}</instance>
         </data-out>
+        <data-out name="mw_slot_roles_table_partitioned" dataset="mw_slot_roles_table_partitioned">
+            <instance>${coord:current(0)}</instance>
+        </data-out>
+        <data-out name="mw_slots_table_partitioned" dataset="mw_slots_table_partitioned">
+            <instance>${coord:current(0)}</instance>
+        </data-out>
         <data-out name="mw_user_table_partitioned" dataset="mw_user_table_partitioned">
             <instance>${coord:current(0)}</instance>
         </data-out>
         <data-out name="mw_user_groups_table_partitioned" dataset="mw_user_groups_table_partitioned">
+            <instance>${coord:current(0)}</instance>
+        </data-out>
+        <data-out name="mw_wbc_entity_usage_table_partitioned" dataset="mw_wbc_entity_usage_table_partitioned">
             <instance>${coord:current(0)}</instance>
         </data-out>
         <!-- Private datasets dependancies -->
@@ -192,6 +227,14 @@
                     <value>${coord:dataIn('mw_change_tag_def_table')}</value>
                 </property>
                 <property>
+                    <name>mw_content_table_location</name>
+                    <value>${coord:dataIn('mw_content_table')}</value>
+                </property>
+                <property>
+                    <name>mw_content_models_table_location</name>
+                    <value>${coord:dataIn('mw_content_models_table')}</value>
+                </property>
+                <property>
                     <name>mw_ipblocks_table_location</name>
                     <value>${coord:dataIn('mw_ipblocks_table')}</value>
                 </property>
@@ -220,12 +263,24 @@
                     <value>${coord:dataIn('mw_revision_table')}</value>
                 </property>
                 <property>
+                    <name>mw_slot_roles_table_location</name>
+                    <value>${coord:dataIn('mw_slot_roles_table')}</value>
+                </property>
+                <property>
+                    <name>mw_slots_table_location</name>
+                    <value>${coord:dataIn('mw_slots_table')}</value>
+                </property>
+                <property>
                     <name>mw_user_table_location</name>
                     <value>${coord:dataIn('mw_user_table')}</value>
                 </property>
                 <property>
                     <name>mw_user_groups_table_location</name>
                     <value>${coord:dataIn('mw_user_groups_table')}</value>
+                </property>
+                <property>
+                    <name>mw_wbc_entity_usage_table_location</name>
+                    <value>${coord:dataIn('mw_wbc_entity_usage_table')}</value>
                 </property>
                 <!-- Private datasets path -->
                 <property>
