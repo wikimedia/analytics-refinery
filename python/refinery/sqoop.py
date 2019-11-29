@@ -678,6 +678,138 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         'mappers-weight': 1.0,
     }
 
+    # wikidatawiki tables only below here (relating to entity terms)
+    queries['wb_terms'] = {
+        'query': '''
+             select term_row_id,
+                    term_entity_id,
+                    convert(term_entity_type using utf8) term_entity_type,
+                    convert(term_language using utf8) term_language,
+                    convert(term_type using utf8) term_type,
+                    convert(term_text using utf8) term_text
+               from wb_terms
+              where $CONDITIONS
+        ''',
+        'map-types': '"{}"'.format(','.join([
+            'term_row_id=Long',
+            'term_entity_id=Long',
+            'term_entity_type=String',
+            'term_language=String',
+            'term_type=String',
+            'term_text=String',
+        ])),
+        'boundary-query': 'SELECT MIN(term_row_id), MAX(term_row_id) FROM wb_terms',
+        'split-by': 'term_row_id',
+        'mappers-weight': 1.0,
+        'sqoopable_dbnames': [ 'wikidatawiki' ],
+    }
+
+    queries['wbt_item_terms'] = {
+        'query': '''
+             select wbit_id,
+                    wbit_item_id,
+                    wbit_term_in_lang_id
+               from wbt_item_terms
+              where $CONDITIONS
+        ''',
+        'map-types': '"{}"'.format(','.join([
+            'wbit_id=Long',
+            'wbit_item_id=Long',
+            'wbit_term_in_lang_id=Long',
+        ])),
+        'boundary-query': 'SELECT MIN(wbit_id), MAX(wbit_id) FROM wbt_item_terms',
+        'split-by': 'wbit_id',
+        'mappers-weight': 1.0,
+        'sqoopable_dbnames': [ 'wikidatawiki' ],
+    }
+
+    queries['wbt_property_terms'] = {
+        'query': '''
+             select wbpt_id,
+                    wbpt_property_id,
+                    wbpt_term_in_lang_id
+               from wbt_property_terms
+              where $CONDITIONS
+        ''',
+        'map-types': '"{}"'.format(','.join([
+            'wbpt_id=Long',
+            'wbpt_property_id=Long',
+            'wbpt_term_in_lang_id=Long',
+        ])),
+        'boundary-query': 'SELECT MIN(wbpt_id), MAX(wbpt_id) FROM wbt_property_terms',
+        'split-by': 'wbpt_id',
+        'mappers-weight': 0.5,
+        'sqoopable_dbnames': [ 'wikidatawiki' ],
+    }
+
+    queries['wbt_term_in_lang'] = {
+        'query': '''
+             select wbtl_id,
+                    wbtl_type_id,
+                    wbtl_text_in_lang_id
+               from wbt_term_in_lang
+              where $CONDITIONS
+        ''',
+        'map-types': '"{}"'.format(','.join([
+            'wbtl_id=Long',
+            'wbtl_type_id=Integer',
+            'wbtl_text_in_lang_id=Long',
+        ])),
+        'boundary-query': 'SELECT MIN(wbtl_id), MAX(wbtl_id) FROM wbt_term_in_lang',
+        'split-by': 'wbtl_id',
+        'mappers-weight': 1.0,
+        'sqoopable_dbnames': [ 'wikidatawiki' ],
+    }
+
+    queries['wbt_text'] = {
+        'query': '''
+             select wbx_id,
+                    convert(wbx_text using utf8) wbx_text
+               from wbt_text
+              where $CONDITIONS
+        ''',
+        'map-types': '"{}"'.format(','.join([
+            'wbx_id=Long',
+            'wbx_text=String',
+        ])),
+        'boundary-query': 'SELECT MIN(wbx_id), MAX(wbx_id) FROM wbt_text',
+        'split-by': 'wbx_id',
+        'mappers-weight': 1.0,
+        'sqoopable_dbnames': [ 'wikidatawiki' ],
+    }
+
+    queries['wbt_text_in_lang'] = {
+        'query': '''
+             select wbxl_id,
+                    convert(wbxl_language using utf8) wbxl_language,
+                    wbxl_text_id
+               from wbt_text_in_lang
+              where $CONDITIONS
+        ''',
+        'map-types': '"{}"'.format(','.join([
+            'wbxl_id=Long',
+            'wbxl_text_id=Long',
+            'wbxl_language=String',
+        ])),
+        'boundary-query': 'SELECT MIN(wbxl_id), MAX(wbxl_id) FROM wbt_text_in_lang',
+        'split-by': 'wbxl_id',
+        'mappers-weight': 1.0,
+        'sqoopable_dbnames': [ 'wikidatawiki' ],
+    }
+
+    queries['wbt_type'] = {
+        'query': '''
+             select wby_id,
+                    convert(wby_name using utf8) wby_name
+               from wbt_type
+              where $CONDITIONS
+        ''',
+        'boundary-query': 'SELECT MIN(wby_id), MAX(wby_id) FROM wbt_type',
+        'split-by': 'wby_id',
+        'mappers-weight': 0,
+        'sqoopable_dbnames': [ 'wikidatawiki' ],
+    }
+
     if filter_tables:
         filter_tables_dict = {t: True for t in filter_tables}
         if len(set(filter_tables_dict.keys()) - set(queries.keys())):
