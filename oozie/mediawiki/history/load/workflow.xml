@@ -43,6 +43,14 @@
             <description>Change_tag_def table imported from Mediawiki</description>
         </property>
         <property>
+            <name>mw_content_table</name>
+            <description>Content table imported from Mediawiki</description>
+        </property>
+        <property>
+            <name>mw_content_models_table</name>
+            <description>Content_models table imported from Mediawiki</description>
+        </property>
+        <property>
             <name>mw_ipblocks_table</name>
             <description>Ipblocks table imported from Mediawiki</description>
         </property>
@@ -71,12 +79,24 @@
             <description>Revision table imported from Mediawiki</description>
         </property>
         <property>
+            <name>mw_slot_roles_table</name>
+            <description>Slot_roles table imported from Mediawiki</description>
+        </property>
+        <property>
+            <name>mw_slots_table</name>
+            <description>Slots table imported from Mediawiki</description>
+        </property>
+        <property>
             <name>mw_user_table</name>
             <description>User table imported from Mediawiki</description>
         </property>
         <property>
             <name>mw_user_groups_table</name>
             <description>User groups table imported from Mediawiki</description>
+        </property>
+        <property>
+            <name>mw_wbc_entity_usage_table</name>
+            <description>Wbc_entity_usage table imported from Mediawiki</description>
         </property>
         <!-- Private Hive tables -->
         <property>
@@ -107,6 +127,14 @@
             <description>Path to change_tag_def table data on HDFS</description>
         </property>
         <property>
+            <name>mw_content_table_location</name>
+            <description>Path to content table data on HDFS</description>
+        </property>
+        <property>
+            <name>mw_content_models_table_location</name>
+            <description>Path to content_models table data on HDFS</description>
+        </property>
+        <property>
             <name>mw_ipblocks_table_location</name>
             <description>Path to ipblocks table data on HDFS</description>
         </property>
@@ -135,12 +163,24 @@
             <description>Path to revision table data on HDFS</description>
         </property>
         <property>
+            <name>mw_slot_roles_table_location</name>
+            <description>Path to slot_roles table data on HDFS</description>
+        </property>
+        <property>
+            <name>mw_slots_table_location</name>
+            <description>Path to slots table data on HDFS</description>
+        </property>
+        <property>
             <name>mw_user_table_location</name>
             <description>Path to user table data on HDFS</description>
         </property>
         <property>
             <name>mw_user_groups_table_location</name>
             <description>Path to user groups table data on HDFS</description>
+        </property>
+        <property>
+            <name>mw_wbc_entity_usage_table_location</name>
+            <description>Path to wbc_entity_usage table data on HDFS</description>
         </property>
         <!-- Private datasets location -->
         <property>
@@ -282,6 +322,68 @@
                 <property>
                     <name>directory</name>
                     <value>${mw_change_tag_def_table_location}</value>
+                </property>
+                <property>
+                    <name>done_file</name>
+                    <value>_PARTITIONED</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="repair_mw_content_table_partitions"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <!-- content  -->
+    <action name="repair_mw_content_table_partitions">
+        <sub-workflow>
+            <app-path>${repair_partitions_workflow_file}</app-path>
+            <propagate-configuration/>
+            <configuration>
+                <property><name>table</name><value>${mw_content_table}</value></property>
+            </configuration>
+        </sub-workflow>
+        <ok to="mark_mw_content_table_hive_done"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <action name="mark_mw_content_table_hive_done">
+        <sub-workflow>
+            <app-path>${mark_directory_done_workflow_file}</app-path>
+            <configuration>
+                <property>
+                    <name>directory</name>
+                    <value>${mw_content_table_location}</value>
+                </property>
+                <property>
+                    <name>done_file</name>
+                    <value>_PARTITIONED</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="repair_mw_content_models_table_partitions"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <!-- content_models  -->
+    <action name="repair_mw_content_models_table_partitions">
+        <sub-workflow>
+            <app-path>${repair_partitions_workflow_file}</app-path>
+            <propagate-configuration/>
+            <configuration>
+                <property><name>table</name><value>${mw_content_models_table}</value></property>
+            </configuration>
+        </sub-workflow>
+        <ok to="mark_mw_content_models_table_hive_done"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <action name="mark_mw_content_models_table_hive_done">
+        <sub-workflow>
+            <app-path>${mark_directory_done_workflow_file}</app-path>
+            <configuration>
+                <property>
+                    <name>directory</name>
+                    <value>${mw_content_models_table_location}</value>
                 </property>
                 <property>
                     <name>done_file</name>
@@ -506,6 +608,68 @@
                 </property>
             </configuration>
         </sub-workflow>
+        <ok to="repair_mw_slot_roles_table_partitions"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <!-- slot_roles -->
+    <action name="repair_mw_slot_roles_table_partitions">
+        <sub-workflow>
+            <app-path>${repair_partitions_workflow_file}</app-path>
+            <propagate-configuration/>
+            <configuration>
+                <property><name>table</name><value>${mw_slot_roles_table}</value></property>
+            </configuration>
+        </sub-workflow>
+        <ok to="mark_mw_slot_roles_table_hive_done"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <action name="mark_mw_slot_roles_table_hive_done">
+        <sub-workflow>
+            <app-path>${mark_directory_done_workflow_file}</app-path>
+            <configuration>
+                <property>
+                    <name>directory</name>
+                    <value>${mw_slot_roles_table_location}</value>
+                </property>
+                <property>
+                    <name>done_file</name>
+                    <value>_PARTITIONED</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="repair_mw_slots_table_partitions"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <!-- slots -->
+    <action name="repair_mw_slots_table_partitions">
+        <sub-workflow>
+            <app-path>${repair_partitions_workflow_file}</app-path>
+            <propagate-configuration/>
+            <configuration>
+                <property><name>table</name><value>${mw_slots_table}</value></property>
+            </configuration>
+        </sub-workflow>
+        <ok to="mark_mw_slots_table_hive_done"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <action name="mark_mw_slots_table_hive_done">
+        <sub-workflow>
+            <app-path>${mark_directory_done_workflow_file}</app-path>
+            <configuration>
+                <property>
+                    <name>directory</name>
+                    <value>${mw_slots_table_location}</value>
+                </property>
+                <property>
+                    <name>done_file</name>
+                    <value>_PARTITIONED</value>
+                </property>
+            </configuration>
+        </sub-workflow>
         <ok to="repair_mw_user_table_partitions"/>
         <error to="send_error_email"/>
     </action>
@@ -561,6 +725,37 @@
                 <property>
                     <name>directory</name>
                     <value>${mw_user_groups_table_location}</value>
+                </property>
+                <property>
+                    <name>done_file</name>
+                    <value>_PARTITIONED</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="repair_mw_wbc_entity_usage_table_partitions"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <!-- wbc_entity_usage -->
+    <action name="repair_mw_wbc_entity_usage_table_partitions">
+        <sub-workflow>
+            <app-path>${repair_partitions_workflow_file}</app-path>
+            <propagate-configuration/>
+            <configuration>
+                <property><name>table</name><value>${mw_wbc_entity_usage_table}</value></property>
+            </configuration>
+        </sub-workflow>
+        <ok to="mark_mw_wbc_entity_usage_table_hive_done"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <action name="mark_mw_wbc_entity_usage_table_hive_done">
+        <sub-workflow>
+            <app-path>${mark_directory_done_workflow_file}</app-path>
+            <configuration>
+                <property>
+                    <name>directory</name>
+                    <value>${mw_wbc_entity_usage_table_location}</value>
                 </property>
                 <property>
                     <name>done_file</name>
