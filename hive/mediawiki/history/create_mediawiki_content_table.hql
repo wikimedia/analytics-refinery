@@ -13,7 +13,7 @@ CREATE EXTERNAL TABLE `mediawiki_content`(
   `content_size`     int         COMMENT 'Nominal size of the content object (not necessarily of the serialized blob)',
   `content_sha1`     string      COMMENT 'Nominal hash of the content object (not necessarily of the serialized blob)',
   `content_model`    int         COMMENT 'Reference to content_models.model_id. Note the serialization format isn\'t specified, it should be assumed to be in the default format for the model unless auto-detected otherwise.',
-  `content_address`  string      COMMENT 'URL-like address of the content blob. Currently the structure is: tt:<id> where <id> is a number referencing the text.old_id column.',
+  `content_address`  string      COMMENT 'URL-like address of the content blob. Currently the structure is: tt:<id> where <id> is a number referencing the text.old_id column.'
 )
 COMMENT
   'See most up to date documentation at https://www.mediawiki.org/wiki/Manual:Content_table'

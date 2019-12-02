@@ -341,7 +341,7 @@
             <value>local_group_default_T_mediarequest_per_file</value>
         </property>
         <property>
-            <name>per_article_flat_cql</name>
+            <name>mediarequest_per_file_cql</name>
             <value>UPDATE "${mediarequest_per_file_keyspace}"."data" SET "spider" = ?, "user" = ?</value>
         </property>
         <property>
