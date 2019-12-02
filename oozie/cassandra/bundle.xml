@@ -395,7 +395,7 @@
         </property>
         <property>
             <name>mediarequest_per_referer_cql</name>
-            <value>UPDATE "${mediarequest_per_referer_keyspace}"."data" SET "requests"</value>
+            <value>UPDATE "${mediarequest_per_referer_keyspace}"."data" SET "requests" = ?</value>
         </property>
         <property>
             <name>mediarequest_per_referer_hive_fields</name>
@@ -1155,66 +1155,6 @@
     <!--**************************************************
             Mediarequests per referer coordinators
         **************************************************-->
-
-    <coordinator name="cassandra-coord-mediarequest-per-referer-hourly">
-        <app-path>${coordinator_file_hourly}</app-path>
-        <configuration>
-            <property>
-                <name>workflow_file</name>
-                <value>${workflow_file_hourly}</value>
-            </property>
-
-            <!-- Dataset the job depends on -->
-            <property>
-                <name>datasets_file</name>
-                <value>${mediarequest_per_referer_datasets_file}</value>
-            </property>
-            <property>
-                <name>dataset_name</name>
-                <value>${mediarequest_per_referer_dataset_name}</value>
-            </property>
-
-            <!-- Hive data preparation job stuff -->
-            <property>
-                <name>hive_script</name>
-                <value>${mediarequest_per_referer_hive_script}</value>
-            </property>
-            <property>
-                <name>source_table</name>
-                <value>${mediarequest_per_referer_source_table}</value>
-            </property>
-
-            <!-- cassandra loader job stuff -->
-            <property>
-                <name>cassandra_parallel_loaders</name>
-                <value>${mediarequest_per_referer_parallel_loaders}</value>
-            </property>
-            <property>
-                <name>cassandra_cql</name>
-                <value>${mediarequest_per_referer_cql}</value>
-            </property>
-            <property>
-                <name>cassandra_keyspace</name>
-                <value>${mediarequest_per_referer_keyspace}</value>
-            </property>
-            <property>
-                <name>hive_fields</name>
-                <value>${mediarequest_per_referer_hive_fields}</value>
-            </property>
-            <property>
-                <name>hive_fields_types</name>
-                <value>${mediarequest_per_referer_hive_fields_types}</value>
-            </property>
-            <property>
-                <name>cassandra_fields</name>
-                <value>${mediarequest_per_referer_cassandra_fields}</value>
-            </property>
-            <property>
-                <name>cassandra_primary_keys</name>
-                <value>${mediarequest_per_referer_cassandra_primary_keys}</value>
-            </property>
-        </configuration>
-    </coordinator>
 
     <coordinator name="cassandra-coord-mediarequest-per-referer-daily">
         <app-path>${coordinator_file_daily}</app-path>
