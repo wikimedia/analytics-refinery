@@ -1,4 +1,4 @@
--- Aggregate geoeditors_daily data into edits by country by year.
+-- Aggregate geoeditors_edits_monthly data into edits by country by year.
 --   Do not show any countries with fewer than 100,000 edits per year
 --   for privacy reasons.
 --

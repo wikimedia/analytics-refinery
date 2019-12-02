@@ -1,4 +1,5 @@
--- Aggregate geoeditors_daily data into the traditional kind of data kept by geoeditors
+-- Aggregate editors_daily data into the traditional kind of data kept by geoeditors
+-- Note: This dataset does NOT contain bots actions and only considers edit actions
 --
 -- Parameters:
 --     refinery_jar_version -- Version of the jar to import for UDFs
@@ -9,7 +10,7 @@
 --
 -- Usage:
 --     hive -f insert_geoeditors_monthly_data.hql        \
---         -d source_table=wmf.geoeditors_daily          \
+--         -d source_table=wmf.editors_daily             \
 --         -d destination_table=wmf.geoeditors_monthly   \
 --         -d month=2018-02
 --
@@ -33,6 +34,9 @@ WITH overall AS (
                     end as activity_level
                from ${source_table}
               where month = '${month}'
+                    -- Filter out bot actions and non-edit actions
+                    and size(user_is_bot_by) = 0
+                    and action_type IN (0, 1)
               group by wiki_db,
                     country_code,
                     user_is_anonymous,
@@ -63,7 +67,11 @@ WITH overall AS (
                     end as activity_level
                from ${source_table}
               where month = '${month}'
-                and namespace_zero_edit_count > 0
+                    -- Filter out bot actions, non-edit actions
+                    and size(user_is_bot_by) = 0
+                    and action_type IN (0, 1)
+                    -- Filter out rows having 0 namespace-zero actions
+                    and namespace_zero_edit_count > 0
               group by wiki_db,
                     country_code,
                     user_is_anonymous,
