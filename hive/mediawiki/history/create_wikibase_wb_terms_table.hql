@@ -11,7 +11,7 @@
 
 CREATE EXTERNAL TABLE `wikibase_wb_terms`(
   `term_row_id`                         bigint  COMMENT 'The primary key.',
-  `term_entity_id`                      bigint  COMMENT 'entity id as an integer. Example Q123 -> 123',
+  `term_full_entity_id`                 string  COMMENT 'entity id as a string. Example Q123',
   `term_entity_type`                    string  COMMENT 'entity type as a string. Example item or property',
   `term_language`                       string  COMMENT 'term language as a string. Example en',
   `term_type`                           string  COMMENT 'term type as a string. Example label',
