@@ -682,7 +682,7 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
     queries['wb_terms'] = {
         'query': '''
              select term_row_id,
-                    term_entity_id,
+                    convert(term_full_entity_id using utf8) term_full_entity_id,
                     convert(term_entity_type using utf8) term_entity_type,
                     convert(term_language using utf8) term_language,
                     convert(term_type using utf8) term_type,
@@ -692,7 +692,7 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         ''',
         'map-types': '"{}"'.format(','.join([
             'term_row_id=Long',
-            'term_entity_id=Long',
+            'term_full_entity_id=String',
             'term_entity_type=String',
             'term_language=String',
             'term_type=String',
