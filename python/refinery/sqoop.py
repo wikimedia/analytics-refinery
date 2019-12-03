@@ -326,9 +326,10 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         'boundary-query': 'SELECT MIN(content_id), MAX(content_id) FROM content',
         'split-by': 'content_id',
         'mappers-weight': 1.0,
-        # Sqooping content table for commonswiki only for now
+        # Sqooping content table for commonswiki and etwiki only for now
         # https://phabricator.wikimedia.org/T238878
-        'sqoopable_dbnames': [ 'commonswiki' ]
+        # Note: etwiki is needed as we build ORM jar from it
+        'sqoopable_dbnames': [ 'commonswiki', 'etwiki' ]
     }
 
     queries['content_models'] = {
@@ -617,7 +618,10 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
             'eu_page_id=Long'
         ])),
         'mappers-weight': 1.0,
-        'sqoopable_dbnames': get_dbnames_from_mw_config([ 'wikidataclient.dblist' ]),
+        'sqoopable_dbnames': (get_dbnames_from_mw_config([ 'wikidataclient.dblist' ])
+          # Manually removed table (empty in prod, not replicated in labs)
+          .discard('sewikimedia')
+        ),
     }
 
     # documented at https://www.mediawiki.org/wiki/Extension:CheckUser/cu_changes_table
