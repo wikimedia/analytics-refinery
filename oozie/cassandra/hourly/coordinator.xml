@@ -59,6 +59,17 @@
         <property><name>send_error_email_workflow_file</name></property>
         <property><name>sla_alert_contact</name></property>
 
+        <!--
+            The following property is usefull to delay jobs, allowing to wait
+            for more of the needed files to be available before starting.
+            Default delay is set to 0 and can be overwritten in each job
+            conf.
+        -->
+        <property>
+            <name>delay</name>
+            <value>0</value>
+        </property>
+
     </parameters>
 
     <controls>
@@ -84,6 +95,9 @@
     <input-events>
         <data-in name="data_input" dataset="${dataset_name}">
             <instance>${coord:current(0)}</instance>
+        </data-in>
+        <data-in name="data_input_delay" dataset="${dataset_name}">
+            <instance>${coord:current(0 + delay)</instance>
         </data-in>
     </input-events>
 

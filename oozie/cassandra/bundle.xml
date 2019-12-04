@@ -321,6 +321,10 @@
             <value>mediarequest_hourly</value>
         </property>
         <property>
+            <name>mediarequest_per_file_delay</name>
+            <value>1</value>
+        </property>
+        <property>
             <name>mediarequest_per_file_dataset_freq</name>
             <value>hour</value>
         </property>
@@ -1108,6 +1112,11 @@
             <property>
                 <name>dataset_freq</name>
                 <value>${mediarequest_per_file_dataset_freq}</value>
+            </property>
+            <!-- Delay for the jobs to start, in number of dataseq-freq -->
+            <property>
+                <name>delay</name>
+                <value>${mediarequest_per_file_delay}</value>
             </property>
 
             <!-- Hive data preparation job stuff -->

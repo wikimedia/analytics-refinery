@@ -73,6 +73,21 @@
             <name>source_table_per_project_family</name>
             <value>wmf.unique_devices_per_project_family_monthly</value>
         </property>
+
+        <!--
+            The following property is usefull to delay jobs, allowing to wait
+            for more of the needed files to be available before starting.
+            Default delay is set to 0 and can be overwritten in each job
+            conf.
+            Note: The actual delay depends on the dataset-frequency as we specify
+            a number, and the unit of time this number applies is the
+            dataset-frequency
+
+        -->
+        <property>
+            <name>delay</name>
+            <value>0</value>
+        </property>
     </parameters>
 
     <controls>
@@ -100,6 +115,9 @@
             <start-instance>${coord:current(0)}</start-instance>
             <!-- Ugly hack to manage different frequency based datasets correctly -->
             <end-instance>${(dataset_freq == "month") ? coord:current(0): (dataset_freq == "day") ? coord:current(coord:daysInMonth(0) - 1): coord:current(coord:daysInMonth(0) * 24 - 1)}</end-instance>
+        </data-in>
+        <data-in name="data_input_delay" dataset="${dataset_name}">
+            <instance>${(dataset_freq == "month") ? coord:current(0 + delay): (dataset_freq == "day") ? coord:current(coord:daysInMonth(0) - 1 + delay): coord:current(coord:daysInMonth(0) * 24 - 1 + delay)}</instance>
         </data-in>
     </input-events>
 
