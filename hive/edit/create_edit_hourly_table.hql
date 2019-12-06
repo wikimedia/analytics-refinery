@@ -1,4 +1,4 @@
--- Creates a table to store edit_hourly data.
+e- Creates a table to store edit_hourly data.
 -- See: oozie/edit/hourly/README.md
 --
 -- Usage
@@ -7,7 +7,9 @@
 
 CREATE EXTERNAL TABLE IF NOT EXISTS `edit_hourly`(
     `ts`                      string         COMMENT 'Timestamp string truncated to the hour. Format: "YYYY-MM-DD HH:00:00.0".',
-    `project`                 string         COMMENT 'Project name, i.e.: "en.wikipedia".',
+    `project`                 string         COMMENT 'Project name, i.e.: "zu.wikibooks".',
+    `project_family`          string         COMMENT 'Project name, i.e.: "wikibooks".',
+    `language`                string         COMMENT 'Project language, i.e.: Zulu.',
     `user_is_anonymous`       boolean        COMMENT 'Whether user is anonymous or not.',
     `user_is_bot`             boolean        COMMENT 'Whether user is bot or not.',
     `user_is_administrator`   boolean        COMMENT 'Whether user is administrator or not.',
@@ -20,6 +22,7 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `edit_hourly`(
     `creates_new_page`        boolean        COMMENT 'Whether the edit was the first of a page (page creation).',
     `is_deleted`              boolean        COMMENT 'Whether the edit has been deleted.',
     `is_reverted`             boolean        COMMENT 'Whether the edit has been reverted.',
+    `is_redirect_currently`   boolean        COMMENT 'Whether the page is *currently* a redirect (no historical information available)',
     `user_edit_count_bucket`  string         COMMENT 'Authors edit count bucket (1-4, 5-99, 100-999, 1000-9999, 10000+).',
     `platform`                string         COMMENT 'Access method (iOS, Android, Mobile web, Other).',
     `interface`               string         COMMENT 'Editing interface (VisualEditor, 2017 wikitext editor, Switched from VisualEditor to wikitext editor, Other).',

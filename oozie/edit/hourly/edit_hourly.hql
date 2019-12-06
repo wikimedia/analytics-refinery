@@ -1,15 +1,15 @@
 -- Parameters:
 --     source_table   Fully qualified table name to extract data from.
 --     destination_table   Fully qualified table name to write data to.
---     project_map_table   Fully qualified table name to join and get project.
+--     wiki_map_table      Fully qualified table name to join and get wiki.
 --     snapshot   Snapshot to be computed in 'YYYY-MM' format.
 --
 -- Usage:
 --     hive -f edit_hourly.hql \
 --         -d source_table='wmf.mediawiki_history' \
 --         -d destination_table='wmf.edit_hourly' \
---         -d project_map_table='wmf_raw.mediawiki_project_namespace_map' \
---         -d snapshot='2019-01' \
+--         -d wiki_map_table='canonical_data.wikis' \
+--         -d snapshot='2019-01'
 --
 
 SET parquet.compression = SNAPPY;
@@ -49,6 +49,7 @@ WITH edit_history AS (
         ) AS user_tenure,
         page_namespace_is_content_historical,
         page_namespace_historical,
+        page_is_redirect,
         revision_parent_id,
         revision_is_deleted_by_page_deletion,
         revision_is_identity_reverted,
@@ -112,6 +113,7 @@ formatted_edit_history AS (
         revision_parent_id == 0 AS creates_new_page,
         revision_is_deleted_by_page_deletion AS is_deleted,
         revision_is_identity_reverted AS is_reverted,
+        page_is_redirect AS is_redirect_currently,
         CASE
             WHEN event_user_revision_count < 5 THEN '1-4'
             WHEN event_user_revision_count >= 5 AND event_user_revision_count < 100 THEN '5-99'
@@ -123,6 +125,7 @@ formatted_edit_history AS (
         CASE
             WHEN array_contains(revision_tags, 'ios app edit') THEN 'iOS'
             WHEN array_contains(revision_tags, 'android app edit') THEN 'Android'
+            WHEN array_contains(revision_tags, 'mobile app edit') AND event_timestamp <'2018-07-01' THEN 'Mobile App'
             WHEN array_contains(revision_tags, 'mobile web edit') THEN 'Mobile web'
             ELSE 'Other'
         END AS platform,
@@ -141,7 +144,9 @@ INSERT OVERWRITE TABLE ${destination_table}
     PARTITION(snapshot='${snapshot}')
     SELECT
         ts,
-        SUBSTR(p.hostname, 0, LENGTH(p.hostname) - 4) AS project,
+        SUBSTR(w.domain_name, 0, LENGTH(w.domain_name) - 4) AS project,
+        w.database_group AS project_family,
+        w.language_name AS language,
         user_is_anonymous,
         user_is_bot,
         user_is_administrator,
@@ -154,6 +159,7 @@ INSERT OVERWRITE TABLE ${destination_table}
         creates_new_page,
         is_deleted,
         is_reverted,
+        is_redirect_currently,
         user_edit_count_bucket,
         platform,
         interface,
@@ -161,13 +167,13 @@ INSERT OVERWRITE TABLE ${destination_table}
         COUNT(*) AS edit_count,
         SUM(text_bytes_diff) AS text_bytes_diff
     FROM formatted_edit_history AS m
-    LEFT OUTER JOIN ${project_map_table} AS p ON
-        p.snapshot = '${snapshot}' AND
-        p.namespace = 0 AND
-        m.wiki_db = p.dbname
+    LEFT JOIN ${wiki_map_table} AS w ON
+        m.wiki_db = w.database_code
     GROUP BY
         ts,
-        SUBSTR(p.hostname, 0, LENGTH(p.hostname) - 4),
+        SUBSTR(w.domain_name, 0, LENGTH(w.domain_name) - 4),
+        w.database_group,
+        w.language_name,
         user_is_anonymous,
         user_is_bot,
         user_is_administrator,
@@ -180,6 +186,7 @@ INSERT OVERWRITE TABLE ${destination_table}
         creates_new_page,
         is_deleted,
         is_reverted,
+        is_redirect_currently,
         user_edit_count_bucket,
         platform,
         interface,
