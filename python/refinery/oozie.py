@@ -35,9 +35,6 @@ from urllib.error import HTTPError, URLError
 
 logger = logging.getLogger('oozie-util')
 
-# Reused url patterns
-COORDINATOR_URL = '/druid/coordinator/v1'
-OVERLORD_URL = '/druid/indexer/v1'
 
 # Possible job-types to filter job-list
 JOB_TYPE_WORKFLOW = 'wf'
@@ -52,7 +49,6 @@ JSON_JOB_TYPES = {
   JOB_TYPE_COORD: 'coordinatorjobs',
   JOB_TYPE_BUNDLE: 'bundlejobs'
 }
-
 
 # Possible status to filter job-list
 JOB_STATUS_WAITING = 'WAITING'
@@ -138,7 +134,7 @@ class Oozie(HTTP):
         '''
         Update job_id with action
         '''
-        params = {''}
+        params = {'action': action }
         manage_url = self.url + '/v2/job/' + job_id + '?' + urlencode(params)
         logger.debug('Changing oozie job status using {}'.format(manage_url))
         self.put(manage_url)
