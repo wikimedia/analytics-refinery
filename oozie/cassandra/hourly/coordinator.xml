@@ -98,7 +98,7 @@
             <instance>${coord:current(0)}</instance>
         </data-in>
         <data-in name="data_input_delay" dataset="${dataset_name}">
-            <instance>${coord:current(0 + delay)</instance>
+            <instance>${coord:current(0 + delay)}</instance>
         </data-in>
     </input-events>
 
