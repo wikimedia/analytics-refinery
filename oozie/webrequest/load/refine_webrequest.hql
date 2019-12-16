@@ -46,6 +46,11 @@ SET hive.enforce.bucketing           = true;
 -- table is clustered by.
 SET mapreduce.job.reduces            = 64;
 
+-- Memory settings for mappers to provide user-agent UDF with enough space
+-- for caching (see https://phabricator.wikimedia.org/T240815)
+SET mapreduce.map.memory.mb=3072;
+SET mapreduce.map.java.opts=-Xmx2458m;
+
 ADD JAR /usr/lib/hive-hcatalog/share/hcatalog/hive-hcatalog-core.jar;
 ADD JAR ${artifacts_directory}/org/wikimedia/analytics/refinery/refinery-hive-${refinery_jar_version}.jar;
 CREATE TEMPORARY FUNCTION is_pageview as 'org.wikimedia.analytics.refinery.hive.IsPageviewUDF';
