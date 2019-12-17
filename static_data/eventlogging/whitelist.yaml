@@ -395,6 +395,7 @@ HomepageVisit:
         start_tutorial_state: keep
         start_userpage_state: keep
         start_email_state: keep
+        start_startediting_state: keep
         homepage_pageview_token: hash
     webhost: keep
     wiki: keep
