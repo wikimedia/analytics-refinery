@@ -121,11 +121,8 @@ undeletable_base_paths = [
     '/wmf/data/archive/page',
     '/wmf/data/archive/project',
     '/wmf/data/archive/unique_devices',
-    '/wmf/data/archive/webrequest',
-    '/wmf/data/event_sanitized']
-undeletable_databases = [
-    'archive',
-    'event_sanitized']
+    '/wmf/data/archive/webrequest']
+undeletable_databases = ['archive']
 
 
 def drop_partitions(hive, database, tables_regex, threshold, execute):
@@ -412,8 +409,6 @@ class TestRefineryDropOlderThan(unittest.TestCase):
     def test_raises_error_with_undeletable_database(self):
         with self.assertRaises(Exception):
             self.run_main({'--database': 'archive'})
-        with self.assertRaises(Exception):
-            self.run_main({'--database': 'event_sanitized'})
 
     def test_raises_error_with_relative_base_path(self):
         with self.assertRaises(Exception):
@@ -428,8 +423,6 @@ class TestRefineryDropOlderThan(unittest.TestCase):
             self.run_main({'--base-path': '/wmf/data/archive/backup'})
         with self.assertRaises(Exception):
             self.run_main({'--base-path': '/wmf/data/archive/pageviews'})
-        with self.assertRaises(Exception):
-            self.run_main({'--base-path': '/wmf/data/event_sanitized'})
 
     def test_raises_error_with_invalid_older_than(self):
         with self.assertRaises(Exception):
