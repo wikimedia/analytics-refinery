@@ -27,7 +27,6 @@
                 "time_firstbyte",
                 "ip",
                 "http_status",
-                "response_size",
                 "http_method",
                 "uri_host",
                 "uri_path",
@@ -58,6 +57,11 @@
           "name" : "hits",
           "type" : "longSum",
           "fieldName" : "hits"
+        },
+        {
+          "name" : "response_size",
+          "type" : "longSum",
+          "fieldName" : "response_size"
         }
       ]
     },
