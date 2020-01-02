@@ -108,7 +108,7 @@
 
     <!-- Aggregate raw data into daily geoeditors totals -->
 
-    <action name="insert_editors_daily_data">
+    <action name="insert_editors_daily_data" cred="hive2-cred">
         <hive2 xmlns="uri:oozie:hive2-action:0.2">
             <job-tracker>${job_tracker}</job-tracker>
             <name-node>${name_node}</name-node>
