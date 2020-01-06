@@ -599,6 +599,10 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         'mappers-weight': 0.0,
     }
 
+    wbc_entity_usage_sqoopable_dbs = get_dbnames_from_mw_config([ 'wikidataclient.dblist' ])
+    # Manually removed table (empty in prod, not replicated in labs)
+    wbc_entity_usage_sqoopable_dbs.discard('sewikimedia')
+
     queries['wbc_entity_usage'] = {
         'query': '''
              select eu_row_id,
@@ -618,10 +622,7 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
             'eu_page_id=Long'
         ])),
         'mappers-weight': 1.0,
-        'sqoopable_dbnames': (get_dbnames_from_mw_config([ 'wikidataclient.dblist' ])
-          # Manually removed table (empty in prod, not replicated in labs)
-          .discard('sewikimedia')
-        ),
+        'sqoopable_dbnames': wbc_entity_usage_sqoopable_dbs,
     }
 
     # documented at https://www.mediawiki.org/wiki/Extension:CheckUser/cu_changes_table

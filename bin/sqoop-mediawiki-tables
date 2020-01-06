@@ -43,7 +43,7 @@ Usage:
           [--mappers NUM] [--processors NUM]  [--fetch-size NUM]
           [--hdfs-tmp-path HTMP]  [--local-tmp-path LTMP]
           [--job-name JOB_NAME] [--jar-file JAR_IN] --output-format FMT
-          [--log-file LOG] [--dry-run]
+          [--sample-wiki-for-jar WIKI] [--log-file LOG] [--dry-run]
 
 Options:
     -h --help                           Show this help message and exit.
@@ -112,6 +112,8 @@ Options:
                                         with pre-compiled ORM classes.  The class names
                                         will be convention-based and assumed to be the
                                         same as running this script with -g
+    -b WIKI --sample-wiki-for-jar WIKI  Sample wiki database used to generate the jar.
+                                        [default: etwiki]
     -o LOG --log-file LOG               A log file to send all output to.  If not passed,
                                         the script will only log WARN to console.
     -y --dry-run                        The script will run and log messages, but it
@@ -174,6 +176,7 @@ if __name__ == '__main__':
     dry_run                             = arguments.get('--dry-run')
     force                               = arguments.get('--force')
     jar_file                            = arguments.get('--jar-file')
+    sample_wiki                         = arguments.get('--sample-wiki-for-jar')
     log_file                            = arguments.get('--log-file')
 
     db_mapping                          = get_mediawiki_section_dbname_mapping()
@@ -234,12 +237,11 @@ if __name__ == '__main__':
 
         logger.info('Generating ORM jar at {}'.format(jar_path))
 
-        example_dbname = 'etwiki'
-        jdbc_string = get_jdbc_string(example_dbname, labsdb, db_mapping)
+        jdbc_string = get_jdbc_string(sample_wiki, labsdb, db_mapping)
         for table in queries.keys():
             sqoop_commands.append(
                 SqoopConfig(yarn_job_name_prefix, user, password_file, jdbc_string, 1,
-                            None, None, None, None, example_dbname, table, queries,
+                            None, None, None, None, sample_wiki, table, queries,
                             target_jar_directory, None, 1, False))
 
         with futures.ProcessPoolExecutor(num_processors) as executor:
