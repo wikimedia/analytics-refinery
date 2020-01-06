@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <coordinator-app xmlns="uri:oozie:coordinator:0.4"
     xmlns:sla="uri:oozie:sla:0.2"
-    name="learning-features-actor-hourly-coord"
+    name="learning-features-actor-rollup-hourly-coord"
     frequency="${coord:hours(1)}"
     start="${start_time}"
     end="${stop_time}"
@@ -21,19 +21,17 @@
         <property><name>start_time</name></property>
         <property><name>stop_time</name></property>
 
-        <property><name>webrequest_datasets_file</name></property>
-        <property><name>webrequest_data_directory</name></property>
-
         <property><name>features_datasets_file</name></property>
         <property><name>features_data_directory</name></property>
 
         <property><name>hive_site_xml</name></property>
 
-        <property><name>webrequest_table</name></property>
         <property><name>features_actor_hourly_table</name></property>
-        <property><name>send_error_email_workflow_file</name></property>
+        <property><name>features_actor_rollup_hourly_table</name></property>
 
+        <property><name>send_error_email_workflow_file</name></property>
         <property><name>mark_directory_done_workflow_file</name></property>
+
         <property><name>sla_alert_contact</name></property>
     </parameters>
 
@@ -67,23 +65,19 @@
     </controls>
 
     <datasets>
-        <!--
-        Include refined and pageview datasets files.
-        $webrequest_datasets_file will be used as the input events
-        $features_datasets_file will be used as the output events
-        -->
-        <include>${webrequest_datasets_file}</include>
         <include>${features_datasets_file}</include>
     </datasets>
 
     <input-events>
-        <data-in name="text_refined_input" dataset="webrequest_text">
-            <instance>${coord:current(0)}</instance>
+        <data-in name="features_actor_hourly_input" dataset="features_actor_hourly">
+            <!-- Need the previous 24 hours of data -->
+            <start-instance>${coord:current(-23)}</start-instance>
+            <end-instance>${coord:current(0)}</end-instance>
         </data-in>
     </input-events>
 
     <output-events>
-        <data-out name="features_actor_hourly_output" dataset="features_actor_hourly">
+        <data-out name="features_actor_rollup_hourly_output" dataset="features_actor_rollup_hourly">
             <instance>${coord:current(0)}</instance>
         </data-out>
     </output-events>
@@ -93,25 +87,42 @@
             <app-path>${workflow_file}</app-path>
             <configuration>
                 <property>
-                    <name>year</name>
+                    <name>interval_end_year</name>
                     <value>${coord:formatTime(coord:nominalTime(), "y")}</value>
                 </property>
                 <property>
-                    <name>month</name>
+                    <name>interval_end_month</name>
                     <value>${coord:formatTime(coord:nominalTime(), "M")}</value>
                 </property>
                 <property>
-                    <name>day</name>
+                    <name>interval_end_day</name>
                     <value>${coord:formatTime(coord:nominalTime(), "d")}</value>
                 </property>
                 <property>
-                    <name>hour</name>
+                    <name>interval_end_hour</name>
                     <value>${coord:formatTime(coord:nominalTime(), "H")}</value>
+                </property>
+
+                <property>
+                    <name>interval_start_year</name>
+                    <value>${coord:formatTime(coord:dateOffset(coord:nominalTime(), -1, "DAY"), "y")}</value>
+                </property>
+                <property>
+                    <name>interval_start_month</name>
+                    <value>${coord:formatTime(coord:dateOffset(coord:nominalTime(), -1, "DAY"), "M")}</value>
+                </property>
+                <property>
+                    <name>interval_start_day</name>
+                    <value>${coord:formatTime(coord:dateOffset(coord:nominalTime(), -1, "DAY"), "d")}</value>
+                </property>
+                <property>
+                    <name>interval_start_hour</name>
+                    <value>${coord:formatTime(coord:dateOffset(coord:nominalTime(), -1, "DAY"), "H")}</value>
                 </property>
                 <property>
                     <!-- To mark directory done after success -->
-                    <name>features_actor_hourly_dataset_directory</name>
-                    <value>${coord:dataOut('features_actor_hourly_output')}</value>
+                    <name>features_actor_rollup_hourly_dataset_directory</name>
+                    <value>${coord:dataOut('features_actor_rollup_hourly_output')}</value>
                 </property>
             </configuration>
         </workflow>

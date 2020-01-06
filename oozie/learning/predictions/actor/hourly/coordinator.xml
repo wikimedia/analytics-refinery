@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <coordinator-app xmlns="uri:oozie:coordinator:0.4"
     xmlns:sla="uri:oozie:sla:0.2"
-    name="learning-features-actor-hourly-coord"
+    name="learning-predictions-actor-hourly-coord"
     frequency="${coord:hours(1)}"
     start="${start_time}"
     end="${stop_time}"
@@ -21,19 +21,21 @@
         <property><name>start_time</name></property>
         <property><name>stop_time</name></property>
 
-        <property><name>webrequest_datasets_file</name></property>
-        <property><name>webrequest_data_directory</name></property>
 
         <property><name>features_datasets_file</name></property>
         <property><name>features_data_directory</name></property>
 
+        <property><name>predictions_datasets_file</name></property>
+        <property><name>predictions_data_directory</name></property>
+
         <property><name>hive_site_xml</name></property>
 
-        <property><name>webrequest_table</name></property>
-        <property><name>features_actor_hourly_table</name></property>
-        <property><name>send_error_email_workflow_file</name></property>
+        <property><name>predictions_actor_label_hourly_table</name></property>
+        <property><name>features_actor_rollup_hourly_table</name></property>
 
+        <property><name>send_error_email_workflow_file</name></property>
         <property><name>mark_directory_done_workflow_file</name></property>
+
         <property><name>sla_alert_contact</name></property>
     </parameters>
 
@@ -68,25 +70,26 @@
 
     <datasets>
         <!--
-        Include refined and pageview datasets files.
-        $webrequest_datasets_file will be used as the input events
-        $features_datasets_file will be used as the output events
+        $features_datasets_file will be used as the input events
+        $predictions_datasets_file will be used as the output events
         -->
-        <include>${webrequest_datasets_file}</include>
+        <include>${predictions_datasets_file}</include>
         <include>${features_datasets_file}</include>
     </datasets>
 
+
     <input-events>
-        <data-in name="text_refined_input" dataset="webrequest_text">
+        <data-in name="features_actor_rollup_hourly_input" dataset="features_actor_rollup_hourly">
             <instance>${coord:current(0)}</instance>
         </data-in>
     </input-events>
 
     <output-events>
-        <data-out name="features_actor_hourly_output" dataset="features_actor_hourly">
+        <data-out name="predictions_actor_label_hourly_output" dataset="predictions_actor_label_hourly">
             <instance>${coord:current(0)}</instance>
         </data-out>
     </output-events>
+
 
     <action>
         <workflow>
@@ -110,8 +113,8 @@
                 </property>
                 <property>
                     <!-- To mark directory done after success -->
-                    <name>features_actor_hourly_dataset_directory</name>
-                    <value>${coord:dataOut('features_actor_hourly_output')}</value>
+                    <name>predictions_actor_label_hourly_dataset_directory</name>
+                    <value>${coord:dataOut('predictions_actor_label_hourly_output')}</value>
                 </property>
             </configuration>
         </workflow>

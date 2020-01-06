@@ -22,6 +22,7 @@
 --
 
 CREATE EXTERNAL TABLE IF NOT EXISTS `actor_hourly`(
+  `version`                     string  COMMENT 'Version of software that calculates these features',
   `actor_id`                    string  COMMENT 'Actor Identifier',
   `interaction_start_ts`        string  COMMENT 'UTC timestamp in ISO 8601 format (e.g. 2019-08-27T14:00:00Z)',
   `interaction_end_ts`          string  COMMENT 'UTC timestamp in ISO 8601 format (e.g. 2019-08-27T14:00:00Z)',
