@@ -24,6 +24,8 @@
           "dimensionsSpec": {
             "dimensions": [
               "project",
+              "project_family",
+              "language",
               "user_is_anonymous",
               "user_is_bot",
               "user_is_administrator",
@@ -35,6 +37,7 @@
               "creates_new_page",
               "is_deleted",
               "is_reverted",
+              "is_redirect_currently",
               "user_edit_count_bucket",
               "platform",
               "interface",

@@ -23,7 +23,7 @@
         <property><name>mediawiki_history_table</name></property>
         <property><name>mediawiki_history_datasets_file</name></property>
         <property><name>edit_hourly_table</name></property>
-        <property><name>project_map_table</name></property>
+        <property><name>wiki_map_table</name></property>
         <property><name>flag_directory_done_workflow_file</name></property>
         <property><name>mw_directory</name></property>
         <property><name>edit_datasets_file</name></property>
@@ -43,15 +43,11 @@
 
     <datasets>
         <include>${mediawiki_history_datasets_file}</include>
-        <include>${mediawiki_history_datasets_raw_file}</include>
         <include>${edit_datasets_file}</include>
     </datasets>
 
     <input-events>
         <data-in name="mediawiki_history_input" dataset="mw_denormalized_history_partitioned">
-            <instance>${coord:current(0)}</instance>
-        </data-in>
-        <data-in name="project_map_input" dataset="mw_project_namespace_map_partitioned">
             <instance>${coord:current(0)}</instance>
         </data-in>
     </input-events>

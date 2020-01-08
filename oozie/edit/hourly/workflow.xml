@@ -14,7 +14,7 @@
         <property><name>hive_site_xml</name></property>
         <property><name>mediawiki_history_table</name></property>
         <property><name>edit_hourly_table</name></property>
-        <property><name>project_map_table</name></property>
+        <property><name>wiki_map_table</name></property>
         <property><name>snapshot</name></property>
         <property><name>flag_directory_done_workflow_file</name></property>
         <property><name>done_flag_destination_directory</name> </property>
@@ -77,7 +77,7 @@
             <!-- Query parameters -->
             <param>source_table=${mediawiki_history_table}</param>
             <param>destination_table=${edit_hourly_table}</param>
-            <param>project_map_table=${project_map_table}</param>
+            <param>wiki_map_table=${wiki_map_table}</param>
             <param>snapshot=${snapshot}</param>
 
             <!-- Beeline arguments -->
