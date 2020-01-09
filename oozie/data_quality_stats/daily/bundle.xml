@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <bundle-app xmlns="uri:oozie:bundle:0.2"
-    name="data-quality-stats-daily-bundle">
+    name="data_quality_stats-daily-bundle">
 
     <parameters>
         <property><name>coordinator_file</name></property>
@@ -27,20 +27,22 @@
         <property><name>data_quality_stats_base_path</name></property>
         <property><name>data_quality_stats_incoming_table</name></property>
 
-        <property><name>updater_spark_master</name></property>
-        <property><name>updater_spark_deploy</name></property>
+        <property><name>spark_master</name></property>
+        <property><name>spark_deploy</name></property>
+        <property><name>spark_job_jar</name></property>
+        <property><name>spark_driver_memory</name></property>
+        <property><name>spark_executor_memory</name></property>
+        <property><name>spark_executor_cores</name></property>
+        <property><name>spark_max_num_executors</name></property>
         <property><name>updater_spark_job_name</name></property>
         <property><name>updater_spark_job_class</name></property>
-        <property><name>updater_spark_job_jar</name></property>
-        <property><name>updater_spark_driver_memory</name></property>
-        <property><name>updater_spark_executor_memory</name></property>
-        <property><name>updater_spark_executor_cores</name></property>
-        <property><name>updater_spark_max_num_executors</name></property>
+        <property><name>anomalies_spark_job_name</name></property>
+        <property><name>anomalies_spark_job_class</name></property>
 
         <property><name>send_error_email_workflow_file</name></property>
     </parameters>
 
-    <coordinator name="data-quality-stats-wmf.pageview_hourly-traffic_entropy_by_country-daily-coord">
+    <coordinator name="data_quality_stats-daily-coord-wmf.pageview_hourly-traffic_entropy_by_country">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property><name>source_table</name><value>wmf.pageview_hourly</value></property>
@@ -50,6 +52,9 @@
             <property><name>source_end_instance</name><value>23</value></property>
             <property><name>source_done_flag</name><value>_SUCCESS</value></property>
             <property><name>query_name</name><value>traffic_entropy_by_country</value></property>
+            <property><name>seasonality_cycle</name><value>7</value></property>
+            <property><name>deviation_threshold</name><value>10</value></property>
+            <property><name>send_alerts_to</name><value>analytics-alerts@wikimedia.org,ssingh@wikimedia.org</value></property>
         </configuration>
     </coordinator>
 

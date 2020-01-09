@@ -1,7 +1,9 @@
 # Data quality stats
 
 This collection of jobs extracts data quality stats from various hive tables
-and writes them to the data quality stats table.
+and writes them to the data quality stats table. Then applies an anomaly
+detection algorithm based on RSVD to them and sends alerts whenever they are
+anomalous.
 
 ## Bundles
 There is one bundle per granularity. The possible granularities are: hourly,
@@ -12,17 +14,18 @@ independently, otherwise lots of unnecessary reruns would happen.
 #### hourly
 This bundle generates data quality stats for data sets that are organized in
 hourly partitions. The generated stats will be stored within the partition
-granularity=hourly.
+granularity=hourly. Anomaly detection and alerting will be done hourly.
 
 #### daily
 This bundle generates data quality stats for data sets that are organized in
 daily partitions. The generated stats will be stored within the partition
-granularity=daily.
+granularity=daily.  Anomaly detection and alerting will be done daily.
 
 #### monthly
 This bundle generates data quality stats for data sets that are organized in
 monthly partitions. The generated stats will be stored within the partition
-granularity=monthly. This granularity can also be used for snapshot data sets.
+granularity=monthly. Anomaly detection and alerting will be done monthly.
+This granularity can also be used for snapshot data sets.
 
 #### queries folder
 Within each bundle folder there's a queries folder. It contains the *.hql*
@@ -85,6 +88,9 @@ Once you've tested the query independently, add a coordinator snippet to your
         <property><name>source_directory</name><value>YOUR_SOURCE_DIRECTORY</value></property>
         <property><name>source_done_flag</name><value>YOUR_DONE_FLAG</value></property>
         <property><name>query_name</name><value>YOUR_QUERY_NAME</value></property>
+        <property><name>seasonality_cycle</name><value>YOUR_SEASONALITY_CYCLE</value></property>
+        <property><name>deviation_threshold</name><value>YOUR_DEVIATION_THRESHOLD</value></property>
+        <property><name>send_alerts_to</name><value>YOUR_ALERT_EMAILS</value></property>
     </configuration>
 </coordinator>
 ```
@@ -92,7 +98,7 @@ Once you've tested the query independently, add a coordinator snippet to your
 *YOUR_COORD_NAME* has a convention. Suppose your source table is
 `wmf.edit_hourly`, your query name is `edit_quality` and your granularity is
 `hourly`; then your coord name should be
-`data-quality-stats-wmf.edit_hourly-edit_quality-hourly-coord`.
+`data_quality_stats-wmf.edit_hourly-edit_quality-hourly-coord`.
 
 *YOUR_SOURCE_TABLE* is the fully qualified table name of your source data set.
 For example `wmf.edit_hourly`.
@@ -105,6 +111,19 @@ example: `_SUCCESS`.
 
 *YOUR_QUERY_NAME* is the name of your query file without the *.hql* extension.
 For instance `edit_quality`.
+
+*YOUR_SEASONALITY_CYCLE* is the number of data points that conform a seasonality
+cycle for your metrics. For example, if your metrics have an hourly resolution
+and a daily seasonality (pattern repeats every day), then your seasonality cycle
+should be `24` data points.
+
+*YOUR_DEVIATION_THRESHOLD* is the absolute normalized deviation over which
+anomalies are going to be reported with alert emails. For instance `10.0`.
+For more details on the definition and use of the normalized deviation, see:
+https://github.com/wikimedia/analytics-refinery-source/blob/master/refinery-job/src/main/scala/org/wikimedia/analytics/refinery/job/dataquality/RSVDAnomalyDetection.scala
+
+*YOUR_ALERT_EMAILS* is a comma-separated list of the email addresses you want
+to be notified of anomalous metrics. For example `mforns@wikimedia.org`.
 
 ## Administration
 
@@ -144,9 +163,12 @@ sudo -u analytics oozie job --oozie $OOZIE_URL \
     -Dartifacts_directory='hdfs://analytics-hadoop/user/mforns/artifacts' \
     -Doozie_directory='hdfs://analytics-hadoop/user/mforns/oozie' \
     -Drefinery_jar_version='0.0.109-SNAPSHOT' \
+    -Dupdater_spark_job_jar='hdfs://analytics-hadoop/user/mforns/jars/refinery-job-0.0.123-SNAPSHOT.jar' \
+    -Danomalies_spark_job_jar='hdfs://analytics-hadoop/user/mforns/jars/refinery-job-0.0.123-SNAPSHOT.jar' \
     -Ddata_quality_stats_table='mforns.data_quality_stats' \
     -Ddata_quality_stats_base_path='hdfs://analytics-hadoop/user/mforns/data_quality_stats' \
     -Ddata_quality_stats_incoming_table='mforns.data_quality_stats_incoming' \
+    -Dsla_alert_contact='mforns@wikimedia.org' \
     -config /home/mforns/refinery/oozie/data_quality_stats/bundle.properties \
     -run
 ```

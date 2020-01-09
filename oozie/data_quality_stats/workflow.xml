@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <workflow-app xmlns="uri:oozie:workflow:0.4"
-    name="data-quality-stats-${source_table}-${query_name}-${granularity}-wf-${year}-${month}-${day}-${hour}">
+    name="data_quality_stats-wf-${source_table}-${query_name}-${granularity}-${year}-${month}-${day}-${hour}">
 
     <parameters>
         <property><name>name_node</name></property>
@@ -26,16 +26,21 @@
         <property><name>month</name></property>
         <property><name>day</name></property>
         <property><name>hour</name></property>
+        <property><name>seasonality_cycle</name></property>
+        <property><name>deviation_threshold</name></property>
+        <property><name>send_alerts_to</name></property>
 
-        <property><name>updater_spark_master</name></property>
-        <property><name>updater_spark_deploy</name></property>
+        <property><name>spark_master</name></property>
+        <property><name>spark_deploy</name></property>
+        <property><name>spark_job_jar</name></property>
+        <property><name>spark_driver_memory</name></property>
+        <property><name>spark_executor_memory</name></property>
+        <property><name>spark_executor_cores</name></property>
+        <property><name>spark_max_num_executors</name></property>
         <property><name>updater_spark_job_name</name></property>
         <property><name>updater_spark_job_class</name></property>
-        <property><name>updater_spark_job_jar</name></property>
-        <property><name>updater_spark_driver_memory</name></property>
-        <property><name>updater_spark_executor_memory</name></property>
-        <property><name>updater_spark_executor_cores</name></property>
-        <property><name>updater_spark_max_num_executors</name></property>
+        <property><name>anomalies_spark_job_name</name></property>
+        <property><name>anomalies_spark_job_class</name></property>
 
         <property><name>send_error_email_workflow_file</name></property>
 
@@ -46,6 +51,14 @@
         <property>
             <name>oozie.action.sharelib.for.spark</name>
             <value>${oozie_spark_lib}</value>
+        </property>
+        <property>
+            <name>anomalies_file_path</name>
+            <value>${temp_directory}/anomalies/${source_table}-${query_name}-${granularity}-${year}-${month}-${day}-${hour}</value>
+        </property>
+        <property>
+            <name>timestamp</name>
+            <value>${year}-${padded_month}-${padded_day}T${padded_hour}:00:00Z</value>
         </property>
     </parameters>
 
@@ -129,12 +142,12 @@
                     <value>${oozie_launcher_memory}</value>
                 </property>
             </configuration>
-            <master>${updater_spark_master}</master>
-            <mode>${updater_spark_deploy}</mode>
+            <master>${spark_master}</master>
+            <mode>${spark_deploy}</mode>
             <name>${updater_spark_job_name}-${source_table}-${query_name}-${granularity}</name>
             <class>${updater_spark_job_class}</class>
-            <jar>${updater_spark_job_jar}</jar>
-            <spark-opts>--queue ${queue_name} --driver-memory ${updater_spark_driver_memory} --executor-memory ${updater_spark_executor_memory} --executor-cores ${updater_spark_executor_cores} --conf spark.dynamicAllocation.enabled=true --conf spark.shuffle.service.enabled=true --conf spark.dynamicAllocation.maxExecutors=${updater_spark_max_num_executors}</spark-opts>
+            <jar>${spark_job_jar}</jar>
+            <spark-opts>--queue ${queue_name} --driver-memory ${spark_driver_memory} --executor-memory ${spark_executor_memory} --executor-cores ${spark_executor_cores} --conf spark.dynamicAllocation.enabled=true --conf spark.shuffle.service.enabled=true --conf spark.dynamicAllocation.maxExecutors=${spark_max_num_executors}</spark-opts>
             <arg>--quality-table</arg><arg>${data_quality_stats_table}</arg>
             <arg>--incoming-table</arg><arg>${data_quality_stats_incoming_table}</arg>
             <arg>--source-table</arg><arg>${source_table}</arg>
@@ -143,8 +156,78 @@
             <arg>--temp-directory</arg><arg>${temp_directory}</arg>
             <arg>--output-base-path</arg><arg>${data_quality_stats_base_path}</arg>
         </spark>
-        <ok to="end" />
-        <error to="send_error_email" />
+        <ok to="delete_anomalies_file"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <action name="delete_anomalies_file">
+        <!-- Ensure there's no previous anomalies file with the same name. -->
+        <fs>
+            <delete path="${anomalies_file_path}"/>
+        </fs>
+        <ok to="detect_anomalies"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <action name="detect_anomalies" cred="hcat-cred">
+        <spark xmlns="uri:oozie:spark-action:0.1">
+            <job-tracker>${job_tracker}</job-tracker>
+            <name-node>${name_node}</name-node>
+            <configuration>
+                <property>
+                    <name>oozie.launcher.mapred.job.queue.name</name>
+                    <value>${queue_name}</value>
+                </property>
+                <property>
+                    <name>oozie.launcher.mapreduce.map.memory.mb</name>
+                    <value>${oozie_launcher_memory}</value>
+                </property>
+            </configuration>
+            <master>${spark_master}</master>
+            <mode>${spark_deploy}</mode>
+            <name>${anomalies_spark_job_name}-${source_table}-${query_name}-${granularity}</name>
+            <class>${anomalies_spark_job_class}</class>
+            <jar>${spark_job_jar}</jar>
+            <spark-opts>--queue ${queue_name} --driver-memory ${spark_driver_memory} --executor-memory ${spark_executor_memory} --executor-cores ${spark_executor_cores} --conf spark.dynamicAllocation.enabled=true --conf spark.shuffle.service.enabled=true --conf spark.dynamicAllocation.maxExecutors=${spark_max_num_executors}</spark-opts>
+            <arg>--quality-table</arg><arg>${data_quality_stats_table}</arg>
+            <arg>--source-table</arg><arg>${source_table}</arg>
+            <arg>--query-name</arg><arg>${query_name}</arg>
+            <arg>--granularity</arg><arg>${granularity}</arg>
+            <arg>--last-data-point-dt</arg><arg>${timestamp}</arg>
+            <arg>--seasonality-cycle</arg><arg>${seasonality_cycle}</arg>
+            <arg>--output-path</arg><arg>${anomalies_file_path}</arg>
+            <arg>--deviation-threshold</arg><arg>${deviation_threshold}</arg>
+        </spark>
+        <ok to="check_for_anomalies"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <decision name="check_for_anomalies">
+        <switch>
+            <case to="send_alert_email">
+                ${fs:exists(anomalies_file_path)}
+            </case>
+            <default to="end"/>
+        </switch>
+    </decision>
+
+    <action name="send_alert_email">
+        <email xmlns="uri:oozie:email-action:0.2">
+            <to>${send_alerts_to}</to>
+            <subject>Data quality anomaly report: ${source_table}-${query_name}-${granularity} ${timestamp}</subject>
+            <body>The data quality pipeline has detected the following anomalies:
+
+    Data set: ${source_table}-${query_name}-${granularity}
+    Datetime: ${timestamp}
+    Affected metrics and corresponding deviations: See attached file.
+
+To get a time series of your metric for troubleshooting purposes,
+please query the wmf.data_quality_stats table in Hive.
+            </body>
+            <attachment>${anomalies_file_path}</attachment>
+        </email>
+        <ok to="end"/>
+        <error to="send_error_email"/>
     </action>
 
     <action name="send_error_email">
