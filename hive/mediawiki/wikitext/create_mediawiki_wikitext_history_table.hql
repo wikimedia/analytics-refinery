@@ -43,5 +43,5 @@ PARTITIONED BY (
   `wiki_db` string COMMENT 'The wiki_db project')
 STORED AS AVRO
 LOCATION
-  'hdfs://analytics-hadoop/wmf/data/wmf/mediawiki/wikitext_history'
+  'hdfs://analytics-hadoop/wmf/data/wmf/mediawiki/wikitext/history'
 ;

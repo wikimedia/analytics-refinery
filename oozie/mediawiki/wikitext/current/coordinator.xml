@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coordinator-app xmlns="uri:oozie:coordinator:0.4"
+    xmlns:sla="uri:oozie:sla:0.2"
+    name="mediawiki-wikitext-current-coord"
+    frequency="${coord:months(1)}"
+    start="${start_time}"
+    end="${stop_time}"
+    timezone="Universal">
+
+    <parameters>
+        <!-- Required properties -->
+        <property><name>queue_name</name></property>
+        <property><name>name_node</name></property>
+        <property><name>job_tracker</name></property>
+        <property><name>hive_principal</name></property>
+        <property><name>hive2_jdbc_url</name></property>
+        <property><name>hive_metastore_uri</name></property>
+        <property><name>workflow_file</name></property>
+        <property><name>start_time</name></property>
+        <property><name>stop_time</name></property>
+        <property><name>hive_site_xml</name></property>
+
+        <property><name>oozie_spark_lib</name></property>
+        <property><name>artifacts_directory</name></property>
+        <property><name>spark_master</name></property>
+        <property><name>spark_assembly_zip</name></property>
+        <property><name>spark_job_jar</name></property>
+        <property><name>spark_job_class</name></property>
+        <property><name>spark_executor_memory</name></property>
+        <property><name>spark_executor_cores</name></property>
+        <property><name>spark_driver_memory</name></property>
+        <property><name>spark_max_num_executors</name></property>
+
+        <property><name>datasets_file</name></property>
+        <property><name>mw_directory</name></property>
+        <property><name>datasets_raw_file</name></property>
+        <property><name>mw_raw_directory</name></property>
+
+        <property><name>mw_wikitext_current_table</name></property>
+
+        <property><name>converter_max_parallel_jobs</name></property>
+        <property><name>converter_output_format</name></property>
+
+        <property><name>repair_partitions_workflow_file</name></property>
+        <property><name>mark_directory_done_workflow_file</name></property>
+        <property><name>send_error_email_workflow_file</name></property>
+
+        <property><name>sla_alert_contact</name></property>
+    </parameters>
+
+    <controls>
+        <!--(timeout is measured in minutes)-->
+        <timeout>-1</timeout>
+
+        <!-- Setting low concurrency for resource sharing.
+             The job runs pretty fast (~1 minute) and increasing concurrency should not cause any problems-->
+        <concurrency>1</concurrency>
+
+        <throttle>2</throttle>
+
+    </controls>
+
+    <datasets>
+        <!--
+        Include refined and raw datasets files.
+        -->
+        <include>${datasets_file}</include>
+        <include>${datasets_raw_file}</include>
+    </datasets>
+
+    <input-events>
+        <data-in name="pages_meta_current_xml_dump" dataset="pages_meta_current_xml_dump">
+            <!--
+              Use a one month shift in input-event as dump generated at month YYYYMM
+              contains data for month MM-1 and we want to name it snapshot=YYYY-(MM-1)
+            -->
+            <instance>${coord:current(1)}</instance>
+        </data-in>
+    </input-events>
+
+    <output-events>
+        <data-out name="mw_wikitext_current" dataset="mw_wikitext_current">
+            <instance>${coord:current(0)}</instance>
+        </data-out>
+
+        <data-out name="mw_wikitext_current_partitioned" dataset="mw_wikitext_current_partitioned">
+            <instance>${coord:current(0)}</instance>
+        </data-out>
+    </output-events>
+
+    <action>
+        <workflow>
+            <app-path>${workflow_file}</app-path>
+            <configuration>
+                <property>
+                    <name>snapshot</name>
+                    <value>${coord:formatTime(coord:nominalTime(), "yyyy")}-${coord:formatTime(coord:nominalTime(), "MM")}</value>
+                </property>
+                <property>
+                    <name>xmldumps_location</name>
+                    <value>${coord:dataIn('pages_meta_current_xml_dump')}</value>
+                </property>
+                <property>
+                    <name>mw_wikitext_current_location</name>
+                    <value>${coord:dataOut('mw_wikitext_current')}</value>
+                </property>
+            </configuration>
+        </workflow>
+
+        <sla:info>
+            <!--
+                Use action actual time as SLA base, since it's the time used
+                to compute timeout
+                Job is waiting for the month data to be present which happen
+                roughly the 17th of the month due to big wikis dump generation.
+                Waiting for 24 days after new-month start should be enough.
+            -->
+            <sla:nominal-time>${coord:actualTime()}</sla:nominal-time>
+            <sla:should-end>${55 * DAYS}</sla:should-end>
+            <sla:alert-events>end_miss</sla:alert-events>
+            <sla:alert-contact>${sla_alert_contact}</sla:alert-contact>
+        </sla:info>
+
+    </action>
+</coordinator-app>

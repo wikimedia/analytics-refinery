@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Defines reusable datasets for wikitext raw data.
+Use this dataset in your coordinator.xml files by setting:
+
+    ${start_time}               - the initial instance of your data.
+                                  Example: 2014-04-01T00:00Z
+    ${mw_raw_directory}         - Path to directory where data is imported.
+                                  Example: /wmf/data/raw/mediawiki
+-->
+
+<datasets>
+
+    <!-- Dumps datasets -->
+    <!-- Expected to be used with a monthly coordinator started at the beginning of month,
+         since dumps copied to HDFS are the ones generated on the 1st of every month -->
+    <dataset name="pages_meta_history_xml_dump"
+             frequency="${coord:months(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${mw_raw_directory}/dumps/pages_meta_history/${YEAR}${MONTH}${DAY}</uri-template>
+        <done-flag>_SUCCESS</done-flag>
+    </dataset>
+
+    <dataset name="pages_meta_current_xml_dump"
+             frequency="${coord:months(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${mw_raw_directory}/dumps/pages_meta_current/${YEAR}${MONTH}${DAY}</uri-template>
+        <done-flag>_SUCCESS</done-flag>
+    </dataset>
+
+    <dataset name="siteinfo_namespaces_json_dump"
+             frequency="${coord:months(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${mw_raw_directory}/dumps/siteinfo_namespaces/${YEAR}${MONTH}${DAY}</uri-template>
+        <done-flag>_SUCCESS</done-flag>
+    </dataset>
+</datasets>

@@ -11,7 +11,7 @@ Use this dataset in your coordinator.xml files by setting:
 NOTE: user, page and denormalized history are bound to two datasets
       depending on usage: if data is needed outside of hive, the
       regular dataset can be used for synchronisation. For hive
-      synchronisation, user the 'hive' postfixed datasets.
+      synchronisation, user the '_partitioned' postfixed datasets.
 -->
 
 <datasets>
@@ -112,26 +112,6 @@ NOTE: user, page and denormalized history are bound to two datasets
              timezone="Universal">
         <uri-template>${mw_directory}/history_reduced/snapshot=${YEAR}-${MONTH}</uri-template>
         <done-flag>_SUCCESS</done-flag>
-    </dataset>
-
-    <!-- Wikitext datasets - Data only -->
-
-    <dataset name="mw_wikitext_history"
-             frequency="${coord:months(1)}"
-             initial-instance="${start_time}"
-             timezone="Universal">
-        <uri-template>${mw_directory}/wikitext_history/snapshot=${YEAR}-${MONTH}</uri-template>
-        <done-flag>_SUCCESS</done-flag>
-    </dataset>
-
-        <!-- Wikitext datasets - Hive partitions -->
-
-    <dataset name="mw_wikitext_history_partitioned"
-             frequency="${coord:months(1)}"
-             initial-instance="${start_time}"
-             timezone="Universal">
-        <uri-template>${mw_directory}/wikitext_history/snapshot=${YEAR}-${MONTH}</uri-template>
-        <done-flag>_PARTITIONED</done-flag>
     </dataset>
 
 </datasets>
