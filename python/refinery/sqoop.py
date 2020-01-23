@@ -329,7 +329,7 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         # Sqooping content table for commonswiki and etwiki only for now
         # https://phabricator.wikimedia.org/T238878
         # Note: etwiki is needed as we build ORM jar from it
-        'sqoopable_dbnames': [ 'commonswiki', 'etwiki' ]
+        'sqoopable_dbnames': ['commonswiki', 'etwiki']
     }
 
     queries['content_models'] = {
@@ -346,6 +346,20 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         'boundary-query': 'SELECT MIN(model_id), MAX(model_id) FROM content_models',
         'split-by': 'model_id',
         'mappers-weight': 0.0,
+    }
+
+    queries['imagelinks'] = {
+        'query': '''
+             select il_from,
+                    convert(il_to using utf8) il_to,
+                    il_from_namespace
+
+               from imagelinks
+              where $CONDITIONS
+        ''',
+        'boundary-query': 'SELECT MIN(il_from), MAX(il_from) FROM imagelinks',
+        'split-by': 'il_from',
+        'mappers-weight': 0.25,
     }
 
     queries['ipblocks'] = {
@@ -599,7 +613,7 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         'mappers-weight': 0.0,
     }
 
-    wbc_entity_usage_sqoopable_dbs = get_dbnames_from_mw_config([ 'wikidataclient.dblist' ])
+    wbc_entity_usage_sqoopable_dbs = get_dbnames_from_mw_config(['wikidataclient.dblist'])
     # Manually removed table (empty in prod, not replicated in labs)
     wbc_entity_usage_sqoopable_dbs.discard('sewikimedia')
 
@@ -706,7 +720,7 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         'boundary-query': 'SELECT MIN(term_row_id), MAX(term_row_id) FROM wb_terms',
         'split-by': 'term_row_id',
         'mappers-weight': 1.0,
-        'sqoopable_dbnames': [ 'wikidatawiki' ],
+        'sqoopable_dbnames': ['wikidatawiki'],
     }
 
     queries['wbt_item_terms'] = {
@@ -725,7 +739,7 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         'boundary-query': 'SELECT MIN(wbit_id), MAX(wbit_id) FROM wbt_item_terms',
         'split-by': 'wbit_id',
         'mappers-weight': 1.0,
-        'sqoopable_dbnames': [ 'wikidatawiki' ],
+        'sqoopable_dbnames': ['wikidatawiki'],
     }
 
     queries['wbt_property_terms'] = {
@@ -744,7 +758,7 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         'boundary-query': 'SELECT MIN(wbpt_id), MAX(wbpt_id) FROM wbt_property_terms',
         'split-by': 'wbpt_id',
         'mappers-weight': 0.5,
-        'sqoopable_dbnames': [ 'wikidatawiki' ],
+        'sqoopable_dbnames': ['wikidatawiki'],
     }
 
     queries['wbt_term_in_lang'] = {
@@ -763,7 +777,7 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         'boundary-query': 'SELECT MIN(wbtl_id), MAX(wbtl_id) FROM wbt_term_in_lang',
         'split-by': 'wbtl_id',
         'mappers-weight': 1.0,
-        'sqoopable_dbnames': [ 'wikidatawiki' ],
+        'sqoopable_dbnames': ['wikidatawiki'],
     }
 
     queries['wbt_text'] = {
@@ -780,7 +794,7 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         'boundary-query': 'SELECT MIN(wbx_id), MAX(wbx_id) FROM wbt_text',
         'split-by': 'wbx_id',
         'mappers-weight': 1.0,
-        'sqoopable_dbnames': [ 'wikidatawiki' ],
+        'sqoopable_dbnames': ['wikidatawiki'],
     }
 
     queries['wbt_text_in_lang'] = {
@@ -799,7 +813,7 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         'boundary-query': 'SELECT MIN(wbxl_id), MAX(wbxl_id) FROM wbt_text_in_lang',
         'split-by': 'wbxl_id',
         'mappers-weight': 1.0,
-        'sqoopable_dbnames': [ 'wikidatawiki' ],
+        'sqoopable_dbnames': ['wikidatawiki'],
     }
 
     queries['wbt_type'] = {
@@ -812,7 +826,7 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         'boundary-query': 'SELECT MIN(wby_id), MAX(wby_id) FROM wbt_type',
         'split-by': 'wby_id',
         'mappers-weight': 0,
-        'sqoopable_dbnames': [ 'wikidatawiki' ],
+        'sqoopable_dbnames': ['wikidatawiki'],
     }
 
     if filter_tables:
