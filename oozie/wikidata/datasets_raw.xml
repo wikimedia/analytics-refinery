@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Defines reusable datasets for raw wikidata data.
+Use this dataset in your coordinator.xml files by setting:
+
+    ${start_time}     - the initial instance of your data.
+                        Example: 2020-01-01T00:00Z
+    ${wikidata_raw_data_directory} - Path to directory where data is stored.
+                        Example: /wmf/data/raw/wikidata
+-->
+
+<datasets>
+
+    <dataset name="wikidata_all_json_raw_dump"
+             frequency="${coord:days(7)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${wikidata_raw_data_directory}/dumps/all_json/${YEAR}${MONTH}${DAY}</uri-template>
+        <done-flag>_IMPORTED</done-flag>
+    </dataset>
+
+    <dataset name="wikidata_all_ttl_raw_dump"
+             frequency="${coord:days(7)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${wikidata_raw_data_directory}/dumps/all_ttl/${YEAR}${MONTH}${DAY}</uri-template>
+        <done-flag>_IMPORTED</done-flag>
+    </dataset>
+
+</datasets>
