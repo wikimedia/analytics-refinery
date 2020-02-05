@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Defines reusable datasets for Wikitext data.
+Use this dataset in your coordinator.xml files by setting:
+
+    ${start_time}           - the initial instance of your data.
+                              Example: 2014-04-01T00:00Z
+    ${mw_directory}         - Path to directory where data is imported.
+                              Example: /wmf/data/wmf/mediawiki
+
+NOTE: wikitext_history and wikitext_current are bound to two datasets
+      depending on usage: if data is needed outside of hive, the
+      regular dataset can be used for synchronisation. For hive
+      synchronisation, user the '_partitioned' postfixed datasets.
+-->
+
+<datasets>
+
+    <!-- Wikitext datasets - Data only -->
+
+    <dataset name="mw_wikitext_history"
+             frequency="${coord:months(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${mw_directory}/wikitext/history/snapshot=${YEAR}-${MONTH}</uri-template>
+        <done-flag>_SUCCESS</done-flag>
+    </dataset>
+
+    <dataset name="mw_wikitext_current"
+             frequency="${coord:months(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${mw_directory}/wikitext/current/snapshot=${YEAR}-${MONTH}</uri-template>
+        <done-flag>_SUCCESS</done-flag>
+    </dataset>
+
+        <!-- Wikitext datasets - Hive partitions -->
+
+    <dataset name="mw_wikitext_history_partitioned"
+             frequency="${coord:months(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${mw_directory}/wikitext/history/snapshot=${YEAR}-${MONTH}</uri-template>
+        <done-flag>_PARTITIONED</done-flag>
+    </dataset>
+
+    <dataset name="mw_wikitext_current_partitioned"
+             frequency="${coord:months(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${mw_directory}/wikitext/current/snapshot=${YEAR}-${MONTH}</uri-template>
+        <done-flag>_PARTITIONED</done-flag>
+    </dataset>
+
+</datasets>

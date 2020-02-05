@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <workflow-app xmlns="uri:oozie:workflow:0.4"
-    name="mediawiki-history-wikitext-wf-${snapshot}">
+    name="mediawiki-wikitext-current-wf-${snapshot}">
 
     <parameters>
 
@@ -66,8 +66,8 @@
         </property>
 
         <property>
-            <name>mw_wikitext_history_table</name>
-            <description>Mediawiki denormalized history table to get data from</description>
+            <name>mw_wikitext_current_table</name>
+            <description>Mediawiki wikitext current table to repair</description>
         </property>
 
         <property>
@@ -84,7 +84,7 @@
             <description>The base folder where the XML-Dumps are stored in project folders</description>
         </property>
         <property>
-            <name>mw_wikitext_history_location</name>
+            <name>mw_wikitext_current_location</name>
             <description>The base folder where the converted revisions will be written in project folders (hive-partition format)</description>
         </property>
 
@@ -140,42 +140,42 @@
             <name>${spark_job_name}-${snapshot}</name>
             <class>${spark_job_class}</class>
             <jar>${spark_job_jar}</jar>
-            <spark-opts>--conf spark.yarn.archive=${spark_assembly_zip} --executor-memory ${spark_executor_memory} --executor-cores ${spark_executor_cores} --driver-memory ${spark_driver_memory} --queue ${queue_name} --conf spark.dynamicAllocation.enabled=true --conf spark.shuffle.service.enabled=true --conf spark.dynamicAllocation.maxExecutors=${spark_max_num_executors}</spark-opts>
+            <spark-opts>--conf spark.yarn.archive=${spark_assembly_zip} --executor-memory ${spark_executor_memory} --executor-cores ${spark_executor_cores} --driver-memory ${spark_driver_memory} --queue ${queue_name} --conf spark.dynamicAllocation.enabled=true --conf spark.shuffle.service.enabled=true --conf spark.dynamicAllocation.maxExecutors=${spark_max_num_executors} --conf spark.yarn.maxAppAttempts=1</spark-opts>
             <arg>--xml_dumps_base_path</arg>
             <arg>${xmldumps_location}</arg>
             <arg>--output_base_path</arg>
-            <arg>${mw_wikitext_history_location}</arg>
+            <arg>${mw_wikitext_current_location}</arg>
             <arg>--max_parallel_jobs</arg>
             <arg>${converter_max_parallel_jobs}</arg>
             <arg>--output_format</arg>
             <arg>${converter_output_format}</arg>
         </spark>
-        <ok to="repair_mw_wikitext_history_partitions" />
+        <ok to="repair_mw_wikitext_current_partitions" />
         <error to="send_error_email" />
     </action>
 
-    <action name="repair_mw_wikitext_history_partitions">
+    <action name="repair_mw_wikitext_current_partitions">
         <sub-workflow>
             <app-path>${repair_partitions_workflow_file}</app-path>
             <propagate-configuration/>
             <configuration>
                 <property>
                     <name>table</name>
-                    <value>${mw_wikitext_history_table}</value>
+                    <value>${mw_wikitext_current_table}</value>
               </property>
             </configuration>
         </sub-workflow>
-        <ok to="mark_mw_wikitext_history_hive_done"/>
+        <ok to="mark_mw_wikitext_current_hive_done"/>
         <error to="send_error_email"/>
     </action>
 
-    <action name="mark_mw_wikitext_history_hive_done">
+    <action name="mark_mw_wikitext_current_hive_done">
         <sub-workflow>
             <app-path>${mark_directory_done_workflow_file}</app-path>
             <configuration>
                 <property>
                     <name>directory</name>
-                    <value>${mw_wikitext_history_location}</value>
+                    <value>${mw_wikitext_current_location}</value>
                 </property>
                 <property>
                     <name>done_file</name>
