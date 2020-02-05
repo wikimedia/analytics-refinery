@@ -32,6 +32,16 @@
         </property>
 
         <property>
+            <name>wiki_map_table</name>
+            <description>The hive wiki map table to use</description>
+        </property>
+
+        <property>
+            <name>namespace_map_table</name>
+            <description>The hive namespace map table to use</description>
+        </property>
+
+        <property>
             <name>year</name>
             <description>The partition's year</description>
         </property>
@@ -46,6 +56,10 @@
         <property>
             <name>hour</name>
             <description>The partition's hour</description>
+        </property>
+        <property>
+            <name>mediawiki_snapshot</name>
+            <description>The snapshot to use with mediawiki tables</description>
         </property>
 
         <property>
@@ -130,7 +144,10 @@
 
             <!-- Query parameters -->
             <param>source_table=${pageview_table}</param>
+            <param>wiki_map_table=${wiki_map_table}</param>
+            <param>namespace_map_table=${namespace_map_table}</param>
             <param>destination_directory=${temporary_directory}/${wf:id()}-hourly-druid-pageviews-${year}-${month}-${day}-${hour}</param>
+            <param>mediawiki_snapshot=${mediawiki_snapshot}</param>
             <param>year=${year}</param>
             <param>month=${month}</param>
             <param>day=${day}</param>
