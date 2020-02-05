@@ -29,8 +29,6 @@ PARTITIONED BY (
     `query_name`     string   COMMENT 'Name of the query used to extract metrics (without .hql).',
     `granularity`    string   COMMENT 'The granularity of the metric: hourly, daily or monthly.'
 )
-ROW FORMAT DELIMITED
-FIELDS TERMINATED BY '\t'
-STORED AS TEXTFILE
+STORED AS PARQUET
 LOCATION '${location}'
 ;
