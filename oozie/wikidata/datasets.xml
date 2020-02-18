@@ -11,6 +11,7 @@ Use this dataset in your coordinator.xml files by setting:
 
 <datasets>
 
+    <!-- Datasets providing data-availability as files-->
     <dataset name="wikidata_entity_parquet"
              frequency="${coord:days(7)}"
              initial-instance="${start_time}"
@@ -19,11 +20,28 @@ Use this dataset in your coordinator.xml files by setting:
         <done-flag>_SUCCESS</done-flag>
     </dataset>
 
+    <dataset name="wikidata_item_page_link_parquet"
+             frequency="${coord:days(7)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${wikidata_data_directory}/item_page_link/snapshot=${YEAR}-${MONTH}-${DAY}</uri-template>
+        <done-flag>_SUCCESS</done-flag>
+    </dataset>
+
+    <!-- Datasets providing data-availability as hive-partitions -->
     <dataset name="wikidata_entity_partitioned"
              frequency="${coord:days(7)}"
              initial-instance="${start_time}"
              timezone="Universal">
         <uri-template>${wikidata_data_directory}/entity/snapshot=${YEAR}-${MONTH}-${DAY}</uri-template>
+        <done-flag>_PARTITIONED</done-flag>
+    </dataset>
+
+    <dataset name="wikidata_item_page_link_partitioned"
+             frequency="${coord:days(7)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${wikidata_data_directory}/item_page_link/snapshot=${YEAR}-${MONTH}-${DAY}</uri-template>
         <done-flag>_PARTITIONED</done-flag>
     </dataset>
 
