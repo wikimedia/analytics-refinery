@@ -8,6 +8,14 @@ __defaults__:
     topic: keep
     uuid: keep
 
+CentralNoticeBannerHistory:
+   event:
+      i: keep
+      r: keep
+      e: keep
+      n: keep
+      l: keep
+
 CentralNoticeTiming:
     event:
         pageviewToken: hash
