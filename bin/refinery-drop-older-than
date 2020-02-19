@@ -218,8 +218,8 @@ def remove_directories(hdfs, base_path, path_format, threshold, skip_trash, exec
                     .format(len(directories_to_remove), glob_depth))
                 logger.info(
                     'hdfs dfs -rm -R ' +
-                    ('-skipTrash ' if skip_trash else '') +
-                    ' '.join(directories_to_remove))
+                    ('-skipTrash  \\\n' if skip_trash else '\\\n') +
+                    ' \\\n'.join(directories_to_remove))
         else:
             logger.info('No directories removed for tree depth {0}.'
                 .format(glob_depth))
@@ -299,32 +299,32 @@ def main(args):
     # Check database and tables arguments.
     if database is not None:
         if database in undeletable_databases:
-            raise Exception(
+            raise RuntimeError(
                 'The argument --database can not equal any of {0}.'
                 .format(undeletable_databases))
         if tables_regex is None:
-            raise Exception(
+            raise RuntimeError(
                 'The argument --tables is mandatory when using --database.')
 
     # Check base path and path format arguments.
     if base_path is not None:
         if not base_path.startswith('/'):
-            raise Exception('The argument --base-path has to be absolute.')
+            raise RuntimeError('The argument --base-path has to be absolute.')
         if base_path.count('/') < 3:
-            raise Exception(
+            raise RuntimeError(
                 'The argument --base-path needs to have depth 3 or more.')
         for path in undeletable_base_paths:
             if os.path.normpath(base_path).startswith(path):
-                raise Exception(
+                raise RuntimeError(
                     'The argument --base-path can not start with any of {0}.'
                     .format(undeletable_base_paths))
         if path_format is None:
-            raise Exception(
+            raise RuntimeError(
                 'The argument --path-format is mandatory when using --base-path.')
 
     # Check and format older than argument.
     if older_than is None:
-        raise Exception('The argument --older-than is mandatory.')
+        raise RuntimeError('The argument --older-than is mandatory.')
     try:
         threshold = datetime.strptime(older_than, '%Y-%m-%d')
     except Exception:
@@ -334,7 +334,7 @@ def main(args):
     # Check and format security checksum.
     checksum = get_security_checksum(args)
     if execute is not None and execute != checksum:
-        raise Exception('Invalid security checksum passed with --execute.')
+        raise RuntimeError('Invalid security checksum passed with --execute.')
 
     if database is not None:
         drop_partitions(
@@ -407,29 +407,29 @@ class TestRefineryDropOlderThan(unittest.TestCase):
         main(default_args)
 
     def test_raises_error_with_undeletable_database(self):
-        with self.assertRaises(Exception):
+        with self.assertRaises(RuntimeError):
             self.run_main({'--database': 'archive'})
 
     def test_raises_error_with_relative_base_path(self):
-        with self.assertRaises(Exception):
+        with self.assertRaises(RuntimeError):
             self.run_main({'--base-path': 'relative/base/path'})
 
     def test_raises_error_with_short_base_path(self):
-        with self.assertRaises(Exception):
+        with self.assertRaises(RuntimeError):
             self.run_main({'--base-path': '/short/path'})
 
     def test_raises_error_with_undeletable_base_path(self):
-        with self.assertRaises(Exception):
+        with self.assertRaises(RuntimeError):
             self.run_main({'--base-path': '/wmf/data/archive/backup'})
-        with self.assertRaises(Exception):
+        with self.assertRaises(RuntimeError):
             self.run_main({'--base-path': '/wmf/data/archive/pageviews'})
 
     def test_raises_error_with_invalid_older_than(self):
-        with self.assertRaises(Exception):
+        with self.assertRaises(RuntimeError):
             self.run_main({'--older-than': '24 invalid'})
 
     def test_raises_error_with_invalid_security_checksum(self):
-        with self.assertRaises(Exception):
+        with self.assertRaises(RuntimeError):
             self.run_main({'--execute': 'invalid checksum'})
 
     def test_correct_checksum_allows_execution(self):
@@ -592,5 +592,8 @@ if __name__ == '__main__':
         for issue in issues:
             print(issue[1].strip())
         sys.exit(1)
-
-    main(args)
+    try:
+        main(args)
+    except RuntimeError as e:
+        print(e)
+        sys.exit(1)
