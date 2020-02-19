@@ -30,7 +30,7 @@ Options:
                                             object prefix. [default: false]
     -u --upload-user=<upload_user>          Username of upload initiater.  Defaults to user running this process.
     -e --event-service-url=<url>            Event Service (e.g. EventGate) URI to POST event
-                                            [default: http://eventgate-analytics.svc.eqiad.wmnet:31192/v1/events]
+                                            [default: https://eventgate-analytics.discovery.wmnet:4592/v1/events]
 """
 
 __author__ = 'Andrew Otto <otto@wikimedia.org>'

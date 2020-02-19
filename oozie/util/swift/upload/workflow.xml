@@ -54,7 +54,7 @@
 
         <property>
             <name>event_service_url</name>
-            <value>http://eventgate-analytics.svc.eqiad.wmnet:31192/v1/events</value>
+            <value>https://eventgate-analytics.discovery.wmnet:4592/v1/events</value>
             <description>
                 URL to which the swift/upload/events will be posted
                 (unless ${event_stream} == 'false')
