@@ -9,12 +9,12 @@ __defaults__:
     uuid: keep
 
 CentralNoticeBannerHistory:
-   event:
-      i: keep
-      r: keep
-      e: keep
-      n: keep
-      l: keep
+    event:
+        i: keep
+        r: keep
+        e: keep
+        n: keep
+        l: keep
 
 CentralNoticeTiming:
     event:
