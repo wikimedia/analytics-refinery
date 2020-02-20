@@ -34,7 +34,7 @@
         <property><name>datasets_file</name></property>
         <property><name>wikidata_data_directory</name></property>
         <property><name>datasets_raw_file</name></property>
-        <property><name>wikidata_raw_directory</name></property>
+        <property><name>wikidata_raw_data_directory</name></property>
 
         <property><name>wikidata_entity_table</name></property>
 
