@@ -157,8 +157,8 @@
             <propagate-configuration/>
             <configuration>
                 <property>
-                    <name>${wikidata_entity_table}</name>
-                    <value></value>
+                    <name>table</name>
+                    <value>${wikidata_entity_table}</value>
                 </property>
                 <property>
                     <name>location</name>
