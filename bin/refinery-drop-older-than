@@ -325,14 +325,14 @@ def main(args):
     # Check and format older than argument.
     if older_than is None:
         raise RuntimeError('The argument --older-than is mandatory.')
-    # Assume that the older_than value is a date string first
+    # Assume that the older_than value is a date string first.
     try:
         threshold = datetime.strptime(older_than, '%Y-%m-%d')
     except (TypeError, ValueError):
-        # Check if the older_then value is an integer before givin up
-        if not isinstance(older_than, int):
+        # Check if the older_than value is an integer before giving up.
+        if not older_than.isdigit():
             raise RuntimeError(
-                'The older_than arg must be either a date or an int.')
+                'The argument --older-than must be a date or an int.')
         now_hourly_truncated = datetime.now().replace(minute=0, second=0, microsecond=0)
         threshold = now_hourly_truncated - timedelta(days=int(older_than))
 
@@ -405,7 +405,7 @@ class TestRefineryDropOlderThan(unittest.TestCase):
             '--tables': '(testtable1|testtable2)',
             '--base-path': '/test/data/path',
             '--path-format': 'test/(?P<year>[0-9]+)(/(?P<month>[0-9]+))?',
-            '--older-than': 90,
+            '--older-than': '90',
             '--skip-trash': None,
             '--execute': None}
         default_args.update(override)
@@ -444,7 +444,7 @@ class TestRefineryDropOlderThan(unittest.TestCase):
             '--tables': None,
             '--base-path': None,
             '--path-format': None,
-            '--execute': '9934155d9538db15d428505f47432b33'})
+            '--execute': 'c1c19330c726064068fa1dca914a77c3'})
 
     def test_security_checksum_changes_with_arguments(self):
         self.assertNotEqual(
