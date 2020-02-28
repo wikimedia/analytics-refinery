@@ -325,9 +325,14 @@ def main(args):
     # Check and format older than argument.
     if older_than is None:
         raise RuntimeError('The argument --older-than is mandatory.')
+    # Assume that the older_than value is a date string first
     try:
         threshold = datetime.strptime(older_than, '%Y-%m-%d')
-    except Exception:
+    except (TypeError, ValueError):
+        # Check if the older_then value is an integer before givin up
+        if not isinstance(older_than, int):
+            raise RuntimeError(
+                'The older_than arg must be either a date or an int.')
         now_hourly_truncated = datetime.now().replace(minute=0, second=0, microsecond=0)
         threshold = now_hourly_truncated - timedelta(days=int(older_than))
 
