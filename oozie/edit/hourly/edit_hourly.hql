@@ -72,7 +72,7 @@ formatted_edit_history AS (
         ) AS ts,
         wiki_db,
         event_user_is_anonymous AS user_is_anonymous,
-        ARRAY_CONTAINS(event_user_groups_historical, 'bot') AS user_is_bot,
+        SIZE(event_user_is_bot_by_historical) > 0 AS user_is_bot,
         ARRAY_CONTAINS(event_user_groups_historical, 'sysop') AS user_is_administrator,
         event_user_groups_historical AS user_groups,
         CASE
