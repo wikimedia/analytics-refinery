@@ -18,6 +18,7 @@
 --
 -- Usage:
 --     hive -f calculate_features_actor_hourly.hql                                \
+--         -d version = 0.1                                                         \
 --         -d source_table=wmf.webrequest                                           \
 --         -d destination_table=features.actor_hourly                    \
 --         -d year=2015                                                             \
@@ -57,9 +58,10 @@ INSERT OVERWRITE TABLE ${destination_table}
     PARTITION(year=${year},month=${month},day=${day},hour=${hour})
 
     SELECT
+        ${version} as version,
         actor_id as actor_id,
-        max(ts) as interaction_start_ts,
-        min(ts) as interaction_end_ts,
+        min(ts) as interaction_start_ts,
+        max(ts) as interaction_end_ts,
         (unix_timestamp(max(ts)) - unix_timestamp( min(ts))) as interaction_length_secs,
         count(*) as pageview_count,
         cast((count(*)/(unix_timestamp(max(ts)) - unix_timestamp( min(ts))) * 60) as int) as pageview_ratio_per_min,
