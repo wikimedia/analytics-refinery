@@ -39,6 +39,7 @@ WITH edit_history AS (
         wiki_db,
         event_user_is_anonymous,
         event_user_groups_historical,
+        event_user_is_bot_by_historical,
         UNIX_TIMESTAMP(event_timestamp, 'yyyy-MM-dd HH:mm:ss.sss') - UNIX_TIMESTAMP(
             LEAST(
                 COALESCE(event_user_registration_timestamp, event_user_creation_timestamp, event_user_first_edit_timestamp),
