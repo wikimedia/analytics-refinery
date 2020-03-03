@@ -1,0 +1,15 @@
+This directory contains the weekly job computing wikidata item-page links
+from a wikidata_entity snapshot, a mediawiki-page-history snapshot and
+a project-namespace-map snapshot.
+The link-information is encoded as wikidata-entity sitelink values. Those
+values are URLs to the pages the entity is the equal concept, on every wiki
+(for instance the entity Q3044 'Charlemagne' has sitelinks like
+https://en.wikipedia.org/wiki/Charlemagne and
+https://ar.wikipedia.org/wiki/%D8%B4%D8%A7%D8%B1%D9%84%D9%85%D8%A7%D9%86).
+Also, sitelinks to pages in non-main namespaces have the namespace localized
+in the language project, adding some complexity retrieving the related page.
+
+Note: page-history being computed monthly and wikidata-entity weekly,
+item_page_link gets less precise as they the month advance (the first snapshot
+of the month is more up-to-date than the last, due to pages data being almost
+one month old).
