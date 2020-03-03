@@ -146,6 +146,8 @@
             <arg>${tmp_path}</arg>
             <arg>--base-num-partitions</arg>
             <arg>${spark_partitions_number}</arg>
+            <!-- This argument makes the job lighter in memory preventing by not gathering stats -->
+            <arg>--no-stats</arg>
         </spark>
         <ok to="end" />
         <error to="send_error_email" />
