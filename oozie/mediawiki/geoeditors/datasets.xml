@@ -11,6 +11,14 @@ Use this dataset in your coordinator.xml files by setting:
 
 <datasets>
 
+    <dataset name="geoeditors_public_monthly"
+        frequency="${coord:months(1)}"
+        initial-instance="${start_time}"
+        timezone="Universal">
+    <uri-template>${mw_private_directory}/geoeditors_public_monthly/month=${YEAR}-${MONTH}</uri-template>
+        <done-flag>_SUCCESS</done-flag>
+    </dataset>
+
     <dataset name="editors_daily"
              frequency="${coord:months(1)}"
              initial-instance="${start_time}"
