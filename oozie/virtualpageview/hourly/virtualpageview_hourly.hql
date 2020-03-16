@@ -69,7 +69,7 @@ SELECT
     pageview_info['project'] AS project,
     pageview_info['language_variant'] AS language_variant,
     event.page_title AS page_title,
-    'desktop' AS access_method,
+    COALESCE(access_method, 'desktop') AS access_method,
     IF(useragent.is_bot, 'spider', 'user') AS agent_type,
     'internal' AS referer_class,
     geocoded_data['continent'] AS continent,
