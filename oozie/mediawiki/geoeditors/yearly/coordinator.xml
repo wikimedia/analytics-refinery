@@ -38,8 +38,10 @@
     </parameters>
 
     <controls>
-        <!--(timeout is measured in minutes)-->
-        <timeout>-1</timeout>
+        <!-- 370 days in minutes, to account for leap years and slight delays -->
+        <!-- Note: the default is 60 days, so if this coordinator times out again,
+             we need to change oozie.service.coord.default.max.timeout -->
+        <timeout>532800</timeout>
 
         <!-- Setting low concurrency for resource sharing. -->
         <concurrency>1</concurrency>
