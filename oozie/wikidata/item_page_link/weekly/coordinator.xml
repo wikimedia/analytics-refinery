@@ -78,11 +78,18 @@
         <data-in name="wikidata_entity_partitioned" dataset="wikidata_entity_partitioned">
             <instance>${coord:current(0)}</instance>
         </data-in>
+
+        <!--
+          The next 2 input datasets are partitioned monthly
+          Data up to month N being available at snapshot N-1, we need to shift
+          the instance by 1 month in the past (when current(0) is 2020-03-02 for
+          instance, we want the next 2 dataset instances being 2020-02).
+        -->
         <data-in name="mw_page_history_partitioned" dataset="mw_page_history_partitioned">
-            <instance>${coord:current(0)}</instance>
+            <instance>${coord:offset(-1, "MONTH")}</instance>
         </data-in>
         <data-in name="mw_project_namespace_map_partitioned" dataset="mw_project_namespace_map_partitioned">
-            <instance>${coord:current(0)}</instance>
+            <instance>${coord:offset(-1, "MONTH")}</instance>
         </data-in>
     </input-events>
 
@@ -106,7 +113,7 @@
                 </property>
                 <property>
                     <name>history_snapshot</name>
-                    <value>${coord:formatTime(coord:nominalTime(), "yyyy")}-${coord:formatTime(coord:nominalTime(), "MM")}</value>
+                    <value>${coord:formatTime(coord:dateOffset(coord:nominalTime(), -1, "MONTH"), "yyyy")}-${coord:formatTime(coord:dateOffset(coord:nominalTime(), -1, "MONTH"), "MM")}</value>
                 </property>
                 <property>
                     <name>wikidata_item_page_link_parquet_location</name>
