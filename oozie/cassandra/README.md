@@ -13,6 +13,7 @@ It has these main datasets:
 * Mediarequests top files
 * Unique devices
 * Pagecounts per project (historical)
+* Editors by country
 
 First, data is written in TSV files with aggregates computed
 in a cube fashion for some dimensions. Then, those flat files are
