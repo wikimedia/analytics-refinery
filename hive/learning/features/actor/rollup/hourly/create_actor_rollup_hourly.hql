@@ -25,15 +25,14 @@
 --
 
 CREATE EXTERNAL TABLE IF NOT EXISTS `actor_rollup_hourly`(
-  `version`                     string  COMMENT 'Version of the algorithm that calculates the feature rollup',
-  `actor_id`                    string  COMMENT 'Actor Identifier',
-  `interaction_start_ts`        string  COMMENT 'UTC timestamp in ISO 8601 format (e.g. 2019-08-27T14:00:00Z)',
-  `interaction_end_ts`          string  COMMENT 'UTC timestamp in ISO 8601 format (e.g. 2019-08-27T14:00:00Z)',
-  `interaction_length_secs`     bigint  COMMENT 'Interaction length in seconds so as not to have to calculate it with start and end intervals',
-  `pageview_count`              bigint  COMMENT 'Number of pageviews',
-  `pageview_ratio_per_min`      int     COMMENT 'Pageviews per minute',
-  `nocookies`                   bigint  COMMENT 'Sum() of all nocookies values in X-Analytics for all pageviews',
-  `user_agent_length`           int     COMMENT 'Length of user-agent field'
+  `version`                           string  COMMENT 'Version of the algorithm that calculates the feature rollup',
+  `actor_signature`                   string  COMMENT 'Actor signature',
+  `pageview_count`                    bigint  COMMENT 'Number of pageviews',
+  `pageview_rate_per_min`             int     COMMENT 'Number of pageviews per minute',
+  `nocookies`                         bigint  COMMENT 'Sum() of all nocookies values in X-Analytics for all pageviews',
+  `user_agent_length`                 int     COMMENT 'Length of user-agent field',
+  `avg_distinct_pages_visited_count`  double  COMMENT 'Average number of distinct pages visited per hour',
+  `rolled_up_hours`                   int     COMMENT 'Number of hours for which data was present to compute the rollup'
 )
 PARTITIONED BY (
     `year`                int    COMMENT 'Unpadded year',

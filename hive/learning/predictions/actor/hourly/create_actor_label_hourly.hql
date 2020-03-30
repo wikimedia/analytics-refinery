@@ -1,9 +1,7 @@
 -- Table holds label per actor.
 
--- Label can be "automated" if we estimate actor is a bot
--- or "user" otherwise
--- Labels are assigned hourly using features calculated with data
--- from the 24 hours prior
+-- Label can be "automated" if we estimate actor is a bot or "user" otherwise
+-- Labels are assigned hourly using features calculated with data from the 24 hours prior
 
 -- TODO once this is is been running for a while we need to see whether there are actors
 -- whose label shifts
@@ -27,7 +25,7 @@
 
 CREATE EXTERNAL TABLE IF NOT EXISTS `actor_label_hourly`(
     `version`                     string  COMMENT 'Version of the classifier that provided the label',
-    `actor_id`                    string  COMMENT 'Actor Identifier',
+    `actor_signature`             string  COMMENT 'Actor signature',
     `label`                       string  COMMENT 'Label assigned by heuristics or ML classifier, so far we have two: <user> or <automated>',
     `label_reason`                string  COMMENT 'Explains the main reason for assignation of label'
 )

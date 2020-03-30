@@ -35,6 +35,10 @@
             <description>hive-site.xml file path in HDFS</description>
         </property>
         <property>
+            <name>refinery_hive_jar_path</name>
+            <description>The HDFS path to the refinery-hive jar to use</description>
+        </property>
+        <property>
             <name>version</name>
             <description>Version of features computation</description>
         </property>
@@ -121,6 +125,7 @@
             <script>${hive_features_actor_hourly_script_aggregate}</script>
 
             <!-- Query parameters -->
+            <param>refinery_hive_jar_path=${refinery_hive_jar_path}</param>
             <param>source_table=${webrequest_table}</param>
             <param>destination_table=${features_actor_hourly_table}</param>
             <param>year=${year}</param>

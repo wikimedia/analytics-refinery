@@ -22,15 +22,15 @@
 --
 
 CREATE EXTERNAL TABLE IF NOT EXISTS `actor_hourly`(
-  `version`                     string  COMMENT 'Version of software that calculates these features',
-  `actor_id`                    string  COMMENT 'Actor Identifier',
-  `interaction_start_ts`        string  COMMENT 'UTC timestamp in ISO 8601 format (e.g. 2019-08-27T14:00:00Z)',
-  `interaction_end_ts`          string  COMMENT 'UTC timestamp in ISO 8601 format (e.g. 2019-08-27T14:00:00Z)',
-  `interaction_length_secs`     bigint  COMMENT 'Interaction length in seconds so as not to have to calculate it with start and end intervals',
-  `pageview_count`              bigint  COMMENT 'Number of pageviews',
-  `pageview_ratio_per_min`      int     COMMENT 'Pageviews per minute',
-  `nocookies`                   bigint  COMMENT 'Sum() of all nocookies values in X-Analytics for all pageviews',
-  `user_agent_length`           int     COMMENT 'Length of user-agent field'
+  `version`                      string  COMMENT 'Version of software that calculates these features',
+  `actor_signature`              string  COMMENT 'Actor signature as a hash',
+  `first_interaction_dt`         string  COMMENT 'UTC timestamp in ISO 8601 format (e.g. 2019-08-27T14:00:00Z) of the actor first interaction for that hour',
+  `last_interaction_dt`          string  COMMENT 'UTC timestamp in ISO 8601 format (e.g. 2019-08-27T14:00:00Z) of the actor last interaction for that hour',
+  `pageview_count`               bigint  COMMENT 'Number of pageviews',
+  `pageview_rate_per_min`        int     COMMENT 'Number of pageviews per minute',
+  `nocookies`                    bigint  COMMENT 'Sum() of all nocookies values in X-Analytics for all pageviews',
+  `user_agent_length`            int     COMMENT 'Length of user-agent field',
+  `distinct_pages_visited_count` bigint  COMMENT 'Number of distinct visited pages'
 )
 PARTITIONED BY (
     `year`                int    COMMENT 'Unpadded year',

@@ -44,14 +44,14 @@
 WITH actor_aggregated AS (
     SELECT
         ${version} as version,
-        actor_id,
-        min(interaction_start_ts) as interaction_start_ts,
-        max(interaction_end_ts) as interaction_end_ts,
-        (unix_timestamp(max(interaction_end_ts)) - unix_timestamp(min(interaction_start_ts))) as interaction_length_secs,
+        actor_signature,
         sum(pageview_count) as pageview_count,
-        cast((sum(pageview_count)/(unix_timestamp(max(interaction_end_ts)) - unix_timestamp( min(interaction_start_ts))) * 60) as int) as pageview_ratio_per_min,
+        cast((sum(pageview_count)/(unix_timestamp(max(last_interaction_dt)) - unix_timestamp( min(first_interaction_dt))) * 60) as int) as pageview_rate_per_min,
         sum(coalesce(nocookies, 0L)) as nocookies,
-        max(user_agent_length) as user_agent_length
+        max(user_agent_length) as user_agent_length,
+        avg(distinct_pages_visited_count) as avg_distinct_pages_visited_count,
+        -- Note: Any of the above feature can be used to compute rolled_up_hours, we had to pick one
+        SUM(CASE WHEN COALESCE(distinct_pages_visited_count, 0) > 0 THEN 1 ELSE 0 END) AS rolled_up_hours
 
     FROM ${source_table}
 
@@ -60,7 +60,7 @@ WITH actor_aggregated AS (
         OR (year=${interval_end_year} AND month=${interval_end_month} AND day=${interval_end_day} AND hour<=${interval_end_hour})
 
     GROUP BY
-        actor_id
+        actor_signature
 
 )
 
@@ -69,13 +69,12 @@ INSERT OVERWRITE TABLE ${destination_table}
 
     SELECT
         version,
-        actor_id,
-        interaction_start_ts,
-        interaction_end_ts,
-        interaction_length_secs,
+        actor_signature,
         pageview_count,
-        pageview_ratio_per_min,
+        pageview_rate_per_min,
         nocookies,
-        user_agent_length
+        user_agent_length,
+        avg_distinct_pages_visited_count,
+        rolled_up_hours
 
     FROM actor_aggregated;
