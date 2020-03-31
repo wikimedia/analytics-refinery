@@ -76,7 +76,7 @@ if [ -z "${VERSION}" ] || [ -z "${GERRIT_USER}" ] ; then
   exit 1
 fi
 
-if [ "${MODE}" != "push" ] && [ "${MODE}" != "review" ] && [ "${MODE}" != "dry-run"]; then
+if [ "${MODE}" != "push" ] && [ "${MODE}" != "review" ] && [ "${MODE}" != "dry-run" ]; then
   echo "Value for mode parameter (-m) can only be push, review or dry-run"
   echo "See ${SCRIPT_NAME} -h for help"
   exit 1
