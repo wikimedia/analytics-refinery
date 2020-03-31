@@ -107,7 +107,12 @@ fi
 # Set up git fat and gerrit commit message hook
 git fat init
 gitdir=$(git rev-parse --git-dir)
-scp -p -P 29418 "${GERRIT_USER}@gerrit.wikimedia.org:hooks/commit-msg" "${gitdir}/hooks/"
+if [ ! -e "${gitdir}/hooks/commit-msg" ]; then
+  echo 'Installing Gerrit commit-msg hook ...'
+  wget --quiet https://gerrit.wikimedia.org/r/tools/hooks/commit-msg \
+    -O "${gitdir}/hooks/"
+  chmod +x "${gitdir}/hooks/"
+fi
 
 # Run the git add and commit commands
 eval "$ADD_COMMAND"
