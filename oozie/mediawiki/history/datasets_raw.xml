@@ -61,6 +61,14 @@ Use this dataset in your coordinator.xml files by setting:
         <done-flag>_SUCCESS</done-flag>
     </dataset>
 
+    <dataset name="mw_imagelinks_table"
+             frequency="${coord:months(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${mw_raw_directory}/tables/imagelinks/snapshot=${YEAR}-${MONTH}</uri-template>
+        <done-flag>_SUCCESS</done-flag>
+    </dataset>
+
     <dataset name="mw_ipblocks_table"
              frequency="${coord:months(1)}"
              initial-instance="${start_time}"
@@ -204,6 +212,14 @@ Use this dataset in your coordinator.xml files by setting:
              initial-instance="${start_time}"
              timezone="Universal">
         <uri-template>${mw_raw_directory}/tables/content_models/snapshot=${YEAR}-${MONTH}</uri-template>
+        <done-flag>_PARTITIONED</done-flag>
+    </dataset>
+
+    <dataset name="mw_imagelinks_table_partitioned"
+             frequency="${coord:months(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${mw_raw_directory}/tables/imagelinks/snapshot=${YEAR}-${MONTH}</uri-template>
         <done-flag>_PARTITIONED</done-flag>
     </dataset>
 
