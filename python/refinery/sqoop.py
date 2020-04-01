@@ -34,7 +34,7 @@ class SqoopConfig:
                  user, password_file, jdbc_string,
                  num_mappers, fetch_size, output_format, tmp_base_path,
                  table_path_template, dbname, table, queries,
-                 target_jar_dir, jar_file,
+                 target_jar_dir, jar_file, yarn_queue,
                  current_try, dry_run):
 
         self.yarn_job_name_prefix = yarn_job_name_prefix
@@ -95,6 +95,7 @@ def sqoop_wiki(config):
             command,
             '-D'                , "mapred.job.name='{}-{}'".format(
                 config.yarn_job_name_prefix, full_table),
+            '-D'                , "mapreduce.job.queuename='{}'".format(config.yarn_queue),
             '--username'        , config.user,
             '--password-file'   , config.password_file,
             '--connect'         , config.jdbc_string,
