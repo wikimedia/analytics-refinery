@@ -2,9 +2,10 @@
 # and archive into legacy format.
 
 This job is responsible for filtering pageview data
-from the refined webrequest table, aggregating it into
-interesting dimensions, and finally transforming and
-archiving it into legacy format.
+from the refined webrequest table, joining it with the
+actor_label_hourly to flag some user traffic as automated,
+and aggregating it into interesting dimensions, to finally
+transform and archive it into legacy format.
 
 Output is appended into (year, month, day, hour) partitions
 in /wmf/data/wmf/pageview/hourly, and then archived into

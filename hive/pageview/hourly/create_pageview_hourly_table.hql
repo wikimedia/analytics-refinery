@@ -21,7 +21,7 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `pageview_hourly`(
     `page_title`        string  COMMENT 'Page Title from requests path and query',
     `access_method`     string  COMMENT 'Method used to access the pages, can be desktop, mobile web, or mobile app',
     `zero_carrier`      string  COMMENT 'NULL as zero program is over',
-    `agent_type`        string  COMMENT 'Agent accessing the pages, can be spider or user',
+    `agent_type`        string  COMMENT 'Agent accessing the pages, can be spider, user or automated (see https://wikitech.wikimedia.org/wiki/Analytics/Data_Lake/Traffic/Pageviews/Automated)',
     `referer_class`     string  COMMENT 'Can be none (null, empty or \'-\'), unknown (domain extraction failed), internal (domain is a wikimedia project), external (search engine) (domain is one of google, yahoo, bing, yandex, baidu, duckduckgo), external (any other)',
     `continent`         string  COMMENT 'Continent of the accessing agents (computed using maxmind GeoIP database)',
     `country_code`      string  COMMENT 'Country iso code of the accessing agents (computed using maxmind GeoIP database)',

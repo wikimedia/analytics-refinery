@@ -41,8 +41,16 @@
             <description>hive-site.xml file path in HDFS</description>
         </property>
         <property>
+            <name>refinery_hive_jar_path</name>
+            <description>The HDFS path to the hive jar file for UDFs</description>
+        </property>
+        <property>
             <name>webrequest_table</name>
             <description>Hive table to refine</description>
+        </property>
+        <property>
+            <name>predictions_actor_label_hourly_table</name>
+            <description>Hive table containing actors' labels to flag automated pageviews</description>
         </property>
         <property>
             <name>pageview_table</name>
@@ -169,7 +177,9 @@
             <script>${hive_pageview_script_aggregate}</script>
 
             <!-- Query parameters -->
+            <param>refinery_hive_jar_path=${refinery_hive_jar_path}</param>
             <param>source_table=${webrequest_table}</param>
+            <param>actor_label_table=${predictions_actor_label_hourly_table}</param>
             <param>destination_table=${pageview_table}</param>
             <param>record_version=${record_version}</param>
             <param>year=${year}</param>
