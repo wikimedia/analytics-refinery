@@ -99,6 +99,7 @@ GROUP BY
     pageview_info['project'],
     pageview_info['language_variant'],
     event.page_title,
+    COALESCE(access_method, 'desktop'),
     IF(useragent.is_bot, 'spider', 'user'),
     geocoded_data['continent'],
     geocoded_data['country_code'],
