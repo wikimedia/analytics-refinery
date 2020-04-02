@@ -24,6 +24,10 @@
             "dimensions" : [
                 "project",
                 "language_variant",
+                "project_family",
+                "namespace_is_content",
+                "namespace_is_talk",
+                "namespace_canonical_name",
                 "access_method",
                 "agent_type",
                 "referer_class",
@@ -71,4 +75,3 @@
     }
   }
 }
-

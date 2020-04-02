@@ -18,9 +18,13 @@
 
         <property><name>hive_site_xml</name></property>
         <property><name>workflow_file</name></property>
+        <property><name>mediawiki_datasets_raw_file</name></property>
+        <property><name>mw_raw_directory</name></property>
         <property><name>pageview_datasets_file</name></property>
         <property><name>pageview_data_directory</name></property>
         <property><name>pageview_table</name></property>
+        <property><name>wiki_map_table</name></property>
+        <property><name>namespace_map_table</name></property>
 
         <property><name>start_time</name></property>
         <property><name>stop_time</name></property>
@@ -51,12 +55,25 @@
 
     <datasets>
         <include>${pageview_datasets_file}</include>
+        <include>${mediawiki_datasets_raw_file}</include>
     </datasets>
 
     <input-events>
         <data-in name="pageview_hourly_input" dataset="pageview_hourly">
             <start-instance>${coord:current(0)}</start-instance>
             <end-instance>${coord:current(23)}</end-instance>
+        </data-in>
+
+        <!--
+            Project-namespace-map is made available for month X-1 after
+            all mediawiki tables are sqooped at the beginning of month X,
+            meaning around the 2nd at mid-day (currently).
+            We can't accept that much delay for pageviews to druid, so we
+            need to delay the data by 2 month and use snapshot 2020-02 (generated
+            on 2020-03-01 for pageview of month 2020-04.
+           -->
+        <data-in name="project_namespace_map_input" dataset="mw_project_namespace_map_partitioned">
+            <instance>${coord:offset(-2, "MONTH")}</instance>
         </data-in>
     </input-events>
 
@@ -79,6 +96,10 @@
                 <property>
                     <name>loaded_period</name>
                     <value>${coord:formatTime(coord:nominalTime(), "yyyy-MM-dd")}/${coord:formatTime(coord:dateOffset(coord:nominalTime(), 1, "DAY"), "yyyy-MM-dd")}</value>
+                </property>
+                <property>
+                    <name>mediawiki_snapshot</name>
+                    <value>${coord:formatTime(coord:dateOffset(coord:nominalTime(), -2, "MONTH"), "yyyy")}-${coord:formatTime(coord:dateOffset(coord:nominalTime(), -2, "MONTH"), "MM")}</value>
                 </property>
             </configuration>
         </workflow>
