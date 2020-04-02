@@ -21,6 +21,9 @@
 # symlink them in ./artifacts/, and add and commit jars to git
 #
 
+set -eu
+set -o pipefail
+
 #Initialize variables to default values.
 VERSION=
 BRANCH="master"
