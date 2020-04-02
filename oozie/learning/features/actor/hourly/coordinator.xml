@@ -28,6 +28,7 @@
         <property><name>features_data_directory</name></property>
 
         <property><name>hive_site_xml</name></property>
+        <property><name>refinery_hive_jar_path</name></property>
 
         <property><name>webrequest_table</name></property>
         <property><name>features_actor_hourly_table</name></property>
