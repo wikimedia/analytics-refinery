@@ -110,8 +110,8 @@ gitdir=$(git rev-parse --git-dir)
 if [ ! -e "${gitdir}/hooks/commit-msg" ]; then
   echo 'Installing Gerrit commit-msg hook ...'
   wget --quiet https://gerrit.wikimedia.org/r/tools/hooks/commit-msg \
-    -O "${gitdir}/hooks/"
-  chmod +x "${gitdir}/hooks/"
+    -O "${gitdir}/hooks/commit-msg"
+  chmod +x "${gitdir}/hooks/commit-msg"
 fi
 
 # Run the git add and commit commands
