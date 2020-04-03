@@ -697,32 +697,6 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         'mappers-weight': 1.0,
     }
 
-    # wikidatawiki tables only below here (relating to entity terms)
-    queries['wb_terms'] = {
-        'query': '''
-             select term_row_id,
-                    convert(term_full_entity_id using utf8) term_full_entity_id,
-                    convert(term_entity_type using utf8) term_entity_type,
-                    convert(term_language using utf8) term_language,
-                    convert(term_type using utf8) term_type,
-                    convert(term_text using utf8) term_text
-               from wb_terms
-              where $CONDITIONS
-        ''',
-        'map-types': '"{}"'.format(','.join([
-            'term_row_id=Long',
-            'term_full_entity_id=String',
-            'term_entity_type=String',
-            'term_language=String',
-            'term_type=String',
-            'term_text=String',
-        ])),
-        'boundary-query': 'SELECT MIN(term_row_id), MAX(term_row_id) FROM wb_terms',
-        'split-by': 'term_row_id',
-        'mappers-weight': 1.0,
-        'sqoopable_dbnames': ['wikidatawiki'],
-    }
-
     queries['wbt_item_terms'] = {
         'query': '''
              select wbit_id,
