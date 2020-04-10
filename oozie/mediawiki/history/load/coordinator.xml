@@ -30,6 +30,7 @@
         <property><name>mw_change_tag_def_table</name></property>
         <property><name>mw_content_table</name></property>
         <property><name>mw_content_models_table</name></property>
+        <property><name>mw_imagelinks_table</name></property>
         <property><name>mw_ipblocks_table</name></property>
         <property><name>mw_ipblocks_restrictions_table</name></property>
         <property><name>mw_logging_table</name></property>
@@ -91,6 +92,9 @@
             <instance>${coord:current(0)}</instance>
         </data-in>
         <data-in name="mw_content_models_table" dataset="mw_content_models_table">
+            <instance>${coord:current(0)}</instance>
+        </data-in>
+        <data-in name="mw_imagelinks_table" dataset="mw_imagelinks_table">
             <instance>${coord:current(0)}</instance>
         </data-in>
         <data-in name="mw_ipblocks_table" dataset="mw_ipblocks_table">
@@ -156,6 +160,9 @@
             <instance>${coord:current(0)}</instance>
         </data-out>
         <data-out name="mw_content_models_table_partitioned" dataset="mw_content_models_table_partitioned">
+            <instance>${coord:current(0)}</instance>
+        </data-out>
+        <data-out name="mw_imagelinks_table_partitioned" dataset="mw_imagelinks_table_partitioned">
             <instance>${coord:current(0)}</instance>
         </data-out>
         <data-out name="mw_ipblocks_table_partitioned" dataset="mw_ipblocks_table_partitioned">
@@ -234,6 +241,10 @@
                 <property>
                     <name>mw_content_models_table_location</name>
                     <value>${coord:dataIn('mw_content_models_table')}</value>
+                </property>
+                <property>
+                    <name>mw_imagelinks_table_location</name>
+                    <value>${coord:dataIn('mw_imagelinks_table')}</value>
                 </property>
                 <property>
                     <name>mw_ipblocks_table_location</name>
