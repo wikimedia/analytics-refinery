@@ -1478,13 +1478,16 @@ Popups:
     webhost: keep
     wiki: keep
 
+# https://meta.wikimedia.org/wiki/Schema:PrefUpdate
+#
+# NOTE: This is also loaded into Druid/Turnilo, which aggregates by
+# event.isDefault, event.property and wiki (see operations/puppet).
+#
+# For ad-hoc queries, also keep major version and webhost.
 PrefUpdate:
     event:
         isDefault: keep
         property: keep
-        saveTimestamp: keep
-        userId: keep
-        value: keep
         version: keep
     webhost: keep
     wiki: keep
