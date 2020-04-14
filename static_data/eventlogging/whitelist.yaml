@@ -215,6 +215,16 @@ ExternalGuidance:
     webhost: keep
     wiki: keep
 
+FirstInputTiming:
+    event:
+        pageviewToken: hash
+        processingStart: keep
+        processingEnd: keep
+        name: keep
+        startTime: keep
+        duration: keep
+        FID: keep
+
 FlowReplies:
     event:
         action: keep
@@ -1378,6 +1388,7 @@ NavigationTiming:
         deviceMemory: keep
         fetchStart: keep
         gaps: keep
+        hardwareConcurrency: keep
         isAnon: keep
         isHiDPI: keep
         isHttp2: keep
