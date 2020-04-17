@@ -89,8 +89,8 @@ archiva_base_uri="https://archiva.wikimedia.org/repository/releases/org/wikimedi
 
 # This list is hardcoded now. TODO: Make this configurable
 for j in camus core job cassandra hive; do
-    (wget "${archiva_base_uri}/$j/refinery-$j/$VERSION/refinery-$j-$VERSION.jar" \
-        -O ./artifacts/org/wikimedia/analytics/refinery/"refinery-$j-${VERSION}.jar" \
+    (curl -L -o ./artifacts/org/wikimedia/analytics/refinery/"refinery-$j-${VERSION}.jar" \
+		"${archiva_base_uri}/$j/refinery-$j/$VERSION/refinery-$j-$VERSION.jar" \
         && ln -sfv org/wikimedia/analytics/refinery/"refinery-$j-${VERSION}.jar" ./artifacts/refinery-$j.jar) &
 done
 
@@ -114,8 +114,8 @@ git fat init
 gitdir=$(git rev-parse --git-dir)
 if [ ! -e "${gitdir}/hooks/commit-msg" ]; then
   echo 'Installing Gerrit commit-msg hook ...'
-  wget --quiet https://gerrit.wikimedia.org/r/tools/hooks/commit-msg \
-    -O "${gitdir}/hooks/commit-msg"
+  curl -L -o "${gitdir}/hooks/commit-msg" \
+	  https://gerrit.wikimedia.org/r/tools/hooks/commit-msg
   chmod +x "${gitdir}/hooks/commit-msg"
 fi
 
