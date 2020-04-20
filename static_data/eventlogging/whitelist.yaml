@@ -1403,7 +1403,9 @@ NavigationTiming:
         mediaWikiVersion: keep
         mobileMode: keep
         namespaceId: keep
+        netinfoDownlink: keep
         netinfoEffectiveConnectionType: keep
+        netinfoRtt: keep
         pageviewToken: hash
         phpEngine: keep
         oversampleReason: keep
