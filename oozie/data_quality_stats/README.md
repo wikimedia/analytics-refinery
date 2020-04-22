@@ -133,30 +133,27 @@ will select the corresponding bundle.
 
 #### Run in production
 ```
-sudo -u analytics oozie job --oozie $OOZIE_URL \
-    -Drefinery_directory=hdfs://analytics-hadoop$(hdfs dfs -ls -d /wmf/refinery/2019* | tail -n 1 | awk '{print $NF}') \
+sudo -u analytics kerberos-run-command analytics oozie job \
+    --oozie $OOZIE_URL     \
+    -Drefinery_directory=hdfs://analytics-hadoop$(hdfs dfs -ls -d /wmf/refinery/$(date +"%Y")* | tail -n 1 | awk '{print $NF}') \
     -Dqueue='production' \
-    -Dgranularity='hourly' \
-    -Dstart_time='2019-04-01T00:00Z' \
-    -config /home/mforns/refinery/oozie/data_quality_stats/bundle.properties \
+    -Dgranularity='daily' \
+    -Dstart_time='2020-04-21T22:00Z' \
+    -config /srv/deployment/analytics/refinery/oozie/data_quality_stats/bundle.properties \
     -run
 ```
 
+
 #### Backfill production
+To backfill we need to add a start/stop time for the dates we are backfilling to the command above
 ```
-sudo -u analytics oozie job --oozie $OOZIE_URL \
-    -Drefinery_directory=hdfs://analytics-hadoop$(hdfs dfs -ls -d /wmf/refinery/2019* | tail -n 1 | awk '{print $NF}') \
-    -Dqueue='production' \
-    -Dgranularity='hourly' \
-    -Dstart_time='2019-04-01T00:00Z' \
-    -Dstop_time='2019-04-01T23:59Z' \
-    -config /home/mforns/refinery/oozie/data_quality_stats/bundle.properties \
-    -run
+-Dstart_time='2020-04-01T00:00Z' \
+-Dstop_time='2020-04-01T23:59Z' \
 ```
 
 #### Test code changes
 ```
-sudo -u analytics oozie job --oozie $OOZIE_URL \
+sudo -u analytics kerberos-run-command  analytics oozie job --oozie $OOZIE_URL \
     -Dgranularity='hourly' \
     -Dstart_time='2019-04-01T00:00Z' \
     -Dstop_time='2019-04-01T23:59Z' \
