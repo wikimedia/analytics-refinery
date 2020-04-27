@@ -64,6 +64,12 @@ CpuBenchmark:
     event:
         score: keep
         pageviewToken: hash
+    geocoded_data:
+        country: keep
+    useragent:
+        browser_family: keep
+        os_family: keep
+        is_bot: keep
 
 DiacriticsPoll:
     event:
