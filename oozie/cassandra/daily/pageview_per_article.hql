@@ -32,17 +32,17 @@ INSERT OVERWRITE DIRECTORY "${destination_directory}"
             CONCAT(LPAD(year, 4, "0"), LPAD(month, 2, "0"), LPAD(day, 2, "0"), "00"),
             -- All access - all agents
             CAST(SUM(view_count) AS STRING),
-            -- All access - bot
-            CAST(SUM( IF (COALESCE(agent_type, 'all-agents') = 'bot', view_count, 0)) AS STRING),
+            -- All access - automated
+            CAST(SUM( IF (COALESCE(agent_type, 'all-agents') = 'automated', view_count, 0)) AS STRING),
             -- All access - spider
             CAST(SUM( IF (COALESCE(agent_type, 'all-agents') = 'spider', view_count, 0)) AS STRING),
             -- All access - user
             CAST(SUM( IF (COALESCE(agent_type, 'all-agents') = 'user', view_count, 0)) AS STRING),
             -- desktop - all agents
             CAST(SUM( IF (COALESCE(regexp_replace(access_method, ' ', '-'), 'all-access') = 'desktop', view_count, 0)) AS STRING),
-            -- desktop - bot
+            -- desktop - automated
             CAST(SUM( IF ((COALESCE(regexp_replace(access_method, ' ', '-'), 'all-access') = 'desktop')
-                AND (COALESCE(agent_type, 'all-agents') = 'bot'), view_count, 0)) AS STRING),
+                AND (COALESCE(agent_type, 'all-agents') = 'automated'), view_count, 0)) AS STRING),
             -- desktop - spider
             CAST(SUM( IF ((COALESCE(regexp_replace(access_method, ' ', '-'), 'all-access') = 'desktop')
                 AND (COALESCE(agent_type, 'all-agents') = 'spider'), view_count, 0)) AS STRING),
@@ -51,9 +51,9 @@ INSERT OVERWRITE DIRECTORY "${destination_directory}"
                 AND (COALESCE(agent_type, 'all-agents') = 'user'), view_count, 0)) AS STRING),
             -- mobile app - all agents
             CAST(SUM( IF (COALESCE(regexp_replace(access_method, ' ', '-'), 'all-access') = 'mobile-app', view_count, 0)) AS STRING),
-            -- mobile app - bot
+            -- mobile app - automated
             CAST(SUM( IF ((COALESCE(regexp_replace(access_method, ' ', '-'), 'all-access') = 'mobile-app')
-                AND (COALESCE(agent_type, 'all-agents') = 'bot'), view_count, 0)) AS STRING),
+                AND (COALESCE(agent_type, 'all-agents') = 'automated'), view_count, 0)) AS STRING),
             -- mobile app - spider
             CAST(SUM( IF ((COALESCE(regexp_replace(access_method, ' ', '-'), 'all-access') = 'mobile-app')
                 AND (COALESCE(agent_type, 'all-agents') = 'spider'), view_count, 0)) AS STRING),
@@ -62,9 +62,9 @@ INSERT OVERWRITE DIRECTORY "${destination_directory}"
                 AND (COALESCE(agent_type, 'all-agents') = 'user'), view_count, 0)) AS STRING),
             -- mobile web - all agents
             CAST(SUM( IF (COALESCE(regexp_replace(access_method, ' ', '-'), 'all-access') = 'mobile-web', view_count, 0)) AS STRING),
-            -- mobile web - bot
+            -- mobile web - automated
             CAST(SUM( IF ((COALESCE(regexp_replace(access_method, ' ', '-'), 'all-access') = 'mobile-web')
-                AND (COALESCE(agent_type, 'all-agents') = 'bot'), view_count, 0)) AS STRING),
+                AND (COALESCE(agent_type, 'all-agents') = 'automated'), view_count, 0)) AS STRING),
             -- mobile web - spider
             CAST(SUM( IF ((COALESCE(regexp_replace(access_method, ' ', '-'), 'all-access') = 'mobile-web')
                 AND (COALESCE(agent_type, 'all-agents') = 'spider'), view_count, 0)) AS STRING),
