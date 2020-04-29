@@ -8,31 +8,34 @@
     timezone="Universal">
 
     <parameters>
-        <!-- Required properties -->
         <property><name>name_node</name></property>
         <property><name>job_tracker</name></property>
         <property><name>queue_name</name></property>
         <property><name>hive_principal</name></property>
         <property><name>hive2_jdbc_url</name></property>
-
+        <property><name>user</name></property>
         <property><name>workflow_file</name></property>
-        <property><name>start_time</name></property>
-        <property><name>stop_time</name></property>
         <property><name>hive_site_xml</name></property>
 
-        <property><name>datasets_raw_file</name></property>
-        <property><name>mw_raw_directory</name></property>
+        <property><name>start_time</name></property>
+        <property><name>stop_time</name></property>
+
         <property><name>datasets_private_file</name></property>
         <property><name>mw_private_directory</name></property>
+        <property><name>datasets_raw_file</name></property>
+        <property><name>mw_raw_directory</name></property>
 
+        <property><name>editors_daily_table</name></property>
         <property><name>geoeditors_monthly_table</name></property>
         <property><name>geoeditors_public_monthly_table</name></property>
-        <property><name>geoeditors_blacklist_country_table</name></property>
         <property><name>mw_project_namespace_map_table</name></property>
+        <property><name>country_blacklist_table</name></property>
         <property><name>country_info_table</name></property>
 
         <property><name>destination_directory</name></property>
         <property><name>temporary_directory</name></property>
+
+        <property><name>sla_alert_contact</name></property>
 
         <property><name>archive_job_output_workflow_file</name></property>
         <property><name>mark_directory_done_workflow_file</name></property>
@@ -42,13 +45,10 @@
     <controls>
         <!--(timeout is measured in minutes)-->
         <timeout>-1</timeout>
-
         <!-- Setting low concurrency for resource sharing.
              The job runs pretty fast (~1 minute) and increasing concurrency should not cause any problems-->
         <concurrency>1</concurrency>
-
         <throttle>2</throttle>
-
     </controls>
 
     <datasets>
@@ -57,10 +57,13 @@
     </datasets>
 
     <input-events>
+        <data-in name="editors_daily" dataset="editors_daily">
+            <instance>${coord:current(0)}</instance>
+        </data-in>
         <data-in name="geoeditors_monthly" dataset="geoeditors_monthly">
             <instance>${coord:current(0)}</instance>
         </data-in>
-        <data-in name="mw_project_namespace_map" dataset="mw_project_namespace_map">
+        <data-in name="mw_project_namespace_map_partitioned" dataset="mw_project_namespace_map_partitioned">
             <instance>${coord:current(0)}</instance>
         </data-in>
     </input-events>
@@ -86,5 +89,18 @@
                 </property>
             </configuration>
         </workflow>
+
+        <sla:info>
+            <!--
+                Use action actual time as SLA base, since it's the time used
+                to compute timeout. Job is waiting for mediawiki history to be
+                computed, which can be waiting up to 35 days. Give 1 day margin.
+            -->
+            <sla:nominal-time>${coord:actualTime()}</sla:nominal-time>
+            <sla:should-end>${36 * DAYS}</sla:should-end>
+            <sla:alert-events>end_miss</sla:alert-events>
+            <sla:alert-contact>${sla_alert_contact}</sla:alert-contact>
+        </sla:info>
     </action>
+
 </coordinator-app>
