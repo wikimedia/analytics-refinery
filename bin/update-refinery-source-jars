@@ -101,6 +101,8 @@ COMMIT_COMMAND="git commit -m 'Add refinery-source jars for v${VERSION} to artif
 
 # If this is a dry run, just print the git commands to run and exit
 if [ "${MODE}" = "dry-run" ] ; then
+  echo "Result:"
+  git diff --stat
   echo "Run the following commands to commit the new jars"
   echo "$ADD_COMMAND"
   echo "$COMMIT_COMMAND"
