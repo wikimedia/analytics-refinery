@@ -43,7 +43,9 @@ FROM (
         month = ${month} AND
         day = ${day} AND
         hour = ${hour} AND
-        agent_type = 'user'
+        agent_type = 'user' AND
+        -- Hotfix: Remove North Korea as it has too few traffic.
+        p.country != 'North Korea'
     GROUP BY
         p.country,
         city
