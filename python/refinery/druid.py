@@ -24,7 +24,7 @@ import json
 import datetime
 import time
 
-from refinery.http import HTTP
+from refinery.http_util import HTTP
 from urllib.parse import urlparse
 from urllib.request import build_opener, Request, HTTPHandler, urlopen
 from urllib.error import HTTPError, URLError

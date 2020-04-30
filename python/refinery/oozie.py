@@ -26,7 +26,7 @@ import time
 import os
 import operator
 
-from refinery.http import HTTP
+from refinery.http_util import HTTP
 
 from urllib.parse import urlencode
 from urllib.request import build_opener, Request, HTTPHandler, urlopen
