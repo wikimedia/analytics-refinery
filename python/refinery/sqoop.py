@@ -58,6 +58,7 @@ class SqoopConfig:
         self.is_sqoopable = (('sqoopable_dbnames' not in queries[table]) or (dbname in queries[table]['sqoopable_dbnames']))
         self.target_jar_dir = target_jar_dir
         self.jar_file = jar_file
+        self.yarn_queue = yarn_queue
         self.current_try = current_try
         self.dry_run = dry_run
 

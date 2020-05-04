@@ -43,7 +43,8 @@ Usage:
           [--mappers NUM] [--processors NUM]  [--fetch-size NUM]
           [--hdfs-tmp-path HTMP]  [--local-tmp-path LTMP]
           [--job-name JOB_NAME] [--jar-file JAR_IN] --output-format FMT
-          [--sample-wiki-for-jar WIKI] [--log-file LOG] [--dry-run]
+          [--yarn-queue QUEUE] [--sample-wiki-for-jar WIKI]
+          [--log-file LOG] [--dry-run]
 
 Options:
     -h --help                           Show this help message and exit.
