@@ -96,7 +96,7 @@ def sqoop_wiki(config):
             command,
             '-D'                , "mapred.job.name='{}-{}'".format(
                 config.yarn_job_name_prefix, full_table),
-            '-D'                , "mapreduce.job.queuename='{}'".format(config.yarn_queue),
+            '-D'                , "mapreduce.job.queuename={}".format(config.yarn_queue),
             '--username'        , config.user,
             '--password-file'   , config.password_file,
             '--connect'         , config.jdbc_string,
