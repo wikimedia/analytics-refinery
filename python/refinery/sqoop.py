@@ -34,7 +34,7 @@ class SqoopConfig:
                  user, password_file, jdbc_string,
                  num_mappers, fetch_size, output_format, tmp_base_path,
                  table_path_template, dbname, table, queries,
-                 target_jar_dir, jar_file, yarn_queue,
+                 target_jar_dir, jar_file, yarn_queue, driver_class,
                  current_try, dry_run):
 
         self.yarn_job_name_prefix = yarn_job_name_prefix
@@ -59,6 +59,7 @@ class SqoopConfig:
         self.target_jar_dir = target_jar_dir
         self.jar_file = jar_file
         self.yarn_queue = yarn_queue
+        self.driver_class = driver_class
         self.current_try = current_try
         self.dry_run = dry_run
 
@@ -99,6 +100,7 @@ def sqoop_wiki(config):
             '-D'                , "mapreduce.job.queuename={}".format(config.yarn_queue),
             '--username'        , config.user,
             '--password-file'   , config.password_file,
+            '--driver'          , config.driver_class,
             '--connect'         , config.jdbc_string,
             '--query'           , query,
         ]
