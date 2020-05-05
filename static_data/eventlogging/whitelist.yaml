@@ -438,10 +438,11 @@ Kartographer:
     webhost: keep
     wiki: keep
 
-LayoutJank:
+LayoutShift:
     event:
         pageviewToken: hash
-        fraction: keep
+        value: keep
+        entryTime: keep
 
 MediaViewer:
     event:
