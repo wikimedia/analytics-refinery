@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Defines reusable datasets for event data.
+Use this dataset in your coordinator.xml files by setting:
+
+    ${event_data_directory}     - Path to event data.
+                                  Example: /wmf/data/event
+    start time is hard coded!   - We need to start when data is available,
+                                  and can't rely on the coordinator start_time
+                                  because in some cases we need data before
+
+NOTE: special for events datasets, we use datacenter=eqiad as a proxy for
+"availability" of the data.  This may be empty if we have switched to codfw,
+but that's ok for now since it doesn't happen that often.  If the job is stuck
+waiting for an empty folder, we'll get an SLA alarm and intervene manually.
+
+Consumers have to take care to query the hive table with the same hours and
+not specify the datacenter partition.  This will get all available data.
+-->
+
+<datasets>
+
+    <!-- 2018-04-11T19 is the first date that this dataset has _SUCCESS flags, but
+    technically there's databack to 2017 -->
+    <dataset name="event_mediawiki_page_move"
+             frequency="${coord:hours(1)}"
+             initial-instance="2018-04-11T19:00Z"
+             timezone="Universal">
+        <uri-template>${event_data_directory}/mediawiki_page_move/datacenter=eqiad/year=${YEAR}/month=${MONTH}/day=${DAY}/hour=${HOUR}</uri-template>
+        <done-flag>_SUCCESS</done-flag>
+    </dataset>
+
+</datasets>

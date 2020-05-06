@@ -74,6 +74,10 @@
             <description>The mediawiki_page_history table in hive as source</description>
         </property>
         <property>
+            <name>event_page_move_table</name>
+            <description>The mediawiki_page_move table in hive as source</description>
+        </property>
+        <property>
             <name>mw_project_namespace_map_table</name>
             <description>The mediawiki_project_namespace_map table in hive as source</description>
         </property>
@@ -165,6 +169,8 @@
             <arg>${mw_project_namespace_map_table}</arg>
             <arg>--page-history-table</arg>
             <arg>${mw_page_history_table}</arg>
+            <arg>--page-move-table</arg>
+            <arg>${event_page_move_table}</arg>
             <arg>--wikidata-snapshot</arg>
             <arg>${wikidata_snapshot}</arg>
             <arg>--history-snapshot</arg>
