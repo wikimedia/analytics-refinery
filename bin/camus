@@ -107,8 +107,8 @@ if __name__ == '__main__':
         # T226232
         checker_command = '/usr/bin/java -cp "{0}:/etc/hadoop/conf" {1} {2} org.wikimedia.analytics.refinery.camus.CamusPartitionChecker -c {3} {4} {5} {6}'.format(
             check_classpath,
-            check_java_opts,
             extra_java_opts,
+            check_java_opts,
             properties_file,
             datetime_to_check,
             check_dry_run,
