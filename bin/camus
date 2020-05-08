@@ -56,6 +56,17 @@ if __name__ == '__main__':
     properties_file = arguments['<properties-file>']
     dry_run = arguments['--dry-run']
 
+    extra_java_opts = ''
+    # If --dynamic-stream-configs, then build the kafka.whitelist.topics
+    # dynamically via EventStreamConfig Mediawiki API.
+    # NOTE: get_topics_in_active_streams may
+    # be break if topic naming conventions change on producer side.
+    if arguments['--dynamic-stream-configs']:
+        topics_regex = get_topics_in_active_streams(
+            None, True, {'host': arguments['--stream-configs-hostname']}
+        )
+        extra_java_opts = extra_java_opts + ' -Dkafka.whitelist.topics="{}"'.format(topics_regex)
+
     #Camus execution block
     if (arguments['--run']):
         jar             = arguments['--jar']
@@ -66,17 +77,6 @@ if __name__ == '__main__':
             logging.warn('Not submitting camus job "{0}", it is currently running.'.format(job_name))
             sys.exit(1)
 
-
-        extra_java_opts = ''
-        # If --dynamic-stream-configs, then build the kafka.whitelist.topics
-        # dynamically via EventStreamConfig Mediawiki API.
-        # NOTE: get_topics_in_active_streams may
-        # be break if topic naming conventions change on producer side.
-        if arguments['--dynamic-stream-configs']:
-            topics_regex = get_topics_in_active_streams(
-                None, True, {'host': arguments['--stream-configs-hostname']}
-            )
-            extra_java_opts = extra_java_opts + ' -Dkafka.whitelist.topics="{}"'.format(topics_regex)
 
         libjars_opt = '' if not libjars else ('-libjars ' + libjars)
         camus_command = '/usr/bin/hadoop jar {0} com.linkedin.camus.etl.kafka.CamusJob {1} -P {2} -Dcamus.job.name="{3}" {4}'.format(
