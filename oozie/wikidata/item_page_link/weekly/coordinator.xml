@@ -37,9 +37,12 @@
         <property><name>mw_directory</name></property>
         <property><name>mw_raw_datasets_file</name></property>
         <property><name>mw_raw_directory</name></property>
+        <property><name>event_datasets_file</name></property>
+        <property><name>event_data_directory</name></property>
 
         <property><name>wikidata_entity_table</name></property>
         <property><name>mw_page_history_table</name></property>
+        <property><name>event_page_move_table</name></property>
         <property><name>mw_project_namespace_map_table</name></property>
         <property><name>wikidata_item_page_link_table</name></property>
 
@@ -72,6 +75,7 @@
         <include>${wikidata_datasets_file}</include>
         <include>${mw_datasets_file}</include>
         <include>${mw_raw_datasets_file}</include>
+        <include>${event_datasets_file}</include>
     </datasets>
 
     <input-events>
@@ -90,6 +94,16 @@
         </data-in>
         <data-in name="mw_project_namespace_map_partitioned" dataset="mw_project_namespace_map_partitioned">
             <instance>${coord:offset(-1, "MONTH")}</instance>
+        </data-in>
+
+        <!--
+          We need to include data from the history snapshot to the end of the wikidata entity
+          snapshot, so for 2020-03-02 for instance, we want 2020-03-01 to 2020-03-09.
+          However, due to limitations in Oozie, we have to approximate this with -1 month to +7 days
+        -->
+        <data-in name="event_mediawiki_page_move" dataset="event_mediawiki_page_move">
+            <start-instance>${coord:offset(-1, "MONTH")}</start-instance>
+            <end-instance>${coord:offset(7, "DAY")}</end-instance>
         </data-in>
     </input-events>
 

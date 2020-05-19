@@ -12,4 +12,5 @@ in the language project, adding some complexity retrieving the related page.
 Note: page-history being computed monthly and wikidata-entity weekly,
 item_page_link gets less precise as they the month advance (the first snapshot
 of the month is more up-to-date than the last, due to pages data being almost
-one month old).
+one month old). To try and address this, as of 2020-05-20 we're joining to
+mediawiki_page_move event data to get the more recent titles.
