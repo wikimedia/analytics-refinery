@@ -1,0 +1,63 @@
+<workflow-app name="loop_mark_hour_done_${loop_value}" xmlns="uri:oozie:workflow:0.4">
+    <credentials>
+        <credential name="hive2-cred" type="hive2">
+            <property>
+                <name>hive2.server.principal</name>
+                <value>${hive_principal}</value>
+            </property>
+            <property>
+               <name>hive2.jdbc.url</name>
+               <value>${hive2_jdbc_url}</value>
+            </property>
+        </credential>
+    </credentials>
+    <start to="mark_hour_done"/>
+
+    <action name="mark_hour_done">
+        <sub-workflow>
+            <app-path>${mark_directory_done_workflow_file}</app-path>
+            <propagate-configuration/>
+            <configuration>
+                <property>
+                    <name>directory</name>
+                    <value>${data_directory}/year=${year}/month=${month}/day=${day}/hour=${loop_value}</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="end"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <action name="send_error_email">
+        <sub-workflow>
+            <app-path>${send_error_email_workflow_file}</app-path>
+            <propagate-configuration/>
+            <configuration>
+                <property>
+                    <name>parent_name</name>
+                    <value>${wf:name()}</value>
+                </property>
+                <property>
+                    <name>parent_failed_action</name>
+                    <value>${wf:lastErrorNode()}</value>
+                </property>
+                <property>
+                    <name>parent_error_code</name>
+                    <value>${wf:errorCode(wf:lastErrorNode())}</value>
+                </property>
+                <property>
+                    <name>parent_error_message</name>
+                    <value>${wf:errorMessage(wf:lastErrorNode())}</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="kill"/>
+        <error to="kill"/>
+    </action>
+
+    <kill name="kill">
+        <message>Oops!</message>
+    </kill>
+
+    <end name="end"/>
+</workflow-app>

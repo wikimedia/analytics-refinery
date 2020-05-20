@@ -57,4 +57,12 @@ Use this dataset in your coordinator.xml files by setting:
         <uri-template>${pageview_data_directory}/actor/hourly/year=${YEAR}/month=${"$"}{MONTH + 0}/day=${"$"}{DAY + 0}/hour=${"$"}{HOUR + 0}</uri-template>
         <done-flag>_SUCCESS</done-flag>
     </dataset>
+
+    <dataset name="pageview_historical_hourly"
+             frequency="${coord:hours(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${pageview_data_directory}/historical/year=${YEAR}/month=${"$"}{MONTH + 0}/day=${"$"}{DAY + 0}/hour=${"$"}{HOUR + 0}</uri-template>
+        <done-flag>_SUCCESS</done-flag>
+    </dataset>
 </datasets>

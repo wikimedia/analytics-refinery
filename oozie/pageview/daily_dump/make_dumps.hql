@@ -30,6 +30,7 @@ SET mapreduce.output.fileoutputformat.compress.codec=org.apache.hadoop.io.compre
 -- write 3 folders at once without having to go over the data multiple times.
 -- The single file for each agent type is made thanks to the ORDER BY statement
 -- at the bottom.
+DROP TABLE IF EXISTS ${temporary_table};
 CREATE EXTERNAL TABLE ${temporary_table} (
     line string
 )
