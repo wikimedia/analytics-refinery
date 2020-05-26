@@ -501,6 +501,33 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         'mappers-weight': 1.0,
     }
 
+    queries['page_restrictions'] = {
+        'query': '''
+             select pr_id,
+                    pr_page,
+                    convert(pr_type using utf8) pr_type,
+                    convert(pr_level using utf8) pr_level,
+                    pr_cascade,
+                    pr_user,
+                    convert(pr_expiry using utf8) pr_expiry
+
+               from page_restrictions
+              where $CONDITIONS
+        ''',
+        'map-types': '"{}"'.format(','.join([
+            'pr_id=Long',
+            'pr_page=Long',
+            'pr_type=String',
+            'pr_level=String',
+            'pr_cascade=Integer',
+            'pr_user=Long',
+            'pr_expiry=String',
+        ])),
+        'boundary-query': 'SELECT MIN(pr_id), MAX(pr_id) FROM page_restrictions',
+        'split-by': 'pr_id',
+        'mappers-weight': 0.125,
+    }
+
     queries['redirect'] = {
         'query': '''
              select rd_from,
