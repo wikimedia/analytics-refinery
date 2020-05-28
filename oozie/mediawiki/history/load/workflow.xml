@@ -76,6 +76,10 @@
             <description>Pagelinks table imported from Mediawiki</description>
         </property>
         <property>
+            <name>mw_page_restrictions_table</name>
+            <description>Page_restrictions table imported from Mediawiki</description>
+        </property>
+        <property>
             <name>mw_redirect_table</name>
             <description>Redirect table imported from Mediawiki</description>
         </property>
@@ -162,6 +166,10 @@
         <property>
             <name>mw_pagelinks_table_location</name>
             <description>Path to pagelinks table data on HDFS</description>
+        </property>
+        <property>
+            <name>mw_page_restrictions_table_location</name>
+            <description>Path to page_restrictions table data on HDFS</description>
         </property>
         <property>
             <name>mw_redirect_table_location</name>
@@ -579,6 +587,37 @@
                 <property>
                     <name>directory</name>
                     <value>${mw_pagelinks_table_location}</value>
+                </property>
+                <property>
+                    <name>done_file</name>
+                    <value>_PARTITIONED</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="repair_mw_page_restrictions_table_partitions"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <!-- page_restrictions -->
+    <action name="repair_mw_page_restrictions_table_partitions">
+        <sub-workflow>
+            <app-path>${repair_partitions_workflow_file}</app-path>
+            <propagate-configuration/>
+            <configuration>
+                <property><name>table</name><value>${mw_page_restrictions_table}</value></property>
+            </configuration>
+        </sub-workflow>
+        <ok to="mark_mw_page_restrictions_table_hive_done"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <action name="mark_mw_page_restrictions_table_hive_done">
+        <sub-workflow>
+            <app-path>${mark_directory_done_workflow_file}</app-path>
+            <configuration>
+                <property>
+                    <name>directory</name>
+                    <value>${mw_page_restrictions_table_location}</value>
                 </property>
                 <property>
                     <name>done_file</name>
