@@ -111,11 +111,13 @@
             <!--
                 Use action actual time as SLA base, since it's the time used
                 to compute timeout
-                Job is waiting for the week data to be present which happen
-                roughly the 3 days after the actual week-day.
+                Job is waiting for the week data to be computed and copied to
+                hdfs which happens more or less 4 days after the actual week-day.
+                We put 14 days to only alert if the computation has not happened
+                when the next job materializes.
             -->
             <sla:nominal-time>${coord:actualTime()}</sla:nominal-time>
-            <sla:should-end>${10 * DAYS}</sla:should-end>
+            <sla:should-end>${14 * DAYS}</sla:should-end>
             <sla:alert-events>end_miss</sla:alert-events>
             <sla:alert-contact>${sla_alert_contact}</sla:alert-contact>
         </sla:info>
