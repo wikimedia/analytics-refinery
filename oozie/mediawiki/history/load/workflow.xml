@@ -408,7 +408,7 @@
                 </property>
             </configuration>
         </sub-workflow>
-        <ok to="repair_mw_ipblocks_table_partitions"/>
+        <ok to="repair_mw_imagelinks_table_partitions"/>
         <error to="send_error_email"/>
     </action>
 
