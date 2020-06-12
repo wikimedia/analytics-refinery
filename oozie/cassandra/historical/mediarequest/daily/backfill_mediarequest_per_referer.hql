@@ -6,7 +6,7 @@
 -- -Duser=$USER \
 -- -Dcassandra_keyspace=local_group_default_T_mediareq_per_referer_TEST \
 -- -Dhive_script=backfill_mediarequest_per_referer.hql \
--- -Drefinery_hive_jar_path=hdfs://analytics-hadoop/wmf/refinery/current/artifacts/org/wikimedia/analytics/refinery/refinery-hive-0.0.101.jar \
+-- -Drefinery_hive_jar_path=hdfs://analytics-hadoop/wmf/refinery/current/artifacts/org/wikimedia/analytics/refinery/refinery-hive-0.0.115.jar \
 -- -Dsource_table=wmf.mediacounts \
 -- -Ddatasets_file=hdfs://analytics-hadoop/wmf/refinery/current/oozie/mediacounts/datasets.xml \
 -- -Ddataset_name=mediacounts_hourly \
