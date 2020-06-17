@@ -424,6 +424,11 @@ HomepageVisit:
     webhost: keep
     wiki: keep
 
+KaiOSAppFirstRun:
+    event:
+        app_id: keep
+        app_version: keep
+
 Kartographer:
     event:
         action: keep
