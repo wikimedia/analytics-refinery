@@ -6,20 +6,15 @@
 --     year                -- year of the to-be-generated
 --     month               -- month of the to-be-generated
 --     day                 -- day of the to-be-generated
---     refinery_hive_jar   -- The path to refinery-hive jar for UDF
 --
 -- Usage:
 --     hive -f unique_devices_per_project_family_daily.hql \
---         -d source_table=wmf.webrequest \
+--         -d source_table=wmf.pageview_actor_hourly \
 --         -d destination_table=wmf.unique_devices_per_project_family_daily \
 --         -d year=2017 \
 --         -d month=4 \
---         -d day=1  \
---         -d refinery_hive_jar=/wmf/refinery/current/artifacts/refinery-hive.jar
+--         -d day=1
 
--- Register is_redirect_to_pageview UDF
-ADD JAR ${refinery_hive_jar};
-CREATE TEMPORARY FUNCTION is_redirect_to_pageview as 'org.wikimedia.analytics.refinery.hive.IsRedirectToPageviewUDF';
 
 -- Set parquet compression codec
 SET parquet.compression              = SNAPPY;
@@ -35,15 +30,11 @@ WITH last_access_dates AS (
         geocoded_data['country_code'] AS country_code,
         unix_timestamp(x_analytics_map['WMF-Last-Access-Global'], 'dd-MMM-yyyy') AS last_access_global,
         x_analytics_map['nocookies'] AS nocookies,
-        ip,
-        user_agent,
-        accept_language
+        actor_signature
     FROM ${source_table}
     WHERE x_analytics_map IS NOT NULL
       AND agent_type = 'user'
-      AND (is_pageview
-        OR is_redirect_to_pageview(uri_host, uri_path, uri_query, http_status, content_type, user_agent, x_analytics))
-      AND webrequest_source = 'text'
+      AND (is_pageview OR is_redirect_to_pageview)
       AND year = ${year}
       AND month = ${month}
       AND day = ${day}
@@ -59,7 +50,7 @@ fresh_sessions_aggregated AS (
         COUNT(1) AS uniques_offset
     FROM (
         SELECT
-            hash(ip, user_agent, accept_language, project_family) AS id,
+            actor_signature,
             project_family,
             country,
             country_code,
@@ -67,7 +58,7 @@ fresh_sessions_aggregated AS (
         FROM
             last_access_dates
         GROUP BY
-            hash(ip, user_agent, accept_language, project_family),
+            actor_signature,
             project_family,
             country,
             country_code
