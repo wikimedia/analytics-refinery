@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coordinator-app xmlns="uri:oozie:coordinator:0.4"
+    xmlns:sla="uri:oozie:sla:0.2"
+    name="pageview-actor-hourly-coord"
+    frequency="${coord:hours(1)}"
+    start="${start_time}"
+    end="${stop_time}"
+    timezone="Universal">
+
+    <parameters>
+
+        <!-- Required properties. -->
+        <property><name>name_node</name></property>
+        <property><name>job_tracker</name></property>
+        <property><name>queue_name</name></property>
+        <property><name>hive_principal</name></property>
+        <property><name>hive2_jdbc_url</name></property>
+
+        <property><name>workflow_file</name></property>
+
+        <property><name>start_time</name></property>
+        <property><name>stop_time</name></property>
+
+        <property><name>webrequest_datasets_file</name></property>
+        <property><name>webrequest_data_directory</name></property>
+
+        <property><name>predictions_datasets_file</name></property>
+        <property><name>predictions_data_directory</name></property>
+
+        <property><name>pageview_datasets_file</name></property>
+        <property><name>pageview_data_directory</name></property>
+
+        <property><name>hive_site_xml</name></property>
+        <property><name>refinery_hive_jar_path</name></property>
+
+        <property><name>webrequest_table</name></property>
+        <property><name>predictions_actor_label_hourly_table</name></property>
+        <property><name>pageview_actor_table</name></property>
+
+        <property><name>send_error_email_workflow_file</name></property>
+        <property><name>mark_directory_done_workflow_file</name></property>
+        <property><name>sla_alert_contact</name></property>
+    </parameters>
+
+    <controls>
+        <!--
+        By having materialized jobs not timeout, we ease backfilling incidents
+        after recoverable hiccups on the dataset producers.
+        -->
+        <timeout>-1</timeout>
+
+        <!--
+        pageview aggregation is not too heavy, but we limit
+        concurrency for resource sharing.
+
+        Also note, that back-filling is not limited by the
+        coordinator's frequency, so back-filling works nicely
+        even-though the concurrency is low.
+        -->
+        <concurrency>2</concurrency>
+
+
+        <!--
+        Since we expect only one incarnation per hourly dataset, the
+        default throttle of 12 is way to high, and there is not need
+        to keep that many materialized jobs around.
+
+        By resorting to 2, we keep the hdfs checks on the datasets
+        low, while still being able to easily feed the concurrency.
+        -->
+        <throttle>2</throttle>
+    </controls>
+
+    <datasets>
+        <!--
+        Include refined and pageview datasets files.
+        $webrequest_datasets_file will be used as the input events
+        $pageview_datasets_file will be used as the output events
+        -->
+        <include>${webrequest_datasets_file}</include>
+        <include>${predictions_datasets_file}</include>
+        <include>${pageview_datasets_file}</include>
+    </datasets>
+
+    <input-events>
+        <data-in name="text_refined_input" dataset="webrequest_text">
+            <instance>${coord:current(0)}</instance>
+        </data-in>
+        <data-in name="predictions_actor_label_hourly" dataset="predictions_actor_label_hourly">
+            <instance>${coord:current(0)}</instance>
+        </data-in>
+    </input-events>
+
+    <output-events>
+        <data-out name="pageview_actor_hourly_output" dataset="pageview_actor_hourly">
+            <instance>${coord:current(0)}</instance>
+        </data-out>
+    </output-events>
+
+    <action>
+        <workflow>
+            <app-path>${workflow_file}</app-path>
+            <configuration>
+
+                <property>
+                    <name>year</name>
+                    <value>${coord:formatTime(coord:nominalTime(), "y")}</value>
+                </property>
+                <property>
+                    <name>month</name>
+                    <value>${coord:formatTime(coord:nominalTime(), "M")}</value>
+                </property>
+                <property>
+                    <name>day</name>
+                    <value>${coord:formatTime(coord:nominalTime(), "d")}</value>
+                </property>
+                <property>
+                    <name>hour</name>
+                    <value>${coord:formatTime(coord:nominalTime(), "H")}</value>
+                </property>
+                <property>
+                    <!-- To mark directory done after success -->
+                    <name>pageview_actor_dataset_directory</name>
+                    <value>${coord:dataOut('pageview_actor_hourly_output')}</value>
+                </property>
+            </configuration>
+        </workflow>
+        <sla:info>
+            <!--
+                Use action actual time as SLA base, since it's the time used
+                to compute timeout
+                Put six hours as SLA since webrequest has 5 and can take some
+                time to finish
+            -->
+            <sla:nominal-time>${coord:actualTime()}</sla:nominal-time>
+            <sla:should-end>${6 * HOURS}</sla:should-end>
+            <sla:alert-events>end_miss</sla:alert-events>
+            <sla:alert-contact>${sla_alert_contact}</sla:alert-contact>
+        </sla:info>
+    </action>
+</coordinator-app>
