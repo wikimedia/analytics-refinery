@@ -17,6 +17,7 @@
         <property><name>hive_metastore_uri</name></property>
         <property><name>hive_site_xml</name></property>
         <property><name>queue_name</name></property>
+        <property><name>user</name></property>
         <property><name>artifacts_directory</name></property>
         <property><name>refinery_jar_version</name></property>
         <property><name>oozie_spark_lib</name></property>
