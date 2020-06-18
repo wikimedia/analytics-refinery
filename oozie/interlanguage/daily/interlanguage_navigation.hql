@@ -1,18 +1,15 @@
 -- Overview:
 --      This query works like this:
---          * filters webrequest for user (not spider) pageviews to wikis
---            with referrers from a wiki in the same project family
+--          * filters pageview_actor_hourly for user (not spider nor automated)
+--            pageviews to wikis with referrers from a wiki in the same project family
 --          * aggregates view count by project family, source project (previous)
 --            and destination project (current)
 --
 -- Parameters:
 --      source_table      -- Fully qualified table name to compute the
 --                           aggregation from.
---      artifacts_directory
---                        -- The artifact directory where to find
---                           jar files to import for UDFs
---      refinery_jar_version
---                        -- Version of the jar to import for UDFs
+--      refinery_hive_jar_path
+--                        -- The hdfs path to the refinery-hive jar to use for UFS
 --      destination_table -- Fully qualified table name to fill in
 --                           aggregated values.
 --      year              -- year of partition to aggregate
@@ -21,16 +18,16 @@
 --
 -- Usage:
 --     hive -f interlanguage_links.hql                                                      \
---         -d artifacts_directory=hdfs://analytics-hadoop/wmf/refinery/current/artifacts    \
---         -d refinery_jar_version=0.0.53                                                   \
---         -d source_table=wmf.webrequest                                                   \
+--         -d refinery_hive_jar_path=hdfs://analytics-hadoop/wmf/refinery/current/artifacts/refinery-hive.jar    \
+--         -d refinery_jar_version=0.0.115                                                  \
+--         -d source_table=wmf.pageview_actor_hourly                                        \
 --         -d destination_table=wmf.interlanguage_links                                     \
 --         -d year=2017                                                                     \
 --         -d month=10                                                                      \
 --         -d day=03
 --
--- example: ADD JAR hdfs://analytics-hadoop/wmf/refinery/current/artifacts/org/wikimedia/analytics/refinery/refinery-hive-0.0.53.jar;
-ADD JAR ${artifacts_directory}/org/wikimedia/analytics/refinery/refinery-hive-${refinery_jar_version}.jar;
+-- example: ADD JAR hdfs://analytics-hadoop/wmf/refinery/current/artifacts/refinery-hive.jar;
+ADD JAR ${refinery_hive_jar_path};
 
 SET parquet.compression = SNAPPY;
 CREATE TEMPORARY FUNCTION normalize_host AS 'org.wikimedia.analytics.refinery.hive.GetHostPropertiesUDF';
@@ -45,8 +42,7 @@ INSERT OVERWRITE TABLE ${destination_table}
 
        FROM ${source_table}
 
-      WHERE webrequest_source='text'
-        AND year=${year} AND month=${month} AND day=${day}
+      WHERE year=${year} AND month=${month} AND day=${day}
         AND is_pageview
         AND agent_type = 'user'
         -- The project is the same as the referer project

@@ -18,9 +18,9 @@
 
         <property><name>workflow_file</name></property>
 
-        <property><name>webrequest_datasets_file</name></property>
-        <property><name>webrequest_data_directory</name></property>
-        <property><name>webrequest_table</name></property>
+        <property><name>pageview_datasets_file</name></property>
+        <property><name>pageview_data_directory</name></property>
+        <property><name>pageview_actor_hourly_table</name></property>
 
         <property><name>mw_raw_datasets_file</name></property>
         <property><name>mw_raw_directory</name></property>
@@ -68,12 +68,12 @@
     </controls>
 
     <datasets>
-        <include>${webrequest_datasets_file}</include>
+        <include>${pageview_datasets_file}</include>
         <include>${mw_raw_datasets_file}</include>
     </datasets>
 
     <input-events>
-        <data-in name="text" dataset="webrequest_text">
+        <data-in name="pageview_actor_hourly" dataset="pageview_actor_hourly">
             <start-instance>${coord:current(0)}</start-instance>
             <end-instance>${coord:current(coord:daysInMonth(0) * 24 - 1)}</end-instance>
         </data-in>
@@ -81,7 +81,7 @@
           Delay job execution to start ten days after end-of-month
           to mitigate beginning-of month cluster load
         -->
-        <data-in name="delay" dataset="webrequest_text">
+        <data-in name="delay" dataset="pageview_actor_hourly">
             <instance>${coord:current((coord:daysInMonth(0) + 10) * 24 - 1)}</instance>
         </data-in>
         <data-in name="mw_project_namespace_map" dataset="mw_project_namespace_map_partitioned">

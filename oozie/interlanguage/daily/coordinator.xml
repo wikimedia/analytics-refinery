@@ -15,8 +15,7 @@
         <property><name>hive_principal</name></property>
         <property><name>hive2_jdbc_url</name></property>
         <property><name>queue_name</name></property>
-        <property><name>artifacts_directory</name></property>
-        <property><name>refinery_jar_version</name></property>
+        <property><name>refinery_hive_jar_path</name></property>
         <property><name>hive_site_xml</name></property>
 
         <property><name>workflow_file</name></property>
@@ -24,13 +23,13 @@
         <property><name>start_time</name></property>
         <property><name>stop_time</name></property>
 
-        <property><name>webrequest_datasets_file</name></property>
-        <property><name>webrequest_data_directory</name></property>
+        <property><name>pageview_datasets_file</name></property>
+        <property><name>pageview_data_directory</name></property>
 
         <property><name>interlanguage_datasets_file</name></property>
         <property><name>interlanguage_data_directory</name></property>
 
-        <property><name>webrequest_table</name></property>
+        <property><name>pageview_actor_hourly_table</name></property>
         <property><name>interlanguage_navigation_table</name></property>
 
         <property><name>mark_directory_done_workflow_file</name></property>
@@ -56,16 +55,16 @@
 
     <datasets>
         <!--
-        Include refined and interlanguage datasets files.
-        $webrequest_datasets_file will be used as the input events
+        Include pageview and interlanguage datasets files.
+        $pageview_actor_hourly will be used as the input events
         $interlanguage_datasets_file will be used as the output events
         -->
-        <include>${webrequest_datasets_file}</include>
+        <include>${pageview_datasets_file}</include>
         <include>${interlanguage_datasets_file}</include>
     </datasets>
 
     <input-events>
-        <data-in name="text_refined_input" dataset="webrequest_text">
+        <data-in name="pageview_actor_hourly" dataset="pageview_actor_hourly">
             <start-instance>${coord:current(0)}</start-instance>
             <end-instance>${coord:current(23)}</end-instance>
         </data-in>

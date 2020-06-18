@@ -8,7 +8,7 @@
 --         --database wmf
 --
 
-CREATE EXTERNAL TABLE IF NOT EXISTS `wmf.interlanguage_navigation` (
+CREATE EXTERNAL TABLE IF NOT EXISTS `interlanguage_navigation` (
     `project_family`    string  COMMENT 'The project family to aggregate on',
     `current_project`   string  COMMENT 'The project (language) of this group of requests',
     `previous_project`  string  COMMENT 'The project (language) found in the referers of this group of requests',

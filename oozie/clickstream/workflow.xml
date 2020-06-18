@@ -64,8 +64,8 @@
         </property>
 
         <property>
-          <name>webrequest_table</name>
-          <description>The refined webrequest table</description>
+          <name>pageview_actor_hourly_table</name>
+          <description>The pageview_actor_hourly table</description>
         </property>
         <property>
           <name>mw_project_namespace_map_table</name>
@@ -85,11 +85,11 @@
         </property>
         <property>
             <name>year</name>
-            <description>The webrequest partition's year</description>
+            <description>The pageview_actor_hourly partition's year</description>
         </property>
         <property>
             <name>month</name>
-            <description>The webrequest partition's month</description>
+            <description>The pageview_actor_hourly partition's month</description>
         </property>
         <property>
             <name>snapshot</name>
@@ -184,8 +184,8 @@
             <arg>${temporary_directory}/clickstream-${wf:id()}</arg>
             <arg>--wikis</arg>
             <arg>${clickstream_wikis}</arg>
-            <arg>--webrequest-table</arg>
-            <arg>${webrequest_table}</arg>
+            <arg>--pageview_actor_hourly-table</arg>
+            <arg>${pageview_actor_hourly_table}</arg>
             <arg>--project-namespace-table</arg>
             <arg>${mw_project_namespace_map_table}</arg>
             <arg>--page-table</arg>
