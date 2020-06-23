@@ -1729,6 +1729,12 @@ VisualEditorFeatureUse:
         action: keep
         editingsessionid: keep
         feature: keep
+        platform: keep
+        integration: keep
+        editor_interface: keep
+        user_id: keep
+        user_editcount: keep
+        bucket: keep
     webHost: keep
     wiki: keep
 
