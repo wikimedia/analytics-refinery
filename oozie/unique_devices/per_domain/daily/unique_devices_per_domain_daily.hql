@@ -9,7 +9,7 @@
 --
 -- Usage:
 --     hive -f unique_devices_per_domain_daily.hql \
---         -d source_table=wmf.webrequest \
+--         -d source_table=wmf.pageview_actor_hourly \
 --         -d destination_table=wmf.unique_devices_per_domain_daily \
 --         -d year=2016 \
 --         -d month=1 \
@@ -30,14 +30,11 @@ WITH last_access_dates AS (
         geocoded_data['country_code'] AS country_code,
         unix_timestamp(x_analytics_map['WMF-Last-Access'], 'dd-MMM-yyyy') AS last_access,
         x_analytics_map['nocookies'] AS nocookies,
-        ip,
-        user_agent,
-        accept_language
+        actor_signature
     FROM ${source_table}
     WHERE x_analytics_map IS NOT NULL
       AND agent_type = 'user'
       AND is_pageview = TRUE
-      AND webrequest_source = 'text'
       AND year = ${year}
       AND month = ${month}
       AND day = ${day}
@@ -53,7 +50,7 @@ fresh_sessions_aggregated AS (
         COUNT(1) AS uniques_offset
     FROM (
         SELECT
-            hash(ip, user_agent, accept_language, domain) AS id,
+            actor_signature,
             domain,
             country,
             country_code,
@@ -61,7 +58,7 @@ fresh_sessions_aggregated AS (
         FROM
             last_access_dates
         GROUP BY
-            hash(ip, user_agent, accept_language, domain),
+            actor_signature,
             domain,
             country,
             country_code

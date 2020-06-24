@@ -22,9 +22,9 @@
         <property><name>start_time</name></property>
         <property><name>stop_time</name></property>
 
-        <property><name>webrequest_table</name></property>
-        <property><name>webrequest_data_directory</name></property>
-        <property><name>webrequest_datasets_file</name></property>
+        <property><name>pageview_actor_hourly_table</name></property>
+        <property><name>pageview_data_directory</name></property>
+        <property><name>pageview_datasets_file</name></property>
 
         <property><name>unique_devices_per_domain_daily_table</name></property>
         <property><name>unique_devices_data_directory</name></property>
@@ -47,16 +47,16 @@
     </controls>
 
     <datasets>
-        <include>${webrequest_datasets_file}</include>
+        <include>${pageview_datasets_file}</include>
         <include>${unique_devices_datasets_file}</include>
     </datasets>
 
     <input-events>
         <!--
             Please see datasets definition,
-            the webrequest_text are refined datasets from the raw data.
+            the pageview_actor_hourly is extracted from webrequest refined dataset.
         -->
-        <data-in name="text" dataset="webrequest_text">
+        <data-in name="pageview_actor_hourly" dataset="pageview_actor_hourly">
             <start-instance>${coord:current(0)}</start-instance>
             <end-instance>${coord:current(23)}</end-instance>
         </data-in>
