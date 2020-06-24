@@ -37,4 +37,24 @@ Use this dataset in your coordinator.xml files by setting:
         <uri-template>${pageview_data_directory}/unexpected_values/year=${YEAR}/month=${"$"}{MONTH + 0}/day=${"$"}{DAY + 0}/hour=${"$"}{HOUR + 0}</uri-template>
         <done-flag>_SUCCESS</done-flag>
     </dataset>
+
+    <!--
+    The pageview_actor_hourly dataset contains pageview and redirect-to-pageview
+    webrequest data, with actor signature and joined with actor_label.
+
+    Note that we do not use “${...}” but “${"$"}{...}", as dataset files are
+    passed to EL twice in cascade, and in the first EL level, ${MONTH}
+    evaluates to the string “${MONTH}”. Hence, we escape the dollar sign in
+    “${....}" to “${"$"}{...}”. At the first EL level, “${"$"}” gets turned
+    into a dollar sign, and “{...}”  is just passed along. Hence, we arrive
+    at “${...}” as input for the second EL level. There, the variables hold
+    their expected values, and we can start unpadding them.
+    -->
+    <dataset name="pageview_actor_hourly"
+             frequency="${coord:hours(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${pageview_data_directory}/actor/hourly/year=${YEAR}/month=${"$"}{MONTH + 0}/day=${"$"}{DAY + 0}/hour=${"$"}{HOUR + 0}</uri-template>
+        <done-flag>_SUCCESS</done-flag>
+    </dataset>
 </datasets>
