@@ -26,8 +26,7 @@
             <value>interlanguage_navigation.hql</value>
             <description>Hive script to run.</description>
         </property>
-        <property><name>artifacts_directory</name></property>
-        <property><name>refinery_jar_version</name></property>
+        <property><name>refinery_hive_jar_path</name></property>
         <property>
             <name>hive_site_xml</name>
             <description>hive-site.xml file path in HDFS</description>
@@ -39,8 +38,8 @@
         </property>
 
         <property>
-            <name>webrequest_table</name>
-            <description>Hive table to refine</description>
+            <name>pageview_actor_hourly_table</name>
+            <description>Hive table to read</description>
         </property>
         <property>
             <name>interlanguage_navigation_table</name>
@@ -111,9 +110,8 @@
             <script>${hive_interlanguage_aggregation}</script>
 
             <!-- Query parameters -->
-            <param>artifacts_directory=${artifacts_directory}</param>
-            <param>refinery_jar_version=${refinery_jar_version}</param>
-            <param>source_table=${webrequest_table}</param>
+            <param>refinery_hive_jar_path=${refinery_hive_jar_path}</param>
+            <param>source_table=${pageview_actor_hourly_table}</param>
             <param>destination_table=${interlanguage_navigation_table}</param>
             <param>year=${year}</param>
             <param>month=${month}</param>
