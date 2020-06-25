@@ -16,7 +16,7 @@
 --
 -- Usage:
 --     hive -f pageview_actor_hourly.hql                         \
---         -d ${refinery_hive_jar_path}=hdfs:///wmf/refinery/current/artifacts/refinery-hive.jar \
+--         -d refinery_hive_jar_path}=hdfs:///wmf/refinery/current/artifacts/refinery-hive.jar \
 --         -d source_table=wmf.webrequest                        \
 --         -d actor_label_table=predictions.actor_label_hourly   \
 --         -d destination_table=wmf.pageview_actor_hourly        \
@@ -25,6 +25,12 @@
 --         -d day=1                                              \
 --         -d hour=1
 --
+
+
+-- Prevent hive from using a map-side join on the automated_actor CTE
+-- as it regularly causes the following hive bug (the bug is non-deterministic):
+-- https://issues.apache.org/jira/browse/HIVE-14555
+SET hive.auto.convert.join           = false;
 
 SET parquet.compression              = SNAPPY;
 SET mapred.reduce.tasks              = 32;
