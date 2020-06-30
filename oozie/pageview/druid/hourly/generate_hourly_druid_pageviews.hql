@@ -61,7 +61,7 @@ WITH formatted_data AS (
         project,
         language_variant,
         wmt.database_group AS project_family,
-        nmt.namespace_is_content,
+        CAST(nmt.namespace_is_content AS BOOLEAN) AS namespace_is_content,
         IF(namespace_id IS NULL, NULL, namespace_id % 2 = 1) AS namespace_is_talk,
         IF(nmt.namespace_canonical_name = '', 'Main', nmt.namespace_canonical_name) AS namespace_canonical_name,
         access_method,
