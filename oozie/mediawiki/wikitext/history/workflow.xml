@@ -140,7 +140,7 @@
             <name>${spark_job_name}-${snapshot}</name>
             <class>${spark_job_class}</class>
             <jar>${spark_job_jar}</jar>
-            <spark-opts>--conf spark.yarn.archive=${spark_assembly_zip} --executor-memory ${spark_executor_memory} --executor-cores ${spark_executor_cores} --driver-memory ${spark_driver_memory} --queue ${queue_name} --conf spark.dynamicAllocation.enabled=true --conf spark.shuffle.service.enabled=true --conf spark.dynamicAllocation.maxExecutors=${spark_max_num_executors} --conf spark.yarn.maxAppAttempts=1</spark-opts>
+            <spark-opts>--conf spark.yarn.archive=${spark_assembly_zip} --executor-memory ${spark_executor_memory} --executor-cores ${spark_executor_cores} --driver-memory ${spark_driver_memory} --queue ${queue_name} --conf spark.dynamicAllocation.enabled=true --conf spark.shuffle.service.enabled=true --conf spark.dynamicAllocation.maxExecutors=${spark_max_num_executors} --conf spark.yarn.maxAppAttempts=1 --conf spark.hadoop.io.compression.codecs=org.wikimedia.analytics.refinery.spark.bzip2.CorrectedBZip2Codec</spark-opts>
             <arg>--xml_dumps_base_path</arg>
             <arg>${xmldumps_location}</arg>
             <arg>--output_base_path</arg>
