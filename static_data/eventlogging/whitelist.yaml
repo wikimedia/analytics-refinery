@@ -384,12 +384,14 @@ HelpPanel:
         action_data: keep
         user_id: keep
         user_editcount: keep
+        context: keep
         editor_interface: keep
+        is_suggested_task: keep
         is_mobile: keep
         page_ns: keep
         user_can_edit: keep
         page_protection: keep
-        help_panel_session_id: hash
+        help_panel_session_id: keep
     webhost: keep
     wiki: keep
 
@@ -403,7 +405,7 @@ HomepageModule:
         state: keep
         is_mobile: keep
         mode: keep
-        homepage_pageview_token: hash
+        homepage_pageview_token: keep
     webhost: keep
     wiki: keep
 
@@ -420,7 +422,7 @@ HomepageVisit:
         start_userpage_state: keep
         start_email_state: keep
         start_startediting_state: keep
-        homepage_pageview_token: hash
+        homepage_pageview_token: keep
     webhost: keep
     wiki: keep
 
@@ -1438,6 +1440,23 @@ NavigationTiming:
         unloadEventEnd: keep
         unloadEventStart: keep
         waiting: keep
+    webhost: keep
+    wiki: keep
+
+NewcomerTask:
+    event:
+        context: keep
+        newcomer_task_token: keep
+        task_type: keep
+        topic: keep
+        match_score: keep
+        maintenance_templates: keep
+        revision_id: keep
+        page_id: keep
+        page_title: keep
+        has_image: keep
+        pageviews: keep
+        ordinal_position: keep
     webhost: keep
     wiki: keep
 
