@@ -23,6 +23,11 @@ ADD JAR ${artifacts_directory}/org/wikimedia/analytics/refinery/refinery-hive-${
 CREATE TEMPORARY FUNCTION geocode as 'org.wikimedia.analytics.refinery.hive.GeocodedDataUDF';
 CREATE TEMPORARY FUNCTION network_origin as 'org.wikimedia.analytics.refinery.hive.GetNetworkOriginUDF';
 
+-- Prevent hive from using a map-side join as it regularly causes
+-- the following non-deterministic hive bug (map-join + UDF):
+-- https://issues.apache.org/jira/browse/HIVE-14555
+SET hive.auto.convert.join           = false;
+
 
 INSERT OVERWRITE TABLE ${destination_table}
        PARTITION (month='${month}')
