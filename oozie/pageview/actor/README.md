@@ -2,7 +2,7 @@
 
 This job is responsible for extracting pageview and
 redirect-to-pageview data from the refined webrequest table,
-computing actor-signature and joining it with the
+computing actor-signatures and joining it with the
 actor_label_hourly table to flag some user traffic as automated.
 No aggregation is performed, and most dimensions from webrequest
 are kept.
@@ -11,7 +11,7 @@ webrequest when in need for pageview data with webrequest fields
 (for instance unique-devices or clickstream jobs).
 
 Output is appended into (year, month, day, hour) partitions
-in /wmf/data/wmf/pageview/actor/hourly.
+in /wmf/data/wmf/pageview/actor.
 
 # Outline
 

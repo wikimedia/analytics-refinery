@@ -16,7 +16,7 @@
 --
 -- Usage:
 --     hive -f pageview_hourly.hql                               \
---         -d source_table=wmf.pageview_actor_hourly_table       \
+--         -d source_table=wmf.pageview_actor                    \
 --         -d destination_table=wmf.pageview_hourly              \
 --         -d record_version=0.0.1                               \
 --         -d year=2015                                          \

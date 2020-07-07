@@ -8,7 +8,7 @@
 --
 -- Usage
 --     hive -f unique_devices_per_domain_monthly.hql \
---         -d source_table=wmf.pageview_actor_hourly \
+--         -d source_table=wmf.pageview_actor \
 --         -d destination_table=wmf.unique_devices_per_domain_monthly \
 --         -d year=2016 \
 --         -d month=1

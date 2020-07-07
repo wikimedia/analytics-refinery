@@ -15,11 +15,11 @@
 --                          for.
 --
 -- Usage:
---     hive -f pageview_actor_hourly.hql                         \
+--     hive -f pageview_actor.hql                                \
 --         -d refinery_hive_jar_path}=hdfs:///wmf/refinery/current/artifacts/refinery-hive.jar \
 --         -d source_table=wmf.webrequest                        \
 --         -d actor_label_table=predictions.actor_label_hourly   \
---         -d destination_table=wmf.pageview_actor_hourly        \
+--         -d destination_table=wmf.pageview_actor               \
 --         -d year=2020                                          \
 --         -d month=6                                            \
 --         -d day=1                                              \

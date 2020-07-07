@@ -26,7 +26,7 @@
 
         <property><name>hive_site_xml</name></property>
 
-        <property><name>pageview_actor_hourly_table</name></property>
+        <property><name>pageview_actor_table</name></property>
         <property><name>pageview_table</name></property>
         <property><name>whitelist_table</name></property>
         <property><name>unexpected_values_table</name></property>
@@ -72,14 +72,14 @@
     <datasets>
         <!--
         Include pageview datasets files.
-        $pageview_actor_hourly will be used as the input events
+        $pageview_actor will be used as the input events
         $pageview_datasets_file will be used as the output events
         -->
         <include>${pageview_datasets_file}</include>
     </datasets>
 
     <input-events>
-        <data-in name="pageview_actor_hourly" dataset="pageview_actor_hourly">
+        <data-in name="pageview_actor" dataset="pageview_actor">
             <instance>${coord:current(0)}</instance>
         </data-in>
     </input-events>
