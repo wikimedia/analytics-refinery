@@ -77,7 +77,8 @@ INSERT OVERWRITE TABLE ${destination_table}
         pageview_info,
         page_id,
         namespace_id,
-        get_actor_signature(ip, user_agent, accept_language, uri_host, uri_query, x_analytics_map) AS actor_signature
+        get_actor_signature(ip, user_agent, accept_language, uri_host, uri_query, x_analytics_map) AS actor_signature,
+        get_actor_signature(ip, user_agent, accept_language, normalized_host.project_class, uri_query, x_analytics_map) AS actor_signature_per_project_family
     FROM ${source_table}
         LEFT JOIN automated_actor
             ON get_actor_signature(ip, user_agent, accept_language, uri_host, uri_query, x_analytics_map) = automated_actor_signature
@@ -115,5 +116,6 @@ INSERT OVERWRITE TABLE ${destination_table}
         pageview_info,
         page_id,
         namespace_id,
-        get_actor_signature(ip, user_agent, accept_language, uri_host, uri_query, x_analytics_map)
+        get_actor_signature(ip, user_agent, accept_language, uri_host, uri_query, x_analytics_map),
+        get_actor_signature(ip, user_agent, accept_language, normalized_host.project_class, uri_query, x_analytics_map)
 ;

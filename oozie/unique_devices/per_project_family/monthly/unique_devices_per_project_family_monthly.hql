@@ -28,7 +28,7 @@ WITH last_access_dates AS (
         geocoded_data['country_code'] AS country_code,
         unix_timestamp(x_analytics_map['WMF-Last-Access-Global'], 'dd-MMM-yyyy') AS last_access_global,
         x_analytics_map['nocookies'] AS nocookies,
-        actor_signature
+        actor_signature_per_project_family AS actor_signature
     FROM ${source_table}
     WHERE x_analytics_map IS NOT NULL
       AND agent_type = 'user'

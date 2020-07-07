@@ -55,8 +55,8 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `pageview_actor_hourly`(
     `pageview_info`     map<string, string>  COMMENT 'map containing project, language_variant and page_title values only when is_pageview = TRUE.',
     `page_id`           bigint  COMMENT 'MediaWiki page_id for this page title. For redirects this could be the page_id of the redirect or the page_id of the target. This may not always be set, even if the page is actually a pageview.',
     `namespace_id`      int     COMMENT 'MediaWiki namespace_id for this page title. This may not always be set, even if the page is actually a pageview.',
-
-    `actor_signature`   string  COMMENT 'The actor signature for the record, computed as a hash'
+    `actor_signature`   string  COMMENT 'The actor signature for the record using domain, computed as a hash',
+    `actor_signature_per_project_family` string  COMMENT 'The actor signature for the record using project-family, computed as a hash'
 )
 PARTITIONED BY (
     `year`              int     COMMENT 'Unpadded year of pageviews',
