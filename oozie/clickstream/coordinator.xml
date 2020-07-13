@@ -20,7 +20,7 @@
 
         <property><name>pageview_datasets_file</name></property>
         <property><name>pageview_data_directory</name></property>
-        <property><name>pageview_actor_hourly_table</name></property>
+        <property><name>pageview_actor_table</name></property>
 
         <property><name>mw_raw_datasets_file</name></property>
         <property><name>mw_raw_directory</name></property>
@@ -73,7 +73,7 @@
     </datasets>
 
     <input-events>
-        <data-in name="pageview_actor_hourly" dataset="pageview_actor_hourly">
+        <data-in name="pageview_actor" dataset="pageview_actor">
             <start-instance>${coord:current(0)}</start-instance>
             <end-instance>${coord:current(coord:daysInMonth(0) * 24 - 1)}</end-instance>
         </data-in>
@@ -81,7 +81,7 @@
           Delay job execution to start ten days after end-of-month
           to mitigate beginning-of month cluster load
         -->
-        <data-in name="delay" dataset="pageview_actor_hourly">
+        <data-in name="delay" dataset="pageview_actor">
             <instance>${coord:current((coord:daysInMonth(0) + 10) * 24 - 1)}</instance>
         </data-in>
         <data-in name="mw_project_namespace_map" dataset="mw_project_namespace_map_partitioned">

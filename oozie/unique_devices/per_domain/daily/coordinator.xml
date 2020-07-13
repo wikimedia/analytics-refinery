@@ -22,7 +22,7 @@
         <property><name>start_time</name></property>
         <property><name>stop_time</name></property>
 
-        <property><name>pageview_actor_hourly_table</name></property>
+        <property><name>pageview_actor_table</name></property>
         <property><name>pageview_data_directory</name></property>
         <property><name>pageview_datasets_file</name></property>
 
@@ -54,9 +54,9 @@
     <input-events>
         <!--
             Please see datasets definition,
-            the pageview_actor_hourly is extracted from webrequest refined dataset.
+            the pageview_actor is extracted from webrequest refined dataset.
         -->
-        <data-in name="pageview_actor_hourly" dataset="pageview_actor_hourly">
+        <data-in name="pageview_actor" dataset="pageview_actor">
             <start-instance>${coord:current(0)}</start-instance>
             <end-instance>${coord:current(23)}</end-instance>
         </data-in>

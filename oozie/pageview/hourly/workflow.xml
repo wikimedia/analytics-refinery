@@ -41,7 +41,7 @@
             <description>hive-site.xml file path in HDFS</description>
         </property>
         <property>
-            <name>pageview_actor_hourly_table</name>
+            <name>pageview_actor_table</name>
             <description>Hive table to aggregate</description>
         </property>
         <property>
@@ -169,7 +169,7 @@
             <script>${hive_pageview_script_aggregate}</script>
 
             <!-- Query parameters -->
-            <param>source_table=${pageview_actor_hourly_table}</param>
+            <param>source_table=${pageview_actor_table}</param>
             <param>destination_table=${pageview_table}</param>
             <param>record_version=${record_version}</param>
             <param>year=${year}</param>

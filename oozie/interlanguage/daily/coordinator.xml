@@ -29,7 +29,7 @@
         <property><name>interlanguage_datasets_file</name></property>
         <property><name>interlanguage_data_directory</name></property>
 
-        <property><name>pageview_actor_hourly_table</name></property>
+        <property><name>pageview_actor_table</name></property>
         <property><name>interlanguage_navigation_table</name></property>
 
         <property><name>mark_directory_done_workflow_file</name></property>
@@ -56,7 +56,7 @@
     <datasets>
         <!--
         Include pageview and interlanguage datasets files.
-        $pageview_actor_hourly will be used as the input events
+        $pageview_actor will be used as the input events
         $interlanguage_datasets_file will be used as the output events
         -->
         <include>${pageview_datasets_file}</include>
@@ -64,7 +64,7 @@
     </datasets>
 
     <input-events>
-        <data-in name="pageview_actor_hourly" dataset="pageview_actor_hourly">
+        <data-in name="pageview_actor" dataset="pageview_actor">
             <start-instance>${coord:current(0)}</start-instance>
             <end-instance>${coord:current(23)}</end-instance>
         </data-in>

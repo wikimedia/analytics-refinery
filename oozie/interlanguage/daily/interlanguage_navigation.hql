@@ -1,6 +1,6 @@
 -- Overview:
 --      This query works like this:
---          * filters pageview_actor_hourly for user (not spider nor automated)
+--          * filters pageview_actor for user (not spider nor automated)
 --            pageviews to wikis with referrers from a wiki in the same project family
 --          * aggregates view count by project family, source project (previous)
 --            and destination project (current)
@@ -20,7 +20,7 @@
 --     hive -f interlanguage_links.hql                                                      \
 --         -d refinery_hive_jar_path=hdfs://analytics-hadoop/wmf/refinery/current/artifacts/refinery-hive.jar    \
 --         -d refinery_jar_version=0.0.115                                                  \
---         -d source_table=wmf.pageview_actor_hourly                                        \
+--         -d source_table=wmf.pageview_actor                                               \
 --         -d destination_table=wmf.interlanguage_links                                     \
 --         -d year=2017                                                                     \
 --         -d month=10                                                                      \

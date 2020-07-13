@@ -39,7 +39,7 @@ Use this dataset in your coordinator.xml files by setting:
     </dataset>
 
     <!--
-    The pageview_actor_hourly dataset contains pageview and redirect-to-pageview
+    The pageview_actor dataset contains pageview and redirect-to-pageview
     webrequest data, with actor signature and joined with actor_label.
 
     Note that we do not use “${...}” but “${"$"}{...}", as dataset files are
@@ -50,11 +50,11 @@ Use this dataset in your coordinator.xml files by setting:
     at “${...}” as input for the second EL level. There, the variables hold
     their expected values, and we can start unpadding them.
     -->
-    <dataset name="pageview_actor_hourly"
+    <dataset name="pageview_actor"
              frequency="${coord:hours(1)}"
              initial-instance="${start_time}"
              timezone="Universal">
-        <uri-template>${pageview_data_directory}/actor/hourly/year=${YEAR}/month=${"$"}{MONTH + 0}/day=${"$"}{DAY + 0}/hour=${"$"}{HOUR + 0}</uri-template>
+        <uri-template>${pageview_data_directory}/actor/year=${YEAR}/month=${"$"}{MONTH + 0}/day=${"$"}{DAY + 0}/hour=${"$"}{HOUR + 0}</uri-template>
         <done-flag>_SUCCESS</done-flag>
     </dataset>
 

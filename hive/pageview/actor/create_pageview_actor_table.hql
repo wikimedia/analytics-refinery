@@ -12,10 +12,10 @@
 --     <none>
 --
 -- Usage
---     hive -f create_pageview_actor_hourly_table.hql --database wmf
+--     hive -f create_pageview_actor_table.hql --database wmf
 --
 
-CREATE EXTERNAL TABLE IF NOT EXISTS `pageview_actor_hourly`(
+CREATE EXTERNAL TABLE IF NOT EXISTS `pageview_actor`(
     -- Kept to facilitate joining back to webrequest if needed
     `hostname`          string  COMMENT 'Source node hostname',
     `sequence`          bigint  COMMENT 'Per host sequence number',
@@ -65,5 +65,5 @@ PARTITIONED BY (
     `hour`              int     COMMENT 'Unpadded hour of pageviews'
 )
 STORED AS PARQUET
-LOCATION '/wmf/data/wmf/pageview/actor/hourly'
+LOCATION '/wmf/data/wmf/pageview/actor'
 ;

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <coordinator-app xmlns="uri:oozie:coordinator:0.4"
     xmlns:sla="uri:oozie:sla:0.2"
-    name="pageview-actor-hourly-coord"
+    name="pageview-actor-coord"
     frequency="${coord:hours(1)}"
     start="${start_time}"
     end="${stop_time}"
@@ -92,7 +92,7 @@
     </input-events>
 
     <output-events>
-        <data-out name="pageview_actor_hourly_output" dataset="pageview_actor_hourly">
+        <data-out name="pageview_actor_output" dataset="pageview_actor">
             <instance>${coord:current(0)}</instance>
         </data-out>
     </output-events>
@@ -121,7 +121,7 @@
                 <property>
                     <!-- To mark directory done after success -->
                     <name>pageview_actor_dataset_directory</name>
-                    <value>${coord:dataOut('pageview_actor_hourly_output')}</value>
+                    <value>${coord:dataOut('pageview_actor_output')}</value>
                 </property>
             </configuration>
         </workflow>

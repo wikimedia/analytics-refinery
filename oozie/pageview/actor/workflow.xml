@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <workflow-app xmlns="uri:oozie:workflow:0.4"
-    name="pageview-actor-hourly-wf-${year}-${month}-${day}-${hour}">
+    name="pageview-actor-wf-${year}-${month}-${day}-${hour}">
 
     <parameters>
 
@@ -26,7 +26,7 @@
         <property>
             <name>hive_pageview_actor_script</name>
             <!-- This is relative to the containing directory of this file. -->
-            <value>pageview_actor_hourly.hql</value>
+            <value>pageview_actor.hql</value>
             <description>Hive script to run.</description>
         </property>
 

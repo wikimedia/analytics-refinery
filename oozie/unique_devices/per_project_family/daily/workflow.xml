@@ -26,7 +26,7 @@
         </property>
         <!-- specifying parameter values in file to test running -->
         <property>
-            <name>pageview_actor_hourly_table</name>
+            <name>pageview_actor_table</name>
             <description>Hive table to read data from.</description>
         </property>
         <property>
@@ -124,7 +124,7 @@
             <script>unique_devices_per_project_family_daily.hql</script>
 
             <!-- Query parameters -->
-            <param>source_table=${pageview_actor_hourly_table}</param>
+            <param>source_table=${pageview_actor_table}</param>
             <param>destination_table=${unique_devices_per_project_family_daily_table}</param>
             <param>year=${year}</param>
             <param>month=${month}</param>
