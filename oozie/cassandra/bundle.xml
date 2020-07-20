@@ -963,8 +963,17 @@
                 <name>workflow_file</name>
                 <value>${workflow_file_daily}</value>
             </property>
+            <!--
+                Dataset the job depends on
 
-            <!-- Dataset the job depends on -->
+                Note: The job actually depends on 2 datasets:
+                  - unique_devices_per_domain_daily
+                  - unique_devices_per_project_family_daily
+                This double dependency is solved by make the computation of the
+                unique_devices_per_domain_daily being dependent on the
+                unique_devices_per_project_family_daily already being computed
+                (see oozie/unique_devices/per_domain/daily/coordinator.xml)
+            -->
             <property>
                 <name>datasets_file</name>
                 <value>${unique_devices_datasets_file}</value>
@@ -1030,7 +1039,17 @@
                 <value>${workflow_file_monthly}</value>
             </property>
 
-            <!-- Dataset the job depends on -->
+            <!--
+                Dataset the job depends on
+
+                Note: The job actually depends on 2 datasets:
+                  - unique_devices_per_domain_monthly
+                  - unique_devices_per_project_family_monthly
+                This double dependency is solved by make the computation of the
+                unique_devices_per_domain_monthly being dependent on the
+                unique_devices_per_project_family_monthly already being computed
+                (see oozie/unique_devices/per_domain/monthly/coordinator.xml)
+            -->
             <property>
                 <name>datasets_file</name>
                 <value>${unique_devices_datasets_file}</value>
