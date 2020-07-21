@@ -60,7 +60,6 @@
             <start-instance>${coord:current(0)}</start-instance>
             <end-instance>${coord:current(coord:daysInMonth(0) * 24 - 1)}</end-instance>
         </data-in>
-    </input-events>
 
         <!--
           We start computing unique_devices_per_domain_monthly once unique_devices_per_project_family_monthly is done
@@ -71,6 +70,8 @@
         <data-in name="unique_devices_per_project_family_daily_delay" dataset="unique_devices_per_project_family_daily">
             <instance>${coord:current(0)}</instance>
         </data-in>
+    </input-events>
+
     <output-events>
         <data-out name="unique_devices_per_domain_monthly_output" dataset="unique_devices_per_domain_monthly">
             <instance>${coord:current(0)}</instance>
