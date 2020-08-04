@@ -3,8 +3,31 @@
     name="mediawiki-geoeditors-public-monthly-wf-${month_partition}">
 
     <parameters>
+        <property><name>name_node</name></property>
+        <property><name>job_tracker</name></property>
+        <property><name>queue_name</name></property>
+        <property><name>hive_principal</name></property>
+        <property><name>hive2_jdbc_url</name></property>
+        <property><name>user</name></property>
+        <property><name>hive_site_xml</name></property>
 
-        <!-- Default values for inner oozie settings -->
+        <property><name>editors_daily_table</name></property>
+        <property><name>geoeditors_monthly_table</name></property>
+        <property><name>geoeditors_public_monthly_table</name></property>
+        <property><name>mw_project_namespace_map_table</name></property>
+        <property><name>country_blacklist_table</name></property>
+        <property><name>country_info_table</name></property>
+
+        <property><name>month_partition</name></property>
+        <property><name>geoeditors_public_monthly_location</name></property>
+
+        <property><name>destination_directory</name></property>
+        <property><name>temporary_directory</name></property>
+
+        <property><name>archive_job_output_workflow_file</name></property>
+        <property><name>mark_directory_done_workflow_file</name></property>
+        <property><name>send_error_email_workflow_file</name></property>
+
         <property>
             <name>oozie_launcher_queue_name</name>
             <value>${queue_name}</value>
@@ -13,63 +36,6 @@
             <name>oozie_launcher_memory</name>
             <value>2048</value>
         </property>
-
-        <!-- Required properties -->
-        <property><name>name_node</name></property>
-        <property><name>job_tracker</name></property>
-        <property><name>queue_name</name></property>
-        <property><name>hive_principal</name></property>
-        <property><name>hive2_jdbc_url</name></property>
-
-        <property>
-            <name>hive_site_xml</name>
-            <description>hive-site.xml file path in HDFS</description>
-        </property>
-
-        <!-- Needed by the scripts -->
-        <property>
-            <name>geoeditors_monthly_table</name>
-            <description>Geoeditors monthly table, loaded monthly</description>
-        </property>
-        <property>
-            <name>geoeditors_public_monthly_table</name>
-            <description>Geoeditors monthly public table, loaded monthly</description>
-        </property>
-        <property>
-            <name>country_info_table</name>
-            <description>Country names by iso codes</description>
-        </property>
-        <property>
-            <name>geoeditors_blacklist_country_table</name>
-            <description>Country codes that we don't want to output information on, regardless of other privacy mitigation</description>
-        </property>
-        <property>
-            <name>mw_project_namespace_map_table</name>
-            <description>A download of the sitematrix used to filter out private or closed wikis (these are not in the project map)</description>
-        </property>
-        <property>
-            <name>month_partition</name>
-            <description>The partition to load from, as YYYY-MM</description>
-        </property>
-        <property>
-            <name>temporary_directory</name>
-            <description>A directory in HDFS for temporary files for just this workflow</description>
-        </property>
-
-        <!-- Subworkflows -->
-        <property>
-            <name>archive_job_output_workflow_file</name>
-            <description>Workflow to move a data file to the archive</description>
-        </property>
-        <property>
-            <name>mark_directory_done_workflow_file</name>
-            <description>Workflow for marking a directory done</description>
-        </property>
-        <property>
-            <name>send_error_email_workflow_file</name>
-            <description>Workflow for sending an email</description>
-        </property>
-
     </parameters>
 
     <credentials>
@@ -112,9 +78,10 @@
             <script>load_geoeditors_public_monthly_table.hql</script>
 
             <!-- Hive query parameters -->
-            <param>source_table=${geoeditors_monthly_table}</param>
+            <param>editors_daily_table=${editors_daily_table}</param>
+            <param>geoeditors_monthly_table=${geoeditors_monthly_table}</param>
             <param>country_info_table=${country_info_table}</param>
-            <param>blacklist_country_table=${geoeditors_blacklist_country_table}</param>
+            <param>country_blacklist_table=${country_blacklist_table}</param>
             <param>project_namespace_map_table=${mw_project_namespace_map_table}</param>
             <param>destination_table=${geoeditors_public_monthly_table}</param>
             <param>month=${month_partition}</param>
