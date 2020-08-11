@@ -48,7 +48,7 @@ def streamconfigs_request(params={}, options={}):
     return requests.get(url, params=params, headers=options['headers'])
 
 
-def get_stream_configs(streams=None, all_settings=False, options={}):
+def get_stream_configs(streams=None, all_settings=False, constraints=None, options={}):
     """
     Gets the stream configs for streams, or all streams if not provided.
     """
@@ -58,13 +58,15 @@ def get_stream_configs(streams=None, all_settings=False, options={}):
         params['streams'] = '|'.join(streams)
     if all_settings:
         params['all_settings'] = 'true'
+    if constraints:
+        params['constraints'] = constraints
 
     r = streamconfigs_request(params, options)
     return r.json()['streams']
 
 
 
-def get_topics_in_active_streams(streams=None, as_regex=False, options={}):
+def get_topics_in_active_streams(streams=None, as_regex=False, constraints=None, options={}):
     """
     Helper function to calculate the topics that compose streams.
     This contains duplicated logic found in WMF eventgate configuration.
@@ -84,7 +86,12 @@ def get_topics_in_active_streams(streams=None, as_regex=False, options={}):
     topic_prefixes = ['eqiad.', 'codfw.']
     no_prefix_pattern = re.compile(r'^eventlogging_.+')
 
-    stream_configs = get_stream_configs(streams, True, options)
+    stream_configs = get_stream_configs(
+        streams=streams,
+        all_settings=True,
+        constraints=constraints,
+        options=options
+    )
     stream_names = stream_configs.keys()
 
     topics = []
@@ -123,13 +130,16 @@ def main():
         -h --help                           Show this help message and exit.
         -u --host=<host>                    Mediwiki API hostname to request. [default: {0}]
         -A --all-settings                   Asks for all stream config settings to be returned.
+        -C --constraints=<constraints>      A string like key1=val1|key2=val2 to pass to EventStreamConfig API
+                                            as the constraints parameter.
+                                            Example:
+                                            'destination_event_service=eventgate-analytics'
         -H --headers=<headers>              JSON formatted object of HTTP headers to use when
                                             requesting stream config.
                                             Example:
-                                            --headers='{{"Host": "meta.wikimedia.org", "Other-Header": "value"}}'
+                                            '{{"Host": "meta.wikimedia.org", "Other-Header": "value"}}'
     """
     arguments = docopt(main.__doc__.format(default_options['host']))
-
 
     headers = {}
     if arguments['--headers']:
@@ -138,6 +148,7 @@ def main():
     stream_configs = get_stream_configs(
         arguments['<streams>'],
         arguments['--all-settings'],
+        arguments['--constraints'],
         {'headers': headers}
     )
 
@@ -146,7 +157,7 @@ def main():
 
 if __name__ == '__main__':
     # Run tests.
-    if sys.argv[1] == 'test':
+    if len(sys.argv) > 1 and sys.argv[1] == 'test':
 
         import unittest
         import requests_mock

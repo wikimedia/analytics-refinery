@@ -32,6 +32,8 @@ Options:
     -E --check-emails-to=<check_emails_to>  If set, encountered errors will be emailed to these comma separated email addresses.
     -m --check-dry-run                  Execute the check in dry-run mode.
     -s --dynamic-stream-configs         Set the value of kafka.whilelist.topics via EventStreamConfig Mediawiki API.
+    -C --stream-configs-constraints=<constraints>
+        Set this to a key1=val1|key2=val2 string to use as the EventStreamConfig API constraints parameter.
     -S --stream-configs-hostname=<url>  [default: meta.wikimedia.org]
 """
 __author__ = 'Andrew Otto <otto@wikimedia.org>'
@@ -63,7 +65,9 @@ if __name__ == '__main__':
     # be break if topic naming conventions change on producer side.
     if arguments['--dynamic-stream-configs']:
         topics_regex = get_topics_in_active_streams(
-            None, True, {'host': arguments['--stream-configs-hostname']}
+            as_regex=True,
+            constraints=arguments['--stream-configs-constraints'],
+            options={'host': arguments['--stream-configs-hostname']}
         )
         extra_java_opts = extra_java_opts + ' -Dkafka.whitelist.topics="{}"'.format(topics_regex)
 
