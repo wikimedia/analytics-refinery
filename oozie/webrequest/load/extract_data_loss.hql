@@ -49,7 +49,7 @@ WITH
   data_loss AS (
     SELECT
       count_lost AS count,
-      percent_lost AS percent
+      percent_lost AS `percent`
     FROM
       ${table}
     WHERE
@@ -59,7 +59,7 @@ WITH
   incomplete_data AS (
     SELECT
       count_incomplete AS count,
-      ((count_incomplete / (count_actual + count_incomplete)) * 100.0) AS percent
+      ((count_incomplete / (count_actual + count_incomplete)) * 100.0) AS `percent`
     FROM
       ${table}
     WHERE
@@ -75,16 +75,16 @@ SELECT
   CONCAT(
     CAST(incomplete_data.count AS string),
     ' requests (',
-    CAST(ROUND(incomplete_data.percent, 3) AS string),
+    CAST(ROUND(incomplete_data.`percent`, 3) AS string),
     '% of total) have incomplete records. ',
     CAST(data_loss.count AS string),
     ' requests (',
-    CAST(ROUND(data_loss.percent, 3) AS string),
+    CAST(ROUND(data_loss.`percent`, 3) AS string),
     '% of valid ones) were lost.'
   ) line
 FROM
   data_loss, incomplete_data
 WHERE
-  data_loss.percent > ${data_loss_threshold} OR
-  incomplete_data.percent > ${incomplete_data_threshold}
+  data_loss.`percent` > ${data_loss_threshold} OR
+  incomplete_data.`percent` > ${incomplete_data_threshold}
 ;

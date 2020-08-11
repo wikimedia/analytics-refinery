@@ -64,7 +64,7 @@ WITH
             user_agent_map['browser_family'] AS browser_family,
             user_agent_map['browser_major'] AS browser_major,
             SUM(view_count) AS view_count,
-            SUM(view_count) * 100 / total.view_count_total AS percent
+            SUM(view_count) * 100 / total.view_count_total AS `percent`
         FROM
             ${pageview_source}
             JOIN total
@@ -89,18 +89,18 @@ WITH
         -- the rows to collapse the long tail, and sorts them by view count.
         SELECT
             access_method,
-            IF(percent > ${threshold}, os_family, '${os_family_unknown}') AS os_family,
-            IF(percent > ${threshold}, os_major, '${os_major_unknown}') AS os_major,
-            IF(percent > ${threshold}, browser_family, '${browser_family_unknown}') AS browser_family,
-            IF(percent > ${threshold}, browser_major, '${browser_major_unknown}') AS browser_major,
+            IF(`percent` > ${threshold}, os_family, '${os_family_unknown}') AS os_family,
+            IF(`percent` > ${threshold}, os_major, '${os_major_unknown}') AS os_major,
+            IF(`percent` > ${threshold}, browser_family, '${browser_family_unknown}') AS browser_family,
+            IF(`percent` > ${threshold}, browser_major, '${browser_major_unknown}') AS browser_major,
             SUM(view_count) AS view_count
         FROM stats
         GROUP BY
             access_method,
-            IF(percent > ${threshold}, os_family, '${os_family_unknown}'),
-            IF(percent > ${threshold}, os_major, '${os_major_unknown}'),
-            IF(percent > ${threshold}, browser_family, '${browser_family_unknown}'),
-            IF(percent > ${threshold}, browser_major, '${browser_major_unknown}')
+            IF(`percent` > ${threshold}, os_family, '${os_family_unknown}'),
+            IF(`percent` > ${threshold}, os_major, '${os_major_unknown}'),
+            IF(`percent` > ${threshold}, browser_family, '${browser_family_unknown}'),
+            IF(`percent` > ${threshold}, browser_major, '${browser_major_unknown}')
         ORDER BY view_count DESC LIMIT 1000000
     )
 

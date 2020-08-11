@@ -86,7 +86,7 @@ INSERT OVERWRITE TABLE ${destination_table}
         user_agent,
         accept_language,
         x_analytics,
-        range,
+        `range`,
         is_pageview(uri_host, uri_path, uri_query, http_status, content_type, user_agent, x_analytics) as is_pageview,
         '${record_version}' as record_version,
         ip as client_ip,
