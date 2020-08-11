@@ -51,8 +51,8 @@ WITH upload_webrequests AS (
             AND (
                 http_status = 200 -- No 304 per RFC discussion
                 OR (http_status = 206
-                    AND SUBSTR(range, 1, 8) = 'bytes=0-'
-                    AND range != 'bytes=0-0'
+                    AND SUBSTR(`range`, 1, 8) = 'bytes=0-'
+                    AND `range` != 'bytes=0-0'
                 )
             )
 )
