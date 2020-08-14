@@ -36,7 +36,7 @@ SELECT
                 COLLECT_SET(
                     CONCAT(
                         '{"country":"', country_code,
-                        '","editors_ceil":', CAST(editors_ceil AS STRING), '}'
+                        '","editors-ceil":', CAST(editors_ceil AS STRING), '}'
                     )
                 )
             ),
