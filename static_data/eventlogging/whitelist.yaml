@@ -1577,6 +1577,25 @@ RelatedArticles:
     webhost: keep
     wiki: keep
 
+ReferencePreviewsBaseline:
+    event:
+        action: keep
+    webhost: keep
+    wiki: keep
+
+ReferencePreviewsCite:
+    event:
+        action: keep
+    webhost: keep
+    wiki: keep
+
+ReferencePreviewsPopups:
+    event:
+        action: keep
+        scrollbarsPresent: keep
+    webhost: keep
+    wiki: keep
+
 ResourceTiming:
     event:
         connectEnd: keep
