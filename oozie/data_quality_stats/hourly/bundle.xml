@@ -63,7 +63,7 @@
             <property><name>source_done_flag</name><value>_SUCCESS</value></property>
             <property><name>query_name</name><value>traffic_entropy_by_country</value></property>
             <property><name>seasonality_cycle</name><value>24</value></property>
-            <property><name>deviation_threshold</name><value>10</value></property>
+            <property><name>deviation_threshold</name><value>15</value></property>
             <property><name>send_alerts_to</name><value>mforns@wikimedia.org,nuria@wikimedia.org,ssingh@wikimedia.org</value></property>
         </configuration>
     </coordinator>
