@@ -26,7 +26,6 @@
         <property><name>month</name></property>
         <property><name>day</name></property>
         <property><name>hour</name></property>
-        <property><name>seasonality_cycle</name></property>
         <property><name>deviation_threshold</name></property>
         <property><name>send_alerts_to</name></property>
 
@@ -194,7 +193,6 @@
             <arg>--query-name</arg><arg>${query_name}</arg>
             <arg>--granularity</arg><arg>${granularity}</arg>
             <arg>--last-data-point-dt</arg><arg>${timestamp}</arg>
-            <arg>--seasonality-cycle</arg><arg>${seasonality_cycle}</arg>
             <arg>--output-path</arg><arg>${anomalies_file_path}</arg>
             <arg>--deviation-threshold</arg><arg>${deviation_threshold}</arg>
         </spark>

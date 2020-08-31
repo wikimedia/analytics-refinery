@@ -33,7 +33,6 @@
         <property><name>data_quality_stats_table</name></property>
         <property><name>data_quality_stats_base_path</name></property>
         <property><name>data_quality_stats_incoming_table</name></property>
-        <property><name>seasonality_cycle</name></property>
         <property><name>deviation_threshold</name></property>
         <property><name>send_alerts_to</name></property>
 

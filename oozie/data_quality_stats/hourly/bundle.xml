@@ -49,8 +49,7 @@
             <property><name>source_base_path</name><value>/wmf/data/event/NavigationTiming</value></property>
             <property><name>source_done_flag</name><value>_SUCCESS</value></property>
             <property><name>query_name</name><value>useragent_entropy</value></property>
-            <property><name>seasonality_cycle</name><value>24</value></property>
-            <property><name>deviation_threshold</name><value>10</value></property>
+            <property><name>deviation_threshold</name><value>4</value></property>
             <property><name>send_alerts_to</name><value>analytics-alerts@wikimedia.org</value></property>
         </configuration>
     </coordinator>
@@ -62,7 +61,6 @@
             <property><name>source_base_path</name><value>/wmf/data/wmf/pageview/hourly</value></property>
             <property><name>source_done_flag</name><value>_SUCCESS</value></property>
             <property><name>query_name</name><value>traffic_entropy_by_country</value></property>
-            <property><name>seasonality_cycle</name><value>24</value></property>
             <property><name>deviation_threshold</name><value>15</value></property>
             <property><name>send_alerts_to</name><value>mforns@wikimedia.org,nuria@wikimedia.org,ssingh@wikimedia.org</value></property>
         </configuration>
