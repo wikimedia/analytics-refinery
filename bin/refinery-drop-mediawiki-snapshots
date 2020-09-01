@@ -23,8 +23,8 @@ See AFFECTED_TABLES dict for a comprehensive list.
 
 As this data sets are historical (they span from the beginning of time
 to latest import), the dimension used to determine which partitions need
-to be removed is not time, it's "snapshot". By default the last 6
-snapshots will be kept: the current snapshot plus the previous 5.
+to be removed is not time, it's "snapshot". The number of snapshot kept is
+6 for all tables except it is 2 for mediawiki_wikitext_history (huge dataset).
 
 Note: Ad-hoc snapshots not following the default naming convention
 snapshot=YYYY-MM, like private snapshots, are not considered neither
@@ -34,9 +34,10 @@ Usage: refinery-drop-mediawiki-snapshots [options]
 
 Options:
     -h --help                       Show this help message and exit.
-    -s --keep-snapshots=<n>         Keep the <n> most recent snapshots. [default: 6]
     -v --verbose                    Turn on verbose debug logging.
     -n --dry-run                    Don't actually drop any partitions, just output Hive queries.
+    -x --non-strict                 Don't enforce to-be-deleted hive-partitions to match to-be-deleted
+                                    folders and vice-versa
 """
 
 
@@ -86,28 +87,31 @@ logger.addHandler(handler_err)
 # Tables that have mediawiki snapshots to be managed
 # key: database, value: table
 AFFECTED_TABLES = {
-    'wmf_raw': [
-        'mediawiki_archive',
-        'mediawiki_change_tag',
-        'mediawiki_ipblocks',
-        'mediawiki_logging',
-        'mediawiki_page',
-        'mediawiki_pagelinks',
-        'mediawiki_project_namespace_map',
-        'mediawiki_redirect',
-        'mediawiki_revision',
-        'mediawiki_user',
-        'mediawiki_user_groups'
-    ],
-    'wmf': [
-        'mediawiki_history',
-        'mediawiki_metrics',
-        'mediawiki_page_history',
-        'mediawiki_user_history',
-        'mediawiki_history_reduced',
-        'mediawiki_wikitext_history',
-        'edit_hourly'
-    ]
+    'wmf_raw': {
+        'mediawiki_archive': 6,
+        'mediawiki_change_tag': 6,
+        'mediawiki_ipblocks': 6,
+        'mediawiki_logging': 6,
+        'mediawiki_page': 6,
+        'mediawiki_pagelinks': 6,
+        'mediawiki_project_namespace_map': 6,
+        'mediawiki_redirect': 6,
+        'mediawiki_revision': 6,
+        'mediawiki_user': 6,
+        'mediawiki_user_groups': 6
+    },
+    'wmf': {
+        'mediawiki_history': 6,
+        'mediawiki_metrics': 6,
+        'mediawiki_page_history': 6,
+        'mediawiki_user_history': 6,
+        'mediawiki_history_reduced': 6,
+        'edit_hourly': 6,
+        'mediawiki_wikitext_history': 2,
+        'mediawiki_wikitext_current': 6,
+        'wikidata_entity': 6,
+        'wikidata_item_page_link': 6,
+    }
 }
 
 # Tables partitioned by wiki_db in addition to by snapshot
@@ -123,20 +127,9 @@ WIKI_DB_TABLES = [
     'mediawiki_user',
     'mediawiki_user_groups',
     'mediawiki_wikitext_history',
+    'mediawiki_wikitext_current'
 ]
 
-
-# Returns the age in days of a given partition spec
-TODAYS_ORDINAL = datetime.datetime.now().toordinal()
-SPEC_DATE_REGEX = re.compile(r"snapshot='(?P<year>[0-9]{4})-(?P<month>[0-9]{2})'")
-def get_partition_age(hive):
-    return (lambda partition:
-        TODAYS_ORDINAL -
-        hive.partition_datetime_from_spec(
-            partition,
-            SPEC_DATE_REGEX
-        ).toordinal()
-    )
 
 # Returns the partitions to be dropped given a hive table
 def get_partitions_to_drop(hive, table, keep_snapshots):
@@ -157,11 +150,11 @@ def get_partitions_to_drop(hive, table, keep_snapshots):
     # Filter out ad-hoc or private snapshots
     partitions = [
         p for p in partitions
-        if re.match("^snapshot='[0-9]{4}-[0-9]{2}'$", p)
+        if re.match("^snapshot='[0-9]{4}-[0-9]{2}(-[0-9]{2})?'$", p)
     ]
 
     # Select partitions to drop (keep the most recent <keep_snapshots> ones)
-    partitions.sort(key=get_partition_age(hive))
+    partitions.sort(reverse = True)
     partitions_to_drop = partitions[keep_snapshots:]
 
     # HACK: For tables partitioned by dimensions other than snapshot
@@ -174,36 +167,24 @@ def get_partitions_to_drop(hive, table, keep_snapshots):
         ]
     return partitions_to_drop
 
-# Returns the age in days of a given partition directory
-PATH_DATE_REGEX = re.compile(r'snapshot=([0-9]{4}-[0-9]{2})')
-PATH_DATE_FORMAT = '%Y-%m'
-def get_directory_age(hive):
-    return (lambda path:
-        TODAYS_ORDINAL -
-        hive.partition_datetime_from_path(
-            path,
-            PATH_DATE_REGEX,
-            PATH_DATE_FORMAT
-        ).toordinal()
-    )
-
 # Returns the directories to be removed given a hive table
 def get_directories_to_remove(hive, table, keep_snapshots):
     logger.debug('Getting directories to remove...')
     table_location = hive.table_location(table)
 
-    # Get partition directories
-    glob = os.path.join(table_location, '*')
+    # Get partition directories having a _SUCCESS file to only consider fully
+    # imported/computed snapshots
+    glob = os.path.join(table_location, '*/_SUCCESS')
     directories = Hdfs.ls(glob, include_children=False)
 
-    # Filter out private snapshots
+    # Filter out non-date snapshots
     directories = [
-        d for d in directories
-        if re.match('^.*/snapshot=[0-9]{4}-[0-9]{2}$', d)
+        d[:(len(d) - len('/_SUCCESS'))] for d in directories
+        if re.match('^.*/snapshot=[0-9]{4}-[0-9]{2}(-[0-9]{2})?/_SUCCESS$', d)
     ]
 
     # Select directories to drop (keep the most recent <keep_snapshots> ones)
-    directories.sort(key=get_directory_age(hive))
+    directories.sort(reverse = True)
     return directories[keep_snapshots:]
 
 # Raises an error if partitions and directories do not match
@@ -223,15 +204,12 @@ def check_partitions_vs_directories(partitions, directories):
 # Drop given hive table partitions (if dry_run, just print)
 def drop_partitions(hive, table, partitions, dry_run):
     if partitions:
-        if dry_run:
-            print(hive.drop_partitions_ddl(table, partitions))
-        else:
-            logger.info(
-                'Dropping {0} partitions from {1}.{2}'
-                .format(len(partitions), hive.database, table)
-            )
-            for partition in partitions:
-                logger.debug(partition)
+        logger.info(
+            'Dropping {0} partitions from {1}.{2}'
+            .format(len(partitions), hive.database, table))
+        for partition in partitions:
+            logger.debug('\t{0}'.format(partition))
+        if not dry_run:
             hive.drop_partitions(table, partitions)
     else:
         logger.info(
@@ -243,14 +221,11 @@ def drop_partitions(hive, table, partitions, dry_run):
 def remove_directories(hive, table, directories, dry_run):
     table_location = hive.table_location(table)
     if directories:
-        if dry_run:
-            print('hdfs dfs -rm -R -skipTrash ' + ' '.join(directories))
-        else:
-            logger.info('Removing {0} directories from {1}'
-                .format(len(directories), table_location)
-            )
-            for directory in directories:
-                logger.debug(directory)
+        logger.info('Removing {0} directories from {1}'
+            .format(len(directories), table_location))
+        for directory in directories:
+            logger.debug('\t{0}'.format(directory))
+        if not dry_run:
             Hdfs.rm(' '.join(directories))
     else:
         logger.info('No directories need to be removed for {0}'.format(table_location))
@@ -259,29 +234,31 @@ def remove_directories(hive, table, directories, dry_run):
 if __name__ == '__main__':
     # Parse arguments
     arguments = docopt(__doc__)
-    keep_snapshots  = int(arguments['--keep-snapshots'])
     verbose         = arguments['--verbose']
     dry_run         = arguments['--dry-run']
+    non_strict      = arguments['--non-strict']
 
     # Setup logging level
     logger.setLevel(logging.INFO)
     if verbose:
         logger.setLevel(logging.DEBUG)
 
-    # Check arguments
-    if keep_snapshots < 6:
-        logger.error('Option \'--keep-snapshots\' must be greater or equal than 6.')
-        sys.exit(1)
+    logger.debug("Running in VERBOSE mode")
+    if dry_run:
+        logger.info("Running in DRY-RUN mode")
+    if non_strict:
+        logger.info("Running in NON_STRICT mode")
 
-    for database, tables in AFFECTED_TABLES.items():
+    for database, tables_and_keep_snapshots in AFFECTED_TABLES.items():
         # Instantiate Hive
         hive = Hive(database)
 
         # Apply the cleaning to each table
-        for table in tables:
-            logger.debug('Processing table {0}'.format(table))
-            partitions = get_partitions_to_drop(hive, table, keep_snapshots)
-            directories = get_directories_to_remove(hive, table, keep_snapshots)
-            check_partitions_vs_directories(partitions, directories)
+        for table, keep_snapshot in tables_and_keep_snapshots.items():
+            logger.debug('Processing table {0} keeping {1} snapshots'.format(table, keep_snapshot))
+            partitions = get_partitions_to_drop(hive, table, keep_snapshot)
+            directories = get_directories_to_remove(hive, table, keep_snapshot)
+            if not non_strict:
+                check_partitions_vs_directories(partitions, directories)
             drop_partitions(hive, table, partitions, dry_run)
             remove_directories(hive, table, directories, dry_run)
