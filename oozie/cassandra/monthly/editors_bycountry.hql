@@ -20,6 +20,31 @@ INSERT OVERWRITE DIRECTORY "${destination_directory}"
 -- Since "ROW FORMAT DELIMITED DELIMITED FIELDS TERMINATED BY ' '" only
 -- works for exports to local directories (see HIVE-5672), we have to
 -- prepare the lines by hand through concatenation :-(
+WITH prepared_editors_by_country AS (
+    SELECT
+        project,
+        activity_level,
+        month,
+        editors_ceil,
+        country_code
+    FROM ${source_table}
+    WHERE
+        month = CONCAT("${year}-", LPAD("${month}", 2, "0"))
+    -- This is secondary sorting in Hive:
+    --  * It uses SORT BY, not ORDER BY, to sort in each reducer instead of globally
+    --  * The sorting-key is a superset of the grouping-key
+    DISTRIBUTE BY
+        project,
+        activity_level,
+        month
+    SORT BY
+        project,
+        activity_level,
+        month,
+        editors_ceil DESC,
+        country_code
+)
+
 SELECT
     CONCAT_WS("${separator}",
         project,
@@ -42,9 +67,7 @@ SELECT
             ),
         ']')
     )
-FROM ${source_table}
-WHERE
-    month = CONCAT("${year}-", LPAD("${month}", 2, "0"))
+FROM prepared_editors_by_country
 GROUP BY
     project,
     activity_level,
