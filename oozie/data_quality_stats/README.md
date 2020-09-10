@@ -88,7 +88,6 @@ Once you've tested the query independently, add a coordinator snippet to your
         <property><name>source_directory</name><value>YOUR_SOURCE_DIRECTORY</value></property>
         <property><name>source_done_flag</name><value>YOUR_DONE_FLAG</value></property>
         <property><name>query_name</name><value>YOUR_QUERY_NAME</value></property>
-        <property><name>seasonality_cycle</name><value>YOUR_SEASONALITY_CYCLE</value></property>
         <property><name>deviation_threshold</name><value>YOUR_DEVIATION_THRESHOLD</value></property>
         <property><name>send_alerts_to</name><value>YOUR_ALERT_EMAILS</value></property>
     </configuration>
@@ -111,11 +110,6 @@ example: `_SUCCESS`.
 
 *YOUR_QUERY_NAME* is the name of your query file without the *.hql* extension.
 For instance `edit_quality`.
-
-*YOUR_SEASONALITY_CYCLE* is the number of data points that conform a seasonality
-cycle for your metrics. For example, if your metrics have an hourly resolution
-and a daily seasonality (pattern repeats every day), then your seasonality cycle
-should be `24` data points.
 
 *YOUR_DEVIATION_THRESHOLD* is the absolute normalized deviation over which
 anomalies are going to be reported with alert emails. For instance `10.0`.
