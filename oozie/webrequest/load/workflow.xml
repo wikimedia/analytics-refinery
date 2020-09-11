@@ -264,7 +264,7 @@
         at all. -->
     <action name="check_sequence_statistics">
         <sub-workflow>
-            <app-path>${replaceAll(wf:appPath(), "/[^/]*$", "")}/check_sequence_statistics_workflow.xml</app-path>
+            <app-path>${replaceAll(wf:appPath(), '/[^/]*$', '')}/check_sequence_statistics_workflow.xml</app-path>
             <propagate-configuration/>
             <configuration>
                 <property>
