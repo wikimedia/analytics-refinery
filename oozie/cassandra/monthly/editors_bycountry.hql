@@ -16,7 +16,6 @@
 SET hive.exec.compress.output=true;
 SET mapreduce.output.fileoutputformat.compress.codec=org.apache.hadoop.io.compress.GzipCodec;
 
-INSERT OVERWRITE DIRECTORY "${destination_directory}"
 -- Since "ROW FORMAT DELIMITED DELIMITED FIELDS TERMINATED BY ' '" only
 -- works for exports to local directories (see HIVE-5672), we have to
 -- prepare the lines by hand through concatenation :-(
@@ -45,6 +44,7 @@ WITH prepared_editors_by_country AS (
         country_code
 )
 
+INSERT OVERWRITE DIRECTORY "${destination_directory}"
 SELECT
     CONCAT_WS("${separator}",
         project,
