@@ -68,13 +68,13 @@
                 <!-- See loop_list_step.xml for what's going on here -->
                 <property>
                     <name>loop_value</name>
-                    <value>${replaceAll(replaceAll(loop_list, "([^,]*),?(.*)", "$1"),
-                                        "^$", "--NOVALUE--")}</value>
+                    <value>${replaceAll(replaceAll(loop_list, '([^,]*),?(.*)', '$1'),
+                                        '^$', '--NOVALUE--')}</value>
                 </property>
                 <property>
                     <name>loop_list</name>
-                    <value>${replaceAll(replaceAll(loop_list,"([^,]*),?(.*)", "$2"),
-                                        "^$", "--ENDOFLIST--")}</value>
+                    <value>${replaceAll(replaceAll(loop_list,'([^,]*),?(.*)', '$2'),
+                                        '^$', '--ENDOFLIST--')}</value>
                 </property>
             </configuration>
         </sub-workflow>

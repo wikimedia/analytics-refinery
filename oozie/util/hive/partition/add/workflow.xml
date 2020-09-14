@@ -81,8 +81,8 @@
             <script>${hive_script}</script>
 
             <!-- Query parameters -->
-            <param>database=${replaceAll(table, "\\..*", "")}</param>
-            <param>table=${replaceAll(table, "^.*\\.", "")}</param>
+            <param>database=${replaceAll(table, '\\..*', '')}</param>
+            <param>table=${replaceAll(table, '^.*\\.', '')}</param>
             <param>location=${location}</param>
             <param>partition_spec=${partition_spec}</param>
 
