@@ -45,20 +45,20 @@
                         <name>loop_value</name>
                         <!-- Pull out the first entry of the remaining list and use that as the next
                             iteration's value -->
-                        <value>${replaceAll(replaceAll(loop_list, "([^,]*),?(.*)", "$1"),
+                        <value>${replaceAll(replaceAll(loop_list, '([^,]*),?(.*)', '$1'),
                         <!-- Oozie has forsaken us and will ignore empty string properties, which is a
                              pretty big problem for us. Instead, we make a sacrifice to the ugly
                              hack gods by using a special value in its place. -->
-                                            "^$", "--NOVALUE--")}</value>
+                                            '^$', '--NOVALUE--')}</value>
                     </property>
                     <property>
                         <name>loop_list</name>
                         <!-- Pull out the non-first entries of the remaining list and use that as the
                              next iteration's list. In this way the list gets shorter each iteration,
                              so we can detect the end when the list is empty. -->
-                        <value>${replaceAll(replaceAll(loop_list,"([^,]*),?(.*)", "$2"),
+                        <value>${replaceAll(replaceAll(loop_list,'([^,]*),?(.*)', '$2'),
                         <!-- Use a special string if the list is empty, for the same reason as above -->
-                                            "^$", "--ENDOFLIST--")}</value>
+                                            '^$', '--ENDOFLIST--')}</value>
                     </property>
                 </configuration>
             </sub-workflow>
@@ -96,13 +96,13 @@
             <configuration>
                 <property>
                     <name>loop_value</name>
-                    <value>${replaceAll(replaceAll(loop_list, "([^,]*),?(.*)", "$1"),
-                                        "^$", "--NOVALUE--")}</value>
+                    <value>${replaceAll(replaceAll(loop_list, '([^,]*),?(.*)', '$1'),
+                                        '^$', '--NOVALUE--')}</value>
                 </property>
                 <property>
                     <name>loop_list</name>
-                    <value>${replaceAll(replaceAll(loop_list,"([^,]*),?(.*)", "$2"),
-                                        "^$", "--ENDOFLIST--")}</value>
+                    <value>${replaceAll(replaceAll(loop_list,'([^,]*),?(.*)', '$2'),
+                                        '^$', '--ENDOFLIST--')}</value>
                 </property>
             </configuration>
         </sub-workflow>
