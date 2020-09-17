@@ -1845,3 +1845,17 @@ SpecialMuteSubmit:
         notificationsAfter: keep
     wiki: keep
     webhost: keep
+
+SpecialInvestigate:
+    event:
+        action: keep
+        targetsCount: keep
+        excludeTargetsCount: keep
+        relevantTargetsCount: keep
+        tab: keep
+        queryTime: keep
+        resultsCount: keep
+        resultsIncomplete: keep
+        tool: keep
+    wiki: keep
+    webhost: keep
