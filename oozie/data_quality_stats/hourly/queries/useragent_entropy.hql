@@ -25,7 +25,9 @@ WITH base_data AS (
         year = ${year} AND
         month = ${month} AND
         day = ${day} AND
-        hour = ${hour}
+        hour = ${hour} AND
+        event.isOversample = false
+
 )
 
 INSERT OVERWRITE TABLE ${destination_table} PARTITION (
