@@ -502,6 +502,27 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         'mappers-weight': 1.0,
     }
 
+    queries['page_props'] = {
+        'query': '''
+             select pp_page,
+                    convert(pp_propname using utf8) pp_propname,
+                    convert(pp_value using utf8) pp_value,
+                    pp_sortkey
+
+               from page_props
+              where $CONDITIONS
+        ''',
+        'map-types': '"{}"'.format(','.join([
+            'pp_page=Long',
+            'pp_propname=String',
+            'pp_value=String',
+            'pp_sortkey=Float',
+        ])),
+        'boundary-query': 'SELECT MIN(pp_page), MAX(pp_page) FROM page_props',
+        'split-by': 'pp_page',
+        'mappers-weight': 0.125,
+    }
+
     queries['page_restrictions'] = {
         'query': '''
              select pr_id,
@@ -646,6 +667,25 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         'boundary-query': 'SELECT MIN(ug_user), MAX(ug_user) FROM user_groups',
         'split-by': 'ug_user',
         'mappers-weight': 0.0,
+    }
+
+    queries['user_properties'] = {
+        'query': '''
+             select up_user,
+                    convert(up_property using utf8) up_property,
+                    convert(up_value using utf8) up_value
+
+               from user_properties
+              where $CONDITIONS
+        ''',
+        'map-types': '"{}"'.format(','.join([
+            'up_user=Long',
+            'up_property=String',
+            'up_value=String',
+        ])),
+        'boundary-query': 'SELECT MIN(up_user), MAX(up_user) FROM user_properties',
+        'split-by': 'up_user',
+        'mappers-weight': 0.125,
     }
 
     wbc_entity_usage_sqoopable_dbs = get_dbnames_from_mw_config(['wikidataclient.dblist'])

@@ -36,6 +36,7 @@
         <property><name>mw_logging_table</name></property>
         <property><name>mw_page_table</name></property>
         <property><name>mw_pagelinks_table</name></property>
+        <property><name>mw_page_props_table</name></property>
         <property><name>mw_page_restrictions_table</name></property>
         <property><name>mw_redirect_table</name></property>
         <property><name>mw_revision_table</name></property>
@@ -43,6 +44,7 @@
         <property><name>mw_slots_table</name></property>
         <property><name>mw_user_table</name></property>
         <property><name>mw_user_groups_table</name></property>
+        <property><name>mw_user_properties_table</name></property>
         <property><name>mw_wbc_entity_usage_table</name></property>
 
         <property><name>mw_private_actor_table</name></property>
@@ -113,6 +115,9 @@
         <data-in name="mw_pagelinks_table" dataset="mw_pagelinks_table">
             <instance>${coord:current(0)}</instance>
         </data-in>
+        <data-in name="mw_page_props_table" dataset="mw_page_props_table">
+            <instance>${coord:current(0)}</instance>
+        </data-in>
         <data-in name="mw_page_restrictions_table" dataset="mw_page_restrictions_table">
             <instance>${coord:current(0)}</instance>
         </data-in>
@@ -132,6 +137,9 @@
             <instance>${coord:current(0)}</instance>
         </data-in>
         <data-in name="mw_user_groups_table" dataset="mw_user_groups_table">
+            <instance>${coord:current(0)}</instance>
+        </data-in>
+        <data-in name="mw_user_properties_table" dataset="mw_user_properties_table">
             <instance>${coord:current(0)}</instance>
         </data-in>
         <data-in name="mw_wbc_entity_usage_table" dataset="mw_wbc_entity_usage_table">
@@ -184,6 +192,9 @@
         <data-out name="mw_pagelinks_table_partitioned" dataset="mw_pagelinks_table_partitioned">
             <instance>${coord:current(0)}</instance>
         </data-out>
+        <data-out name="mw_page_props_table_partitioned" dataset="mw_page_props_table_partitioned">
+            <instance>${coord:current(0)}</instance>
+        </data-out>
         <data-out name="mw_page_restrictions_table_partitioned" dataset="mw_page_restrictions_table_partitioned">
             <instance>${coord:current(0)}</instance>
         </data-out>
@@ -203,6 +214,9 @@
             <instance>${coord:current(0)}</instance>
         </data-out>
         <data-out name="mw_user_groups_table_partitioned" dataset="mw_user_groups_table_partitioned">
+            <instance>${coord:current(0)}</instance>
+        </data-out>
+        <data-out name="mw_user_properties_table_partitioned" dataset="mw_user_properties_table_partitioned">
             <instance>${coord:current(0)}</instance>
         </data-out>
         <data-out name="mw_wbc_entity_usage_table_partitioned" dataset="mw_wbc_entity_usage_table_partitioned">
@@ -274,6 +288,10 @@
                     <value>${coord:dataIn('mw_pagelinks_table')}</value>
                 </property>
                 <property>
+                    <name>mw_page_props_table_location</name>
+                    <value>${coord:dataIn('mw_page_props_table')}</value>
+                </property>
+                <property>
                     <name>mw_page_restrictions_table_location</name>
                     <value>${coord:dataIn('mw_page_restrictions_table')}</value>
                 </property>
@@ -300,6 +318,10 @@
                 <property>
                     <name>mw_user_groups_table_location</name>
                     <value>${coord:dataIn('mw_user_groups_table')}</value>
+                </property>
+                <property>
+                    <name>mw_user_properties_table_location</name>
+                    <value>${coord:dataIn('mw_user_properties_table')}</value>
                 </property>
                 <property>
                     <name>mw_wbc_entity_usage_table_location</name>
