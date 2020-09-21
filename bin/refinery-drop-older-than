@@ -192,45 +192,52 @@ def remove_directories(hdfs, base_path, path_format, threshold, skip_trash, exec
     Otherwise, just logs the commands that would have been used.
     """
     full_path_format = os.path.join(base_path, path_format)
-    # Use number of '/' in the path format regex to determine max glob depth.
-    max_glob_depth = path_format.strip('/').count('/') + 1
 
-    for glob_depth in range(1, max_glob_depth + 1):
-        directories_to_remove = []
-        glob = os.path.join(*([base_path] + ['*'] * glob_depth))
-
-        candidate_paths = hdfs.ls(glob, include_children=False)
+    directories_to_expand = [base_path]
+    directories_to_remove = []
+    while len(directories_to_expand) > 0:
+        # Collect the sub-paths of the directories to expand (deletion candidates).
+        # Note that hdfs.ls(F) will return F, if F is a file path (not a directory path).
+        # Filter out such 'recursive' paths to avoid infinite loops.
+        candidate_paths = [
+            path for path in hdfs.ls(directories_to_expand)
+            if path not in directories_to_expand]
+        directories_to_expand = []
         for path in candidate_paths:
-            if should_remove_directory(path, full_path_format, threshold):
+            time_interval = extract_time_interval_from_directory(path, full_path_format)
+            if time_interval is None:
+                # No time information was found in the path.
+                directories_to_expand.append(path)
+            elif time_interval[1] < threshold:
+                # The whole directory is older than the threshold.
                 directories_to_remove.append(path)
+            elif time_interval[0] < threshold:
+                # The threshold is in between the directory's start and end.
+                directories_to_expand.append(path)
 
-        if len(directories_to_remove) > 0:
-            if execute:
-                logger.info('Removing {0} directories for tree depth {1}.'
-                    .format(len(directories_to_remove), glob_depth))
-                hdfs.rm(
-                    ' '.join(directories_to_remove),
-                    skip_trash=skip_trash)
-            else:
-                logger.info(
-                    ('DRY RUN: {0} directories for tree depth {1} ' +
-                    'would be removed with the following command:')
-                    .format(len(directories_to_remove), glob_depth))
-                logger.info(
-                    'hdfs dfs -rm -R ' +
-                    ('-skipTrash  \\\n' if skip_trash else '\\\n') +
-                    ' \\\n'.join(directories_to_remove))
+    if len(directories_to_remove) > 0:
+        if execute:
+            logger.info('Removing {0} directories.'.format(len(directories_to_remove)))
+            hdfs.rm(' '.join(directories_to_remove), skip_trash=skip_trash)
         else:
-            logger.info('No directories removed for tree depth {0}.'
-                .format(glob_depth))
+            logger.info(
+                ('DRY RUN: {0} directories ' +
+                'would be removed with the following command:')
+                .format(len(directories_to_remove)))
+            logger.info(
+                'hdfs dfs -rm -R ' +
+                ('-skipTrash  \\\n' if skip_trash else '\\\n') +
+                ' \\\n'.join(directories_to_remove))
+    else:
+        logger.info('No directories removed.')
 
 
-def should_remove_directory(path, full_path_format, threshold):
+def extract_time_interval_from_directory(path, full_path_format):
     """
-    Returns True, if the given path matches the specified format,
-    and the datetime extracted from it using the format's capture
-    groups is older than the given threshold.
-    Returns False otherwise.
+    Returns the start datetime and the end datetime of the given
+    path, using the full path format to extract time information.
+    If the path does not match the format spec, or no time information
+    can be extracted from the path, returns None.
     """
     if not full_path_format.endswith('$'):
         full_path_format += '$'
@@ -241,26 +248,30 @@ def should_remove_directory(path, full_path_format, threshold):
 
         if group_dict.get('year') is None:
             # Year is required.
-            return False
+            return None
         year = int(group_dict['year'])
         if group_dict.get('month') is None:
-            month, day, hour = 12, 31, 23
+            start_month, start_day, start_hour = 1, 1, 0
+            end_month, end_day, end_hour = 12, 31, 23
         else:
-            month = int(group_dict['month'])
+            start_month = end_month = int(group_dict['month'])
             if group_dict.get('day') is None:
+                start_day, start_hour = 1, 0
                 # Get last day of month.
-                day, hour = calendar.monthrange(year, month)[1], 23
+                end_day, end_hour = calendar.monthrange(year, end_month)[1], 23
             else:
-                day = int(group_dict['day'])
+                start_day = end_day = int(group_dict['day'])
                 if group_dict.get('hour') is None:
-                    hour = 23
+                    start_hour = 0
+                    end_hour = 23
                 else:
-                    hour = int(group_dict['hour'])
+                    start_hour = end_hour = int(group_dict['hour'])
 
-        path_datetime = datetime(year, month, day, hour, 59, 59)
-        return path_datetime < threshold
+        start_datetime = datetime(year, start_month, start_day, start_hour, 0, 0)
+        end_datetime = datetime(year, end_month, end_day, end_hour, 59, 59)
+        return (start_datetime, end_datetime)
 
-    return False
+    return None
 
 
 def get_security_checksum(args):
@@ -459,43 +470,39 @@ class TestRefineryDropOlderThan(unittest.TestCase):
                 '--verbose': True,
                 '--log-file': 'path'}))
 
-    def test_should_remove_directory_is_false_without_year_group(self):
+    def test_extract_time_interval_from_directory_is_none_without_year_group(self):
         path = '/test/dataset'
         format = '/test/(?P<dataset>[0-9]+)'
-        result = should_remove_directory(path, format, datetime(2018, 1, 1, 0))
-        self.assertEqual(result, False)
+        result = extract_time_interval_from_directory(path, format)
+        self.assertEqual(result, None)
 
-    def test_should_remove_directory_year_limits(self):
+    def test_extract_time_interval_from_directory_yearly(self):
         path = '/test/dataset/2017'
         format = '/test/dataset/(?P<year>[0-9]+)'
-        threshold1 = datetime(2018, 1, 1, 0)
-        threshold2 = datetime(2017, 12, 31, 23)
-        self.assertEqual(should_remove_directory(path, format, threshold1), True)
-        self.assertEqual(should_remove_directory(path, format, threshold2), False)
+        self.assertEqual(
+            extract_time_interval_from_directory(path, format),
+            (datetime(2017, 1, 1, 0, 0, 0), datetime(2017, 12, 31, 23, 59, 59)))
 
-    def test_should_remove_directory_month_limits(self):
+    def test_extract_time_interval_from_directory_monthly(self):
         path = '/test/dataset/2017/09'
         format = '/test/dataset/(?P<year>[0-9]+)/(?P<month>[0-9]+)'
-        threshold1 = datetime(2017, 10, 1, 0)
-        threshold2 = datetime(2017, 9, 30, 23)
-        self.assertEqual(should_remove_directory(path, format, threshold1), True)
-        self.assertEqual(should_remove_directory(path, format, threshold2), False)
+        self.assertEqual(
+            extract_time_interval_from_directory(path, format),
+            (datetime(2017, 9, 1, 0, 0, 0), datetime(2017, 9, 30, 23, 59, 59)))
 
-    def test_should_remove_directory_day_limits(self):
+    def test_extract_time_interval_from_directory_dayly(self):
         path = '/test/dataset/2017/09/29'
         format = '/test/dataset/(?P<year>[0-9]+)/(?P<month>[0-9]+)/(?P<day>[0-9]+)'
-        threshold1 = datetime(2017, 9, 30, 0)
-        threshold2 = datetime(2017, 9, 29, 23)
-        self.assertEqual(should_remove_directory(path, format, threshold1), True)
-        self.assertEqual(should_remove_directory(path, format, threshold2), False)
+        self.assertEqual(
+            extract_time_interval_from_directory(path, format),
+            (datetime(2017, 9, 29, 0, 0, 0), datetime(2017, 9, 29, 23, 59, 59)))
 
-    def test_should_remove_directory_hour_limits(self):
+    def test_extract_time_interval_from_directory_hourly(self):
         path = '/test/dataset/2017/09/29/03'
         format = '/test/dataset/(?P<year>[0-9]+)/(?P<month>[0-9]+)/(?P<day>[0-9]+)/(?P<hour>[0-9]+)'
-        threshold1 = datetime(2017, 9, 29, 4)
-        threshold2 = datetime(2017, 9, 29, 3, 59)
-        self.assertEqual(should_remove_directory(path, format, threshold1), True)
-        self.assertEqual(should_remove_directory(path, format, threshold2), False)
+        self.assertEqual(
+            extract_time_interval_from_directory(path, format),
+            (datetime(2017, 9, 29, 3, 0, 0), datetime(2017, 9, 29, 3, 59, 59)))
 
     def test_remove_directories_does_delete_with_execute(self):
         fake_hdfs = self.FakeHdfs(['/some/due/path/2018/11/01'])
@@ -506,7 +513,6 @@ class TestRefineryDropOlderThan(unittest.TestCase):
             datetime(2018, 11, 22, 0),
             False,
             True)
-        fake_hdfs.ls.assert_called_with('/some/due/path/*/*/*', include_children=False)
         fake_hdfs.rm.assert_called_with('/some/due/path/2018/11/01', skip_trash=False)
 
     def test_remove_directories_does_nothing_with_dryrun(self):
@@ -518,7 +524,6 @@ class TestRefineryDropOlderThan(unittest.TestCase):
             datetime(2018, 11, 22, 0),
             False,
             False)
-        fake_hdfs.ls.assert_called_with('/some/due/path/*/*/*', include_children=False)
         fake_hdfs.rm.assert_not_called()
 
     def test_remove_directories_sets_skip_trash_parameter(self):
@@ -530,7 +535,6 @@ class TestRefineryDropOlderThan(unittest.TestCase):
             datetime(2018, 11, 22, 0),
             True,
             True)
-        fake_hdfs.ls.assert_called_with('/some/due/path/*/*/*', include_children=False)
         fake_hdfs.rm.assert_called_with('/some/due/path/2018/11/01', skip_trash=True)
 
     def test_should_drop_partition_year_limits(self):
