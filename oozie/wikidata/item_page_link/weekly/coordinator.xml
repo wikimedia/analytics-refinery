@@ -57,8 +57,15 @@
     </parameters>
 
     <controls>
-        <!--(timeout is measured in minutes)-->
-        <timeout>-1</timeout>
+        <!--
+        This timeout prevents the job from waiting indefinietly if the data the job
+        depends is never generated (dumps or events). The job will fail after waiting
+        for 15 days (same duration as SLA + 1 day), allowing the team to get notified
+        and take approprite action (job being stuck in waiting can easily go unnoticed).
+
+        (timeout is measured in minutes)
+        -->
+        <timeout>21600</timeout>
 
         <!-- Setting low concurrency for resource sharing.
              The job runs pretty fast (~1 minute) and increasing concurrency should not cause any problems-->
