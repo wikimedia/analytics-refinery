@@ -87,7 +87,7 @@ Options:
 
 from datetime import datetime, timedelta
 from docopt import docopt
-from mock import MagicMock
+from mock import Mock, MagicMock
 from refinery.logging_setup import configure_logging
 from refinery.hive import Hive
 from refinery.hdfs import Hdfs
@@ -201,17 +201,22 @@ def remove_directories(hdfs, base_path, path_format, threshold, skip_trash, exec
         # Filter out such 'recursive' paths to avoid infinite loops.
         candidate_paths = [
             path for path in hdfs.ls(directories_to_expand)
-            if path not in directories_to_expand]
+            if path not in directories_to_expand
+        ]
         directories_to_expand = []
         for path in candidate_paths:
             time_interval = extract_time_interval_from_directory(path, full_path_format)
             if time_interval is None:
                 # No time information was found in the path.
                 directories_to_expand.append(path)
-            elif time_interval[1] < threshold:
+                continue
+
+            start_time, end_time = time_interval
+
+            if end_time < threshold:
                 # The whole directory is older than the threshold.
                 directories_to_remove.append(path)
-            elif time_interval[0] < threshold:
+            elif start_time < threshold:
                 # The threshold is in between the directory's start and end.
                 directories_to_expand.append(path)
 
@@ -404,6 +409,33 @@ class TestRefineryDropOlderThan(unittest.TestCase):
             self.ls = MagicMock(return_value=paths)
             self.rm = MagicMock()
 
+    class FakeHdfsTree(object):
+        """Mock that uses a tree of directory dictionaries to behave like a filesystem."""
+        def __init__(self, path_tree):
+
+            def get_paths(paths):
+                """This is a little extra complicated because hdfs.ls() can take an array of paths."""
+                result = []
+
+                for path in paths:
+                    current = path_tree
+                    parts = path.lstrip(os.path.sep).split(os.path.sep)
+
+                    for part in parts:
+                        current = current.get(part, {})
+
+                    files = [
+                        os.path.join(path, name)
+                        for name in current.keys()
+                    ]
+
+                    result += files
+
+                return result
+
+            self.ls = Mock(side_effect=get_paths)
+            self.rm = MagicMock()
+
     def setUp(self):
         logger.disabled = True
 
@@ -503,6 +535,49 @@ class TestRefineryDropOlderThan(unittest.TestCase):
         self.assertEqual(
             extract_time_interval_from_directory(path, format),
             (datetime(2017, 9, 29, 3, 0, 0), datetime(2017, 9, 29, 3, 59, 59)))
+
+    def test_directory_expansion(self):
+        """
+        Because the entirety of 2017 is older than the 2018 cutoff,
+        the whole 2017 directory should be removed.
+        """
+        paths = {
+            'some':{
+                'due':{
+                    'path': {
+                        '2017': {
+                            '01': {}
+                        },
+                        '2018': {
+                            '11': {
+                                '22': {
+                                    '01': {},
+                                    '02': {},
+                                    '03': {},
+                                    '04': {}
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        fake_hdfs = self.FakeHdfsTree(paths)
+
+        remove_directories(
+            fake_hdfs,
+            '/some/due/path',
+            '(?P<year>[0-9]+)(/(?P<month>[0-9]+)(/(?P<day>[0-9]+)(/(?P<hour>[0-9]+))?)?)?',
+            datetime(2018, 11, 22, 3),
+            False,
+            True
+        )
+
+        fake_hdfs.rm.assert_called_with(
+            '/some/due/path/2017 /some/due/path/2018/11/22/01 /some/due/path/2018/11/22/02',
+            skip_trash=False
+        )
 
     def test_remove_directories_does_delete_with_execute(self):
         fake_hdfs = self.FakeHdfs(['/some/due/path/2018/11/01'])
