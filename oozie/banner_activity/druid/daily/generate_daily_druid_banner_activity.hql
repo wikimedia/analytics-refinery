@@ -64,6 +64,8 @@ WHERE
     AND month = ${month}
     AND day = ${day}
     AND webrequest_source = 'text'
+    -- drop requests with no timestamps
+    AND dt != '-'
     AND uri_path = '/beacon/impression'
     AND agent_type = 'user'
     AND uri_param_value('debug', uri_query) = 'false'
