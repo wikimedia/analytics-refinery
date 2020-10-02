@@ -208,7 +208,8 @@ def remove_directories(hdfs, base_path, path_format, threshold, skip_trash, exec
             time_interval = extract_time_interval_from_directory(path, full_path_format)
             if time_interval is None:
                 # No time information was found in the path.
-                directories_to_expand.append(path)
+                if path_is_partial_match(full_path_format, path):
+                    directories_to_expand.append(path)
                 continue
 
             start_time, end_time = time_interval
@@ -277,6 +278,21 @@ def extract_time_interval_from_directory(path, full_path_format):
         return (start_datetime, end_datetime)
 
     return None
+
+
+def path_is_partial_match(regex, path):
+    """
+    Returns True if the given path fully matches
+    a prefix of the given regular expression.
+    """
+    for i in range(1, len(regex) + 1):
+        partial_regex = regex[:i].rstrip('$') + '$'
+        try:
+            if re.match(partial_regex, path):
+                return True
+        except re.error:
+            pass
+    return False
 
 
 def get_security_checksum(args):
@@ -506,7 +522,7 @@ class TestRefineryDropOlderThan(unittest.TestCase):
         path = '/test/dataset'
         format = '/test/(?P<dataset>[0-9]+)'
         result = extract_time_interval_from_directory(path, format)
-        self.assertEqual(result, None)
+        self.assertIsNone(result)
 
     def test_extract_time_interval_from_directory_yearly(self):
         path = '/test/dataset/2017'
@@ -616,29 +632,29 @@ class TestRefineryDropOlderThan(unittest.TestCase):
         partition = self.FakePartition(datetime(2017, 1, 1), 'spec1', ['year'])
         threshold1 = datetime(2018, 1, 1)
         threshold2 = datetime(2017, 12, 1)
-        self.assertEqual(should_drop_partition(partition, threshold1), True)
-        self.assertEqual(should_drop_partition(partition, threshold2), False)
+        self.assertTrue(should_drop_partition(partition, threshold1))
+        self.assertFalse(should_drop_partition(partition, threshold2))
 
     def test_should_drop_partition_month_limits(self):
         partition = self.FakePartition(datetime(2017, 9, 1), 'spec1', ['month'])
         threshold1 = datetime(2017, 10, 1)
         threshold2 = datetime(2017, 9, 30)
-        self.assertEqual(should_drop_partition(partition, threshold1), True)
-        self.assertEqual(should_drop_partition(partition, threshold2), False)
+        self.assertTrue(should_drop_partition(partition, threshold1))
+        self.assertFalse(should_drop_partition(partition, threshold2))
 
     def test_should_drop_partition_day_limits(self):
         partition = self.FakePartition(datetime(2017, 9, 28), 'spec1', ['day'])
         threshold1 = datetime(2017, 9, 29)
         threshold2 = datetime(2017, 9, 28, 23)
-        self.assertEqual(should_drop_partition(partition, threshold1), True)
-        self.assertEqual(should_drop_partition(partition, threshold2), False)
+        self.assertTrue(should_drop_partition(partition, threshold1))
+        self.assertFalse(should_drop_partition(partition, threshold2))
 
     def test_should_drop_partition_hour_limits(self):
         partition = self.FakePartition(datetime(2017, 9, 29, 3), 'spec1', ['hour'])
         threshold1 = datetime(2017, 9, 29, 4)
         threshold2 = datetime(2017, 9, 29, 3, 59)
-        self.assertEqual(should_drop_partition(partition, threshold1), True)
-        self.assertEqual(should_drop_partition(partition, threshold2), False)
+        self.assertTrue(should_drop_partition(partition, threshold1))
+        self.assertFalse(should_drop_partition(partition, threshold2))
 
     def test_drop_partitions_does_delete_with_execute(self):
         partition = self.FakePartition(datetime(2018, 11, 30, 0), 'spec1', ['day'])
@@ -655,6 +671,14 @@ class TestRefineryDropOlderThan(unittest.TestCase):
         fake_hive.get_tables.assert_called()
         fake_hive.partitions.assert_called_with('t1')
         fake_hive.drop_partitions.assert_not_called()
+
+    def test_path_is_partial_match(self):
+        self.assertTrue(path_is_partial_match('[a-z]+/year=[0-9]+', 'goodlowercase'))
+        self.assertFalse(path_is_partial_match('[a-z]+/year=[0-9]+', 'badUppercase'))
+        self.assertTrue(path_is_partial_match('[a-z]+/[a-z]+/year=[0-9]+', 'ok/path'))
+        self.assertFalse(path_is_partial_match('[a-z]+/[a-z]+/year=[0-9]+', 'too/long/path'))
+        self.assertTrue(path_is_partial_match('(?!forbidden)[a-z]+/year=[0-9]+', 'allowed'))
+        self.assertFalse(path_is_partial_match('(?!forbidden)[a-z]+/year=[0-9]+', 'forbidden'))
 
 
 if __name__ == '__main__':
