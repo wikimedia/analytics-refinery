@@ -426,7 +426,7 @@ class TestRefineryDropOlderThan(unittest.TestCase):
 
                     files = [
                         os.path.join(path, name)
-                        for name in current.keys()
+                        for name in sorted(current.keys())
                     ]
 
                     result += files
