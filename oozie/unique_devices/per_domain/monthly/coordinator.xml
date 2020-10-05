@@ -67,7 +67,7 @@
           unique_devices_per_domain_monthly. If we don't put this dependency, the cassandra loading starts possibly
           without the per-project-family data.
         -->
-        <data-in name="unique_devices_per_project_family_daily_delay" dataset="unique_devices_per_project_family_daily">
+        <data-in name="unique_devices_per_project_family_monthly_delay" dataset="unique_devices_per_project_family_monthly">
             <instance>${coord:current(0)}</instance>
         </data-in>
     </input-events>
