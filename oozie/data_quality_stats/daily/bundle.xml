@@ -57,4 +57,19 @@
         </configuration>
     </coordinator>
 
+
+    <coordinator name="data_quality_stats-daily-coord-wmf.pageview_hourly-os_family_entropy_by_access_method">
+        <app-path>${coordinator_file}</app-path>
+        <configuration>
+            <property><name>source_table</name><value>wmf.pageview_hourly</value></property>
+            <property><name>source_base_path</name><value>/wmf/data/wmf/pageview/hourly</value></property>
+            <property><name>source_granularity</name><value>hourly</value></property>
+            <!-- source_end_instance: use 23 for hourly source data set, or 0 for daily. -->
+            <property><name>source_end_instance</name><value>23</value></property>
+            <property><name>source_done_flag</name><value>_SUCCESS</value></property>
+            <property><name>query_name</name><value>os_family_entropy_by_access_method</value></property>
+            <property><name>deviation_threshold</name><value>10</value></property>
+            <property><name>send_alerts_to</name><value>analytics-alerts@wikimedia.org</value></property>
+        </configuration>
+    </coordinator>
 </bundle-app>
