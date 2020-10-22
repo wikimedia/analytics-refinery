@@ -31,10 +31,6 @@ Options:
     -O --check-java-opts=<java-opts>    Any extra Java options to pass to the CamusPartitionChecker job.
     -E --check-emails-to=<check_emails_to>  If set, encountered errors will be emailed to these comma separated email addresses.
     -m --check-dry-run                  Execute the check in dry-run mode.
-    -s --dynamic-stream-configs         Set the value of kafka.whilelist.topics via EventStreamConfig Mediawiki API.
-    -C --stream-configs-constraints=<constraints>
-        Set this to a key1=val1|key2=val2 string to use as the EventStreamConfig API constraints parameter.
-    -S --stream-configs-hostname=<url>  [default: meta.wikimedia.org]
 """
 __author__ = 'Andrew Otto <otto@wikimedia.org>'
 
@@ -43,7 +39,6 @@ import sys
 import logging
 from docopt import docopt
 from refinery.util import is_yarn_application_running
-from refinery.eventstreamconfig import get_topics_in_active_streams
 
 
 logging.basicConfig(level=logging.INFO,
@@ -58,19 +53,6 @@ if __name__ == '__main__':
     properties_file = arguments['<properties-file>']
     dry_run = arguments['--dry-run']
 
-    extra_java_opts = ''
-    # If --dynamic-stream-configs, then build the kafka.whitelist.topics
-    # dynamically via EventStreamConfig Mediawiki API.
-    # NOTE: get_topics_in_active_streams may
-    # be break if topic naming conventions change on producer side.
-    if arguments['--dynamic-stream-configs']:
-        topics_regex = get_topics_in_active_streams(
-            as_regex=True,
-            constraints=arguments['--stream-configs-constraints'],
-            options={'host': arguments['--stream-configs-hostname']}
-        )
-        extra_java_opts = extra_java_opts + ' -Dkafka.whitelist.topics="{}"'.format(topics_regex)
-
     #Camus execution block
     if (arguments['--run']):
         jar             = arguments['--jar']
@@ -83,12 +65,11 @@ if __name__ == '__main__':
 
 
         libjars_opt = '' if not libjars else ('-libjars ' + libjars)
-        camus_command = '/usr/bin/hadoop jar {0} com.linkedin.camus.etl.kafka.CamusJob {1} -P {2} -Dcamus.job.name="{3}" {4}'.format(
+        camus_command = '/usr/bin/hadoop jar {0} com.linkedin.camus.etl.kafka.CamusJob {1} -P {2} -Dcamus.job.name="{3}"'.format(
             jar,
             libjars_opt,
             properties_file,
-            job_name,
-            extra_java_opts
+            job_name
         )
         logging.info('Submitting camus job "{0}": {1}'.format(job_name, camus_command))
 
@@ -109,9 +90,8 @@ if __name__ == '__main__':
         # the /etc/hadoop/conf bit is needed to allow parameters to be picked
         # up to allow things like kerberos auth to work properly.
         # T226232
-        checker_command = '/usr/bin/java -cp "{0}:/etc/hadoop/conf" {1} {2} org.wikimedia.analytics.refinery.camus.CamusPartitionChecker -c {3} {4} {5} {6}'.format(
+        checker_command = '/usr/bin/java -cp "{0}:/etc/hadoop/conf" {1} org.wikimedia.analytics.refinery.camus.CamusPartitionChecker -c {2} {3} {4} {5}'.format(
             check_classpath,
-            extra_java_opts,
             check_java_opts,
             properties_file,
             datetime_to_check,
