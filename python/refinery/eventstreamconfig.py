@@ -25,6 +25,8 @@ import sys
 import logging
 from docopt import docopt
 
+from refinery.util import flatten
+
 
 logger = logging.getLogger('eventstreamconfig')
 
@@ -92,30 +94,16 @@ def get_topics_in_active_streams(streams=None, as_regex=False, constraints=None,
         constraints=constraints,
         options=options
     )
-    stream_names = stream_configs.keys()
 
-    topics = []
-    for stream_name in stream_names:
-        caret_anchor = ''
-        # if stream_name starts and ends with a '/' it is a regex stream pattern.
-        # remove the '/' parts.
-        if stream_name.startswith('/') and stream_name.endswith('/'):
-            stream_name = stream_name[1:-1]
-            # In case this is a regex that starts with ^, we need
-            # to prefix after the ^.  To preserve the stream regex as intended,
-            # we'll re-add the ^ at the beginning of the prefixed topic below.
-            if stream_name.startswith('^'):
-                caret_anchor = '^'
-                stream_name = stream_name[1:]
-
-        if re.match(no_prefix_pattern, stream_name):
-            topics.append(caret_anchor + stream_name)
-        else:
-            for topic_prefix in topic_prefixes:
-                topics.append(caret_anchor + topic_prefix + stream_name)
-
+    # Collect all topics settings from stream_configs.
+    topics = flatten([settings['topics'] for settings in stream_configs.values()])
     if as_regex:
-        return '(' + '|'.join(topics) + ')'
+        topics_for_regex = []
+        for topic in topics:
+            # If topic is a regex, remove the surrounding '/', since we are
+            # about to join it into a larger regex of all topics.
+            topics_for_regex.append(topic.strip('/'))
+        return '(' + '|'.join(topics_for_regex) + ')'
     else:
         return topics
 
@@ -163,7 +151,7 @@ if __name__ == '__main__':
         import requests_mock
 
         stream_configs_url = 'https://{}/w/api.php?action=streamconfigs&format=json&all_settings=true'.format(default_options['host'])
-        mock_response_text = r'{"streams":{"eventlogging_SearchSatisfaction":{"stream":"eventlogging_SearchSatisfaction","schema_title":"analytics/legacy/searchsatisfaction"},"test.event":{"stream":"test.event","schema_title":"test/event"},"/^eventgate-.+\\.error(\\..+)?/":{"stream":"/^eventgate-.+\\.error(\\..+)?/","schema_title":"error"}}}'
+        mock_response_text = r'{"streams":{"eventlogging_SearchSatisfaction":{"stream":"eventlogging_SearchSatisfaction","schema_title":"analytics/legacy/searchsatisfaction","topics":["eventlogging_SearchSatisfaction"]},"test.event":{"stream":"test.event","schema_title":"test/event","topics":["eqiad.test.event","codfw.test.event"]},"/^mediawiki\\.job\\..+/":{"stream":"/^mediawiki\\.job\\..+/","schema_title":"error","topics":["/^(eqiad\\.|codfw\\.)mediawiki\\.job\\..+/"]}}}'
 
         @requests_mock.Mocker()
         class TestEventStreamConfig(unittest.TestCase):
@@ -180,7 +168,7 @@ if __name__ == '__main__':
                 rmock.get(stream_configs_url, text=mock_response_text)
 
                 topics = get_topics_in_active_streams()
-                expected = ['eventlogging_SearchSatisfaction', 'eqiad.test.event', 'codfw.test.event', '^eqiad.eventgate-.+\\.error(\\..+)?', '^codfw.eventgate-.+\\.error(\\..+)?']
+                expected = ['eventlogging_SearchSatisfaction', 'eqiad.test.event', 'codfw.test.event', '/^(eqiad\\.|codfw\\.)mediawiki\\.job\\..+/']
 
                 self.assertEqual(topics, expected)
 
@@ -188,7 +176,7 @@ if __name__ == '__main__':
                 rmock.get(stream_configs_url, text=mock_response_text)
 
                 topics_regex = get_topics_in_active_streams(as_regex=True)
-                expected = '(eventlogging_SearchSatisfaction|eqiad.test.event|codfw.test.event|^eqiad.eventgate-.+\.error(\..+)?|^codfw.eventgate-.+\.error(\..+)?)'
+                expected = '(eventlogging_SearchSatisfaction|eqiad.test.event|codfw.test.event|^(eqiad\.|codfw\.)mediawiki\.job\..+)'
 
                 self.assertEqual(topics_regex, expected)
 

@@ -24,6 +24,8 @@ import logging
 import os
 import subprocess
 import glob
+import functools
+import operator
 
 
 logger = logging.getLogger('refinery-util')
@@ -250,3 +252,9 @@ def get_jdbc_string(dbname, labsdb, db_mapping=None):
     else:
         (host, port) = get_dbstore_host_port(False, dbname, db_mapping)
         return JDBC_TEMPLATE_WITH_PORT.format(host=host, port=port, dbname=dbname)
+
+def flatten(l):
+    """
+    Given a list of lists, flattens them into a single list.
+    """
+    return functools.reduce(operator.concat, l)
