@@ -20,15 +20,13 @@ not specify the datacenter partition.  This will get all available data.
 
 <datasets>
 
-    <!-- 2018-04-11T19 is the first date that this dataset has _SUCCESS flags, but
-    technically there's databack to 2017 -->
     <dataset name="event_mediawiki_page_move"
              frequency="${coord:hours(1)}"
-             initial-instance="2018-04-11T19:00Z"
+             initial-instance="2017-10-28T20:00Z"
              timezone="Universal">
         <!-- The syntax for month, day and hour changes padded values to non-padded ones -->
         <uri-template>${event_data_directory}/mediawiki_page_move/datacenter=eqiad/year=${YEAR}/month=${"$"}{MONTH + 0}/day=${"$"}{DAY + 0}/hour=${"$"}{HOUR + 0}</uri-template>
-        <done-flag>_SUCCESS</done-flag>
+        <done-flag>_REFINED</done-flag>
     </dataset>
 
 </datasets>
