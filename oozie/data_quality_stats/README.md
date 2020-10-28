@@ -146,20 +146,25 @@ To backfill we need to add a start/stop time for the dates we are backfilling to
 ```
 
 #### Test code changes
+Have in mind that it is required to override the tmp directory
+or job would default to analytics' by default
+
+You also need to create two tables on your DB data_quality_stats and
+data_quality_stats_incoming
 ```
-sudo -u analytics kerberos-run-command  analytics oozie job --oozie $OOZIE_URL \
-    -Dgranularity='hourly' \
-    -Dstart_time='2019-04-01T00:00Z' \
-    -Dstop_time='2019-04-01T23:59Z' \
-    -Dartifacts_directory='hdfs://analytics-hadoop/user/mforns/artifacts' \
-    -Doozie_directory='hdfs://analytics-hadoop/user/mforns/oozie' \
-    -Drefinery_jar_version='0.0.109-SNAPSHOT' \
-    -Dupdater_spark_job_jar='hdfs://analytics-hadoop/user/mforns/jars/refinery-job-0.0.123-SNAPSHOT.jar' \
-    -Danomalies_spark_job_jar='hdfs://analytics-hadoop/user/mforns/jars/refinery-job-0.0.123-SNAPSHOT.jar' \
-    -Ddata_quality_stats_table='mforns.data_quality_stats' \
-    -Ddata_quality_stats_base_path='hdfs://analytics-hadoop/user/mforns/data_quality_stats' \
-    -Ddata_quality_stats_incoming_table='mforns.data_quality_stats_incoming' \
-    -Dsla_alert_contact='mforns@wikimedia.org' \
-    -config /home/mforns/refinery/oozie/data_quality_stats/bundle.properties \
+oozie job --oozie $OOZIE_URL \
+    -Duser='nuria' \
+    -Dtemp_directory='hdfs://analytics-hadoop/tmp/nuria/' \
+    -Dgranularity='daily' \
+    -Dstart_time='2020-03-01T00:00Z' \
+    -Dstop_time='2020-06-30T23:59Z' \
+    -Doozie_directory='hdfs://analytics-hadoop/tmp/oozie-nuria/' \
+    -Dupdater_spark_job_jar='hdfs://analytics-hadoop/wmf/refinery/current/artifacts/refinery-job.jar' \
+    -Danomalies_spark_job_jar='hdfs://analytics-hadoop/wmf/refinery/current/artifacts/refinery-job.jar' \
+    -Ddata_quality_stats_table='nuria.data_quality_stats' \
+    -Ddata_quality_stats_base_path='hdfs://analytics-hadoop/user/nuria/data/data_quality_stats' \
+    -Ddata_quality_stats_incoming_table='nuria.data_quality_stats_incoming' \
+    -Dsla_alert_contact='nruiz@wikimedia.org' \
+    -config /home/nuria/workplace/refinery/refinery_main/oozie/data_quality_stats/bundle.properties \
     -run
 ```
