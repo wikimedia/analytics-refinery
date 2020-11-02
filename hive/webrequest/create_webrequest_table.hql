@@ -68,7 +68,7 @@ PARTITIONED BY (
     `day`               int     COMMENT 'Unpadded day of request',
     `hour`              int     COMMENT 'Unpadded hour of request'
 )
-CLUSTERED BY(hostname, sequence) INTO 64 BUCKETS
+CLUSTERED BY(hostname, sequence) INTO 256 BUCKETS
 STORED AS PARQUET
 LOCATION 'hdfs://analytics-hadoop/wmf/data/wmf/webrequest'
 ;

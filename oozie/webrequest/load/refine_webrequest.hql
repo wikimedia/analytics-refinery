@@ -44,7 +44,7 @@ SET hive.enforce.bucketing           = true;
 -- launched, so we set it manually.  This needs
 -- to be the same as the number of buckets the
 -- table is clustered by.
-SET mapreduce.job.reduces            = 64;
+SET mapreduce.job.reduces            = 256;
 
 -- Memory settings for mappers to provide user-agent UDF with enough space
 -- for caching (see https://phabricator.wikimedia.org/T240815)
@@ -65,8 +65,32 @@ CREATE TEMPORARY FUNCTION get_tags AS 'org.wikimedia.analytics.refinery.hive.Get
 CREATE TEMPORARY FUNCTION isp_data as 'org.wikimedia.analytics.refinery.hive.GetISPDataUDF';
 
 
-INSERT OVERWRITE TABLE ${destination_table}
-    PARTITION(webrequest_source='${webrequest_source}',year=${year},month=${month},day=${day},hour=${hour})
+-- The distinct_rows CTE provides DISTINCT on raw data only.
+-- This prevents augmented fields to be shuffled,
+-- therefore reduces IO cost significantly.
+-- NB: This is feasible as augmented values are
+--     deterministically computed.
+--
+-- The distinct_rows_and_reused_fields CTE materializes
+-- reused fields in the reduce step, preventing recomputation
+-- at every reuse.
+--
+-- Finally compute fields not reused and write the data.
+--
+-- When adding new fields:
+--  * fields imported from the wmf_raw.webrequest table
+--    need to be included in the two CTEs and the main SELECT
+--  * fields computed from fields already present in the
+--    distinct_rows CTE and reused multiple times in the main
+--    select need to be added to the distinct_rows_and_reused_fields
+--    CTE, to be reused in the main SELECT
+--  * fields computed from fields already present in any
+--    CTE and used a single time in the main select need to be
+--    added to the main SELECT only
+
+
+WITH distinct_rows AS (
+
     SELECT DISTINCT
         hostname,
         sequence,
@@ -87,38 +111,100 @@ INSERT OVERWRITE TABLE ${destination_table}
         accept_language,
         x_analytics,
         `range`,
-        is_pageview(uri_host, uri_path, uri_query, http_status, content_type, user_agent, x_analytics) as is_pageview,
-        '${record_version}' as record_version,
-        ip as client_ip,
-        geocoded_data(ip) as geocoded_data,
         x_cache,
+        accept,
+        tls
+    FROM
+        ${source_table}
+    WHERE
+        webrequest_source='${webrequest_source}' AND
+        year=${year} AND month=${month} AND day=${day} AND hour=${hour}
+
+)
+
+distinct_rows_and_reused_fields AS (
+
+    SELECT DISTINCT
+        hostname,
+        sequence,
+        dt,
+        time_firstbyte,
+        ip,
+        cache_status,
+        http_status,
+        response_size,
+        http_method,
+        uri_host,
+        uri_path,
+        uri_query,
+        content_type,
+        referer,
+        x_forwarded_for,
+        user_agent,
+        accept_language,
+        x_analytics,
+        `range`,
+        x_cache,
+        accept,
+        tls,
+        -- Materialize reused computed fields
+        is_pageview(uri_host, uri_path, uri_query, http_status, content_type, user_agent, x_analytics) as is_pageview,
         ua_parser(user_agent) as user_agent_map,
         CASE COALESCE(x_analytics, '-')
           WHEN '-' THEN NULL
           ELSE str_to_map(x_analytics, '\;', '=')
-        END as x_analytics_map,
+        END as x_analytics_map
+
+    FROM distinct_rows
+
+)
+
+INSERT OVERWRITE TABLE ${destination_table}
+    PARTITION(webrequest_source='${webrequest_source}',year=${year},month=${month},day=${day},hour=${hour})
+    -- No need for DISTINCT here as it enforced in distinct_rows CTE
+    SELECT
+        hostname,
+        sequence,
+        dt,
+        time_firstbyte,
+        ip,
+        cache_status,
+        http_status,
+        response_size,
+        http_method,
+        uri_host,
+        uri_path,
+        uri_query,
+        content_type,
+        referer,
+        x_forwarded_for,
+        user_agent,
+        accept_language,
+        x_analytics,
+        `range`,
+        is_pageview,
+        '${record_version}' as record_version,
+        ip as client_ip,
+        geocoded_data(ip) as geocoded_data,
+        x_cache,
+        user_agent_map,
+        x_analytics_map,
         -- Hack to get a correct timestamp because of hive inconsistent conversion
         CAST(unix_timestamp(dt, "yyyy-MM-dd'T'HH:mm:ss") * 1.0 as timestamp) as ts,
         get_access_method(uri_host, user_agent) as access_method,
         CASE
-            WHEN ((ua_parser(user_agent)['device_family'] = 'Spider') OR (is_spider(user_agent))) THEN 'spider'
+            WHEN ((user_agent_map['device_family'] = 'Spider') OR (is_spider(user_agent))) THEN 'spider'
             ELSE 'user'
         END as agent_type,
         NULL as is_zero,
         referer_classify(referer) as referer_class,
         normalize_host(uri_host) as normalized_host,
         CASE
-           WHEN is_pageview(uri_host, uri_path, uri_query, http_status, content_type, user_agent, x_analytics) THEN get_pageview_info(uri_host, uri_path, uri_query)
+           WHEN is_pageview THEN get_pageview_info(uri_host, uri_path, uri_query)
            ELSE NULL
         END as pageview_info,
-        CASE COALESCE(x_analytics, '-')
-          WHEN '-' THEN NULL
-          ELSE str_to_map(x_analytics, '\;', '=')['page_id']
-        END as page_id,
-        CASE COALESCE(x_analytics, '-')
-          WHEN '-' THEN NULL
-          ELSE str_to_map(x_analytics, '\;', '=')['ns']
-        END as namespace_id,
+        x_analytics_map['page_id'] as page_id,
+        x_analytics_map['ns'] as namespace_id,
         get_tags(uri_host, uri_path, uri_query, http_status, content_type, user_agent, x_analytics) as tags,
         isp_data(ip) as isp_data,
         accept,
@@ -127,9 +213,5 @@ INSERT OVERWRITE TABLE ${destination_table}
           WHEN '-' THEN NULL
           ELSE str_to_map(tls, '\;', '=')
         END as tls_map
-    FROM
-        ${source_table}
-    WHERE
-        webrequest_source='${webrequest_source}' AND
-        year=${year} AND month=${month} AND day=${day} AND hour=${hour}
+    FROM distinct_rows_and_reused_fields
 ;
