@@ -120,7 +120,7 @@ WITH distinct_rows AS (
         webrequest_source='${webrequest_source}' AND
         year=${year} AND month=${month} AND day=${day} AND hour=${hour}
 
-)
+),
 
 distinct_rows_and_reused_fields AS (
 
