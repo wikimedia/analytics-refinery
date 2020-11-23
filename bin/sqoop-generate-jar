@@ -82,7 +82,6 @@ if __name__ == '__main__':
     target_jar_directory                = arguments.get('--output-dir')
     user                                = arguments.get('--user')
     password_file                       = arguments.get('--password-file')
-    timestamp                           = '20010101000000'
 
     db_mapping                          = get_mediawiki_section_dbname_mapping()
 
@@ -94,7 +93,7 @@ if __name__ == '__main__':
 
     logger.info('Started Shell with with {}'.format(' '.join(arguments)))
 
-    queries = validate_tables_and_get_queries(None, timestamp, timestamp)
+    queries = validate_tables_and_get_queries(None, None, None)
     jar_path = os.path.join(target_jar_directory, 'mediawiki-tables-sqoop-orm.jar')
 
     failed_jobs = []

@@ -200,9 +200,10 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
     query to execute for import.
 
     Notes
-        convert(... using utf8) is used to decode varbinary fields into strings
-        map-types is used to handle some databases having booleans in
+        - convert(... using utf8) is used to decode varbinary fields into strings
+        - map-types is used to handle some databases having booleans in
           tinyint(1) and others in tinyint(3,4) (newer databases like wikivoyage)
+        - from_timestamp and to_timestamp are optional
 
     Parameters
         filter_tables: list of tables to return queries for, None for all tables
@@ -222,6 +223,10 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
             }
     """
     queries = {}
+
+    ############################################################################
+    # Tables sqooped from labs (usually)
+    ############################################################################
 
     queries['archive'] = {
         'query': '''
@@ -268,6 +273,59 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         'boundary-query': 'SELECT MIN(ar_id), MAX(ar_id) FROM archive',
         'split-by': 'ar_id',
         'mappers-weight': 0.5,
+    }
+
+
+    queries['category'] = {
+        'query': '''
+             select cat_id,
+                    convert(cat_title using utf8) cat_title,
+                    cat_pages,
+                    cat_subcats,
+                    cat_files
+
+               from category
+              where $CONDITIONS
+        ''',
+        'map-types': '"{}"'.format(','.join([
+            'cat_id=Long',
+            'cat_title=String',
+            'cat_pages=Integer',
+            'cat_subcats=Integer',
+            'cat_files=Integer',
+        ])),
+        'boundary-query': 'SELECT MIN(cat_id), MAX(cat_id) FROM category',
+        'split-by': 'cat_id',
+        'mappers-weight': 0.25,
+    }
+
+
+    queries['categorylinks'] = {
+        'query': '''
+             select cl_from,
+                    convert(cl_to using utf8) cl_to,
+                    convert(cl_sortkey using utf8) cl_sortkey,
+                    convert(cl_sortkey_prefix using utf8) cl_sortkey_prefix,
+                    convert(cl_timestamp using utf8) cl_timestamp,
+                    convert(cl_collation using utf8) cl_collation,
+                    convert(cl_type using utf8) cl_type
+
+               from categorylinks
+              where $CONDITIONS
+                {ts_clause}
+        '''.format(ts_clause=make_timestamp_clause('cl_timestamp', from_timestamp, to_timestamp)),
+        'map-types': '"{}"'.format(','.join([
+            'cl_from=Long',
+            'cl_to=String',
+            'cl_sortkey=String',
+            'cl_sortkey_prefix=String',
+            'cl_timestamp=String',
+            'cl_collation=String',
+            'cl_type=String',
+        ])),
+        'boundary-query': 'SELECT MIN(cl_from), MAX(cl_from) FROM categorylinks',
+        'split-by': 'cl_from',
+        'mappers-weight': 1.0,
     }
 
     queries['change_tag'] = {
@@ -353,6 +411,72 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         'mappers-weight': 0.0,
     }
 
+    queries['externallinks'] = {
+        'query': '''
+             select el_id,
+                    el_from,
+                    convert(el_to using utf8) el_to,
+                    convert(el_index using utf8) el_index,
+                    convert(el_index_60 using utf8) el_index_60
+
+               from externallinks
+              where $CONDITIONS
+        ''',
+        'map-types': '"{}"'.format(','.join([
+            'el_id=Long',
+            'el_from=Long',
+            'el_to=String',
+            'el_index=String',
+            'el_index_60=String',
+        ])),
+        'boundary-query': 'SELECT MIN(el_id), MAX(el_id) FROM externallinks',
+        'split-by': 'el_id',
+        'mappers-weight': 1.0,
+    }
+
+    queries['image'] = {
+        'query': '''
+             select convert(img_name using utf8) img_name,
+                    img_size,
+                    img_width,
+                    img_height,
+                    convert(img_metadata using utf8) img_metadata,
+                    img_bits,
+                    convert(img_media_type using utf8) img_media_type,
+                    convert(img_major_mime using utf8) img_major_mime,
+                    convert(img_minor_mime using utf8) img_minor_mime,
+                    img_description_id,
+                    img_actor,
+                    convert(img_timestamp using utf8) img_timestamp,
+                    convert(img_sha1 using utf8) img_sha1
+
+               from image
+              where $CONDITIONS
+                {ts_clause}
+        '''.format(ts_clause=make_timestamp_clause('img_timestamp', from_timestamp, to_timestamp)),
+        'map-types': '"{}"'.format(','.join([
+            'img_name=String',
+            'img_size=Integer',
+            'img_width=Integer',
+            'img_height=Integer',
+            'img_metadata=String',
+            'img_bits=Integer',
+            'img_media_type=String',
+            'img_major_mime=String',
+            'img_minor_mime=String',
+            'img_description_id=Long',
+            'img_actor=Long',
+            'img_timestamp=String',
+            'img_sha1=String',
+        ])),
+        # Using img_size as column to split since there is no integer id
+        # Distribution of value, while not being perfectly uniform, still
+        # allows for decent splitting
+        'boundary-query': 'SELECT MIN(img_size), MAX(img_size) FROM image',
+        'split-by': 'img_size',
+        'mappers-weight': 1.0,
+    }
+
     queries['imagelinks'] = {
         'query': '''
              select il_from,
@@ -425,6 +549,44 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         'boundary-query': 'SELECT MIN(ir_ipb_id), MAX(ir_ipb_id) FROM ipblocks_restrictions',
         'split-by': 'ir_ipb_id',
         'mappers-weight': 0.0,
+    }
+
+    queries['iwlinks'] = {
+        'query': '''
+             select iwl_from,
+                    convert(iwl_prefix using utf8) iwl_prefix,
+                    convert(iwl_title using utf8) iwl_title
+
+               from iwlinks
+              where $CONDITIONS
+        ''',
+        'map-types': '"{}"'.format(','.join([
+            'iwl_from=Long',
+            'iwl_prefix=String',
+            'iwl_title=String',
+        ])),
+        'boundary-query': 'SELECT MIN(iwl_from), MAX(iwl_from) FROM iwlinks',
+        'split-by': 'iwl_from',
+        'mappers-weight': 0.5,
+    }
+
+    queries['langlinks'] = {
+        'query': '''
+             select ll_from,
+                    convert(ll_lang using utf8) ll_lang,
+                    convert(ll_title using utf8) ll_title
+
+               from langlinks
+              where $CONDITIONS
+        ''',
+        'map-types': '"{}"'.format(','.join([
+            'll_from=Long',
+            'll_lang=String',
+            'll_title=String',
+        ])),
+        'boundary-query': 'SELECT MIN(ll_from), MAX(ll_from) FROM langlinks',
+        'split-by': 'll_from',
+        'mappers-weight': 0.5,
     }
 
     queries['logging'] = {
@@ -588,9 +750,7 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
                from revision
               where $CONDITIONS
                 {ts_clause}
-        '''.format(
-            ts_clause=make_timestamp_clause('rev_timestamp', from_timestamp, to_timestamp),
-        ),
+        '''.format(ts_clause=make_timestamp_clause('rev_timestamp', from_timestamp, to_timestamp)),
         'map-types': '"{}"'.format(','.join([
             'rev_actor=Long',
             'rev_comment=String',
@@ -634,6 +794,27 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         'boundary-query': 'SELECT MIN(role_id), MAX(role_id) FROM slot_roles',
         'split-by': 'role_id',
         'mappers-weight': 0.0,
+    }
+
+    queries['templatelinks'] = {
+        'query': '''
+             select tl_from,
+                    tl_from_namespace,
+                    tl_namespace,
+                    convert(tl_title using utf8) tl_title
+
+               from templatelinks
+              where $CONDITIONS
+        ''',
+        'map-types': '"{}"'.format(','.join([
+            'tl_from=Long',
+            'tl_namespace=Integer',
+            'tl_title=String',
+            'tl_from_namespace=Integer',
+        ])),
+        'boundary-query': 'SELECT MIN(tl_from), MAX(tl_from) FROM templatelinks',
+        'split-by': 'tl_from',
+        'mappers-weight': 1.0,
     }
 
     queries['user'] = {
@@ -714,6 +895,12 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         'sqoopable_dbnames': wbc_entity_usage_sqoopable_dbs,
     }
 
+    ############################################################################
+    # Tables sqooped from production replica
+    #   cu_changes and watchlist are not available in labs
+    #   actor and comments are too slow due to expensive join at sanitization
+    ############################################################################
+
     # documented at https://www.mediawiki.org/wiki/Extension:CheckUser/cu_changes_table
     queries['cu_changes'] = {
         'query': '''
@@ -771,6 +958,34 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         'split-by': 'comment_id',
         'mappers-weight': 1.0,
     }
+
+    queries['watchlist'] = {
+        'query': '''
+             select wl_id,
+                    wl_user,
+                    wl_namespace,
+                    convert(wl_title using utf8) wl_title,
+                    convert(wl_notificationtimestamp using utf8) wl_notificationtimestamp
+
+               from watchlist
+              where $CONDITIONS
+        ''',
+        'map-types': '"{}"'.format(','.join([
+            'wl_id=Long',
+            'wl_user=Long',
+            'wl_namespace=Integer',
+            'wl_title=String',
+            'wl_notificationtimestamp=String',
+        ])),
+        'boundary-query': 'SELECT MIN(wl_id), MAX(wl_id) FROM watchlist',
+        'split-by': 'wl_id',
+        'mappers-weight': 1.0,
+    }
+
+
+    ############################################################################
+    # Tables sqooped from wikibase (wikidatawiki only)
+    ############################################################################
 
     queries['wbt_item_terms'] = {
         'query': '''
