@@ -18,37 +18,16 @@
         <property><name>start_time</name></property>
         <property><name>stop_time</name></property>
 
+        <!-- Passing both raw and raw_private datasets and directorie
+             to prevent repeating them in bundle coord definitions  -->
         <property><name>datasets_raw_file</name></property>
         <property><name>mw_raw_directory</name></property>
-
         <property><name>datasets_raw_private_file</name></property>
         <property><name>mw_raw_private_directory</name></property>
 
-        <property><name>mw_project_namespace_map_table</name></property>
-        <property><name>mw_archive_table</name></property>
-        <property><name>mw_change_tag_table</name></property>
-        <property><name>mw_change_tag_def_table</name></property>
-        <property><name>mw_content_table</name></property>
-        <property><name>mw_content_models_table</name></property>
-        <property><name>mw_imagelinks_table</name></property>
-        <property><name>mw_ipblocks_table</name></property>
-        <property><name>mw_ipblocks_restrictions_table</name></property>
-        <property><name>mw_logging_table</name></property>
-        <property><name>mw_page_table</name></property>
-        <property><name>mw_pagelinks_table</name></property>
-        <property><name>mw_page_props_table</name></property>
-        <property><name>mw_page_restrictions_table</name></property>
-        <property><name>mw_redirect_table</name></property>
-        <property><name>mw_revision_table</name></property>
-        <property><name>mw_slot_roles_table</name></property>
-        <property><name>mw_slots_table</name></property>
-        <property><name>mw_user_table</name></property>
-        <property><name>mw_user_groups_table</name></property>
-        <property><name>mw_user_properties_table</name></property>
-        <property><name>mw_wbc_entity_usage_table</name></property>
-
-        <property><name>mw_private_actor_table</name></property>
-        <property><name>mw_private_comment_table</name></property>
+        <property><name>mw_table</name></property>
+        <property><name>mw_table_dataset</name></property>
+        <property><name>previous_dataset</name></property>
 
         <property><name>hive_site_xml</name></property>
         <property><name>repair_partitions_workflow_file</name></property>
@@ -71,162 +50,32 @@
     </controls>
 
     <datasets>
-        <!--
-        Include raw and raw private datasets files.
-        -->
         <include>${datasets_raw_file}</include>
         <include>${datasets_raw_private_file}</include>
     </datasets>
 
     <input-events>
-        <data-in name="mw_project_namespace_map" dataset="mw_project_namespace_map">
+        <data-in name="mw_table_dataset" dataset="${mw_table_dataset}">
             <instance>${coord:current(0)}</instance>
         </data-in>
-        <data-in name="mw_archive_table" dataset="mw_archive_table">
-            <instance>${coord:current(0)}</instance>
-        </data-in>
-        <data-in name="mw_change_tag_table" dataset="mw_change_tag_table">
-            <instance>${coord:current(0)}</instance>
-        </data-in>
-        <data-in name="mw_change_tag_def_table" dataset="mw_change_tag_def_table">
-            <instance>${coord:current(0)}</instance>
-        </data-in>
-        <data-in name="mw_content_table" dataset="mw_content_table">
-            <instance>${coord:current(0)}</instance>
-        </data-in>
-        <data-in name="mw_content_models_table" dataset="mw_content_models_table">
-            <instance>${coord:current(0)}</instance>
-        </data-in>
-        <data-in name="mw_imagelinks_table" dataset="mw_imagelinks_table">
-            <instance>${coord:current(0)}</instance>
-        </data-in>
-        <data-in name="mw_ipblocks_table" dataset="mw_ipblocks_table">
-            <instance>${coord:current(0)}</instance>
-        </data-in>
-        <data-in name="mw_ipblocks_restrictions_table" dataset="mw_ipblocks_restrictions_table">
-            <instance>${coord:current(0)}</instance>
-        </data-in>
-        <data-in name="mw_logging_table" dataset="mw_logging_table">
-            <instance>${coord:current(0)}</instance>
-        </data-in>
-        <data-in name="mw_page_table" dataset="mw_page_table">
-            <instance>${coord:current(0)}</instance>
-        </data-in>
-        <data-in name="mw_pagelinks_table" dataset="mw_pagelinks_table">
-            <instance>${coord:current(0)}</instance>
-        </data-in>
-        <data-in name="mw_page_props_table" dataset="mw_page_props_table">
-            <instance>${coord:current(0)}</instance>
-        </data-in>
-        <data-in name="mw_page_restrictions_table" dataset="mw_page_restrictions_table">
-            <instance>${coord:current(0)}</instance>
-        </data-in>
-        <data-in name="mw_redirect_table" dataset="mw_redirect_table">
-            <instance>${coord:current(0)}</instance>
-        </data-in>
-        <data-in name="mw_revision_table" dataset="mw_revision_table">
-            <instance>${coord:current(0)}</instance>
-        </data-in>
-        <data-in name="mw_slot_roles_table" dataset="mw_slot_roles_table">
-            <instance>${coord:current(0)}</instance>
-        </data-in>
-        <data-in name="mw_slots_table" dataset="mw_slots_table">
-            <instance>${coord:current(0)}</instance>
-        </data-in>
-        <data-in name="mw_user_table" dataset="mw_user_table">
-            <instance>${coord:current(0)}</instance>
-        </data-in>
-        <data-in name="mw_user_groups_table" dataset="mw_user_groups_table">
-            <instance>${coord:current(0)}</instance>
-        </data-in>
-        <data-in name="mw_user_properties_table" dataset="mw_user_properties_table">
-            <instance>${coord:current(0)}</instance>
-        </data-in>
-        <data-in name="mw_wbc_entity_usage_table" dataset="mw_wbc_entity_usage_table">
-            <instance>${coord:current(0)}</instance>
-        </data-in>
-        <!-- Private datasets dependancies -->
-        <data-in name="mw_private_actor_table" dataset="mw_private_actor_table">
-            <instance>${coord:current(0)}</instance>
-        </data-in>
-        <data-in name="mw_private_comment_table" dataset="mw_private_comment_table">
+
+        <!--
+          The following dependency makes the coordinator wait for a previous dataset
+          to be available before starting. This allows us to force mediawiki-load
+          coordinators to run one after the other, preventing multiple big repairs to
+          overload the Hive metastore. This however couples datasets, as a a following
+          dataset is dependent on the previous ones to be successfully loaded.
+          This hack should be removed if the metastore can handle the multiple repairs,
+          so that the datasets are not coupled anymore
+        -->
+        <data-in name="previous_dataset" dataset="${previous_dataset}">
             <instance>${coord:current(0)}</instance>
         </data-in>
     </input-events>
 
     <output-events>
         <!-- Datasets for hive partitions synchronisation-->
-        <data-out name="mw_project_namespace_map_partitioned" dataset="mw_project_namespace_map_partitioned">
-            <instance>${coord:current(0)}</instance>
-        </data-out>
-        <data-out name="mw_archive_table_partitioned" dataset="mw_archive_table_partitioned">
-            <instance>${coord:current(0)}</instance>
-        </data-out>
-        <data-out name="mw_change_tag_table_partitioned" dataset="mw_change_tag_table_partitioned">
-            <instance>${coord:current(0)}</instance>
-        </data-out>
-        <data-out name="mw_change_tag_def_table_partitioned" dataset="mw_change_tag_def_table_partitioned">
-            <instance>${coord:current(0)}</instance>
-        </data-out>
-        <data-out name="mw_content_table_partitioned" dataset="mw_content_table_partitioned">
-            <instance>${coord:current(0)}</instance>
-        </data-out>
-        <data-out name="mw_content_models_table_partitioned" dataset="mw_content_models_table_partitioned">
-            <instance>${coord:current(0)}</instance>
-        </data-out>
-        <data-out name="mw_imagelinks_table_partitioned" dataset="mw_imagelinks_table_partitioned">
-            <instance>${coord:current(0)}</instance>
-        </data-out>
-        <data-out name="mw_ipblocks_table_partitioned" dataset="mw_ipblocks_table_partitioned">
-            <instance>${coord:current(0)}</instance>
-        </data-out>
-        <data-out name="mw_ipblocks_restrictions_table_partitioned" dataset="mw_ipblocks_restrictions_table_partitioned">
-            <instance>${coord:current(0)}</instance>
-        </data-out>
-        <data-out name="mw_logging_table_partitioned" dataset="mw_logging_table_partitioned">
-            <instance>${coord:current(0)}</instance>
-        </data-out>
-        <data-out name="mw_page_table_partitioned" dataset="mw_page_table_partitioned">
-            <instance>${coord:current(0)}</instance>
-        </data-out>
-        <data-out name="mw_pagelinks_table_partitioned" dataset="mw_pagelinks_table_partitioned">
-            <instance>${coord:current(0)}</instance>
-        </data-out>
-        <data-out name="mw_page_props_table_partitioned" dataset="mw_page_props_table_partitioned">
-            <instance>${coord:current(0)}</instance>
-        </data-out>
-        <data-out name="mw_page_restrictions_table_partitioned" dataset="mw_page_restrictions_table_partitioned">
-            <instance>${coord:current(0)}</instance>
-        </data-out>
-        <data-out name="mw_redirect_table_partitioned" dataset="mw_redirect_table_partitioned">
-            <instance>${coord:current(0)}</instance>
-        </data-out>
-        <data-out name="mw_revision_table_partitioned" dataset="mw_revision_table_partitioned">
-            <instance>${coord:current(0)}</instance>
-        </data-out>
-        <data-out name="mw_slot_roles_table_partitioned" dataset="mw_slot_roles_table_partitioned">
-            <instance>${coord:current(0)}</instance>
-        </data-out>
-        <data-out name="mw_slots_table_partitioned" dataset="mw_slots_table_partitioned">
-            <instance>${coord:current(0)}</instance>
-        </data-out>
-        <data-out name="mw_user_table_partitioned" dataset="mw_user_table_partitioned">
-            <instance>${coord:current(0)}</instance>
-        </data-out>
-        <data-out name="mw_user_groups_table_partitioned" dataset="mw_user_groups_table_partitioned">
-            <instance>${coord:current(0)}</instance>
-        </data-out>
-        <data-out name="mw_user_properties_table_partitioned" dataset="mw_user_properties_table_partitioned">
-            <instance>${coord:current(0)}</instance>
-        </data-out>
-        <data-out name="mw_wbc_entity_usage_table_partitioned" dataset="mw_wbc_entity_usage_table_partitioned">
-            <instance>${coord:current(0)}</instance>
-        </data-out>
-        <!-- Private datasets dependancies -->
-        <data-out name="mw_private_actor_table_partitioned" dataset="mw_private_actor_table_partitioned">
-            <instance>${coord:current(0)}</instance>
-        </data-out>
-        <data-out name="mw_private_comment_table_partitioned" dataset="mw_private_comment_table_partitioned">
+        <data-out name="mw_table_dataset_partitioned" dataset="${mw_table_dataset}_partitioned">
             <instance>${coord:current(0)}</instance>
         </data-out>
     </output-events>
@@ -240,101 +89,8 @@
                     <value>${coord:formatTime(coord:nominalTime(), "yyyy")}-${coord:formatTime(coord:nominalTime(), "MM")}</value>
                 </property>
                 <property>
-                    <name>mw_project_namespace_map_location</name>
-                    <value>${coord:dataIn('mw_project_namespace_map')}</value>
-                </property>
-                <property>
-                    <name>mw_archive_table_location</name>
-                    <value>${coord:dataIn('mw_archive_table')}</value>
-                </property>
-                <property>
-                    <name>mw_change_tag_table_location</name>
-                    <value>${coord:dataIn('mw_change_tag_table')}</value>
-                </property>
-                <property>
-                    <name>mw_change_tag_def_table_location</name>
-                    <value>${coord:dataIn('mw_change_tag_def_table')}</value>
-                </property>
-                <property>
-                    <name>mw_content_table_location</name>
-                    <value>${coord:dataIn('mw_content_table')}</value>
-                </property>
-                <property>
-                    <name>mw_content_models_table_location</name>
-                    <value>${coord:dataIn('mw_content_models_table')}</value>
-                </property>
-                <property>
-                    <name>mw_imagelinks_table_location</name>
-                    <value>${coord:dataIn('mw_imagelinks_table')}</value>
-                </property>
-                <property>
-                    <name>mw_ipblocks_table_location</name>
-                    <value>${coord:dataIn('mw_ipblocks_table')}</value>
-                </property>
-                <property>
-                    <name>mw_ipblocks_restrictions_table_location</name>
-                    <value>${coord:dataIn('mw_ipblocks_restrictions_table')}</value>
-                </property>
-                <property>
-                    <name>mw_logging_table_location</name>
-                    <value>${coord:dataIn('mw_logging_table')}</value>
-                </property>
-                <property>
-                    <name>mw_page_table_location</name>
-                    <value>${coord:dataIn('mw_page_table')}</value>
-                </property>
-                <property>
-                    <name>mw_pagelinks_table_location</name>
-                    <value>${coord:dataIn('mw_pagelinks_table')}</value>
-                </property>
-                <property>
-                    <name>mw_page_props_table_location</name>
-                    <value>${coord:dataIn('mw_page_props_table')}</value>
-                </property>
-                <property>
-                    <name>mw_page_restrictions_table_location</name>
-                    <value>${coord:dataIn('mw_page_restrictions_table')}</value>
-                </property>
-                <property>
-                    <name>mw_redirect_table_location</name>
-                    <value>${coord:dataIn('mw_redirect_table')}</value>
-                </property>
-                <property>
-                    <name>mw_revision_table_location</name>
-                    <value>${coord:dataIn('mw_revision_table')}</value>
-                </property>
-                <property>
-                    <name>mw_slot_roles_table_location</name>
-                    <value>${coord:dataIn('mw_slot_roles_table')}</value>
-                </property>
-                <property>
-                    <name>mw_slots_table_location</name>
-                    <value>${coord:dataIn('mw_slots_table')}</value>
-                </property>
-                <property>
-                    <name>mw_user_table_location</name>
-                    <value>${coord:dataIn('mw_user_table')}</value>
-                </property>
-                <property>
-                    <name>mw_user_groups_table_location</name>
-                    <value>${coord:dataIn('mw_user_groups_table')}</value>
-                </property>
-                <property>
-                    <name>mw_user_properties_table_location</name>
-                    <value>${coord:dataIn('mw_user_properties_table')}</value>
-                </property>
-                <property>
-                    <name>mw_wbc_entity_usage_table_location</name>
-                    <value>${coord:dataIn('mw_wbc_entity_usage_table')}</value>
-                </property>
-                <!-- Private datasets path -->
-                <property>
-                    <name>mw_private_actor_table_location</name>
-                    <value>${coord:dataIn('mw_private_actor_table')}</value>
-                </property>
-                <property>
-                    <name>mw_private_comment_table_location</name>
-                    <value>${coord:dataIn('mw_private_comment_table')}</value>
+                    <name>mw_data_location</name>
+                    <value>${coord:dataIn('mw_table_dataset')}</value>
                 </property>
             </configuration>
         </workflow>

@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bundle-app xmlns="uri:oozie:bundle:0.2"
+    name="mediawiki-load-bundle">
+
+    <parameters>
+
+        <!-- Required properties -->
+        <property><name>queue_name</name></property>
+        <property><name>name_node</name></property>
+        <property><name>job_tracker</name></property>
+        <property><name>hive_principal</name></property>
+        <property><name>hive2_jdbc_url</name></property>
+        <property><name>workflow_file</name></property>
+        <property><name>start_time</name></property>
+        <property><name>stop_time</name></property>
+
+        <property><name>datasets_raw_file</name></property>
+        <property><name>mw_raw_directory</name></property>
+
+        <property><name>datasets_raw_private_file</name></property>
+        <property><name>mw_raw_private_directory</name></property>
+
+        <!-- Not a mediawiki table, downloaded from sitelinks - here nonethelss :) -->
+        <property><name>mw_project_namespace_map_table</name></property>
+
+        <!-- Mediawiki tables sqooped from labs (sanitized) -->
+        <property><name>mw_archive_table</name></property>
+        <property><name>mw_change_tag_table</name></property>
+        <property><name>mw_change_tag_def_table</name></property>
+        <property><name>mw_content_table</name></property>
+        <property><name>mw_content_models_table</name></property>
+        <property><name>mw_imagelinks_table</name></property>
+        <property><name>mw_ipblocks_table</name></property>
+        <property><name>mw_ipblocks_restrictions_table</name></property>
+        <property><name>mw_logging_table</name></property>
+        <property><name>mw_page_table</name></property>
+        <property><name>mw_pagelinks_table</name></property>
+        <property><name>mw_page_props_table</name></property>
+        <property><name>mw_page_restrictions_table</name></property>
+        <property><name>mw_redirect_table</name></property>
+        <property><name>mw_revision_table</name></property>
+        <property><name>mw_slot_roles_table</name></property>
+        <property><name>mw_slots_table</name></property>
+        <property><name>mw_user_table</name></property>
+        <property><name>mw_user_groups_table</name></property>
+        <property><name>mw_user_properties_table</name></property>
+        <property><name>mw_wbc_entity_usage_table</name></property>
+
+        <!-- Mediawiki tables sqooped from production replicas (not sanitized) -->
+        <property><name>mw_private_actor_table</name></property>
+        <property><name>mw_private_comment_table</name></property>
+
+        <property><name>hive_site_xml</name></property>
+        <property><name>repair_partitions_workflow_file</name></property>
+        <property><name>mark_directory_done_workflow_file</name></property>
+        <property><name>send_error_email_workflow_file</name></property>
+
+        <property><name>sla_alert_contact</name></property>
+    </parameters>
+
+    <!--
+      WARNING: The values for mw_table_dataset (almost) always are as mw_table except that they are NOT interpreted.
+      <property><name>previous_dataset</name><value>_partitioned</value></property>
+
+      WARNING: The coordinators actual launch are chained using the "previous_dataset" parameter.
+          We force mediawiki-load coordinators to run one after the other, preventing
+          multiple big repairs to overload the Hive metastore. This however couples datasets,
+          as a loading a dataset is dependent on the previous ones being successfully loaded.
+          This hack should be removed if the metastore can handle the multiple repairs,
+          so that the datasets are not coupled anymore
+    -->
+
+    <!-- Not a mediawiki table, downloaded from sitelinks - here nonethelss :) -->
+
+    <!-- project-namespace-map -->
+    <coordinator name="mediawiki-load-coord-project_namespace_map">
+        <app-path>${coordinator_file}</app-path>
+        <configuration>
+            <property><name>mw_table</name><value>${mw_project_namespace_map_table}</value></property>
+            <property><name>mw_table_dataset</name><value>mw_project_namespace_map</value></property>
+            <!-- Use main dataset as previous one to make this coordinator begin the lineage -->
+            <property><name>previous_dataset</name><value>mw_project_namespace_map</value></property>
+        </configuration>
+    </coordinator>
+
+    <!-- Mediawiki tables sqooped from labs (sanitized)-->
+
+    <!-- archive -->
+    <coordinator name="mediawiki-load-coord-archive">
+        <app-path>${coordinator_file}</app-path>
+        <configuration>
+            <property><name>mw_table</name><value>${mw_archive_table}</value></property>
+            <property><name>mw_table_dataset</name><value>mw_archive_table</value></property>
+            <property><name>previous_dataset</name><value>mw_project_namespace_map_partitioned</value></property>
+        </configuration>
+    </coordinator>
+
+    <!-- change_tag -->
+    <coordinator name="mediawiki-load-coord-change_tag">
+        <app-path>${coordinator_file}</app-path>
+        <configuration>
+            <property><name>mw_table</name><value>${mw_change_tag_table}</value></property>
+            <property><name>mw_table_dataset</name><value>mw_change_tag_table</value></property>
+            <property><name>previous_dataset</name><value>mw_archive_table_partitioned</value></property>
+        </configuration>
+    </coordinator>
+
+    <!-- change_tag_def -->
+    <coordinator name="mediawiki-load-coord-change_tag_def">
+        <app-path>${coordinator_file}</app-path>
+        <configuration>
+            <property><name>mw_table</name><value>${mw_change_tag_def_table}</value></property>
+            <property><name>mw_table_dataset</name><value>mw_change_tag_def_table</value></property>
+            <property><name>previous_dataset</name><value>mw_change_tag_table_partitioned</value></property>
+        </configuration>
+    </coordinator>
+
+    <!-- content -->
+    <coordinator name="mediawiki-load-coord-content">
+        <app-path>${coordinator_file}</app-path>
+        <configuration>
+            <property><name>mw_table</name><value>${mw_content_table}</value></property>
+            <property><name>mw_table_dataset</name><value>mw_content_table</value></property>
+            <property><name>previous_dataset</name><value>mw_change_tag_def_table_partitioned</value></property>
+        </configuration>
+    </coordinator>
+
+    <!-- content_models -->
+    <coordinator name="mediawiki-load-coord-content_models">
+        <app-path>${coordinator_file}</app-path>
+        <configuration>
+            <property><name>mw_table</name><value>${mw_content_models_table}</value></property>
+            <property><name>mw_table_dataset</name><value>mw_content_models_table</value></property>
+            <property><name>previous_dataset</name><value>mw_content_table_partitioned</value></property>
+        </configuration>
+    </coordinator>
+
+    <!-- imagelinks -->
+    <coordinator name="mediawiki-load-coord-imagelinks">
+        <app-path>${coordinator_file}</app-path>
+        <configuration>
+            <property><name>mw_table</name><value>${mw_imagelinks_table}</value></property>
+            <property><name>mw_table_dataset</name><value>mw_imagelinks_table</value></property>
+            <property><name>previous_dataset</name><value>mw_content_models_table_partitioned</value></property>
+        </configuration>
+    </coordinator>
+
+    <!-- ipblocks -->
+    <coordinator name="mediawiki-load-coord-ipblocks">
+        <app-path>${coordinator_file}</app-path>
+        <configuration>
+            <property><name>mw_table</name><value>${mw_ipblocks_table}</value></property>
+            <property><name>mw_table_dataset</name><value>mw_ipblocks_table</value></property>
+            <property><name>previous_dataset</name><value>mw_imagelinks_table_partitioned</value></property>
+        </configuration>
+    </coordinator>
+
+    <!-- ipblocks_restrictions -->
+    <coordinator name="mediawiki-load-coord-ipblocks_restrictions">
+        <app-path>${coordinator_file}</app-path>
+        <configuration>
+            <property><name>mw_table</name><value>${mw_ipblocks_restrictions_table}</value></property>
+            <property><name>mw_table_dataset</name><value>mw_ipblocks_restrictions_table</value></property>
+            <property><name>previous_dataset</name><value>mw_ipblocks_table_partitioned</value></property>
+        </configuration>
+    </coordinator>
+
+    <!-- logging -->
+    <coordinator name="mediawiki-load-coord-logging">
+        <app-path>${coordinator_file}</app-path>
+        <configuration>
+            <property><name>mw_table</name><value>${mw_logging_table}</value></property>
+            <property><name>mw_table_dataset</name><value>mw_logging_table</value></property>
+            <property><name>previous_dataset</name><value>mw_ipblocks_restrictions_table_partitioned</value></property>
+        </configuration>
+    </coordinator>
+
+    <!-- page -->
+    <coordinator name="mediawiki-load-coord-page">
+        <app-path>${coordinator_file}</app-path>
+        <configuration>
+            <property><name>mw_table</name><value>${mw_page_table}</value></property>
+            <property><name>mw_table_dataset</name><value>mw_page_table</value></property>
+            <property><name>previous_dataset</name><value>mw_logging_table_partitioned</value></property>
+        </configuration>
+    </coordinator>
+
+    <!-- pagelinks -->
+    <coordinator name="mediawiki-load-coord-pagelinks">
+        <app-path>${coordinator_file}</app-path>
+        <configuration>
+            <property><name>mw_table</name><value>${mw_pagelinks_table}</value></property>
+            <property><name>mw_table_dataset</name><value>mw_pagelinks_table</value></property>
+            <property><name>previous_dataset</name><value>mw_page_table_partitioned</value></property>
+        </configuration>
+    </coordinator>
+
+    <!-- page_props -->
+    <coordinator name="mediawiki-load-coord-page_props">
+        <app-path>${coordinator_file}</app-path>
+        <configuration>
+            <property><name>mw_table</name><value>${mw_page_props_table}</value></property>
+            <property><name>mw_table_dataset</name><value>mw_page_props_table</value></property>
+            <property><name>previous_dataset</name><value>mw_pagelinks_table_partitioned</value></property>
+        </configuration>
+    </coordinator>
+
+    <!-- page_restrictions -->
+    <coordinator name="mediawiki-load-coord-page_restrictions">
+        <app-path>${coordinator_file}</app-path>
+        <configuration>
+            <property><name>mw_table</name><value>${mw_page_restrictions_table}</value></property>
+            <property><name>mw_table_dataset</name><value>mw_page_restrictions_table</value></property>
+            <property><name>previous_dataset</name><value>mw_page_props_table_partitioned</value></property>
+        </configuration>
+    </coordinator>
+
+    <!-- redirect -->
+    <coordinator name="mediawiki-load-coord-redirect">
+        <app-path>${coordinator_file}</app-path>
+        <configuration>
+            <property><name>mw_table</name><value>${mw_redirect_table}</value></property>
+            <property><name>mw_table_dataset</name><value>mw_redirect_table</value></property>
+            <property><name>previous_dataset</name><value>mw_page_restrictions_table_partitioned</value></property>
+        </configuration>
+    </coordinator>
+
+    <!-- revision -->
+    <coordinator name="mediawiki-load-coord-revision">
+        <app-path>${coordinator_file}</app-path>
+        <configuration>
+            <property><name>mw_table</name><value>${mw_revision_table}</value></property>
+            <property><name>mw_table_dataset</name><value>mw_revision_table</value></property>
+            <property><name>previous_dataset</name><value>mw_redirect_table_partitioned</value></property>
+        </configuration>
+    </coordinator>
+
+    <!-- slot_roles -->
+    <coordinator name="mediawiki-load-coord-slot_roles">
+        <app-path>${coordinator_file}</app-path>
+        <configuration>
+            <property><name>mw_table</name><value>${mw_slot_roles_table}</value></property>
+            <property><name>mw_table_dataset</name><value>mw_slot_roles_table</value></property>
+            <property><name>previous_dataset</name><value>mw_revision_table_partitioned</value></property>
+        </configuration>
+    </coordinator>
+
+    <!-- slots -->
+    <coordinator name="mediawiki-load-coord-slots">
+        <app-path>${coordinator_file}</app-path>
+        <configuration>
+            <property><name>mw_table</name><value>${mw_slots_table}</value></property>
+            <property><name>mw_table_dataset</name><value>mw_slots_table</value></property>
+            <property><name>previous_dataset</name><value>mw_slot_roles_table_partitioned</value></property>
+        </configuration>
+    </coordinator>
+
+    <!-- user -->
+    <coordinator name="mediawiki-load-coord-user">
+        <app-path>${coordinator_file}</app-path>
+        <configuration>
+            <property><name>mw_table</name><value>${mw_user_table}</value></property>
+            <property><name>mw_table_dataset</name><value>mw_user_table</value></property>
+            <property><name>previous_dataset</name><value>mw_slots_table_partitioned</value></property>
+        </configuration>
+    </coordinator>
+
+    <!-- user_groups -->
+    <coordinator name="mediawiki-load-coord-user_groups">
+        <app-path>${coordinator_file}</app-path>
+        <configuration>
+            <property><name>mw_table</name><value>${mw_user_groups_table}</value></property>
+            <property><name>mw_table_dataset</name><value>mw_user_groups_table</value></property>
+            <property><name>previous_dataset</name><value>mw_user_table_partitioned</value></property>
+        </configuration>
+    </coordinator>
+
+    <!-- user_properties -->
+    <coordinator name="mediawiki-load-coord-user_properties">
+        <app-path>${coordinator_file}</app-path>
+        <configuration>
+            <property><name>mw_table</name><value>${mw_user_properties_table}</value></property>
+            <property><name>mw_table_dataset</name><value>mw_user_properties_table</value></property>
+            <property><name>previous_dataset</name><value>mw_user_groups_table_partitioned</value></property>
+        </configuration>
+    </coordinator>
+
+    <!-- wbc_entity_usage -->
+    <coordinator name="mediawiki-load-coord-wbc_entity_usage">
+        <app-path>${coordinator_file}</app-path>
+        <configuration>
+            <property><name>mw_table</name><value>${mw_wbc_entity_usage_table}</value></property>
+            <property><name>mw_table_dataset</name><value>mw_wbc_entity_usage_table</value></property>
+            <property><name>previous_dataset</name><value>mw_user_properties_table_partitioned</value></property>
+        </configuration>
+    </coordinator>
+
+
+    <!-- Mediawiki tables sqooped from production replicas (not sanitized) -->
+
+    <!-- private_actor -->
+    <coordinator name="mediawiki-load-coord-private_actor">
+        <app-path>${coordinator_file}</app-path>
+        <configuration>
+            <property><name>mw_table</name><value>${mw_private_actor_table}</value></property>
+            <property><name>mw_table_dataset</name><value>mw_private_actor_table</value></property>
+            <property><name>previous_dataset</name><value>mw_wbc_entity_usage_table_partitioned</value></property>
+        </configuration>
+    </coordinator>
+
+    <!-- private_comment -->
+    <coordinator name="mediawiki-load-coord-private_comment">
+        <app-path>${coordinator_file}</app-path>
+        <configuration>
+            <property><name>mw_table</name><value>${mw_private_comment_table}</value></property>
+            <property><name>mw_table_dataset</name><value>mw_private_comment_table</value></property>
+            <property><name>previous_dataset</name><value>mw_private_actor_table_partitioned</value></property>
+        </configuration>
+    </coordinator>
+
+</bundle-app>
