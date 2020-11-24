@@ -47,7 +47,7 @@ SELECT
     CONCAT_WS(' ',
         project,
         page_title,
-        CAST(page_id AS STRING),
+        COALESCE(CAST(page_id AS STRING), 'null'),
         REGEXP_REPLACE(access_method, ' ', '-'),
         CAST(SUM(view_count) AS STRING),
         REGEXP_REPLACE(CONCAT(
@@ -83,7 +83,7 @@ WHERE
     year=${year}
     AND month=${month}
     AND day=${day}
-GROUP BY project, page_title, CAST(page_id AS STRING), REGEXP_REPLACE(access_method, ' ', '-'), agent_type, day
+GROUP BY project, page_title, COALESCE(CAST(page_id AS STRING), 'null'), REGEXP_REPLACE(access_method, ' ', '-'), agent_type, day
 ORDER BY line
 LIMIT 1000000000
 ;
