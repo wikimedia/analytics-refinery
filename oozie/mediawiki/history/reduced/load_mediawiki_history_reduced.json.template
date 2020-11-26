@@ -72,7 +72,7 @@
       "overwriteFiles": true,
       "partitionsSpec" : {
         "type" : "hashed",
-        "numShards" : 6
+        "numShards" : 16
       },
       "jobProperties" : {
         "parquet.avro.add-list-element-records":"false",
