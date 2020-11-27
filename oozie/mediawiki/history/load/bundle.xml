@@ -25,13 +25,19 @@
 
         <!-- Mediawiki tables sqooped from labs (sanitized) -->
         <property><name>mw_archive_table</name></property>
+        <property><name>mw_category_table</name></property>
+        <property><name>mw_categorylinks_table</name></property>
         <property><name>mw_change_tag_table</name></property>
         <property><name>mw_change_tag_def_table</name></property>
         <property><name>mw_content_table</name></property>
         <property><name>mw_content_models_table</name></property>
+        <property><name>mw_externallinks_table</name></property>
+        <property><name>mw_image_table</name></property>
         <property><name>mw_imagelinks_table</name></property>
         <property><name>mw_ipblocks_table</name></property>
         <property><name>mw_ipblocks_restrictions_table</name></property>
+        <property><name>mw_iwlinks_table</name></property>
+        <property><name>mw_langlinks_table</name></property>
         <property><name>mw_logging_table</name></property>
         <property><name>mw_page_table</name></property>
         <property><name>mw_pagelinks_table</name></property>
@@ -39,8 +45,9 @@
         <property><name>mw_page_restrictions_table</name></property>
         <property><name>mw_redirect_table</name></property>
         <property><name>mw_revision_table</name></property>
-        <property><name>mw_slot_roles_table</name></property>
         <property><name>mw_slots_table</name></property>
+        <property><name>mw_slot_roles_table</name></property>
+        <property><name>mw_templatelinks_table</name></property>
         <property><name>mw_user_table</name></property>
         <property><name>mw_user_groups_table</name></property>
         <property><name>mw_user_properties_table</name></property>
@@ -49,6 +56,7 @@
         <!-- Mediawiki tables sqooped from production replicas (not sanitized) -->
         <property><name>mw_private_actor_table</name></property>
         <property><name>mw_private_comment_table</name></property>
+        <property><name>mw_private_watchlist_table</name></property>
 
         <property><name>hive_site_xml</name></property>
         <property><name>repair_partitions_workflow_file</name></property>
@@ -95,13 +103,33 @@
         </configuration>
     </coordinator>
 
+    <!-- category -->
+    <coordinator name="mediawiki-load-coord-category">
+        <app-path>${coordinator_file}</app-path>
+        <configuration>
+            <property><name>mw_table</name><value>${mw_category_table}</value></property>
+            <property><name>mw_table_dataset</name><value>mw_category_table</value></property>
+            <property><name>previous_dataset</name><value>mw_archive_table_partitioned</value></property>
+        </configuration>
+    </coordinator>
+
+    <!-- categorylinks -->
+    <coordinator name="mediawiki-load-coord-categorylinks">
+        <app-path>${coordinator_file}</app-path>
+        <configuration>
+            <property><name>mw_table</name><value>${mw_categorylinks_table}</value></property>
+            <property><name>mw_table_dataset</name><value>mw_categorylinks_table</value></property>
+            <property><name>previous_dataset</name><value>mw_category_table_partitioned</value></property>
+        </configuration>
+    </coordinator>
+
     <!-- change_tag -->
     <coordinator name="mediawiki-load-coord-change_tag">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property><name>mw_table</name><value>${mw_change_tag_table}</value></property>
             <property><name>mw_table_dataset</name><value>mw_change_tag_table</value></property>
-            <property><name>previous_dataset</name><value>mw_archive_table_partitioned</value></property>
+            <property><name>previous_dataset</name><value>mw_categorylinks_table_partitioned</value></property>
         </configuration>
     </coordinator>
 
@@ -135,13 +163,33 @@
         </configuration>
     </coordinator>
 
+    <!-- externallinks -->
+    <coordinator name="mediawiki-load-coord-externallinks">
+        <app-path>${coordinator_file}</app-path>
+        <configuration>
+            <property><name>mw_table</name><value>${mw_externallinks_table}</value></property>
+            <property><name>mw_table_dataset</name><value>mw_externallinks_table</value></property>
+            <property><name>previous_dataset</name><value>mw_content_models_table_partitioned</value></property>
+        </configuration>
+    </coordinator>
+
+    <!-- image -->
+    <coordinator name="mediawiki-load-coord-image">
+        <app-path>${coordinator_file}</app-path>
+        <configuration>
+            <property><name>mw_table</name><value>${mw_image_table}</value></property>
+            <property><name>mw_table_dataset</name><value>mw_image_table</value></property>
+            <property><name>previous_dataset</name><value>mw_externallinks_table_partitioned</value></property>
+        </configuration>
+    </coordinator>
+
     <!-- imagelinks -->
     <coordinator name="mediawiki-load-coord-imagelinks">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property><name>mw_table</name><value>${mw_imagelinks_table}</value></property>
             <property><name>mw_table_dataset</name><value>mw_imagelinks_table</value></property>
-            <property><name>previous_dataset</name><value>mw_content_models_table_partitioned</value></property>
+            <property><name>previous_dataset</name><value>mw_image_table_partitioned</value></property>
         </configuration>
     </coordinator>
 
@@ -165,13 +213,33 @@
         </configuration>
     </coordinator>
 
+    <!-- iwlinks -->
+    <coordinator name="mediawiki-load-coord-iwlinks">
+        <app-path>${coordinator_file}</app-path>
+        <configuration>
+            <property><name>mw_table</name><value>${mw_iwlinks_table}</value></property>
+            <property><name>mw_table_dataset</name><value>mw_iwlinks_table</value></property>
+            <property><name>previous_dataset</name><value>mw_ipblocks_restrictions_table_partitioned</value></property>
+        </configuration>
+    </coordinator>
+
+    <!-- langlinks -->
+    <coordinator name="mediawiki-load-coord-langlinks">
+        <app-path>${coordinator_file}</app-path>
+        <configuration>
+            <property><name>mw_table</name><value>${mw_langlinks_table}</value></property>
+            <property><name>mw_table_dataset</name><value>mw_langlinks_table</value></property>
+            <property><name>previous_dataset</name><value>mw_iwlinks_table_partitioned</value></property>
+        </configuration>
+    </coordinator>
+
     <!-- logging -->
     <coordinator name="mediawiki-load-coord-logging">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property><name>mw_table</name><value>${mw_logging_table}</value></property>
             <property><name>mw_table_dataset</name><value>mw_logging_table</value></property>
-            <property><name>previous_dataset</name><value>mw_ipblocks_restrictions_table_partitioned</value></property>
+            <property><name>previous_dataset</name><value>mw_langlinks_table_partitioned</value></property>
         </configuration>
     </coordinator>
 
@@ -235,16 +303,6 @@
         </configuration>
     </coordinator>
 
-    <!-- slot_roles -->
-    <coordinator name="mediawiki-load-coord-slot_roles">
-        <app-path>${coordinator_file}</app-path>
-        <configuration>
-            <property><name>mw_table</name><value>${mw_slot_roles_table}</value></property>
-            <property><name>mw_table_dataset</name><value>mw_slot_roles_table</value></property>
-            <property><name>previous_dataset</name><value>mw_revision_table_partitioned</value></property>
-        </configuration>
-    </coordinator>
-
     <!-- slots -->
     <coordinator name="mediawiki-load-coord-slots">
         <app-path>${coordinator_file}</app-path>
@@ -255,13 +313,33 @@
         </configuration>
     </coordinator>
 
+    <!-- slot_roles -->
+    <coordinator name="mediawiki-load-coord-slot_roles">
+        <app-path>${coordinator_file}</app-path>
+        <configuration>
+            <property><name>mw_table</name><value>${mw_slot_roles_table}</value></property>
+            <property><name>mw_table_dataset</name><value>mw_slot_roles_table</value></property>
+            <property><name>previous_dataset</name><value>mw_revision_table_partitioned</value></property>
+        </configuration>
+    </coordinator>
+
+    <!-- templatelinks -->
+    <coordinator name="mediawiki-load-coord-templatelinks">
+        <app-path>${coordinator_file}</app-path>
+        <configuration>
+            <property><name>mw_table</name><value>${mw_templatelinks_table}</value></property>
+            <property><name>mw_table_dataset</name><value>mw_templatelinks_table</value></property>
+            <property><name>previous_dataset</name><value>mw_slot_roles_table_partitioned</value></property>
+        </configuration>
+    </coordinator>
+
     <!-- user -->
     <coordinator name="mediawiki-load-coord-user">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property><name>mw_table</name><value>${mw_user_table}</value></property>
             <property><name>mw_table_dataset</name><value>mw_user_table</value></property>
-            <property><name>previous_dataset</name><value>mw_slots_table_partitioned</value></property>
+            <property><name>previous_dataset</name><value>mw_templatelinks_table_partitioned</value></property>
         </configuration>
     </coordinator>
 
@@ -315,6 +393,16 @@
             <property><name>mw_table</name><value>${mw_private_comment_table}</value></property>
             <property><name>mw_table_dataset</name><value>mw_private_comment_table</value></property>
             <property><name>previous_dataset</name><value>mw_private_actor_table_partitioned</value></property>
+        </configuration>
+    </coordinator>
+
+    <!-- private_watchlist -->
+    <coordinator name="mediawiki-load-coord-private_watchlist">
+        <app-path>${coordinator_file}</app-path>
+        <configuration>
+            <property><name>mw_table</name><value>${mw_private_watchlist_table}</value></property>
+            <property><name>mw_table_dataset</name><value>mw_private_watchlist_table</value></property>
+            <property><name>previous_dataset</name><value>mw_private_comment_table_partitioned</value></property>
         </configuration>
     </coordinator>
 

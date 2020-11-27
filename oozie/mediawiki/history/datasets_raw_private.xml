@@ -30,13 +30,21 @@ Use this dataset in your coordinator.xml files by setting:
         <done-flag>_SUCCESS</done-flag>
     </dataset>
 
+    <dataset name="mw_private_watchlist_table"
+             frequency="${coord:months(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${mw_raw_private_directory}/tables/watchlist/snapshot=${YEAR}-${MONTH}</uri-template>
+        <done-flag>_SUCCESS</done-flag>
+    </dataset>
+
     <!-- tables datasets - Hive partitions -->
 
     <dataset name="mw_private_actor_table_partitioned"
              frequency="${coord:months(1)}"
              initial-instance="${start_time}"
              timezone="Universal">
-        <uri-template>${mw_raw_private_directory}/tables/comment/snapshot=${YEAR}-${MONTH}</uri-template>
+        <uri-template>${mw_raw_private_directory}/tables/actor/snapshot=${YEAR}-${MONTH}</uri-template>
         <done-flag>_PARTITIONED</done-flag>
     </dataset>
 
@@ -45,6 +53,14 @@ Use this dataset in your coordinator.xml files by setting:
              initial-instance="${start_time}"
              timezone="Universal">
         <uri-template>${mw_raw_private_directory}/tables/comment/snapshot=${YEAR}-${MONTH}</uri-template>
+        <done-flag>_PARTITIONED</done-flag>
+    </dataset>
+
+    <dataset name="mw_private_watchlist_table_partitioned"
+             frequency="${coord:months(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${mw_raw_private_directory}/tables/watchlist/snapshot=${YEAR}-${MONTH}</uri-template>
         <done-flag>_PARTITIONED</done-flag>
     </dataset>
 

@@ -29,6 +29,22 @@ Use this dataset in your coordinator.xml files by setting:
         <done-flag>_SUCCESS</done-flag>
     </dataset>
 
+    <dataset name="mw_category_table"
+             frequency="${coord:months(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${mw_raw_directory}/tables/category/snapshot=${YEAR}-${MONTH}</uri-template>
+        <done-flag>_SUCCESS</done-flag>
+    </dataset>
+
+    <dataset name="mw_categorylinks_table"
+             frequency="${coord:months(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${mw_raw_directory}/tables/categorylinks/snapshot=${YEAR}-${MONTH}</uri-template>
+        <done-flag>_SUCCESS</done-flag>
+    </dataset>
+
     <dataset name="mw_change_tag_table"
              frequency="${coord:months(1)}"
              initial-instance="${start_time}"
@@ -61,6 +77,22 @@ Use this dataset in your coordinator.xml files by setting:
         <done-flag>_SUCCESS</done-flag>
     </dataset>
 
+    <dataset name="mw_externallinks_table"
+             frequency="${coord:months(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${mw_raw_directory}/tables/externallinks/snapshot=${YEAR}-${MONTH}</uri-template>
+        <done-flag>_SUCCESS</done-flag>
+    </dataset>
+
+    <dataset name="mw_image_table"
+             frequency="${coord:months(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${mw_raw_directory}/tables/image/snapshot=${YEAR}-${MONTH}</uri-template>
+        <done-flag>_SUCCESS</done-flag>
+    </dataset>
+
     <dataset name="mw_imagelinks_table"
              frequency="${coord:months(1)}"
              initial-instance="${start_time}"
@@ -82,6 +114,22 @@ Use this dataset in your coordinator.xml files by setting:
              initial-instance="${start_time}"
              timezone="Universal">
         <uri-template>${mw_raw_directory}/tables/ipblocks_restrictions/snapshot=${YEAR}-${MONTH}</uri-template>
+        <done-flag>_SUCCESS</done-flag>
+    </dataset>
+
+    <dataset name="mw_iwlinks_table"
+             frequency="${coord:months(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${mw_raw_directory}/tables/iwlinks/snapshot=${YEAR}-${MONTH}</uri-template>
+        <done-flag>_SUCCESS</done-flag>
+    </dataset>
+
+    <dataset name="mw_langlinks_table"
+             frequency="${coord:months(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${mw_raw_directory}/tables/langlinks/snapshot=${YEAR}-${MONTH}</uri-template>
         <done-flag>_SUCCESS</done-flag>
     </dataset>
 
@@ -141,6 +189,14 @@ Use this dataset in your coordinator.xml files by setting:
         <done-flag>_SUCCESS</done-flag>
     </dataset>
 
+    <dataset name="mw_slots_table"
+             frequency="${coord:months(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${mw_raw_directory}/tables/slots/snapshot=${YEAR}-${MONTH}</uri-template>
+        <done-flag>_SUCCESS</done-flag>
+    </dataset>
+
     <dataset name="mw_slot_roles_table"
              frequency="${coord:months(1)}"
              initial-instance="${start_time}"
@@ -149,11 +205,11 @@ Use this dataset in your coordinator.xml files by setting:
         <done-flag>_SUCCESS</done-flag>
     </dataset>
 
-    <dataset name="mw_slots_table"
+    <dataset name="mw_templatelinks_table"
              frequency="${coord:months(1)}"
              initial-instance="${start_time}"
              timezone="Universal">
-        <uri-template>${mw_raw_directory}/tables/slots/snapshot=${YEAR}-${MONTH}</uri-template>
+        <uri-template>${mw_raw_directory}/tables/templatelinks/snapshot=${YEAR}-${MONTH}</uri-template>
         <done-flag>_SUCCESS</done-flag>
     </dataset>
 
@@ -207,6 +263,22 @@ Use this dataset in your coordinator.xml files by setting:
         <done-flag>_PARTITIONED</done-flag>
     </dataset>
 
+    <dataset name="mw_category_table_partitioned"
+             frequency="${coord:months(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${mw_raw_directory}/tables/category/snapshot=${YEAR}-${MONTH}</uri-template>
+        <done-flag>_PARTITIONED</done-flag>
+    </dataset>
+
+    <dataset name="mw_categorylinks_table_partitioned"
+             frequency="${coord:months(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${mw_raw_directory}/tables/categorylinks/snapshot=${YEAR}-${MONTH}</uri-template>
+        <done-flag>_PARTITIONED</done-flag>
+    </dataset>
+
     <dataset name="mw_change_tag_table_partitioned"
              frequency="${coord:months(1)}"
              initial-instance="${start_time}"
@@ -239,6 +311,22 @@ Use this dataset in your coordinator.xml files by setting:
         <done-flag>_PARTITIONED</done-flag>
     </dataset>
 
+    <dataset name="mw_externallinks_table_partitioned"
+             frequency="${coord:months(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${mw_raw_directory}/tables/externallinks/snapshot=${YEAR}-${MONTH}</uri-template>
+        <done-flag>_PARTITIONED</done-flag>
+    </dataset>
+
+    <dataset name="mw_image_table_partitioned"
+             frequency="${coord:months(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${mw_raw_directory}/tables/image/snapshot=${YEAR}-${MONTH}</uri-template>
+        <done-flag>_PARTITIONED</done-flag>
+    </dataset>
+
     <dataset name="mw_imagelinks_table_partitioned"
              frequency="${coord:months(1)}"
              initial-instance="${start_time}"
@@ -260,6 +348,22 @@ Use this dataset in your coordinator.xml files by setting:
              initial-instance="${start_time}"
              timezone="Universal">
         <uri-template>${mw_raw_directory}/tables/ipblocks_restrictions/snapshot=${YEAR}-${MONTH}</uri-template>
+        <done-flag>_PARTITIONED</done-flag>
+    </dataset>
+
+    <dataset name="mw_iwlinks_table_partitioned"
+             frequency="${coord:months(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${mw_raw_directory}/tables/iwlinks/snapshot=${YEAR}-${MONTH}</uri-template>
+        <done-flag>_PARTITIONED</done-flag>
+    </dataset>
+
+    <dataset name="mw_langlinks_table_partitioned"
+             frequency="${coord:months(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${mw_raw_directory}/tables/langlinks/snapshot=${YEAR}-${MONTH}</uri-template>
         <done-flag>_PARTITIONED</done-flag>
     </dataset>
 
@@ -319,6 +423,14 @@ Use this dataset in your coordinator.xml files by setting:
         <done-flag>_PARTITIONED</done-flag>
     </dataset>
 
+    <dataset name="mw_slots_table_partitioned"
+             frequency="${coord:months(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${mw_raw_directory}/tables/slots/snapshot=${YEAR}-${MONTH}</uri-template>
+        <done-flag>_PARTITIONED</done-flag>
+    </dataset>
+
     <dataset name="mw_slot_roles_table_partitioned"
              frequency="${coord:months(1)}"
              initial-instance="${start_time}"
@@ -327,11 +439,11 @@ Use this dataset in your coordinator.xml files by setting:
         <done-flag>_PARTITIONED</done-flag>
     </dataset>
 
-    <dataset name="mw_slots_table_partitioned"
+    <dataset name="mw_templatelinks_table_partitioned"
              frequency="${coord:months(1)}"
              initial-instance="${start_time}"
              timezone="Universal">
-        <uri-template>${mw_raw_directory}/tables/slots/snapshot=${YEAR}-${MONTH}</uri-template>
+        <uri-template>${mw_raw_directory}/tables/templatelinks/snapshot=${YEAR}-${MONTH}</uri-template>
         <done-flag>_PARTITIONED</done-flag>
     </dataset>
 
