@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <bundle-app xmlns="uri:oozie:bundle:0.2"
-    name="mediawiki-load-bundle">
+    name="mediawiki-history-load-bundle">
 
     <parameters>
 
@@ -81,7 +81,7 @@
     <!-- Not a mediawiki table, downloaded from sitelinks - here nonethelss :) -->
 
     <!-- project-namespace-map -->
-    <coordinator name="mediawiki-load-coord-project_namespace_map">
+    <coordinator name="mediawiki-history-load-coord-project_namespace_map">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property><name>mw_table</name><value>${mw_project_namespace_map_table}</value></property>
@@ -94,7 +94,7 @@
     <!-- Mediawiki tables sqooped from labs (sanitized)-->
 
     <!-- archive -->
-    <coordinator name="mediawiki-load-coord-archive">
+    <coordinator name="mediawiki-history-load-coord-archive">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property><name>mw_table</name><value>${mw_archive_table}</value></property>
@@ -104,7 +104,7 @@
     </coordinator>
 
     <!-- category -->
-    <coordinator name="mediawiki-load-coord-category">
+    <coordinator name="mediawiki-history-load-coord-category">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property><name>mw_table</name><value>${mw_category_table}</value></property>
@@ -114,7 +114,7 @@
     </coordinator>
 
     <!-- categorylinks -->
-    <coordinator name="mediawiki-load-coord-categorylinks">
+    <coordinator name="mediawiki-history-load-coord-categorylinks">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property><name>mw_table</name><value>${mw_categorylinks_table}</value></property>
@@ -124,7 +124,7 @@
     </coordinator>
 
     <!-- change_tag -->
-    <coordinator name="mediawiki-load-coord-change_tag">
+    <coordinator name="mediawiki-history-load-coord-change_tag">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property><name>mw_table</name><value>${mw_change_tag_table}</value></property>
@@ -134,7 +134,7 @@
     </coordinator>
 
     <!-- change_tag_def -->
-    <coordinator name="mediawiki-load-coord-change_tag_def">
+    <coordinator name="mediawiki-history-load-coord-change_tag_def">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property><name>mw_table</name><value>${mw_change_tag_def_table}</value></property>
@@ -144,7 +144,7 @@
     </coordinator>
 
     <!-- content -->
-    <coordinator name="mediawiki-load-coord-content">
+    <coordinator name="mediawiki-history-load-coord-content">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property><name>mw_table</name><value>${mw_content_table}</value></property>
@@ -154,7 +154,7 @@
     </coordinator>
 
     <!-- content_models -->
-    <coordinator name="mediawiki-load-coord-content_models">
+    <coordinator name="mediawiki-history-load-coord-content_models">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property><name>mw_table</name><value>${mw_content_models_table}</value></property>
@@ -164,7 +164,7 @@
     </coordinator>
 
     <!-- externallinks -->
-    <coordinator name="mediawiki-load-coord-externallinks">
+    <coordinator name="mediawiki-history-load-coord-externallinks">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property><name>mw_table</name><value>${mw_externallinks_table}</value></property>
@@ -174,7 +174,7 @@
     </coordinator>
 
     <!-- image -->
-    <coordinator name="mediawiki-load-coord-image">
+    <coordinator name="mediawiki-history-load-coord-image">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property><name>mw_table</name><value>${mw_image_table}</value></property>
@@ -184,7 +184,7 @@
     </coordinator>
 
     <!-- imagelinks -->
-    <coordinator name="mediawiki-load-coord-imagelinks">
+    <coordinator name="mediawiki-history-load-coord-imagelinks">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property><name>mw_table</name><value>${mw_imagelinks_table}</value></property>
@@ -194,7 +194,7 @@
     </coordinator>
 
     <!-- ipblocks -->
-    <coordinator name="mediawiki-load-coord-ipblocks">
+    <coordinator name="mediawiki-history-load-coord-ipblocks">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property><name>mw_table</name><value>${mw_ipblocks_table}</value></property>
@@ -204,7 +204,7 @@
     </coordinator>
 
     <!-- ipblocks_restrictions -->
-    <coordinator name="mediawiki-load-coord-ipblocks_restrictions">
+    <coordinator name="mediawiki-history-load-coord-ipblocks_restrictions">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property><name>mw_table</name><value>${mw_ipblocks_restrictions_table}</value></property>
@@ -214,7 +214,7 @@
     </coordinator>
 
     <!-- iwlinks -->
-    <coordinator name="mediawiki-load-coord-iwlinks">
+    <coordinator name="mediawiki-history-load-coord-iwlinks">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property><name>mw_table</name><value>${mw_iwlinks_table}</value></property>
@@ -224,7 +224,7 @@
     </coordinator>
 
     <!-- langlinks -->
-    <coordinator name="mediawiki-load-coord-langlinks">
+    <coordinator name="mediawiki-history-load-coord-langlinks">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property><name>mw_table</name><value>${mw_langlinks_table}</value></property>
@@ -234,7 +234,7 @@
     </coordinator>
 
     <!-- logging -->
-    <coordinator name="mediawiki-load-coord-logging">
+    <coordinator name="mediawiki-history-load-coord-logging">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property><name>mw_table</name><value>${mw_logging_table}</value></property>
@@ -244,7 +244,7 @@
     </coordinator>
 
     <!-- page -->
-    <coordinator name="mediawiki-load-coord-page">
+    <coordinator name="mediawiki-history-load-coord-page">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property><name>mw_table</name><value>${mw_page_table}</value></property>
@@ -254,7 +254,7 @@
     </coordinator>
 
     <!-- pagelinks -->
-    <coordinator name="mediawiki-load-coord-pagelinks">
+    <coordinator name="mediawiki-history-load-coord-pagelinks">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property><name>mw_table</name><value>${mw_pagelinks_table}</value></property>
@@ -264,7 +264,7 @@
     </coordinator>
 
     <!-- page_props -->
-    <coordinator name="mediawiki-load-coord-page_props">
+    <coordinator name="mediawiki-history-load-coord-page_props">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property><name>mw_table</name><value>${mw_page_props_table}</value></property>
@@ -274,7 +274,7 @@
     </coordinator>
 
     <!-- page_restrictions -->
-    <coordinator name="mediawiki-load-coord-page_restrictions">
+    <coordinator name="mediawiki-history-load-coord-page_restrictions">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property><name>mw_table</name><value>${mw_page_restrictions_table}</value></property>
@@ -284,7 +284,7 @@
     </coordinator>
 
     <!-- redirect -->
-    <coordinator name="mediawiki-load-coord-redirect">
+    <coordinator name="mediawiki-history-load-coord-redirect">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property><name>mw_table</name><value>${mw_redirect_table}</value></property>
@@ -294,7 +294,7 @@
     </coordinator>
 
     <!-- revision -->
-    <coordinator name="mediawiki-load-coord-revision">
+    <coordinator name="mediawiki-history-load-coord-revision">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property><name>mw_table</name><value>${mw_revision_table}</value></property>
@@ -304,7 +304,7 @@
     </coordinator>
 
     <!-- slots -->
-    <coordinator name="mediawiki-load-coord-slots">
+    <coordinator name="mediawiki-history-load-coord-slots">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property><name>mw_table</name><value>${mw_slots_table}</value></property>
@@ -314,7 +314,7 @@
     </coordinator>
 
     <!-- slot_roles -->
-    <coordinator name="mediawiki-load-coord-slot_roles">
+    <coordinator name="mediawiki-history-load-coord-slot_roles">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property><name>mw_table</name><value>${mw_slot_roles_table}</value></property>
@@ -324,7 +324,7 @@
     </coordinator>
 
     <!-- templatelinks -->
-    <coordinator name="mediawiki-load-coord-templatelinks">
+    <coordinator name="mediawiki-history-load-coord-templatelinks">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property><name>mw_table</name><value>${mw_templatelinks_table}</value></property>
@@ -334,7 +334,7 @@
     </coordinator>
 
     <!-- user -->
-    <coordinator name="mediawiki-load-coord-user">
+    <coordinator name="mediawiki-history-load-coord-user">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property><name>mw_table</name><value>${mw_user_table}</value></property>
@@ -344,7 +344,7 @@
     </coordinator>
 
     <!-- user_groups -->
-    <coordinator name="mediawiki-load-coord-user_groups">
+    <coordinator name="mediawiki-history-load-coord-user_groups">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property><name>mw_table</name><value>${mw_user_groups_table}</value></property>
@@ -354,7 +354,7 @@
     </coordinator>
 
     <!-- user_properties -->
-    <coordinator name="mediawiki-load-coord-user_properties">
+    <coordinator name="mediawiki-history-load-coord-user_properties">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property><name>mw_table</name><value>${mw_user_properties_table}</value></property>
@@ -364,7 +364,7 @@
     </coordinator>
 
     <!-- wbc_entity_usage -->
-    <coordinator name="mediawiki-load-coord-wbc_entity_usage">
+    <coordinator name="mediawiki-history-load-coord-wbc_entity_usage">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property><name>mw_table</name><value>${mw_wbc_entity_usage_table}</value></property>
@@ -377,7 +377,7 @@
     <!-- Mediawiki tables sqooped from production replicas (not sanitized) -->
 
     <!-- private_actor -->
-    <coordinator name="mediawiki-load-coord-private_actor">
+    <coordinator name="mediawiki-history-load-coord-private_actor">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property><name>mw_table</name><value>${mw_private_actor_table}</value></property>
@@ -387,7 +387,7 @@
     </coordinator>
 
     <!-- private_comment -->
-    <coordinator name="mediawiki-load-coord-private_comment">
+    <coordinator name="mediawiki-history-load-coord-private_comment">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property><name>mw_table</name><value>${mw_private_comment_table}</value></property>
@@ -397,7 +397,7 @@
     </coordinator>
 
     <!-- private_watchlist -->
-    <coordinator name="mediawiki-load-coord-private_watchlist">
+    <coordinator name="mediawiki-history-load-coord-private_watchlist">
         <app-path>${coordinator_file}</app-path>
         <configuration>
             <property><name>mw_table</name><value>${mw_private_watchlist_table}</value></property>
