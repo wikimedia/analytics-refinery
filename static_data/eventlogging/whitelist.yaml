@@ -1701,6 +1701,18 @@ TaskRecommendationLightbulbClick:
     webhost: keep
     wiki: keep
 
+TemplateDataEditor:
+    event:
+        action: keep
+        page_id: keep
+        page_namespace: keep
+        page_title: keep
+        rev_id: keep
+        # TODO: user_edit_count_bucket
+        # user_edit_count: purge
+        # user_id: purge
+    wiki: keep
+
 TestSearchSatisfaction:
     event:
         action: keep
