@@ -440,7 +440,9 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
                     img_size,
                     img_width,
                     img_height,
-                    convert(img_metadata using utf8) img_metadata,
+                    -- Field not sqooped as it can contain more than 10Mb of data
+                    -- leading to job failure (commonswiki database only)
+                    -- convert(img_metadata using utf8) img_metadata,
                     img_bits,
                     convert(img_media_type using utf8) img_media_type,
                     convert(img_major_mime using utf8) img_major_mime,
@@ -456,10 +458,10 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         '''.format(ts_clause=make_timestamp_clause('img_timestamp', from_timestamp, to_timestamp)),
         'map-types': '"{}"'.format(','.join([
             'img_name=String',
-            'img_size=Integer',
+            'img_size=Long',
             'img_width=Integer',
             'img_height=Integer',
-            'img_metadata=String',
+            #'img_metadata=String',
             'img_bits=Integer',
             'img_media_type=String',
             'img_major_mime=String',
@@ -469,12 +471,10 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
             'img_timestamp=String',
             'img_sha1=String',
         ])),
-        # Using img_size as column to split since there is no integer id
-        # Distribution of value, while not being perfectly uniform, still
-        # allows for decent splitting
-        'boundary-query': 'SELECT MIN(img_size), MAX(img_size) FROM image',
-        'split-by': 'img_size',
-        'mappers-weight': 1.0,
+        # Forcing single mapper to prevent having to split-by as table's primary-key
+        # is a varchar (complicated to split). Data-size is not big even for commonswiki
+        # so single-mapper does the job.
+        'mappers-weight': 0.0,
     }
 
     queries['imagelinks'] = {

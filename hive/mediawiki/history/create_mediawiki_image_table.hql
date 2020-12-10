@@ -11,10 +11,11 @@
 
 CREATE EXTERNAL TABLE `mediawiki_image`(
   `img_name`            string  COMMENT 'Filename using underscores.',
-  `img_size`            int     COMMENT 'File size in bytes.',
+  `img_size`            bigint  COMMENT 'File size in bytes.',
   `img_width`           int     COMMENT 'Image width, in pixels.',
   `img_height`          int     COMMENT 'Image height, in pixels.',
-  `img_metadata`        string  COMMENT 'Serialized PHP array of the file\'s properties. 0 if the extractor fail. T155741',
+  -- Ignored field -- In commonswiki it can contain more than 10Mb of data making the sqoop process fail
+  --`img_metadata`        string  COMMENT 'Serialized PHP array of the file\'s properties. 0 if the extractor fail. T155741',
   `img_bits`            int     COMMENT 'Bit-depth of GIF/PNG palette-based images (up to 8-bit). Non-palette images (JPEG/PNG/TIFF/SVG) are 0, 8, or 16. All other files default to 0.',
   `img_media_type`      string  COMMENT 'Possibilities are: UNKNOWN, BITMAP, DRAWING, AUDIO, VIDEO, MULTIMEDIA, OFFICE, TEXT, EXECUTABLE, ARCHIVE, 3D',
   `img_major_mime`      string  COMMENT 'Possibilities are: unknown, application, audio, chemical, image, message, model, multipart, text, video',
