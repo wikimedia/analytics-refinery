@@ -1821,6 +1821,17 @@ VisualEditorFeatureUse:
     webHost: keep
     wiki: keep
 
+WikibasePingback:
+    event:
+        database: keep
+        extensions: keep
+        federation: keep
+        hasEntities: keep
+        termbox: keep
+        mediawiki: keep
+        memoryLimit: keep
+    wiki: keep
+
 WikimediaBlogVisit:
     event:
         referrerUrl: keep
