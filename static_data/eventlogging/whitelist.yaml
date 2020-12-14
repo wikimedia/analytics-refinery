@@ -1399,6 +1399,7 @@ MultimediaViewerVersusPageFilePerformance:
 NavigationTiming:
     event:
         action: keep
+        cacheResponseType: keep
         connectEnd: keep
         connectStart: keep
         connecting: keep
@@ -1679,13 +1680,6 @@ ServerSideAccountCreation:
         userName: keep
     webhost: keep
     wiki: keep
-
-ServerTiming:
-    event:
-        description: keep
-        duration: keep
-        name: keep
-        pageviewToken: hash
 
 TaskRecommendation:
     event:
