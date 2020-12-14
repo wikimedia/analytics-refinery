@@ -1454,6 +1454,24 @@ NavigationTiming:
     webhost: keep
     wiki: keep
 
+netflow:
+    as_dst: keep
+    as_name_dst: keep
+    as_name_src: keep
+    as_path: keep
+    as_src: keep
+    bytes: keep
+    country_ip_dst: keep
+    country_ip_src: keep
+    ip_proto: keep
+    ip_version: keep
+    packets: keep
+    parsed_comms: keep
+    peer_as_dst: keep
+    region: keep
+    stamp_inserted: keep
+    tag2: keep
+
 NewcomerTask:
     event:
         context: keep
