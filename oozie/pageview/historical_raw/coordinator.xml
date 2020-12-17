@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coordinator-app xmlns="uri:oozie:coordinator:0.4"
+    xmlns:sla="uri:oozie:sla:0.2"
+    name="pageview-historical_raw-coord"
+    frequency="${coord:hours(1)}"
+    start="${start_time}"
+    end="${stop_time}"
+    timezone="Universal">
+
+    <parameters>
+
+        <!-- Required properties. -->
+        <property><name>name_node</name></property>
+        <property><name>job_tracker</name></property>
+        <property><name>queue_name</name></property>
+        <property><name>hive_principal</name></property>
+        <property><name>hive2_jdbc_url</name></property>
+
+        <property><name>workflow_file</name></property>
+
+        <property><name>start_time</name></property>
+        <property><name>stop_time</name></property>
+
+        <property><name>base_dumps_directory</name></property>
+
+        <property><name>data_directory</name></property>
+
+        <property><name>hive_site_xml</name></property>
+        <property><name>refinery_hive_jar_path</name></property>
+
+        <property><name>pageview_historical_table</name></property>
+        <property><name>send_error_email_workflow_file</name></property>
+
+        <property><name>temporary_directory</name></property>
+
+        <property><name>mark_directory_done_workflow_file</name></property>
+        <property><name>sla_alert_contact</name></property>
+    </parameters>
+
+    <controls>
+        <!--
+        By having materialized jobs not timeout, we ease backfilling incidents
+        after recoverable hiccups on the dataset producers.
+        -->
+        <timeout>-1</timeout>
+
+        <!--
+        pageview aggregation is not too heavy, but we limit
+        concurrency for resource sharing.
+
+        Also note, that back-filling is not limited by the
+        coordinator's frequency, so back-filling works nicely
+        even-though the concurrency is low.
+        -->
+        <concurrency>4</concurrency>
+
+
+        <!--
+        Since we expect only one incarnation per hourly dataset, the
+        default throttle of 12 is way to high, and there is not need
+        to keep that many materialized jobs around.
+
+        By resorting to 2, we keep the hdfs checks on the datasets
+        low, while still being able to easily feed the concurrency.
+        -->
+        <throttle>16</throttle>
+    </controls>
+
+    <action>
+        <workflow>
+            <app-path>${workflow_file}</app-path>
+            <configuration>
+
+                <property>
+                    <name>year</name>
+                    <value>${coord:formatTime(coord:nominalTime(), "y")}</value>
+                </property>
+                <property>
+                    <name>month</name>
+                    <value>${coord:formatTime(coord:nominalTime(), "M")}</value>
+                </property>
+                <property>
+                    <name>day</name>
+                    <value>${coord:formatTime(coord:nominalTime(), "d")}</value>
+                </property>
+                <property>
+                    <name>hour</name>
+                    <value>${coord:formatTime(coord:nominalTime(), "H")}</value>
+                </property>
+                <!--
+                "incorrect" refers to the hour that this coordinator hour is in according to pagecounts_raw
+                -->
+                <property>
+                    <name>incorrect_year</name>
+                    <value>${coord:formatTime(coord:dateOffset(coord:nominalTime(), 1, "HOUR"), "y")}</value>
+                </property>
+                <property>
+                    <name>incorrect_month</name>
+                    <value>${coord:formatTime(coord:dateOffset(coord:nominalTime(), 1, "HOUR"), "MM")}</value>
+                </property>
+                <property>
+                    <name>incorrect_day</name>
+                    <value>${coord:formatTime(coord:dateOffset(coord:nominalTime(), 1, "HOUR"), "dd")}</value>
+                </property>
+                <property>
+                    <name>incorrect_hour</name>
+                    <value>${coord:formatTime(coord:dateOffset(coord:nominalTime(), 1, "HOUR"), "HH")}</value>
+                </property>
+                <property>
+                    <name>formatted_month</name>
+                    <value>${coord:formatTime(coord:nominalTime(), "MM")}</value>
+                </property>
+                <property>
+                    <name>formatted_day</name>
+                    <value>${coord:formatTime(coord:nominalTime(), "dd")}</value>
+                </property>
+                <property>
+                    <name>formatted_hour</name>
+                    <value>${coord:formatTime(coord:nominalTime(), "HH")}</value>
+                </property>
+
+            </configuration>
+        </workflow>
+    </action>
+</coordinator-app>
