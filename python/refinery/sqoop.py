@@ -51,7 +51,7 @@ class SqoopConfig:
         self.table = table
         self.query = queries[table].get('query')
         self.boundary_query = queries[table]['boundary-query'] if ('boundary-query' in queries[table]) else None
-        self.split_by = queries[table]['split-by']
+        self.split_by = queries[table]['split-by'] if ('split-by' in queries[table]) else None
         self.map_types = queries[table]['map-types'] if ('map-types' in queries[table]) else None
         # If sqoopable_dbnames is not defined for this table, it means there is no restriction
         # on dbnames for that table, meaning all dbnames are sqoopable.
@@ -134,6 +134,7 @@ def sqoop_wiki(config):
             if config.num_mappers_weighted > 1:
                 if config.boundary_query:
                     sqoop_arguments += ['--boundary-query', config.boundary_query]
+                # if num_mappers_weighted <= 1, split_by can be None, otherwise it should be set
                 sqoop_arguments += ['--split-by', config.split_by]
 
         if config.jar_file:
