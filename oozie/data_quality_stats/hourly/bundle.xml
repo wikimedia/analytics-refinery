@@ -49,7 +49,7 @@
             <property><name>source_base_path</name><value>/wmf/data/event/NavigationTiming</value></property>
             <property><name>source_done_flag</name><value>_SUCCESS</value></property>
             <property><name>query_name</name><value>useragent_entropy</value></property>
-            <property><name>deviation_threshold</name><value>8</value></property>
+            <property><name>deviation_threshold</name><value>10</value></property>
             <property><name>send_alerts_to</name><value>analytics-alerts@wikimedia.org</value></property>
         </configuration>
     </coordinator>
