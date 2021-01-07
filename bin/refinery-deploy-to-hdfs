@@ -39,6 +39,7 @@ DRY_RUN=yes
 VERBOSE=no
 CURRENT_TARGET_HDFSDIR_RELB="current"
 SKIP_UPDATING_CURRENT=no
+UMASK_SETTINGS="-D fs.permissions.umask-mode=022"
 
 print_help() {
     cat <<EOF
@@ -53,11 +54,13 @@ the current checkout's state, and additionally into a 'current'
 directory.
 
 Options:
-  --no-dry-run   - Do not dry-run, but really deploy to cluster.
-  --skip-current - Skips updating '$CURRENT_TARGET_HDFSDIR_RELB' on the cluster.
-  --base         - Absolute hdfs path to use a base for deployment
-                     (Default: '$REFINERY_BASE_HDFSDIR_ABS')
-  --verbose      - Turn on verbose output.
+  --no-dry-run        - Do not dry-run, but really deploy to cluster.
+  --skip-current      - Skips updating '$CURRENT_TARGET_HDFSDIR_RELB' on the cluster.
+  --base              - Absolute hdfs path to use a base for deployment
+                        (Default: '$REFINERY_BASE_HDFSDIR_ABS')
+  --verbose           - Turn on verbose output.
+  --use-default-umask - Use the system's default for the HDFS umask (other can read/execute),
+                        dropping the override to 022 (to add other read permissions to files).
 EOF
 }
 
@@ -132,12 +135,12 @@ bring_tmp_hdfs_dir_into_place() {
     local SWAP_HDFSDIR_ABS="$FINAL_HDFSDIR_ABS.swap"
 
     local CLEANUP_SWAP=no
-    if run_hdfs --run-also-for-dry-run dfs -stat "$FINAL_HDFSDIR_ABS" &>/dev/null
+    if run_hdfs --run-also-for-dry-run dfs "$UMASK_SETTINGS" -stat "$FINAL_HDFSDIR_ABS" &>/dev/null
     then
-        run_hdfs dfs -mv "$FINAL_HDFSDIR_ABS" "$SWAP_HDFSDIR_ABS"
+        run_hdfs dfs "$UMASK_SETTINGS" -mv "$FINAL_HDFSDIR_ABS" "$SWAP_HDFSDIR_ABS"
         CLEANUP_SWAP=yes
     fi
-    run_hdfs dfs -mv "$TMP_HDFSDIR_ABS" "$FINAL_HDFSDIR_ABS"
+    run_hdfs dfs "$UMASK_SETTINGS" -mv "$TMP_HDFSDIR_ABS" "$FINAL_HDFSDIR_ABS"
     if [ "$CLEANUP_SWAP" = "yes" ]
     then
         run_hdfs dfs -rm -r -f -skipTrash "$SWAP_HDFSDIR_ABS"
@@ -186,7 +189,7 @@ describe_deployment() {
     shift
 
     # Describe current deployment
-    run_hdfs dfs -put <( cat <<EOF
+    run_hdfs dfs "$UMASK_SETTINGS" -put <( cat <<EOF
 deployment.version=$GIT_DESCRIPTION
 deployment.timestamp=$TIMESTAMP
 deployment.user=$(whoami)
@@ -223,6 +226,9 @@ needs to be an absolute hdfs path, but does not start in 'hdfs://'"
             "--verbose" )
                 VERBOSE=yes
                 ;;
+            "--use-default-umask" )
+                UMASK_SETTINGS=""
+                ;;
             * )
                 error "Unknown parameter '$PARAM'"
                 ;;
@@ -250,7 +256,7 @@ verbose_log "Current git description: '$GIT_DESCRIPTION'"
 
 #---------------------------------------------------------------------
 status "Preparing HDFS"
-run_hdfs dfs -mkdir -p "$REFINERY_BASE_HDFSDIR_ABS"
+run_hdfs dfs "$UMASK_SETTINGS" -mkdir -p "$REFINERY_BASE_HDFSDIR_ABS"
 
 
 
@@ -265,10 +271,10 @@ VERSIONED_TMP_TARGET_HDFSDIR_ABS="$VERSIONED_TARGET_HDFSDIR_ABS.tmp"
 # Making sure target exists (else put will complain) and is empty, by
 # unlinking, and recreating it.
 run_hdfs dfs -rm -r -f -skipTrash "$VERSIONED_TMP_TARGET_HDFSDIR_ABS"
-run_hdfs dfs -mkdir "$VERSIONED_TMP_TARGET_HDFSDIR_ABS"
+run_hdfs dfs "$UMASK_SETTINGS" -mkdir "$VERSIONED_TMP_TARGET_HDFSDIR_ABS"
 
 # Note that we only copy *, and not dot-files, hence excluding '.git'.
-run_hdfs dfs -put -f * "$VERSIONED_TMP_TARGET_HDFSDIR_ABS"
+run_hdfs dfs "$UMASK_SETTINGS" -put -f * "$VERSIONED_TMP_TARGET_HDFSDIR_ABS"
 
 describe_deployment "$VERSIONED_TMP_TARGET_HDFSDIR_ABS/.deployment" "$@"
 
@@ -290,7 +296,7 @@ then
     CURRENT_TMP_TARGET_HDFSDIR_ABS="$CURRENT_TARGET_HDFSDIR_ABS.tmp"
 
     # Copying main files
-    run_hdfs dfs -cp "$VERSIONED_TARGET_HDFSDIR_ABS" "$CURRENT_TMP_TARGET_HDFSDIR_ABS"
+    run_hdfs dfs "$UMASK_SETTINGS" -cp "$VERSIONED_TARGET_HDFSDIR_ABS" "$CURRENT_TMP_TARGET_HDFSDIR_ABS"
 
     # Bringing the temporary directory into place
     bring_tmp_hdfs_dir_into_place \
