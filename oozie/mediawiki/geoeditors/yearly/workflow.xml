@@ -152,6 +152,18 @@
                     <name>check_done</name>
                     <value>false</value>
                 </property>
+                <!--
+                  This dataset is stored in archive but it is not synced externally.
+                  We explictely make it not accessible to ALL, to be changed if needed.
+                -->
+                <property>
+                    <name>archive_parent_umask</name>
+                    <value>027</value>
+                </property>
+                <property>
+                    <name>archive_perms</name>
+                    <value>640</value>
+                </property>
             </configuration>
         </sub-workflow>
         <ok to="write_wikidata_geoeditors_edits_yearly_data"/>

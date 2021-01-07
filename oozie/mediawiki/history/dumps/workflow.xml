@@ -71,7 +71,12 @@
             <name>${spark_job_name}-${year}-${month}</name>
             <class>${spark_job_class}</class>
             <jar>${spark_job_jar}</jar>
-            <spark-opts>--queue ${queue_name} --driver-memory ${spark_driver_memory} --executor-memory ${spark_executor_memory} --executor-cores ${spark_executor_cores} --conf spark.dynamicAllocation.enabled=true --conf spark.shuffle.service.enabled=true --conf spark.dynamicAllocation.maxExecutors=${spark_max_num_executors} --conf spark.executor.memoryOverhead=${spark_executor_memory_overhead} --conf spark.yarn.maxAppAttempts=1</spark-opts>
+            <!--
+              NOTE: Please note the setting to make the spark job write data
+                    accessible by ALL (by default, accessible only to user and group)
+                    since this data is meant to be synced to labstore.
+            -->
+            <spark-opts>--queue ${queue_name} --driver-memory ${spark_driver_memory} --executor-memory ${spark_executor_memory} --executor-cores ${spark_executor_cores} --conf spark.dynamicAllocation.enabled=true --conf spark.shuffle.service.enabled=true --conf spark.dynamicAllocation.maxExecutors=${spark_max_num_executors} --conf spark.executor.memoryOverhead=${spark_executor_memory_overhead} --conf spark.yarn.maxAppAttempts=1 --conf spark.hadoop.fs.permissions.umask-mode=022</spark-opts>
             <arg>--input-base-path</arg>
             <arg>${input_base_path}</arg>
             <arg>--temp-directory</arg>

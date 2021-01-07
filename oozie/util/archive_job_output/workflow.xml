@@ -58,6 +58,22 @@
                 archived to.
             </description>
         </property>
+        <!-- By default archived data is public, therefore readable by all -->
+        <property>
+            <name>archive_parent_umask</name>
+            <value>022</value>
+            <description>
+                umask applied for parent folder creation (if any)
+            </description>
+        </property>
+        <property>
+            <name>archive_perms</name>
+            <value>644</value>
+            <description>
+                Permissions to apply to the archive file
+            </description>
+        </property>
+
     </parameters>
 
 
@@ -112,6 +128,36 @@
             <file>identify_content_file.sh#identify_content_file.sh</file>
             <capture-output/>
         </shell>
+        <ok to="create_archive_parent_folder"/>
+        <error to="kill"/>
+    </action>
+
+    <action name="create_archive_parent_folder">
+        <!--
+        We'd prefer to create the archive parent directory in pure oozie
+        but we can't configure the fs action to use the fs.permissions.umask-mode
+        property, so we use a bash script to do so.
+         -->
+        <shell xmlns="uri:oozie:shell-action:0.1">
+            <job-tracker>${job_tracker}</job-tracker>
+            <name-node>${name_node}</name-node>
+            <configuration>
+                <!--make sure oozie:launcher runs in a low priority queue -->
+                <property>
+                    <name>oozie.launcher.mapred.job.queue.name</name>
+                    <value>${oozie_launcher_queue_name}</value>
+                </property>
+                <property>
+                    <name>oozie.launcher.mapreduce.map.memory.mb</name>
+                    <value>${oozie_launcher_memory}</value>
+                </property>
+            </configuration>
+            <exec>make_hdfs_dir_with_umask.sh</exec>
+            <argument>${replaceAll(archive_file, '/[^/]*$', '')}</argument>
+            <argument>${archive_parent_umask}</argument>
+            <file>make_hdfs_dir_with_umask.sh#make_hdfs_dir_with_umask.sh</file>
+            <capture-output/>
+        </shell>
         <ok to="archive"/>
         <error to="kill"/>
     </action>
@@ -130,10 +176,14 @@
                 </property>
             </configuration>
             <delete path="${archive_file}"/>
-            <mkdir path="${replaceAll(archive_file, '/[^/]*$', '')}"/>
             <move
                 source="${concat(concat(source_directory,'/'),wf:actionData('identify_content_file')['content_file'])}"
                 target="${archive_file}"/>
+            <!--
+                Apply permissions to archived file
+                This is needed as file have already been created with possibly other perms
+            -->
+            <chmod path="${archive_file}" permissions="${archive_perms}" dir-files="false"/>
             <delete path="${source_directory}"/>
         </fs>
         <ok to="end"/>

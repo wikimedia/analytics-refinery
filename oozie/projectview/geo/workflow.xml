@@ -173,6 +173,18 @@
                     <name>archive_file</name>
                     <value>${geo_hourly_directory}/${year}/${year}-${month}/projectviews-geo-${year}${month}${day}-${hour}0000.gz</value>
                 </property>
+                <!--
+                  This dataset is stored in archive but it is not synced externally.
+                  We explictely make it not accessible to ALL, to be changed if needed.
+                -->
+                <property>
+                    <name>archive_parent_umask</name>
+                    <value>027</value>
+                </property>
+                <property>
+                    <name>archive_perms</name>
+                    <value>640</value>
+                </property>
             </configuration>
         </sub-workflow>
         <ok to="end"/>
