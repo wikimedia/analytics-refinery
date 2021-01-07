@@ -46,6 +46,10 @@
             <description>Hive table to take per project family uniques from</description>
         </property>
         <property>
+            <name>country_blacklist_table</name>
+            <description>Hive table containing countries for which data should not be reported</description>
+        </property>
+        <property>
             <name>temporary_directory</name>
             <description>A temporary directory to store data.</description>
         </property>
@@ -209,6 +213,7 @@
             -->
             <param>source_table_per_domain=${source_table_per_domain}</param>
             <param>source_table_per_project_family=${source_table_per_project_family}</param>
+            <param>country_blacklist_table=${country_blacklist_table}</param>
 
             <param>separator=${hive_value_separator}</param>
             <param>destination_directory=${temporary_directory}/${wf:id()}-${cassandra_keyspace}</param>

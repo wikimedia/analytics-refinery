@@ -75,6 +75,16 @@
         </property>
 
         <!--
+        The following property is only required by certain country-wise jobs.
+        We're adding a default value so that the coordinator doesn't fail for
+        the rest of the jobs, which don't use them.
+        -->
+        <property>
+            <name>country_blacklist_table</name>
+            <value>wmf.geoeditors_blacklist_country</value>
+        </property>
+
+        <!--
             The following property is usefull to delay jobs, allowing to wait
             for more of the needed files to be available before starting.
             Default delay is set to 0 and can be overwritten in each job

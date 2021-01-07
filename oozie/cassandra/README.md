@@ -8,6 +8,7 @@ It has these main datasets:
 * Pageviews per project
 * Pageviews top articles
 * Pageviews by country
+* Pageviews per country
 * Mediarequests per file
 * Mediarequests per referer
 * Mediarequests top files
