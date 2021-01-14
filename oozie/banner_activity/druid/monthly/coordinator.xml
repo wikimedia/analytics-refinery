@@ -35,8 +35,8 @@
     </parameters>
 
     <controls>
-        <!--(timeout is measured in minutes)-->
-        <timeout>-1</timeout>
+        <!-- timeout is measured in minutes. 129600 == 90 days -->
+        <timeout>129600</timeout>
 
         <!-- Setting low concurrency cause the job is hungry in resources -->
         <concurrency>1</concurrency>
