@@ -35,8 +35,11 @@
     </parameters>
 
     <controls>
-        <!-- timeout is measured in minutes. 129600 == 90 days -->
-        <timeout>129600</timeout>
+        <!--
+        (timeout is measured in minutes) -1 means the default
+        oozie.service.coord.default.max.timeout which set to 91 days in oozie-site.xml
+        -->
+        <timeout>-1</timeout>
 
         <!-- Setting low concurrency cause the job is hungry in resources -->
         <concurrency>1</concurrency>
