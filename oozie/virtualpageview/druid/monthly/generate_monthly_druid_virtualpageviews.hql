@@ -3,7 +3,7 @@
 -- Usage:
 --     hive -f generate_monthly_druid_virtualpageviews.hql \
 --         -d source_table=wmf.virtualpageview_hourly \
---         -d destination_directory=/tmp/druid/monthly_json_virtualpageviews \
+--         -d destination_directory=/wmf/tmp/druid/monthly_json_virtualpageviews \
 --         -d year=2018 \
 --         -d month=3
 --

@@ -7,7 +7,7 @@
 --
 -- Usage:
 --     hive -f pageview_per_project.hql                           \
---         -d destination_directory=/tmp/pageview_per_project     \
+--         -d destination_directory=/wmf/tmp/analytics/pageview_per_project     \
 --         -d source_table=wmf.projectview_hourly                 \
 --         -d separator=\t                                        \
 --         -d year=2015                                           \

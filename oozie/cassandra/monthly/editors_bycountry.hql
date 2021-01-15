@@ -8,7 +8,7 @@
 -- Usage:
 --     hive -f editors_bycountry.hql                              \
 --         -d source_table=wmf.geoeditors_public_monthly          \
---         -d destination_directory=/tmp/editors_bycountry        \
+--         -d destination_directory=/wmf/tmp/analytics/editors_bycountry        \
 --         -d year=2018                                           \
 --         -d month=1                                             \
 --         -d separator='\t'

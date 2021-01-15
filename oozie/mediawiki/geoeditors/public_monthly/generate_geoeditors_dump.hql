@@ -3,7 +3,7 @@
 -- Usage:
 --     hive -f generate_geoeditors_dump.hql \
 --         -d source_table=wmf.geoeditors_public_monthly \
---         -d destination_directory=/tmp/druid_private/geoeditors_public_monthly \
+--         -d destination_directory=/wmf/tmp/analytics/geoeditors_public_monthly \
 --         -d month=2019-07
 --
 -- The schema of the file output:

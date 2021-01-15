@@ -22,7 +22,7 @@
 --     hive -f generate_uniques_monthly.hql
 --         -d source_table=wmf.webrequest
 --         -d archive_table=wmf.mobile_apps_uniques_monthly
---         -d temporary_directory=/tmp/mobile_apps/2015-2
+--         -d temporary_directory=/wmf/tmp/analytics/mobile_apps/2015-2
 --         -d year=2015
 --         -d month=2
 

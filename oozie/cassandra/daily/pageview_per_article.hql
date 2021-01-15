@@ -8,7 +8,7 @@
 --
 -- Usage:
 --     hive -f pageview_per_article.hql                           \
---         -d destination_directory=/tmp/pageview_per_article     \
+--         -d destination_directory=/wmf/tmp/analytics/pageview_per_article     \
 --         -d source_table=wmf.pageview_hourly                    \
 --         -d separator=\t                                        \
 --         -d year=2015                                           \

@@ -11,7 +11,7 @@
 -- Usage:
 --     hive -f unique_devices_per_domain_daily_to_archive.hql \
 --         -d source_table=wmf.unique_devices_per_domain_daily \
---         -d destination_directory=/tmp/archive/unique_devices_per_domain_daily \
+--         -d destination_directory=/wmf/tmp/analytics/unique_devices_per_domain_daily \
 --         -d year=2016 \
 --         -d month=1 \
 --         -d day=1

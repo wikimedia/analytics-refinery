@@ -10,7 +10,7 @@
 -- Usage:
 --     hive -f unique_devices_per_project_family_daily_to_archive.hql \
 --         -d source_table=wmf.unique_devices_per_project_family_daily \
---         -d destination_directory=/tmp/archive/unique_devices/per_project_family \
+--         -d destination_directory=/wmf/tmp/analytics/unique_devices/per_project_family \
 --         -d year=2017 \
 --         -d month=4 \
 --         -d day=1

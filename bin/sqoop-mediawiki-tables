@@ -102,7 +102,7 @@ Options:
     -a FMT --output-format FMT          Output format for the sqoop jobs. Accepted
                                         values are 'avrodata' or 'parquet'.
     -g HTMP --hdfs-tmp-path HTMP        HDFS folder where to temporary sqoop data
-                                        before renaming. [default: /tmp/sqoop-mediawiki-tables]
+                                        before renaming. [default: /wmf/tmp/analytics/sqoop-mw]
     -G LTMP --local-tmp-path LTMP       Local folder where to temporary store generated
                                         jar files. [default: /tmp/sqoop-jars]
     -l --labsdb                         If set, add '_p' postfix to table names for labsdb,

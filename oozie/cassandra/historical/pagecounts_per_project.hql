@@ -7,7 +7,7 @@
 --
 -- Usage:
 --     hive -f pagecounts_per_project.hql \
---         -d destination_directory=/tmp/pagecounts_per_project \
+--         -d destination_directory=/wmf/tmp/analytics/pagecounts_per_project \
 --         -d source_table_1=wmf.projectcounts_raw \
 --         -d source_table_2=wmf.projectcounts_all_sites \
 --         -d source_table_3=wmf.domain_abbrev_map \

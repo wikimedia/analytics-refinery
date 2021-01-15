@@ -18,7 +18,7 @@
 --         -d project_map_table=wmf_raw.mediawiki_project_namespace_map  \
 --         -d country_map_table=wmf.country_info                         \
 --         -d source_table=wmf.geoeditors_edits_monthly                  \
---         -d destination_directory=/tmp/archive/geoeditors/edits/yearly \
+--         -d destination_directory=/wmf/tmp/analytics/geoeditors/edits/yearly \
 --         -d namespace_zero_edit_count_threshold=100000                              \
 --         -d year=2018
 --         -d project_family=wikipedia

@@ -7,7 +7,7 @@
 --
 -- Usage:
 --     hive -f mediarequest_top_files.hql                          \
---         -d destination_directory=/tmp/mediarequest_top_files    \
+--         -d destination_directory=/wmf/tmp/analytics/mediarequest_top_files    \
 --         -d source_table=wmf.mediarequest                        \
 --         -d separator=\t                                         \
 --         -d year=2015                                            \

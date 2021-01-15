@@ -9,7 +9,7 @@
 --
 -- Usage:
 --     hive -f unique_devices.hql                                                            \
---         -d destination_directory=/tmp/unique_devices                                      \
+--         -d destination_directory=/wmf/tmp/analytics/unique_devices                                      \
 --         -d source_table_per_domain=wmf.unique_devices_per_domain_daily                    \
 --         -d source_table_per_project_family=wmf.unique_devices_per_project_family_daily    \
 --         -d separator=\t                                                                   \

@@ -13,7 +13,7 @@
 -- Usage:
 --     hive -f archive_projectview_geo_hourly.hql               \
 --         -d source_table=wmf.pageview_hourly                  \
---         -d destination_directory=/tmp/example                \
+--         -d destination_directory=/wmf/tmp/analytics/example                \
 --         -d artifacts_directory=/path/to/refinery/artifacts   \
 --         -d refinery_jar_version=0.0.24                       \
 --         -d year=2015                                         \

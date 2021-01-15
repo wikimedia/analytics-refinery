@@ -8,7 +8,7 @@
 --
 -- Usage:
 --     hive -f mediarequest_per_file.hql                       \
---         -d destination_directory=/tmp/mediarequest_per_file \
+--         -d destination_directory=/wmf/tmp/analytics/mediarequest_per_file \
 --         -d source_table=wmf.mediarequest                    \
 --         -d separator="\t"                                   \
 --         -d year=2019                                        \

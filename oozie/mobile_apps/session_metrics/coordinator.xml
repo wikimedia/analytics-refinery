@@ -30,7 +30,6 @@
         <property><name>spark_executor_memory</name></property>
         <property><name>spark_driver_memory</name></property>
         <property><name>spark_max_executors</name></property>
-        <property><name>temporary_directory</name></property>
         <property><name>webrequest_data_directory</name></property>
         <property><name>period_days</name></property>
         <property><name>split_by_os</name></property>

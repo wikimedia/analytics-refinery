@@ -4,7 +4,7 @@
 -- Usage:
 --     hive -f generate_druid_unique_devices_per_project_family_daily_aggregsated_monthly.hql \
 --         -d source_table=wmf.unique_devices_per_project_family_daily \
---         -d destination_directory=/tmp/druid/unique_devices_per_project_family_daily_json \
+--         -d destination_directory=/wmf/tmp/druid/unique_devices_per_project_family_daily_json \
 --         -d year=2017 \
 --         -d month=4
 --

@@ -17,7 +17,7 @@ SET parquet.compression=SNAPPY;
 --
 -- Usage:
 --     hive -f archive_mediacounts.hql       \
---         -d destination_directory=/tmp/foo \
+--         -d destination_directory=/wmf/tmp/analytics/foo \
 --         -d source_table=wmf.mediacounts   \
 --         -d year=2014                      \
 --         -d month=4                        \

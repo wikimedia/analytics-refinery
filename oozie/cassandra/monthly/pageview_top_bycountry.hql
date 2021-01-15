@@ -8,7 +8,7 @@
 --
 -- Usage:
 --     hive -f pageview_top_bycountry.hql                         \
---         -d destination_directory=/tmp/pageview_top_bycountry   \
+--         -d destination_directory=/wmf/tmp/analytics/pageview_top_bycountry   \
 --         -d source_table=wmf.projectview_hourly                 \
 --         -d separator='\t'                                        \
 --         -d year=2015                                           \

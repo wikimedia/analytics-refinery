@@ -23,7 +23,7 @@
 -- Usage:
 --     hive -f extract_data_loss.hql \
 --         -d table=wmf_raw.webrequest_sequence_stats_hourly \
---         -d target=hdfs:///tmp/data_loss_check \
+--         -d target=hdfs:///wmf/tmp/analytics/data_loss_check \
 --         -d incomplete_data_threshold=2 \
 --         -d data_loss_threshold=1 \
 --         -d webrequest_source=bits \

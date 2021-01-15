@@ -10,7 +10,7 @@
 -- Usage:
 --     hive -f unique_devices_per_domain_monthly_to_archive.hql \
 --         -d source_table=wmf.unique_devices_per_domain_monthly \
---         -d destination_directory=/tmp/archive/unique_devices_per_domain_monthly \
+--         -d destination_directory=/wmf/tmp/analytics/unique_devices_per_domain_monthly \
 --         -d year=2016 \
 --         -d month=1
 

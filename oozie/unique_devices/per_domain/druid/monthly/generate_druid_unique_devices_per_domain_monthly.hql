@@ -3,7 +3,7 @@
 -- Usage:
 --     hive -f generate_druid_unique_devices_per_domain_monthly.hql \
 --         -d source_table=wmf.unique_devices_per_domain_monthly \
---         -d destination_directory=/tmp/druid/unique_devices_per_domain_monthly_json \
+--         -d destination_directory=/wmf/tmp/druid/unique_devices_per_domain_monthly_json \
 --         -d year=2017 \
 --         -d month=8
 --

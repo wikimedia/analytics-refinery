@@ -3,7 +3,7 @@
 -- Usage:
 --     hive -f generate_hourly_druid_webrequests.hql \
 --         -d source_table=wmf.webrequest \
---         -d destination_directory=/tmp/druid/hourly_json_webrequests \
+--         -d destination_directory=/wmf/tmp/druid/hourly_json_webrequests \
 --         -d year=2016 \
 --         -d month=7 \
 --         -d day=10 \

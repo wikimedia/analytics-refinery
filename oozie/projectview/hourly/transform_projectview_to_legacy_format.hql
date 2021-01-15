@@ -11,7 +11,7 @@
 -- Usage:
 --     hive -f transform_projectview_to_legacy_format.hql         \
 --         -d source_table=wmf.projectview_hourly                 \
---         -d destination_directory=/tmp/example                  \
+--         -d destination_directory=/wmf/tmp/analytics/example                  \
 --         -d year=2015                                           \
 --         -d month=6                                             \
 --         -d day=1                                               \
