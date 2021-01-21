@@ -130,7 +130,7 @@ will select the corresponding bundle.
 sudo -u analytics kerberos-run-command analytics oozie job \
     --oozie $OOZIE_URL     \
     -Drefinery_directory=hdfs://analytics-hadoop$(hdfs dfs -ls -d /wmf/refinery/$(date +"%Y")* | tail -n 1 | awk '{print $NF}') \
-    -Dqueue='production' \
+    -Dqueue_name='production' \
     -Dgranularity='daily' \
     -Dstart_time='2020-04-21T22:00Z' \
     -config /srv/deployment/analytics/refinery/oozie/data_quality_stats/bundle.properties \
