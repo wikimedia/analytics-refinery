@@ -33,17 +33,13 @@ FROM (
         city,
         COUNT(*) AS counts
     FROM ${source_table} AS p
-    -- This join uses geoeditors_blacklist_country table as a whitelist
-    -- to filter which countries this metric should be generated for.
-    JOIN wmf.geoeditors_blacklist_country AS c
+    JOIN wmf.traffic_anomalies_country AS c
     ON p.country = c.country
     WHERE
         year = ${year} AND
         month = ${month} AND
         day = ${day} AND
-        agent_type = 'user' AND
-        -- Hotfix: Remove North Korea as it has too few traffic.
-        p.country != 'North Korea'
+        agent_type = 'user'
     GROUP BY
         p.country,
         city
