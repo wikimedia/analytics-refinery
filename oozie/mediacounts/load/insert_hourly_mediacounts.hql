@@ -4,12 +4,13 @@
 --     hive -f insert_hourly_mediacounts.hql                              \
 --         -d source_table=wmf_raw.webrequest                             \
 --         -d destination_table=wmf.mediacounts                           \
+--         -d temporary_directory=/wmf/tmp/analytics/mediacounts_xyz      \
 --         -d artifacts_directory=hdfs:///wmf/refinery/current/artifacts  \
 --         -d refinery_jar_version=0.1.0                                  \
 --         -d year=2021                                                   \
 --         -d month=2                                                     \
 --         -d day=9                                                       \
---         -d hour=7
+--         -d hour=6
 --
 
 SET parquet.compression              = SNAPPY;
@@ -26,6 +27,37 @@ ADD JAR ${artifacts_directory}/org/wikimedia/analytics/refinery/refinery-hive-${
 CREATE TEMPORARY FUNCTION parse_media_file_url AS 'org.wikimedia.analytics.refinery.hive.GetMediaFilePropertiesUDF';
 CREATE TEMPORARY FUNCTION classify_referer AS 'org.wikimedia.analytics.refinery.hive.GetRefererTypeUDF';
 
+DROP TABLE IF EXISTS tmp_mediacounts_load_parsed_requests;
+CREATE EXTERNAL TABLE tmp_mediacounts_load_parsed_requests (
+    response_size       bigint,
+    -- NOTE: if GetMediaFilePropertiesUDF changes, update this struct
+    parsed_url          struct<base_name:string,media_classification:string,file_type:string,is_original:boolean,is_transcoded_to_audio    :boolean,is_transcoded_to_image:boolean,is_transcoded_to_movie:boolean,width:int,height:int,transcoding:string>,
+    classified_referer  string
+)
+ROW FORMAT SERDE 'org.apache.hive.hcatalog.data.JsonSerDe'
+STORED AS TEXTFILE
+LOCATION '${temporary_directory}';
+
+INSERT OVERWRITE TABLE tmp_mediacounts_load_parsed_requests
+SELECT
+    response_size,
+    parse_media_file_url(uri_path) parsed_url,
+    classify_referer(referer) classified_refererer
+FROM ${source_table}
+WHERE webrequest_source='upload'
+  AND year=${year}
+  AND month=${month}
+  AND day=${day}
+  AND hour=${hour}
+  AND uri_host = 'upload.wikimedia.org'
+  AND (
+      http_status = 200 -- No 304 per RFC discussion
+      OR (http_status=206
+          AND SUBSTR(`range`, 1, 8) = 'bytes=0-'
+          AND `range` != 'bytes=0-0'
+      )
+  )
+;
 
 INSERT OVERWRITE TABLE ${destination_table}
     PARTITION(year=${year}, month=${month}, day=${day}, hour=${hour})
@@ -49,26 +81,8 @@ INSERT OVERWRITE TABLE ${destination_table}
         SUM(IF(classified_refererer = 'internal', 1, 0)) referer_internal,
         SUM(IF(classified_refererer LIKE 'external%', 1, 0)) referer_external,
         SUM(IF(classified_refererer = 'unknown' OR classified_refererer = 'none', 1, 0)) referer_unknown
-    FROM (
-        SELECT
-            response_size,
-            parse_media_file_url(uri_path) parsed_url,
-            classify_referer(referer) classified_refererer
-        FROM ${source_table}
-            WHERE webrequest_source='upload'
-                AND year=${year}
-                AND month=${month}
-                AND day=${day}
-                AND hour=${hour}
-                AND uri_host = 'upload.wikimedia.org'
-                AND (
-                    http_status = 200 -- No 304 per RFC discussion
-                    OR (http_status=206
-                        AND SUBSTR(`range`, 1, 8) = 'bytes=0-'
-                        AND `range` != 'bytes=0-0'
-                    )
-                )
-        ) parsed
+    FROM tmp_mediacounts_load_parsed_requests
     WHERE parsed_url.base_name IS NOT NULL
     GROUP BY parsed_url.base_name
 ;
+DROP TABLE IF EXISTS tmp_mediacounts_load_parsed_requests;
