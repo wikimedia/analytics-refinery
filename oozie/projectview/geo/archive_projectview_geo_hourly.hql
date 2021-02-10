@@ -63,5 +63,5 @@ SET mapreduce.output.fileoutputformat.compress.codec=org.apache.hadoop.io.compre
                 agent_type
 
           LIMIT 100000000
-        ) rows
+        ) `rows`
 ;

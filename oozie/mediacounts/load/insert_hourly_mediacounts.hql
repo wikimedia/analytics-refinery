@@ -1,13 +1,15 @@
 -- Inserts hourly mediacounts into a separate table
 --
 -- Usage:
---     hive -f insert_hourly_mediacounts.hql \
---         -d source_table=wmf_raw.webrequest \
---         -d destination_table=wmf.mediacounts \
---         -d year=2014 \
---         -d month=9 \
---         -d day=15 \
---         -d hour=20
+--     hive -f insert_hourly_mediacounts.hql                              \
+--         -d source_table=wmf_raw.webrequest                             \
+--         -d destination_table=wmf.mediacounts                           \
+--         -d artifacts_directory=hdfs:///wmf/refinery/current/artifacts  \
+--         -d refinery_jar_version=0.1.0                                  \
+--         -d year=2021                                                   \
+--         -d month=2                                                     \
+--         -d day=9                                                       \
+--         -d hour=7
 --
 
 SET parquet.compression              = SNAPPY;
@@ -20,7 +22,7 @@ SET hive.enforce.bucketing           = true;
 -- table is clustered by.
 SET mapreduce.job.reduces            = 64;
 
-ADD JAR ${artifacts_directory}/org/wikimedia/analytics/refinery/refinery-hive-0.0.115.jar;
+ADD JAR ${artifacts_directory}/org/wikimedia/analytics/refinery/refinery-hive-${refinery_jar_version}.jar;
 CREATE TEMPORARY FUNCTION parse_media_file_url AS 'org.wikimedia.analytics.refinery.hive.GetMediaFilePropertiesUDF';
 CREATE TEMPORARY FUNCTION classify_referer AS 'org.wikimedia.analytics.refinery.hive.GetRefererTypeUDF';
 
@@ -62,8 +64,8 @@ INSERT OVERWRITE TABLE ${destination_table}
                 AND (
                     http_status = 200 -- No 304 per RFC discussion
                     OR (http_status=206
-                        AND SUBSTR(range, 1, 8) = 'bytes=0-'
-                        AND range != 'bytes=0-0'
+                        AND SUBSTR(`range`, 1, 8) = 'bytes=0-'
+                        AND `range` != 'bytes=0-0'
                     )
                 )
         ) parsed

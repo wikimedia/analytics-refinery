@@ -65,6 +65,10 @@
             <name>destination_dataset_directory</name>
             <description>Directory to generate the done flag in</description>
         </property>
+        <property>
+            <name>temporary_directory</name>
+            <description>Directory to temporarily write output to (Hack to get around Hive 2 optimizer not knowing how to work with structs)</description>
+        </property>
     </parameters>
 
     <credentials>
@@ -117,6 +121,7 @@
             <param>refinery_jar_version=${refinery_jar_version}</param>
             <param>source_table=${webrequest_table}</param>
             <param>destination_table=${mediarequest_table}</param>
+            <param>temporary_directory=${temporary_directory}/${wf:id()}-hourly-mediarequests-${year}-${month}-${day}-${hour}</param>
             <param>year=${year}</param>
             <param>month=${month}</param>
             <param>day=${day}</param>

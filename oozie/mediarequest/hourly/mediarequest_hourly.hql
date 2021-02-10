@@ -15,13 +15,14 @@
 -- Usage:
 --     hive -f mediarequest_hourly.hql                                    \
 --         -d artifacts_directory=hdfs:///wmf/refinery/current/artifacts  \
---         -d refinery_jar_version=0.0.98                                 \
+--         -d refinery_jar_version=0.1.0                                  \
 --         -d source_table=wmf.webrequest                                 \
---         -d destination_table=wmf.pageview_hourly                       \
---         -d year=2015                                                   \
---         -d month=6                                                     \
---         -d day=1                                                       \
---         -d hour=1
+--         -d destination_table=wmf.mediarequest                          \
+--         -d temporary_directory=/wmf/tmp/analytics/mediarequest_xyz     \
+--         -d year=2021                                                   \
+--         -d month=2                                                     \
+--         -d day=9                                                       \
+--         -d hour=6
 --
 
 
@@ -34,7 +35,21 @@ CREATE TEMPORARY FUNCTION parse_media_file_url AS 'org.wikimedia.analytics.refin
 CREATE TEMPORARY FUNCTION classify_referer AS 'org.wikimedia.analytics.refinery.hive.GetRefererTypeUDF';
 CREATE TEMPORARY FUNCTION referer_wiki AS 'org.wikimedia.analytics.refinery.hive.GetRefererWikiUDF';
 
-WITH upload_webrequests AS (
+
+DROP TABLE IF EXISTS tmp_mediarequest_hourly_upload_webrequests;
+CREATE EXTERNAL TABLE tmp_mediarequest_hourly_upload_webrequests (
+    response_size       bigint,
+    -- NOTE: if GetMediaFilePropertiesUDF changes, update this struct
+    parsed_url          struct<base_name:string,media_classification:string,file_type:string,is_original:boolean,is_transcoded_to_audio    :boolean,is_transcoded_to_image:boolean,is_transcoded_to_movie:boolean,width:int,height:int,transcoding:string>,
+    referer_wiki        string,
+    classified_referer  string,
+    agent_type          string
+)
+ROW FORMAT SERDE 'org.apache.hive.hcatalog.data.JsonSerDe'
+STORED AS TEXTFILE
+LOCATION '${temporary_directory}';
+
+INSERT OVERWRITE TABLE tmp_mediarequest_hourly_upload_webrequests
     SELECT
         response_size,
         parse_media_file_url(uri_path) parsed_url,
@@ -55,7 +70,8 @@ WITH upload_webrequests AS (
                     AND `range` != 'bytes=0-0'
                 )
             )
-)
+;
+
 INSERT OVERWRITE TABLE ${destination_table}
     PARTITION(year=${year}, month=${month}, day=${day}, hour=${hour})
     SELECT
@@ -74,7 +90,7 @@ INSERT OVERWRITE TABLE ${destination_table}
             LPAD(${hour}, 2, "0"),
             ':00:00Z'
         ) dt
-    FROM upload_webrequests
+    FROM tmp_mediarequest_hourly_upload_webrequests
     WHERE parsed_url.base_name IS NOT NULL
     GROUP BY
         parsed_url.base_name,
@@ -84,3 +100,5 @@ INSERT OVERWRITE TABLE ${destination_table}
         parsed_url.transcoding,
         agent_type
 ;
+
+DROP TABLE IF EXISTS tmp_mediarequest_hourly_upload_webrequests;
