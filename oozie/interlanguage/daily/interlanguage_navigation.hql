@@ -33,7 +33,7 @@ SET parquet.compression = SNAPPY;
 CREATE TEMPORARY FUNCTION normalize_host AS 'org.wikimedia.analytics.refinery.hive.GetHostPropertiesUDF';
 
 INSERT OVERWRITE TABLE ${destination_table}
-    PARTITION(date='${year}-${month}-${day}')
+    PARTITION(`date`='${year}-${month}-${day}')
 
      SELECT normalized_host.project_family,
             normalized_host.project AS current_project,
