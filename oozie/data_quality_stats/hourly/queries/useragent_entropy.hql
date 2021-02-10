@@ -56,7 +56,7 @@ FROM (
     )
 ) AS aux
 
-UNION ALL
+UNION
 
 SELECT
     ${hiveconf:dt} AS dt,
@@ -70,7 +70,7 @@ FROM (
     GROUP BY useragent.os_family
 ) AS aux
 
-UNION ALL
+UNION
 
 SELECT
     ${hiveconf:dt} AS dt,
@@ -84,7 +84,7 @@ FROM (
     GROUP BY useragent.browser_family
 ) AS aux
 
-UNION ALL
+UNION
 
 SELECT
     ${hiveconf:dt} AS dt,
