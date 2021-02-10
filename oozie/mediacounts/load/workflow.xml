@@ -114,6 +114,7 @@
 
             <!-- Query parameters -->
             <param>artifacts_directory=${artifacts_directory}</param>
+            <param>refinery_jar_version=${refinery_jar_version}</param>
             <param>source_table=${webrequest_table}</param>
             <param>destination_table=${mediacounts_table}</param>
             <param>year=${year}</param>
