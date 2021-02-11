@@ -42,7 +42,7 @@ INSERT OVERWRITE TABLE tmp_mediacounts_load_parsed_requests
 SELECT
     response_size,
     parse_media_file_url(uri_path) parsed_url,
-    classify_referer(referer) classified_refererer
+    classify_referer(referer) classified_referer
 FROM ${source_table}
 WHERE webrequest_source='upload'
   AND year=${year}
@@ -78,9 +78,9 @@ INSERT OVERWRITE TABLE ${destination_table}
         SUM(IF(parsed_url.is_transcoded_to_movie AND parsed_url.height BETWEEN 0 AND 239, 1, 0)) transcoded_movie_0_239,
         SUM(IF(parsed_url.is_transcoded_to_movie AND parsed_url.height BETWEEN 240 AND 479, 1, 0)) transcoded_movie_240_479,
         SUM(IF(parsed_url.is_transcoded_to_movie AND parsed_url.height >= 480, 1, 0)) transcoded_movie_480,
-        SUM(IF(classified_refererer = 'internal', 1, 0)) referer_internal,
-        SUM(IF(classified_refererer LIKE 'external%', 1, 0)) referer_external,
-        SUM(IF(classified_refererer = 'unknown' OR classified_refererer = 'none', 1, 0)) referer_unknown
+        SUM(IF(classified_referer = 'internal', 1, 0)) referer_internal,
+        SUM(IF(classified_referer LIKE 'external%', 1, 0)) referer_external,
+        SUM(IF(classified_referer = 'unknown' OR classified_referer = 'none', 1, 0)) referer_unknown
     FROM tmp_mediacounts_load_parsed_requests
     WHERE parsed_url.base_name IS NOT NULL
     GROUP BY parsed_url.base_name
