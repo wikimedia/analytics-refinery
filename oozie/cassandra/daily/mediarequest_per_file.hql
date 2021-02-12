@@ -16,15 +16,6 @@
 --         -d day=15
 --
 
-
-hive -f mediarequest_per_file.hql                       \
-    -d destination_directory=/user/milimetric/wmf/tmp/analytics/mediarequest_per_file \
-    -d source_table=wmf.mediarequest                    \
-    -d separator="\t"                                   \
-    -d year=2021                                        \
-    -d month=2                                         \
-    -d day=9
-
 SET hive.exec.compress.output=true;
 SET mapreduce.output.fileoutputformat.compress.codec=org.apache.hadoop.io.compress.GzipCodec;
 
