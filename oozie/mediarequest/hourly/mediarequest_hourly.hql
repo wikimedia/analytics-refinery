@@ -36,11 +36,22 @@ CREATE TEMPORARY FUNCTION classify_referer AS 'org.wikimedia.analytics.refinery.
 CREATE TEMPORARY FUNCTION referer_wiki AS 'org.wikimedia.analytics.refinery.hive.GetRefererWikiUDF';
 
 
-DROP TABLE IF EXISTS tmp_mediarequest_hourly_upload_webrequests;
-CREATE EXTERNAL TABLE tmp_mediarequest_hourly_upload_webrequests (
+DROP TABLE IF EXISTS tmp_mediarequest_hourly_upload_webrequests_${year}_${month}_${day}_${hour};
+CREATE EXTERNAL TABLE tmp_mediarequest_hourly_upload_webrequests_${year}_${month}_${day}_${hour} (
     response_size       bigint,
     -- NOTE: if GetMediaFilePropertiesUDF changes, update this struct
-    parsed_url          struct<base_name:string,media_classification:string,file_type:string,is_original:boolean,is_transcoded_to_audio    :boolean,is_transcoded_to_image:boolean,is_transcoded_to_movie:boolean,width:int,height:int,transcoding:string>,
+    parsed_url          struct<
+                                base_name:string,
+                                media_classification:string,
+                                file_type:string,
+                                is_original:boolean,
+                                is_transcoded_to_audio:boolean,
+                                is_transcoded_to_image:boolean,
+                                is_transcoded_to_movie:boolean,
+                                width:int,
+                                height:int,
+                                transcoding:string
+                              >,
     referer_wiki        string,
     classified_referer  string,
     agent_type          string
@@ -49,7 +60,7 @@ ROW FORMAT SERDE 'org.apache.hive.hcatalog.data.JsonSerDe'
 STORED AS TEXTFILE
 LOCATION '${temporary_directory}';
 
-INSERT OVERWRITE TABLE tmp_mediarequest_hourly_upload_webrequests
+INSERT OVERWRITE TABLE tmp_mediarequest_hourly_upload_webrequests_${year}_${month}_${day}_${hour}
     SELECT
         response_size,
         parse_media_file_url(uri_path) parsed_url,
@@ -90,7 +101,7 @@ INSERT OVERWRITE TABLE ${destination_table}
             LPAD(${hour}, 2, "0"),
             ':00:00Z'
         ) dt
-    FROM tmp_mediarequest_hourly_upload_webrequests
+    FROM tmp_mediarequest_hourly_upload_webrequests_${year}_${month}_${day}_${hour}
     WHERE parsed_url.base_name IS NOT NULL
     GROUP BY
         parsed_url.base_name,
@@ -101,4 +112,4 @@ INSERT OVERWRITE TABLE ${destination_table}
         agent_type
 ;
 
-DROP TABLE IF EXISTS tmp_mediarequest_hourly_upload_webrequests;
+DROP TABLE IF EXISTS tmp_mediarequest_hourly_upload_webrequests_${year}_${month}_${day}_${hour};

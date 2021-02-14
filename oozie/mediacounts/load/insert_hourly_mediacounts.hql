@@ -27,18 +27,29 @@ ADD JAR ${artifacts_directory}/org/wikimedia/analytics/refinery/refinery-hive-${
 CREATE TEMPORARY FUNCTION parse_media_file_url AS 'org.wikimedia.analytics.refinery.hive.GetMediaFilePropertiesUDF';
 CREATE TEMPORARY FUNCTION classify_referer AS 'org.wikimedia.analytics.refinery.hive.GetRefererTypeUDF';
 
-DROP TABLE IF EXISTS tmp_mediacounts_load_parsed_requests;
-CREATE EXTERNAL TABLE tmp_mediacounts_load_parsed_requests (
+DROP TABLE IF EXISTS tmp_mediacounts_load_parsed_requests_${year}_${month}_${day}_${hour};
+CREATE EXTERNAL TABLE tmp_mediacounts_load_parsed_requests_${year}_${month}_${day}_${hour} (
     response_size       bigint,
     -- NOTE: if GetMediaFilePropertiesUDF changes, update this struct
-    parsed_url          struct<base_name:string,media_classification:string,file_type:string,is_original:boolean,is_transcoded_to_audio    :boolean,is_transcoded_to_image:boolean,is_transcoded_to_movie:boolean,width:int,height:int,transcoding:string>,
+    parsed_url          struct<
+                                base_name:string,
+                                media_classification:string,
+                                file_type:string,
+                                is_original:boolean,
+                                is_transcoded_to_audio:boolean,
+                                is_transcoded_to_image:boolean,
+                                is_transcoded_to_movie:boolean,
+                                width:int,
+                                height:int,
+                                transcoding:string
+                              >,
     classified_referer  string
 )
 ROW FORMAT SERDE 'org.apache.hive.hcatalog.data.JsonSerDe'
 STORED AS TEXTFILE
 LOCATION '${temporary_directory}';
 
-INSERT OVERWRITE TABLE tmp_mediacounts_load_parsed_requests
+INSERT OVERWRITE TABLE tmp_mediacounts_load_parsed_requests_${year}_${month}_${day}_${hour}
 SELECT
     response_size,
     parse_media_file_url(uri_path) parsed_url,
@@ -81,8 +92,8 @@ INSERT OVERWRITE TABLE ${destination_table}
         SUM(IF(classified_referer = 'internal', 1, 0)) referer_internal,
         SUM(IF(classified_referer LIKE 'external%', 1, 0)) referer_external,
         SUM(IF(classified_referer = 'unknown' OR classified_referer = 'none', 1, 0)) referer_unknown
-    FROM tmp_mediacounts_load_parsed_requests
+    FROM tmp_mediacounts_load_parsed_requests_${year}_${month}_${day}_${hour}
     WHERE parsed_url.base_name IS NOT NULL
     GROUP BY parsed_url.base_name
 ;
-DROP TABLE IF EXISTS tmp_mediacounts_load_parsed_requests;
+DROP TABLE IF EXISTS tmp_mediacounts_load_parsed_requests_${year}_${month}_${day}_${hour};

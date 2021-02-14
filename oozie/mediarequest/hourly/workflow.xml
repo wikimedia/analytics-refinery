@@ -102,16 +102,6 @@
                     <name>oozie.launcher.mapreduce.map.memory.mb</name>
                     <value>${oozie_launcher_memory}</value>
                 </property>
-
-                <property>
-                    <!--
-                    Doubling available heap for maps from cluster-wide default
-                    of 592MB to 1184MB, as otherwise the job runs out of heap
-                    for busy hours.
-                    -->
-                    <name>mapreduce.map.java.opts</name>
-                    <value>-Xmx1184m</value>
-                </property>
             </configuration>
             <jdbc-url>${hive2_jdbc_url}</jdbc-url>
             <script>mediarequest_hourly.hql</script>
