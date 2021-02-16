@@ -432,17 +432,19 @@ class HivePartition(OrderedDict):
             default=datetime.datetime(2000, 1, 1, 0, 0)
         )
 
-    def list(self, quote=False):
+    def list(self, hql=False):
         """
         Returns a list of Hive partition key=value strings.
-        IF quote=True, string values will be quoted.
+        IF hql=True keys are quoted with back-ticks and values
+        are single-quoted unless composed of only digits making
+        this a valid hql expression.
         """
         partitions = []
-        # Loop through each partition,
-        # adding quotes around strings if quote=True
         for k, v in self.items():
-            if quote and not v.isdigit():
-                v = '\'{}\''.format(v)
+            if hql:
+                k = '`{}`'.format(k)
+                if not v.isdigit():
+                    v = '\'{}\''.format(v)
             partitions.append('{}={}'.format(k, v))
         return partitions
 
@@ -454,9 +456,9 @@ class HivePartition(OrderedDict):
 
     def spec(self):
         """
-        Returns a Hive spec string, e.g. datacenter='eqiad',year=2017,month=11,day=21,hour=0
+        Returns a Hive spec string, e.g. `datacenter`='eqiad',`year`=2017,`month`=11,`day`=21,`hour`=0
         """
-        return HivePartition.spec_separator.join(self.list(quote=True))
+        return HivePartition.spec_separator.join(self.list(hql=True))
 
     def path(self, base_path=None):
         """
