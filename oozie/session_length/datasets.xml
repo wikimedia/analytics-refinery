@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<datasets>
+
+    <!--
+        Note that we do not use “${...}” but “${"$"}{...}", as dataset files are
+        passed to EL twice in cascade, and in the first EL level, ${MONTH}
+        evaluates to the string “${MONTH}”. Hence, we escape the dollar sign in
+        “${....}" to “${"$"}{...}”. At the first EL level, “${"$"}” gets turned
+        into a dollar sign, and “{...}” is just passed along. Hence, we arrive
+        at “${...}” as input for the second EL level. There, the variables hold
+        their expected values, and we can start unpadding them.
+
+        In event data sets we use datacenter=eqiad as a proxy for "availability"
+        of the data. This may be empty if we have switched to codfw, but that's
+        ok, since it doesn't happen that often. If the job is stuck waiting
+        for an empty folder, we'll get an SLA alarm and intervene manually.
+    -->
+
+    <dataset name="session_tick"
+             frequency="${coord:hours(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${session_tick_data_directory}/datacenter=eqiad/year=${YEAR}/month=${"$"}{MONTH + 0}/day=${"$"}{DAY + 0}/hour=${"$"}{HOUR + 0}</uri-template>
+        <done-flag>_REFINED</done-flag>
+    </dataset>
+
+    <dataset name="session_length_daily"
+             frequency="${coord:days(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${session_length_data_directory}/year=${YEAR}/month=${"$"}{MONTH + 0}/day=${"$"}{DAY + 0}</uri-template>
+        <done-flag>_SUCCESS</done-flag>
+    </dataset>
+</datasets>
