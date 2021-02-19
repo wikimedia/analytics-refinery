@@ -39,6 +39,7 @@ CREATE EXTERNAL TABLE ${source_dump_table} (
 ROW FORMAT DELIMITED
 FIELDS TERMINATED BY ' '
 LINES TERMINATED BY '\n'
+STORED AS TEXTFILE
 LOCATION '${source_dump_location}'
 -- Dumps have a header with comments that is 25 lines long:
 tblproperties("skip.header.line.count"="25");

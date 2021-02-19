@@ -47,6 +47,7 @@ CREATE EXTERNAL TABLE tmp_mobile_apps_uniques_${year}_${month} (
 ROW FORMAT DELIMITED
 FIELDS TERMINATED BY '\t'
 LINES TERMINATED BY '\n'
+STORED AS TEXTFILE
 LOCATION '${temporary_directory}'
 ;
 
