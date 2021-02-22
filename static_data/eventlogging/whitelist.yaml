@@ -1798,6 +1798,24 @@ WikimediaBlogVisit:
     webhost: keep
     wiki: keep
 
+WikipediaPortal:
+    event:
+        session_id: hash
+        event_type: keep
+        section_used: keep
+        # TODO add referer when approved by Legal
+        # referer: keep
+        accept_language: keep
+        cohort: keep
+        selected_language: keep
+    geocoded_data:
+        continent: keep
+        country_code: keep
+    useragent:
+        browser_family: keep
+        is_bot: keep
+        os_family: keep
+
 WikipediaZeroUsage:
     event:
         action: keep
