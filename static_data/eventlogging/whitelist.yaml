@@ -842,6 +842,26 @@ MobileWikiAppIntents:
     webhost: keep
     wiki: keep
 
+MobileWikiAppiOSFeed:
+    event:
+        category: keep
+        label: keep
+        action: keep
+        measure_age: keep
+        measure_position: keep
+        measure_time: keep
+        measure_max_viewed: keep
+        app_install_id: hash
+        primary_language: keep
+        is_anon: keep
+        event_dt: keep
+        session_id: hash
+    geocoded_data:
+        continent: keep
+        country_code: keep
+    useragent:
+        wmf_app_version: keep
+
 MobileWikiAppLangSelect:
     event:
         action: keep
