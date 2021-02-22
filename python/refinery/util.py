@@ -31,9 +31,8 @@ import operator
 logger = logging.getLogger('refinery-util')
 MW_CONFIG_PATH = '/srv/mediawiki-config'
 
-CLOUD_DB_HOST = 'labsdb1012.eqiad.wmnet'
+CLOUD_DB_HOST = 'clouddb1021.eqiad.wmnet'
 CLOUD_DB_POSTFIX = '_p'
-JDBC_TEMPLATE = 'jdbc:mysql://{host}/{dbname}'
 JDBC_TEMPLATE_WITH_PORT = 'jdbc:mysql://{host}:{port}/{dbname}'
 MW_CONFIG_DBLISTS_FOLDER = 'dblists'
 
@@ -199,7 +198,8 @@ def get_mediawiki_section_dbname_mapping(mw_config_path=MW_CONFIG_PATH,
     return db_mapping
 
 
-def get_dbstore_host_port(use_x1, dbname, db_mapping=None,
+def get_dbstore_host_port(use_x1, dbname, use_cloud_host,
+                          db_mapping=None,
                           mw_config_path=MW_CONFIG_PATH,
                           mw_config_dblists_folder=MW_CONFIG_DBLISTS_FOLDER
                           ):
@@ -232,26 +232,29 @@ def get_dbstore_host_port(use_x1, dbname, db_mapping=None,
                 " Perhaps try --use-x1 if your database is on the x1 cluster (eg. centralauth)"
             ).format(dbname)
             raise RuntimeError(message)
+
     answers = dns.resolver.query('_' + shard + '-analytics._tcp.eqiad.wmnet', 'SRV')
     host, port = str(answers[0].target).strip('.'), str(answers[0].port)
+
+    # The port and shard setup is identical on both clusters, but the DNS records are
+    # returning analytics replica cluster hosts, so we just swap that and keep the port
+    if use_cloud_host:
+        host = CLOUD_DB_HOST
+
     return (host, port)
 
 
-def get_jdbc_string(dbname, labsdb, db_mapping=None):
+def get_jdbc_string(dbname, use_cloud_host, db_mapping=None):
     """
     Params
-        dbname      the database name, like enwiki, etwiki, etc
-        labsdb      True: use the cloud cluster, False: use production replica cluster
-        db_mapping  (None) if not specified, fetch this from mediawiki-config
+        dbname          the database name, like enwiki, etwiki, etc
+        use_cloud_host  True: use the cloud cluster, False: use production replica cluster
+        db_mapping      (None) if not specified, fetch this from mediawiki-config
     """
-
-    # for labsdb, hostname must be specified, we append db_postfix to the dbname
-    if labsdb:
-        return JDBC_TEMPLATE.format(host=CLOUD_DB_HOST, dbname=dbname + CLOUD_DB_POSTFIX)
-    # for production replicas, we have to query for the hostname and port
-    else:
-        (host, port) = get_dbstore_host_port(False, dbname, db_mapping)
-        return JDBC_TEMPLATE_WITH_PORT.format(host=host, port=port, dbname=dbname)
+    (host, port) = get_dbstore_host_port(False, dbname, use_cloud_host, db_mapping)
+    # We access dbs on cloud hosts with db_postfix appended to the dbname
+    dbname = dbname + CLOUD_DB_POSTFIX if use_cloud_host else dbname
+    return JDBC_TEMPLATE_WITH_PORT.format(host=host, port=port, dbname=dbname)
 
 def flatten(l):
     """

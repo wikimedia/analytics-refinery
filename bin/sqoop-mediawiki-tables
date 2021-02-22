@@ -36,7 +36,7 @@ upstream a fix for that.
 
 Usage:
   sqoop-mediawiki-tables --output-dir HDFS_PATH
-          [--labsdb] --user NAME --password-file FILE
+          [--clouddb] --user NAME --password-file FILE
           [--max-tries TRIES] --wiki-file WIKIS --tables TABLES
           [--verbose] [--from-timestamp FROM] [--to-timestamp TO]
           [--force] --partition-name PART --partition-value PVAL
@@ -105,7 +105,7 @@ Options:
                                         before renaming. [default: /wmf/tmp/analytics/sqoop-mw]
     -G LTMP --local-tmp-path LTMP       Local folder where to temporary store generated
                                         jar files. [default: /tmp/sqoop-jars]
-    -l --labsdb                         If set, add '_p' postfix to table names for labsdb,
+    -l --clouddb                        If set, add '_p' postfix to table names for clouddb,
                                         otherwise look up the hostname for each db
     -f --force                          Deleting existing folders before importing
                                         instead of failing
@@ -160,7 +160,7 @@ if __name__ == '__main__':
 
     db_list_file                        = arguments.get('--wiki-file')
     import_tables_str                   = arguments.get('--tables')
-    labsdb                              = arguments.get('--labsdb')
+    clouddb                             = arguments.get('--clouddb')
 
     from_timestamp                      = arguments.get('--from-timestamp')
     to_timestamp                        = arguments.get('--to-timestamp')
@@ -191,7 +191,7 @@ if __name__ == '__main__':
     configure_logging(logger, level, log_file=log_file)
 
     logger.info('************ NOTE ************')
-    logger.info('When sqooping from labs, resulting data will be shareable with the public '
+    logger.info('When sqooping from cloud, resulting data will be shareable with the public '
                 'but when sqooping from production, resulting data may need to be redacted or '
                 'otherwise anonymized before sharing.')
     logger.info('^^^^^^^^^^^^ NOTE ^^^^^^^^^^^^')
@@ -241,7 +241,7 @@ if __name__ == '__main__':
 
         logger.info('Generating ORM jar at {}'.format(jar_path))
 
-        jdbc_string = get_jdbc_string(sample_wiki, labsdb, db_mapping)
+        jdbc_string = get_jdbc_string(sample_wiki, clouddb, db_mapping)
         for table in queries.keys():
             sqoop_commands.append(
                 SqoopConfig(yarn_job_name_prefix, user, password_file, jdbc_string, 1,
@@ -294,7 +294,7 @@ if __name__ == '__main__':
             num_mappers_adjusted = 1
 
         for wiki_db in wikiList:
-            jdbc_string = get_jdbc_string(wiki_db, labsdb, db_mapping)
+            jdbc_string = get_jdbc_string(wiki_db, clouddb, db_mapping)
             for table in queries.keys():
                 config = SqoopConfig(yarn_job_name_prefix, user, password_file, jdbc_string,
                                      num_mappers_adjusted, fetch_size, output_format,

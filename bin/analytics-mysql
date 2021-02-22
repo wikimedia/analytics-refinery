@@ -25,11 +25,11 @@ import subprocess
 from refinery.util import get_dbstore_host_port
 
 
-def main(dbname, mw_config_path, use_x1, mysql_args, print_target=False):
+def main(dbname, use_cloud_host, mw_config_path, use_x1, mysql_args, print_target=False):
     if mw_config_path:
-        host, port = get_dbstore_host_port(use_x1, dbname, mw_config_path=mw_config_path)
+        host, port = get_dbstore_host_port(use_x1, dbname, use_cloud_host, mw_config_path=mw_config_path)
     else:
-        host, port = get_dbstore_host_port(use_x1, dbname)
+        host, port = get_dbstore_host_port(use_x1, dbname, use_cloud_host)
 
     if print_target:
         print("{}:{}".format(host, port))
@@ -42,11 +42,18 @@ if __name__ == '__main__':
     parser.add_argument('database', type=str, help='Database name to connect to (like "enwiki")')
     parser.add_argument('--use-x1', dest='x1', action='store_true', default=False,
                         help='Use the x1 section (all dbs) or the sX sections.')
+    # TODO: see how the new clouddb setup performs, and then enable this by following these steps:
+    #   create a new user to isolate access from the sqoop user
+    #   create a my.cnf file for that user via puppet and store it on all the stat boxes
+    #   re-enable this parameter
+    #   change the False below to known_args.cloud
+    # parser.add_argument('--cloud', dest='cloud', action='store_true', default=False,
+                        # help='Connect to the cloud replica version of this db.')
     parser.add_argument('--mw-config-path', dest='mw_config_path',
                         help='Path of the MediaWiki config repository.')
     parser.add_argument('--print-target', dest='print_target', action='store_true', default=False,
                         help='Print only the target hostname:port combination.')
 
     known_args, other_args = parser.parse_known_args()
-    main(known_args.database, known_args.mw_config_path, known_args.x1,
+    main(known_args.database, False, known_args.mw_config_path, known_args.x1,
          other_args, print_target=known_args.print_target)

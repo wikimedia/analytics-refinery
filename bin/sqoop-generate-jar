@@ -30,7 +30,7 @@ upstream a fix for that.
 
 Usage:
   sqoop-generate-jar --output-dir JAR_OUT
-          [--labsdb] --user NAME --password-file FILE
+          [--clouddb] --user NAME --password-file FILE
           [--verbose] [--job-name JOB_NAME]
 
 Options:
@@ -45,7 +45,7 @@ Options:
     -j JOB_NAME --job-name JOB_NAME     The yarn job name prefix, only one job with
                                         a certain prefix can run at a time.
                                         [optional] default is sqoop-generate-jar
-    -l --labsdb                         Use the cloud cluster with different dbnames
+    -l --clouddb                        Use the cloud cluster with different dbnames
                                         and potentially different queries
 """
 __author__ = 'Dan Andreesu <milimetric@wikimedia.org>'
@@ -76,7 +76,7 @@ if __name__ == '__main__':
     # parse arguments
     arguments = docopt(__doc__)
     verbose                             = arguments.get('--verbose')
-    labsdb                              = arguments.get('--labsdb')
+    clouddb                             = arguments.get('--clouddb')
     yarn_job_name_prefix                = arguments.get('--job-name')
 
     target_jar_directory                = arguments.get('--output-dir')
@@ -102,7 +102,7 @@ if __name__ == '__main__':
     # NOTE: using etwiki to generate schema for all wikis,
     # but it might not always be in sync with the other dbs
     example_dbname = 'etwiki'
-    jdbc_string = get_jdbc_string(example_dbname, labsdb, db_mapping)
+    jdbc_string = get_jdbc_string(example_dbname, clouddb, db_mapping)
     for table in queries.keys():
         executor_config_list.append(
             SqoopConfig(yarn_job_name_prefix, user, password_file, jdbc_string, 1,
