@@ -780,6 +780,9 @@ MobileWikiAppFeed:
         appInstallID: hash
         app_install_id: hash
         client_dt: keep
+    geocoded_data:
+        continent: keep
+        country_code: keep
     useragent:
         os_family: keep
         wmf_app_version: keep
