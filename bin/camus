@@ -38,7 +38,7 @@ import os
 import sys
 import logging
 from docopt import docopt
-from refinery.util import is_yarn_application_running
+from refinery.util import is_yarn_application_running, sh
 
 
 logging.basicConfig(level=logging.INFO,
@@ -80,8 +80,24 @@ if __name__ == '__main__':
     # Check execution block
     if (arguments['--check']):
         check_jar       = arguments['--check-jar']
-        # We use Spark 2 jars/* to get Scala and Hadoop dependencies.
+
+        # We use Spark 2 jars/* to get Scala.
+        # TODO: Is this really necessary?  There must be a better way.
         check_classpath = ':'.join([check_jar, '/usr/lib/spark2/jars/*'])
+
+        # Use hadoop classpath command to get hadoop classpath if HADOOP_CLASSPATH is not set.
+        if os.environ.get('HADOOP_CLASSPATH') is None:
+            try:
+                hadoop_classpath = sh(['hadoop', 'classpath'])
+                check_classpath += ':' + hadoop_classpath
+            except e:
+                logging.error(
+                    'Failed getting hadoop classpath for CamusPartitionChecker, either ' +
+                    'export HADOOP_CLASSPATH or make sure `hadoop` is executable and on PATH. ' +
+                    e.message
+                )
+                sys.exit(1)
+
         check_java_opts = arguments['--check-java-opts'] if arguments['--check-java-opts'] else ''
         datetime_to_check = '-d %s' % arguments['--check-datetime'] if arguments['--check-datetime'] else ''
         check_dry_run = '--dry-run' if arguments['--check-dry-run'] else ''
