@@ -33,7 +33,7 @@ FROM (
         city,
         COUNT(*) AS counts
     FROM ${source_table} AS p
-    JOIN wmf.traffic_anomalies_country AS c
+    JOIN wmf.traffic_anomaly_checked_countries AS c
     ON p.country = c.country
     WHERE
         year = ${year} AND
