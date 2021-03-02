@@ -170,7 +170,7 @@ def should_drop_partition(partition, threshold):
     partition_dt = partition.datetime()
     if "hour" in partition:
         partition_end = partition_dt.replace(minute=59, second=59)
-    elif "day" in partition:
+    elif "day" in partition or "date" in partition:
         partition_end = partition_dt.replace(hour=23, minute=59, second=59)
     elif "month" in partition:
         last_day_of_month = calendar.monthrange(partition_dt.year, partition_dt.month)[1]
@@ -644,6 +644,13 @@ class TestRefineryDropOlderThan(unittest.TestCase):
 
     def test_should_drop_partition_day_limits(self):
         partition = self.FakePartition(datetime(2017, 9, 28), 'spec1', ['day'])
+        threshold1 = datetime(2017, 9, 29)
+        threshold2 = datetime(2017, 9, 28, 23)
+        self.assertTrue(should_drop_partition(partition, threshold1))
+        self.assertFalse(should_drop_partition(partition, threshold2))
+
+    def test_should_drop_partition_date_limits(self):
+        partition = self.FakePartition(datetime(2017, 9, 28), 'spec1', ['date'])
         threshold1 = datetime(2017, 9, 29)
         threshold2 = datetime(2017, 9, 28, 23)
         self.assertTrue(should_drop_partition(partition, threshold1))
