@@ -36,7 +36,7 @@ INSERT OVERWRITE TABLE ${destination_table}
             country_code,
             user_fingerprint_or_id,
             user_is_anonymous,
-            date,
+            `date`,
             count(*) as edit_count,
             sum(page_is_namespace_zero) as namespace_zero_edit_count,
             network_origin,
@@ -55,7 +55,7 @@ INSERT OVERWRITE TABLE ${destination_table}
                         substring(cuc_timestamp, 0, 4), '-',
                         substring(cuc_timestamp, 5, 2), '-',
                         substring(cuc_timestamp, 7, 2)
-                    ) as date
+                    ) as `date`
 
                from ${source_table} cuc
                         left join
@@ -77,7 +77,7 @@ INSERT OVERWRITE TABLE ${destination_table}
 
       GROUP BY wiki_db,
             country_code,
-            date,
+            `date`,
             user_fingerprint_or_id,
             user_is_anonymous,
             network_origin,
