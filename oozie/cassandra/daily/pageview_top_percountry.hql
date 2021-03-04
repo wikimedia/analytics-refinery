@@ -25,7 +25,12 @@ ADD JAR ${refinery_hive_jar_path};
 SET hive.exec.compress.output=true;
 SET mapreduce.output.fileoutputformat.compress.codec=org.apache.hadoop.io.compress.GzipCodec;
 
-WITH raw_ungrouped AS (
+-- This is needed to prevent a HiveRelDecorrelator.decorrelateRel error for the grouping sets
+SET hive.cbo.enable=false;
+-- This is needed to allow a Cartesian product between the source and country blacklist tables
+SET hive.mapred.mode=nonstrict;
+
+WITH base_data AS (
     SELECT
         geocoded_data['country_code'] AS country_code,
         REGEXP_REPLACE(access_method, ' ', '-') AS access,
@@ -49,64 +54,50 @@ WITH raw_ungrouped AS (
         AND geocoded_data['country_code'] != '--'
         -- This NOT EXISTS executes as a map join, and was chosen after benchmarking against LEFT JOIN and NOT IN
         AND NOT EXISTS (
-            SELECT country_blacklist.country_code
+            SELECT 1
             FROM ${country_blacklist_table} country_blacklist
-            WHERE
-                country_blacklist.country_code = source.geocoded_data['country_code']
-                -- Although functionally unnecessary, this is needed or else Hive will throw an error due to a lack of a partition filter
-                AND source.year = ${year}
-                AND source.month = ${month}
-                AND source.day = ${day}
+            WHERE country_blacklist.country_code = source.geocoded_data['country_code']
         )
 ),
 raw AS (
     SELECT
-        access,
-        year,
-        month,
-        day,
         country_code,
+        COALESCE(access, 'all-access') AS access,
         project,
         page_title,
+        year,
+        month,
+        day,
         COUNT(1) AS total_view_count,
         COUNT(DISTINCT actor_signature) AS unique_actor_count
-    FROM raw_ungrouped
-    WHERE
-        year = ${year}
-        AND month = ${month}
-        AND day = ${day}
+    FROM base_data
     GROUP BY
+        country_code,
         access,
-        year,
-        month,
-        day,
-        country_code,
-        project,
-        page_title
-    -- Union must be used rather than grouping sets due to issue with HiveRelDecorrelator.decorrelateRel
-    UNION
-    SELECT
-        'all-access' AS access,
-        year,
-        month,
-        day,
-        country_code,
         project,
         page_title,
-        COUNT(1) AS total_view_count,
-        COUNT(DISTINCT actor_signature) AS unique_actor_count
-    FROM raw_ungrouped
-    WHERE
-        year = ${year}
-        AND month = ${month}
-        AND day = ${day}
-    GROUP BY
         year,
         month,
-        day,
-        country_code,
-        project,
-        page_title
+        day
+    GROUPING SETS (
+        (
+            country_code,
+            access,
+            project,
+            page_title,
+            year,
+            month,
+            day
+        ),
+        (
+            country_code,
+            project,
+            page_title,
+            year,
+            month,
+            day
+        )
+    )
 ),
 ranked AS (
     SELECT
@@ -161,7 +152,7 @@ SELECT
                     CONCAT(
                         '{\"article\":\"',
                         ranked.page_title,
-                        '\",\"project\":',
+                        '\",\"project\":\"',
                         ranked.project,
                         '\",\"views_ceil\":',
                         CAST(ranked.views_ceil AS STRING),
