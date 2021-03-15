@@ -47,17 +47,32 @@ WITH
             wiki,
             tick
         FROM base_data
+    ),
+    sessionized AS (
+        SELECT
+            wiki,
+            max(tick) AS session_length
+        FROM indexed
+        GROUP BY
+            index,
+            wiki
     )
 INSERT OVERWRITE TABLE ${destination_table}
     PARTITION(year = ${year}, month = ${month}, day = ${day})
     SELECT
         wiki,
-        max(tick) AS length
-    FROM indexed
+        session_length,
+        -- Multiplying by 10 to compensate for static 10% sampling.
+        -- FIXME Once the sampling rate comes as a field in the events,
+        -- multiply this count by (1 / sampling_rate) instead.
+        COUNT(*) * 10 AS session_count
+    FROM sessionized
     GROUP BY
-        index,
-        wiki
+        wiki,
+        session_length
     -- Use order by to enforce single reducer and thus single output file.
-    ORDER BY wiki
-    LIMIT 1000000000
+    ORDER BY
+        wiki,
+        session_length
+    LIMIT 1000000
 ;
