@@ -54,6 +54,7 @@
         </configuration>
     </coordinator>
 
+    <!-- Commenting this job out temporarily to evaluate if the daily one is enough to track anomalies.
     <coordinator name="data_quality_stats-hourly-coord-wmf.pageview_hourly-traffic_entropy_by_country">
         <app-path>${coordinator_file}</app-path>
         <configuration>
@@ -65,5 +66,6 @@
             <property><name>send_alerts_to</name><value>mforns@wikimedia.org,ssingh@wikimedia.org,diego@wikimedia.org</value></property>
         </configuration>
     </coordinator>
+    -->
 
 </bundle-app>
