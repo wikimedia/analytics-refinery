@@ -53,6 +53,7 @@ import sys
 import logging
 import docopt
 import json
+import re
 
 from refinery.logging_setup import configure_logging
 from refinery.hdfs import Hdfs
@@ -68,6 +69,8 @@ IMPORT_SUCCESS = 'SUCCESS'
 IMPORT_FAILURE = 'FAILURE'
 IMPORT_UNAVAILABLE = 'UNAVAILABLE'
 
+DUMP_INFO_FILE='dumpstatus.json'
+
 SUCCESS_FLAG = '_SUCCESS'
 
 DUMP_TYPES = [
@@ -78,25 +81,37 @@ DUMP_TYPES = [
     'siteinfo-namespaces'
 ]
 
-GLOB_PATTERNS = {
-  'pages-meta-history': '{}-{}-pages-meta-history*.xml*.bz2',
-  'pages-meta-current': '{}-{}-pages-meta-current*.xml*.bz2',
-  'stub-meta-history': '{}-{}-stub-meta-history*.xml*.gz',
-  'stub-meta-current': '{}-{}-stub-meta-current*.xml*.gz',
-  'siteinfo-namespaces': '{}-{}-siteinfo-namespaces.json.gz'
-}
+JSON_NAME_KEY = 'JSON_NAME'
+SINGLE_FILE_PATTERN_KEY = 'S_F_PATTERN'
+MULTI_FILE_PATTERN_KEY = 'M_F_PATTERN'
 
-# Used to check if job is finished in DUMP_INFO_FILE.
-# We use file-oriented names as they are more explicit
-# than json names, and also since some json-jobs generate
-# multiple dump types (stubs)
-DUMP_INFO_FILE='dumpruninfo.json'
-JSON_NAMES = {
-  'pages-meta-history': 'metahistorybz2dump',
-  'pages-meta-current': 'metacurrentdump',
-  'stub-meta-history': 'xmlstubsdump',
-  'stub-meta-current': 'xmlstubsdump',
-  'siteinfo-namespaces': 'namespaces'
+DUMPS_PARAMS = {
+  'pages-meta-history': {
+      JSON_NAME_KEY: 'metahistorybz2dump',
+      SINGLE_FILE_PATTERN_KEY: '{}-{}-pages-meta-history.xml.bz2',
+      MULTI_FILE_PATTERN_KEY: '{}-{}-pages-meta-history[0-9]*.xml*.bz2',
+  },
+  'pages-meta-current': {
+      JSON_NAME_KEY: 'metacurrentdump',
+      SINGLE_FILE_PATTERN_KEY: '{}-{}-pages-meta-current.xml.bz2',
+      MULTI_FILE_PATTERN_KEY: '{}-{}-pages-meta-current[0-9]*.xml*.bz2',
+  },
+  'stub-meta-history': {
+      JSON_NAME_KEY: 'xmlstubsdump',
+      SINGLE_FILE_PATTERN_KEY: '{}-{}-stub-meta-history.xml.gz',
+      MULTI_FILE_PATTERN_KEY: '{}-{}-stub-meta-history[0-9]*.xml*.gz',
+  },
+  'stub-meta-current': {
+      JSON_NAME_KEY: 'xmlstubsdump',
+      SINGLE_FILE_PATTERN_KEY: '{}-{}-stub-meta-current.xml.gz',
+      MULTI_FILE_PATTERN_KEY: '{}-{}-stub-meta-current[0-9]*.xml*.gz',
+  },
+
+  'siteinfo-namespaces': {
+      JSON_NAME_KEY: 'namespaces',
+      SINGLE_FILE_PATTERN_KEY: '{}-{}-siteinfo-namespaces.json.gz',
+      MULTI_FILE_PATTERN_KEY: '{}-{}-siteinfo-namespaces[0-9]*.json*.gz',
+  },
 }
 
 
@@ -208,7 +223,7 @@ class MediawikiDumpsImporter(object):
         unavailables = [project for (project, status) in import_results if status == IMPORT_UNAVAILABLE]
         failures = [project for (project, status) in import_results if status == IMPORT_FAILURE]
         if failures or unavailables:
-            logger.warn(
+            logger.warning(
                 'Not writing success flag due to unavailable projects [{}] '.format(','.join(unavailables)) +
                 'and failed projects [{}] '.format(','.join(failures)))
         else:
@@ -285,9 +300,9 @@ class MediawikiProjectDumpImporter(object):
         self.dry_run = dry_run
 
         self.output_path = os.path.join(self.output_base, project)
-        self.input_path = os.path.join(
-          self.input_base, self.project, self.dump_date,
-          GLOB_PATTERNS[self.dump_type].format(self.project, self.dump_date))
+        # Note: self.inputPath is set in self._setup_import_from_dumpinfo()
+        #       as we need to check the dump-info file to know which glob
+        #       pattern to use, single or multi-file.
         self.status = None
 
     def _set_success(self):
@@ -306,10 +321,13 @@ class MediawikiProjectDumpImporter(object):
         in case of failure.
         self.status is used to manage success/unavailability/failure
         """
-        # Check dump to import and stop accordingly
-        self._check_dump_to_import()
+
+        # Stop if status is set in the functions (error or dump unavailable)
+        self._check_dump_paths()
         if self.status:
-            # Info logged in _check_dump_to_import
+            return
+        self._setup_import_from_dumpinfo()
+        if self.status:
             return
 
         # Prepare HDFS and check if import already done
@@ -335,15 +353,13 @@ class MediawikiProjectDumpImporter(object):
         if self.status:
             return
         elif tries == self.max_tries:
-            logger.warn('Failed maximum number of imports {} for project {}'.format(
+            logger.warning('Failed maximum number of imports {} for project {}'.format(
                 tries, self.project))
             self._set_failure()
 
-    def _check_dump_to_import(self):
+    def _check_dump_paths(self):
         """
-        Verifies that source local-folder exists, that it contains the
-        dumpruninfo.json file, and that the dump-type to import has
-        status 'done' in that file.
+        Verifies that source local-folder exists and that it contains the dumpruninfo.json file
         """
         project_path = os.path.join(self.input_base, self.project)
         project_date_path = os.path.join(project_path, self.dump_date)
@@ -351,33 +367,52 @@ class MediawikiProjectDumpImporter(object):
         logger.info('Check if {} is ready to be imported from {}'.format(
             self.project, project_date_path))
         if not os.path.isdir(project_path):
-            logger.warn('Input-base {} doesn\'t contain '.format(self.input_base) +
+            logger.warning('Input-base {} doesn\'t contain '.format(self.input_base) +
                         'a project folder for ' + self.project)
             self._set_failure()
         elif not os.path.isdir(project_date_path):
-            logger.warn('Project-Input-base {} doesn\'t contain '.format(project_path) +
+            logger.warning('Project-Input-base {} doesn\'t contain '.format(project_path) +
                         'a date folder ' + self.dump_date)
             self._set_unavailable()
         elif not os.path.exists(project_dump_info):
-            logger.warn('Project-Input folder {} doesn\'t contain '.format(project_date_path) +
+            logger.warning('Project-Input folder {} doesn\'t contain '.format(project_date_path) +
                         'the json dump-info file ' + DUMP_INFO_FILE)
             self._set_unavailable()
-        else:
-            # Check dump status in DUMP_INFO_FILE for dump-type
-            with open(project_dump_info, "r") as json_file:
-                dump_info = json.load(json_file)
-                try:
-                    dump_status = dump_info['jobs'][JSON_NAMES[self.dump_type]]['status']
-                    if dump_status != 'done':
-                        logger.warn('Dump status not done in json dump-info file '
-                                    + project_dump_info)
-                        self._set_unavailable()
-                except json.decoder.JSONDecodeError:
-                    logger.exception('Problem reading json dump-info file ' + project_dump_info)
-                    self._set_failure()
-                except:
-                    logger.exception('Runtime problem reading json dump-info file ' + project_dump_info)
-                    self._set_failure()
+
+    def _setup_import_from_dumpinfo(self):
+        """
+        Read dumpinfo file, check that dump-type to import has
+        status 'done' in that file, and setup glob-pattern from
+        the number of files written for dump type.
+        """
+        project_dump_info = os.path.join(self.input_base, self.project, self.dump_date, DUMP_INFO_FILE)
+        # Check dump status in DUMP_INFO_FILE for dump-type
+        with open(project_dump_info, "r") as json_file:
+            json_project_dumps_info = json.load(json_file)
+            try:
+                json_dump_info = json_project_dumps_info['jobs'][DUMPS_PARAMS[self.dump_type][JSON_NAME_KEY]]
+                if json_dump_info['status'] != 'done':
+                    logger.warning('Dump status not done in json dump-info file '
+                                + project_dump_info)
+                    self._set_unavailable()
+                else:
+                    # Try with single-file-pattern (actually, file-name since single)
+                    file_pattern = DUMPS_PARAMS[self.dump_type][SINGLE_FILE_PATTERN_KEY].format(
+                        self.project, self.dump_date)
+                    if file_pattern not in json_dump_info['files']:
+                    # Use multi-file pattern if not present
+                        file_pattern = DUMPS_PARAMS[self.dump_type][MULTI_FILE_PATTERN_KEY].format(
+                            self.project, self.dump_date)
+
+                    self.input_path = os.path.join(self.input_base, self.project, self.dump_date, file_pattern)
+                    logger.info("Setting input-path for project {} to {}".format(self.project, self.input_path))
+
+            except json.decoder.JSONDecodeError:
+                logger.exception('Problem reading json dump-info file ' + project_dump_info)
+                self._set_failure()
+            except:
+                logger.exception('Runtime problem reading json dump-info file ' + project_dump_info)
+                self._set_failure()
 
     def _prepare_hdfs(self):
         """
@@ -395,7 +430,7 @@ class MediawikiProjectDumpImporter(object):
         # Check that project folder exists and is a directory
         output_details = Hdfs.ls(self.output_path, include_children=False, with_details=True)
         if not output_details or output_details[0]['file_type'] != 'd':
-            logger.warn('HDFS project folder ' + self.output_path +
+            logger.warning('HDFS project folder ' + self.output_path +
                         ' either doesn\'t exists or is not a directory')
             self._set_failure()
 
