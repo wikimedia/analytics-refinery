@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow-app xmlns="uri:oozie:workflow:0.4"
+    name="pageview-monthly_dump-wf-${year}-${month}">
+    <parameters>
+
+        <!-- Default values for inner oozie settings -->
+        <property>
+            <name>oozie_launcher_queue_name</name>
+            <value>${queue_name}</value>
+        </property>
+        <property>
+            <name>oozie_launcher_memory</name>
+            <value>2048</value>
+        </property>
+
+        <!-- Required properties -->
+        <property><name>queue_name</name></property>
+        <property><name>name_node</name></property>
+        <property><name>job_tracker</name></property>
+        <property><name>hive_principal</name></property>
+        <property><name>hive2_jdbc_url</name></property>
+        <property><name>user</name></property>
+
+        <!-- Aggregation related configuration properties-->
+        <property>
+            <name>hive_data_generation_script</name>
+            <value>make_dumps.hql</value>
+            <description>Hive script that creates the dump files before moving them to their permanent storage.</description>
+        </property>
+        <property>
+            <name>hive_site_xml</name>
+            <description>hive-site.xml file path in HDFS</description>
+        </property>
+        <property>
+            <name>loop_workflow_file</name>
+            <description>Workflow looping over list elements executing another oozie action</description>
+        </property>
+        <property>
+            <name>archive_job_output_workflow_file</name>
+            <description>Workflow that moves the output files to the archive</description>
+        </property>
+        <property>
+            <name>pageview_table</name>
+            <description>The table where we store pageview data.</description>
+        </property>
+        <property>
+            <name>agent_types</name>
+            <description>The user agent types to split the data in.</description>
+        </property>
+        <property>
+            <name>year</name>
+            <description>The partition's year</description>
+        </property>
+        <property>
+            <name>month</name>
+            <description>The partition's month</description>
+        </property>
+        <property>
+            <name>formatted_month</name>
+            <description>The partition's month, padded with a zero</description>
+        </property>
+        <property>
+            <name>temporary_table</name>
+            <value>tmp_pageview_dump_${year}_${formatted_month}</value>
+            <description>The table where we're temporarily putting values in</description>
+        </property>
+        <property>
+            <name>send_error_email_workflow_file</name>
+            <description>Workflow for sending an email</description>
+        </property>
+        <property>
+            <name>temporary_directory</name>
+            <description>A directory in HDFS for temporary files</description>
+        </property>
+        <property>
+            <name>pageview_archive_directory</name>
+            <description>Directory to archive the workflow output to</description>
+        </property>
+
+    </parameters>
+
+    <credentials>
+        <credential name="hive2-cred" type="hive2">
+            <property>
+                <name>hive2.server.principal</name>
+                <value>${hive_principal}</value>
+            </property>
+            <property>
+               <name>hive2.jdbc.url</name>
+               <value>${hive2_jdbc_url}</value>
+            </property>
+        </credential>
+    </credentials>
+
+    <start to="generate_data"/>
+
+    <action name="generate_data" cred="hive2-cred">
+        <hive2 xmlns="uri:oozie:hive2-action:0.2">
+            <job-tracker>${job_tracker}</job-tracker>
+            <name-node>${name_node}</name-node>
+            <job-xml>${hive_site_xml}</job-xml>
+            <configuration>
+                <!--make sure oozie:launcher runs in a low priority queue -->
+                <property>
+                    <name>oozie.launcher.mapred.job.queue.name</name>
+                    <value>${oozie_launcher_queue_name}</value>
+                </property>
+                <property>
+                    <name>oozie.launcher.mapreduce.map.memory.mb</name>
+                    <value>${oozie_launcher_memory}</value>
+                </property>
+                <property>
+                    <name>hive.exec.scratchdir</name>
+                    <value>/tmp/hive-${user}</value>
+                </property>
+            </configuration>
+            <jdbc-url>${hive2_jdbc_url}</jdbc-url>
+            <script>${hive_data_generation_script}</script>
+
+            <!-- Query parameters -->
+            <param>source_table=${pageview_table}</param>
+            <param>year=${year}</param>
+            <param>month=${month}</param>
+            <param>temporary_table=${temporary_table}</param>
+            <param>destination_directory=${temporary_directory}/${wf:id()}</param>
+
+            <!-- Beeline arguments -->
+            <argument>--verbose</argument>
+            <argument>--hiveconf</argument>
+            <argument>mapreduce.job.queuename=${queue_name}</argument>
+        </hive2>
+
+        <ok to="archive_loop"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <!--A monthly dump consists on three files, one for each agent type (user,
+    automated, or bot). Since in the query above we partitioned the data into
+    those three, now we use a loop subworkflow that moves each one to the
+    specified location in hdfs -->
+    <action name="archive_loop">
+        <sub-workflow>
+            <app-path>${loop_workflow_file}</app-path>
+            <propagate-configuration/>
+            <configuration>
+                <property>
+                    <name>loop_action</name>
+                    <value>${archive_loop_workflow_file}</value>
+                </property>
+                <property>
+                    <name>source_directory</name>
+                    <value>${temporary_directory}/${wf:id()}</value>
+                </property>
+                <property>
+                    <name>loop_parallel</name>
+                    <value>false</value>
+                </property>
+                <property>
+                    <name>loop_type</name>
+                    <value>list</value>
+                </property>
+                <property>
+                    <name>loop_list</name>
+                    <value>${agent_types}</value>
+                </property>
+                <property>
+                    <name>loop_name</name>
+                    <value>agent_types_archive</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="end"/>
+        <error to="send_error_email"/>
+    </action>
+    <action name="send_error_email">
+        <sub-workflow>
+            <app-path>${send_error_email_workflow_file}</app-path>
+            <propagate-configuration/>
+            <configuration>
+                <property>
+                    <name>parent_name</name>
+                    <value>${wf:name()}</value>
+                </property>
+                <property>
+                    <name>parent_failed_action</name>
+                    <value>${wf:lastErrorNode()}</value>
+                </property>
+                <property>
+                    <name>parent_error_code</name>
+                    <value>${wf:errorCode(wf:lastErrorNode())}</value>
+                </property>
+                <property>
+                    <name>parent_error_message</name>
+                    <value>${wf:errorMessage(wf:lastErrorNode())}</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="kill"/>
+        <error to="kill"/>
+    </action>
+
+    <kill name="kill">
+        <message>Action failed, error message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+    </kill>
+    <end name="end"/>
+</workflow-app>
