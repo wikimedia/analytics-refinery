@@ -19,9 +19,6 @@
 SET hive.exec.compress.output=true;
 SET mapreduce.output.fileoutputformat.compress.codec=org.apache.hadoop.io.compress.GzipCodec;
 
-ADD JAR ${refinery_hive_jar_path};
-CREATE TEMPORARY FUNCTION country_name as 'org.wikimedia.analytics.refinery.hive.CountryNameUDF';
-
 WITH ranked AS (
     SELECT
         project,
