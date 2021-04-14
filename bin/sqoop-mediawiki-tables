@@ -117,7 +117,7 @@ Options:
                                         [default: etwiki]
     -q QUEUE --yarn-queue QUEUE         Yarn queue to run the jobs in [default: default]
     -D CLASS --driver-class CLASS       The java class to use to connect to the database
-                                        [default: org.mariadb.jdbc.Driver]
+                                        [default: com.mysql.jdbc.Driver]
     -o LOG --log-file LOG               A log file to send all output to.  If not passed,
                                         the script will only log WARN to console.
     -y --dry-run                        The script will run and log messages, but it
