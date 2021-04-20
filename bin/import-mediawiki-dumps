@@ -34,7 +34,7 @@ Options:
     -p FILE --projects-file FILE  The path of the project list to import
                                     (CSV with project DB as first  column,
                                     comment-lines started with #)
-                                    [default: /mnt/hdfs/wmf/refinery/current/static_data/mediawiki/grouped_wikis/labs_grouped_wikis.csv]
+                                    [default: /mnt/hdfs/wmf/refinery/current/static_data/mediawiki/grouped_wikis/grouped_wikis.csv]
     -t TYPE --dump-type TYPE      The dump-type to import. Should be one of: pages-meta-history,
                                     pages-meta-current, stub-meta-history, stub-meta-current,
                                     siteinfo-namespaces
