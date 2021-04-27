@@ -1,1 +1,17 @@
+# Keep all 'production' state change event data with no PII.
+
+mediawiki_page_create: keep_all
 mediawiki_page_delete: keep_all
+mediawiki_page_links_change: keep_all
+mediawiki_page_move: keep_all
+mediawiki_page_properties_change: keep_all
+mediawiki_page_restrictions_change: keep_all
+mediawiki_page_suppress: keep_all
+mediawiki_page_undelete: keep_all
+mediawiki_recentchange: keep_all
+mediawiki_revision_create: keep_all
+mediawiki_revision_score: keep_all
+mediawiki_revision_tags_change: keep_all
+mediawiki_revision_visibility_change: keep_all
+mediawiki_user_blocks_change: keep_all
+resource_change: keep_all
