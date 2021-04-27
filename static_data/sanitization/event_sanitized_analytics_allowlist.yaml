@@ -1,0 +1,1872 @@
+__defaults__:
+    dt: keep
+    recvfrom: keep
+    revision: keep
+    schema: keep
+    seqid: keep
+    timestamp: keep
+    topic: keep
+    uuid: keep
+
+CentralNoticeBannerHistory:
+    event:
+        i: keep
+        r: keep
+        e: keep
+        n: keep
+        l: keep
+
+CentralNoticeTiming:
+    event:
+        pageviewToken: hash
+        time: keep
+
+ChangesListFilterGrouping:
+    event:
+        action: keep
+        filter: keep
+        groupIdentifier: keep
+    webhost: keep
+    wiki: keep
+
+ChangesListFilters:
+    event:
+        associated: keep
+        damaging: keep
+        enhancedFiltersEnabled: keep
+        goodfaith: keep
+        hideReviewed: keep
+        hideWikibase: keep
+        hideanons: keep
+        hidebots: keep
+        hidebyothers: keep
+        hidecategorization: keep
+        hidehumans: keep
+        hideliu: keep
+        hidelog: keep
+        hidemajor: keep
+        hideminor: keep
+        hidemyself: keep
+        hidenewpages: keep
+        hidenondamaging: keep
+        hidepageedits: keep
+        hidepatrolled: keep
+        hideunpatrolled: keep
+        invert: keep
+        namespace: keep
+        pagename: keep
+        tagfilter: keep
+        userExpLevel: keep
+    webhost: keep
+    wiki: keep
+
+CpuBenchmark:
+    event:
+        score: keep
+        pageviewToken: hash
+    geocoded_data:
+        country: keep
+    useragent:
+        browser_family: keep
+        os_family: keep
+        is_bot: keep
+
+DesktopWebUIActionsTracking:
+    event:
+        action: keep
+        skinVersion: keep
+        name: keep
+        isSidebarCollapsed: keep
+        isAnon: keep
+        editCountBucket: keep
+    webhost: keep
+    wiki: keep
+
+DiacriticsPoll:
+    event:
+        country: keep
+        text: keep
+    webhost: keep
+    wiki: keep
+
+DiacriticsVisibility:
+    event:
+        country: keep
+        issues: keep
+    webhost: keep
+    wiki: keep
+
+EchoInteraction:
+    event:
+        action: keep
+        context: keep
+        mobile: keep
+        notificationType: keep
+        version: keep
+    webhost: keep
+    wiki: keep
+
+EchoMail:
+    event:
+        emailDeliveryMode: keep
+        version: keep
+    webhost: keep
+    wiki: keep
+
+Edit:
+    event:
+        action: keep
+        action.abort.mechanism: keep
+        action.abort.timing: keep
+        action.abort.type: keep
+        action.init.mechanism: keep
+        action.init.timing: keep
+        action.init.type: keep
+        action.loaded.timing: keep
+        action.ready.timing: keep
+        action.saveAttempt.timing: keep
+        action.saveFailure.message: keep
+        action.saveFailure.timing: keep
+        action.saveFailure.type: keep
+        action.saveIntent.timing: keep
+        action.saveSuccess.timing: keep
+        editingSessionId: keep
+        editor: keep
+        integration: keep
+        latency: keep
+        mediawiki.version: keep
+        page.id: keep
+        page.length: keep
+        page.ns: keep
+        page.revid: keep
+        page.title: keep
+        pageId: keep
+        pageName: keep
+        pageNs: keep
+        pageViewSessionId: keep
+        platform: keep
+        revId: keep
+        user.class: keep
+        user.editCount: keep
+        user.id: keep
+        userId: keep
+        version: keep
+    webhost: keep
+    wiki: keep
+
+EditAttemptStep:
+    event:
+        action: keep
+        abort_mechanism: keep
+        abort_timing: keep
+        abort_type: keep
+        bucket: keep
+        init_mechanism: keep
+        init_timing: keep
+        init_type: keep
+        is_oversample: keep
+        loaded_timing: keep
+        ready_timing: keep
+        save_attempt_timing: keep
+        save_failure_message: keep
+        save_failure_timing: keep
+        save_failure_type: keep
+        save_intent_timing: keep
+        save_success_timing: keep
+        editing_session_id: keep
+        editor_interface: keep
+        integration: keep
+        mw_version: keep
+        page_ns: keep
+        platform: keep
+        user_class: keep
+        user_editcount: keep
+        user_id: keep
+        version: keep
+    webhost: keep
+    wiki: keep
+
+EditorActivation:
+    event:
+        month: keep
+        userId: keep
+    webhost: keep
+    wiki: keep
+
+ElementTiming:
+    event:
+        pageviewToken: hash
+        name: keep
+        startTime: keep
+        responseEnd: keep
+        bottom: keep
+        height: keep
+        left: keep
+        right: keep
+        top: keep
+        width: keep
+        x: keep
+        y: keep
+
+EventTiming:
+    event:
+        pageviewToken: hash
+        name: keep
+        startTime: keep
+        processingStart: keep
+        processingEnd: keep
+        duration: keep
+        cancelable: keep
+
+ExternalGuidance:
+    event:
+        action: keep
+        service: keep
+        source_language: keep
+        target_language: keep
+        session_token: hash
+    geocoded_data:
+        country: keep
+    useragent:
+        is_bot: keep
+    webhost: keep
+    wiki: keep
+
+FirstInputTiming:
+    event:
+        pageviewToken: hash
+        processingStart: keep
+        processingEnd: keep
+        name: keep
+        startTime: keep
+        duration: keep
+        FID: keep
+
+FlowReplies:
+    event:
+        action: keep
+        entrypoint: keep
+        funnelId: keep
+        isAnon: keep
+        pageNs: keep
+    webhost: keep
+    wiki: keep
+
+GatherClicks:
+    editCountBucket: keep
+    event:
+        editCountBucket: keep
+        errorText: keep
+        eventName: keep
+        mobileMode: keep
+        skin: keep
+        source: keep
+        userEditCount: keep
+    webhost: keep
+    wiki: keep
+
+GatherFlags:
+    editCountBucket: keep
+    event:
+        collectionId: keep
+        editCountBucket: keep
+        userEditCount: keep
+        userGroups: keep
+    webhost: keep
+    wiki: keep
+
+GettingStartedNavbarNoArticle:
+    event:
+        funnel: keep
+        version: keep
+    webhost: keep
+    wiki: keep
+
+GettingStartedOnRedirect:
+    event:
+        action: keep
+        bucket: keep
+        funnel: keep
+        isEditable: keep
+        isNavbarVisible: keep
+        pageId: keep
+        pageNS: keep
+        revId: keep
+        source: keep
+        userId: keep
+        version: keep
+    webhost: keep
+    wiki: keep
+
+GettingStartedRedirectImpression:
+    event:
+        action: keep
+        ctaType: keep
+        currentRevId: keep
+        isEditable: keep
+        pageId: keep
+        pageNS: keep
+        userId: keep
+    webhost: keep
+    wiki: keep
+
+GuidedTour:
+    event:
+        action: keep
+        eventId: keep
+        lastGuiderId: keep
+        step: keep
+        tour: keep
+        tourName: keep
+        userId: keep
+    webhost: keep
+    wiki: keep
+
+GuidedTourButtonClick:
+    event:
+        action: keep
+        label: keep
+        labelKey: keep
+        sessionToken: keep
+        step: keep
+        tour: keep
+        userId: keep
+        userText: keep
+    webhost: keep
+    wiki: keep
+
+GuidedTourExited:
+    event:
+        sessionToken: keep
+        step: keep
+        tour: keep
+        userId: keep
+        userText: keep
+    webhost: keep
+    wiki: keep
+
+GuidedTourExternalLinkActivation:
+    event:
+        href: keep
+        label: keep
+        sessionToken: keep
+        step: keep
+        tour: keep
+        userId: keep
+        userText: keep
+    webhost: keep
+    wiki: keep
+
+GuidedTourGuiderHidden:
+    event:
+        sessionToken: keep
+        step: keep
+        tour: keep
+        userId: keep
+        userText: keep
+    webhost: keep
+    wiki: keep
+
+GuidedTourGuiderImpression:
+    event:
+        sessionToken: keep
+        step: keep
+        tour: keep
+        userId: keep
+        userText: keep
+    webhost: keep
+    wiki: keep
+
+GuidedTourInternalLinkActivation:
+    event:
+        label: keep
+        pageName: keep
+        sessionToken: keep
+        step: keep
+        tour: keep
+        userId: keep
+        userText: keep
+    webhost: keep
+    wiki: keep
+
+KaiOSAppFirstRun:
+    event:
+        app_id: keep
+        app_version: keep
+
+Kartographer:
+    event:
+        action: keep
+        duration: keep
+        extra: keep
+        feature: keep
+        firstInteraction: keep
+        fullscreen: keep
+        mobile: keep
+        sampling: keep
+        userToken: keep
+    webhost: keep
+    wiki: keep
+
+LayoutShift:
+    event:
+        pageviewToken: hash
+        value: keep
+        entryTime: keep
+
+MediaViewer:
+    event:
+        action: keep
+        samplingFactor: keep
+        variant: keep
+    webhost: keep
+    wiki: keep
+
+MediaWikiPingback:
+    event:
+        MediaWiki: keep
+        OS: keep
+        PHP: keep
+        arch: keep
+        database: keep
+        machine: keep
+        memoryLimit: keep
+        serverSoftware: keep
+    webhost: keep
+    wiki: keep
+
+MobileOptionsTracking:
+    event:
+        action: keep
+        alpha: keep
+        beta: keep
+        errorText: keep
+        images: keep
+    webhost: keep
+    wiki: keep
+
+MobileWebBrowse:
+    event:
+        action: keep
+        article: keep
+        articleIndex: keep
+        mobileMode: keep
+        tag: keep
+    webhost: keep
+    wiki: keep
+
+MobileWebClickTracking:
+    editCountBucket: keep
+    event:
+        editCountBucket: keep
+        mobileMode: keep
+        name: keep
+        userEditCount: keep
+    webhost: keep
+    wiki: keep
+
+MobileWebCta:
+    editCountBucket: keep
+    event:
+        campaign: keep
+        campaignStep: keep
+        editCountBucket: keep
+        mobileMode: keep
+        status: keep
+        userEditCount: keep
+    webhost: keep
+    wiki: keep
+
+MobileWebDiffClickTracking:
+    editCountBucket: keep
+    event:
+        editCountBucket: keep
+        mobileMode: keep
+        name: keep
+        userEditCount: keep
+    webhost: keep
+    wiki: keep
+
+MobileWebEditing:
+    event:
+        action: keep
+        editor: keep
+        errorText: keep
+        funnel: keep
+        isTestA: keep
+        mobileMode: keep
+        namespace: keep
+        pageId: keep
+        revId: keep
+        section: keep
+        token: keep
+        userEditCount: keep
+    webhost: keep
+    wiki: keep
+
+MobileWebInfobox:
+    event:
+        height: keep
+        in: keep
+        infoboxLength: keep
+        out: keep
+        start: keep
+        wasInteraction: keep
+        width: keep
+    webhost: keep
+    wiki: keep
+
+MobileWebLanguageSwitcher:
+    event:
+        beaconCapable: keep
+        event: keep
+        exitModal: keep
+        funnelToken: keep
+        languageButtonTappedBucket: keep
+        languageButtonVersion: keep
+        languageCount: keep
+        languageOverlayVersion: keep
+        languageTapped: keep
+        mobileMode: keep
+        positionOfLanguageTapped: keep
+        primaryLanguageOfUser: keep
+        searchInputHasQuery: keep
+    webhost: keep
+    wiki: keep
+
+MobileWebMainMenuClickTracking:
+    editCountBucket: keep
+    event:
+        editCountBucket: keep
+        mobileMode: keep
+        name: keep
+        userEditCount: keep
+    webhost: keep
+    wiki: keep
+
+MobileWebSearch:
+    event:
+        action: keep
+        clickIndex: keep
+        numberOfResults: keep
+        platform: keep
+        platformVersion: keep
+        resultSetType: keep
+        searchSessionToken: hash
+        timeOffsetSinceStart: keep
+        timeToDisplayResults: keep
+        userSessionToken: hash
+    webhost: keep
+    wiki: keep
+
+MobileWebSectionUsage:
+    event:
+        eventName: keep
+        hasServiceWorkerSupport: keep
+        isTablet: keep
+        isTestA: keep
+        namespace: keep
+        pageId: keep
+        section: keep
+        sectionCount: keep
+    webhost: keep
+    wiki: keep
+
+MobileWebShareButton:
+    event:
+        action: keep
+        isAnon: keep
+        pageTitle: keep
+        pageToken: keep
+        namespaceId: keep
+    webhost: keep
+    wiki: keep
+
+MobileWebUIActionsTracking:
+    event:
+        action: keep
+        name: keep
+        modes: keep
+        isAnon: keep
+        editCountBucket: keep
+    webhost: keep
+    wiki: keep
+
+MobileWebUIClickTracking:
+    editCountBucket: keep
+    event:
+        editCountBucket: keep
+        mobileMode: keep
+        name: keep
+        userEditCount: keep
+    webhost: keep
+    wiki: keep
+
+MobileWebUploads:
+    event:
+        action: keep
+        errorText: keep
+        funnel: keep
+        isEditable: keep
+        mobileMode: keep
+        pageId: keep
+        token: keep
+    webhost: keep
+    wiki: keep
+
+MobileWebWatching:
+    editCountBucket: keep
+    event:
+        editCountBucket: keep
+        funnel: keep
+        isWatched: keep
+        mobileMode: keep
+        userEditCount: keep
+    webhost: keep
+    wiki: keep
+
+MobileWebWatchlistClickTracking:
+    editCountBucket: keep
+    event:
+        editCountBucket: keep
+        mobileMode: keep
+        name: keep
+        userEditCount: keep
+    webhost: keep
+    wiki: keep
+
+MobileWebWikiGrok:
+    event:
+        action: keep
+        isLoggedIn: keep
+        mobileMode: keep
+        scrollOffset: keep
+        taskToken: keep
+        taskType: keep
+        testing: keep
+        userEditCount: keep
+        userToken: keep
+        username: keep
+        version: keep
+        widgetOffset: keep
+    webhost: keep
+    wiki: keep
+
+MobileWebWikiGrokError:
+    event:
+        error: keep
+        isLoggedIn: keep
+        mobileMode: keep
+        taskToken: keep
+        taskType: keep
+        testing: keep
+        userToken: keep
+    webhost: keep
+    wiki: keep
+
+MobileWebWikiGrokResponse:
+    event:
+        isLoggedIn: keep
+        mobileMode: keep
+        property: keep
+        propertyId: keep
+        response: keep
+        sourceWiki: keep
+        subject: keep
+        subjectId: keep
+        taskToken: keep
+        taskType: keep
+        testing: keep
+        userEditCount: keep
+        userToken: keep
+        value: keep
+        valueId: keep
+    webhost: keep
+    wiki: keep
+
+MobileWikiAppAppearanceSettings:
+    event:
+        action: keep
+        appInstallID: hash
+        app_install_id: hash
+        appearanceAppInstallID: hash
+        currentValue: keep
+        newValue: keep
+        current_value: keep
+        new_value: keep
+    useragent:
+        os_family: keep
+        wmf_app_version: keep
+    webhost: keep
+    wiki: keep
+
+MobileWikiAppArticleSuggestions:
+    event:
+        action: keep
+        appInstallID: hash
+        app_install_id: hash
+        latency: keep
+        readMoreIndex: keep
+        readMoreSource: keep
+        version: keep
+        client_dt: keep
+    useragent:
+        os_family: keep
+        wmf_app_version: keep
+    webhost: keep
+    wiki: keep
+
+MobileWikiAppCreateAccount:
+    event:
+        action: keep
+        createAccountSessionToken: hash
+        errorText: keep
+        loginSessionToken: hash
+        session_token: hash
+        source: keep
+        app_install_id: hash
+        client_dt: keep
+    useragent:
+        os_family: keep
+        wmf_app_version: keep
+    webhost: keep
+    wiki: keep
+
+MobileWikiAppDailyStats:
+    event:
+        is_anon: keep
+        languages: keep
+        client_dt: keep
+        appInstallAgeDays: keep
+        appInstallID: hash
+        app_install_id: hash
+    useragent:
+        os_family: keep
+        wmf_app_version: keep
+    webhost: keep
+    wiki: keep
+
+MobileWikiAppEdit:
+    event:
+        abuseFilterName: keep
+        action: keep
+        anon: keep
+        app_install_id: hash
+        client_dt: keep
+        editSessionToken: hash
+        editSummaryTapped: keep
+        errorText: keep
+        pageNS: keep
+        session_token: hash
+        source: keep
+        wikidataDescriptionEdit: keep
+    useragent:
+        os_family: keep
+        wmf_app_version: keep
+    webhost: keep
+    wiki: keep
+
+MobileWikiAppFeed:
+    event:
+        action: keep
+        age: keep
+        cardType: keep
+        position: keep
+        language: keep
+        sessionToken: hash
+        session_token: hash
+        timeSpent: keep
+        time_spent: keep
+        appInstallID: hash
+        app_install_id: hash
+        client_dt: keep
+    geocoded_data:
+        continent: keep
+        country_code: keep
+    useragent:
+        os_family: keep
+        wmf_app_version: keep
+    webhost: keep
+    wiki: keep
+
+MobileWikiAppFeedConfigure:
+    event:
+        enabled_list: keep
+        order_list: keep
+        source: keep
+        time_spent: keep
+        languages: keep
+        app_install_id: hash
+        client_dt: keep
+    useragent:
+        os_family: keep
+        wmf_app_version: keep
+    webhost: keep
+    wiki: keep
+
+MobileWikiAppFindInPage:
+    event:
+        appInstallID: hash
+        app_install_id: hash
+        numFindNext: keep
+        numFindPrev: keep
+        pageHeight: keep
+        timeSpent: keep
+        client_dt: keep
+    useragent:
+        os_family: keep
+        wmf_app_version: keep
+    webhost: keep
+    wiki: keep
+
+MobileWikiAppInstallReferrer:
+    event:
+        campaign_id: keep
+        utm_medium: keep
+        utm_campaign: keep
+        utm_source: keep
+        app_install_id: hash
+        client_dt: keep
+    useragent:
+        os_family: keep
+        wmf_app_version: keep
+    webhost: keep
+    wiki: keep
+
+MobileWikiAppIntents:
+    event:
+        action: keep
+        appInstallID: hash
+        app_install_id: hash
+        client_dt: keep
+    useragent:
+        os_family: keep
+        wmf_app_version: keep
+    webhost: keep
+    wiki: keep
+
+MobileWikiAppiOSFeed:
+    event:
+        category: keep
+        label: keep
+        action: keep
+        measure_age: keep
+        measure_position: keep
+        measure_time: keep
+        measure_max_viewed: keep
+        app_install_id: hash
+        primary_language: keep
+        is_anon: keep
+        event_dt: keep
+        session_id: hash
+    geocoded_data:
+        continent: keep
+        country_code: keep
+    useragent:
+        wmf_app_version: keep
+
+MobileWikiAppLangSelect:
+    event:
+        action: keep
+        appInstallID: hash
+        app_install_id: hash
+        newLang: keep
+        oldLang: keep
+        sessionToken: keep
+        source: keep
+        timeSpent: keep
+        client_dt: keep
+    useragent:
+        os_family: keep
+        wmf_app_version: keep
+    webhost: keep
+    wiki: keep
+
+MobileWikiAppLanguageSearching:
+    event:
+        language_settings_token: hash
+        added: keep
+        language: keep
+        time_spent: keep
+        app_install_id: hash
+        client_dt: keep
+    useragent:
+        os_family: keep
+        wmf_app_version: keep
+    webhost: keep
+    wiki: keep
+
+MobileWikiAppLanguageSettings:
+    event:
+        source: keep
+        initial: keep
+        final: keep
+        interactions: keep
+        searched: keep
+        time_spent: keep
+        session_token: hash
+        app_install_id: hash
+        client_dt: keep
+    useragent:
+        os_family: keep
+        wmf_app_version: keep
+    webhost: keep
+    wiki: keep
+
+MobileWikiAppLinkPreview:
+    event:
+        action: keep
+        source: keep
+        appInstallID: hash
+        app_install_id: hash
+        previewSessionToken: hash
+        session_token: hash
+        timeSpent: keep
+        time_spent: keep
+        version: keep
+        client_dt: keep
+    useragent:
+        os_family: keep
+        wmf_app_version: keep
+    webhost: keep
+    wiki: keep
+
+MobileWikiAppLogin:
+    event:
+        action: keep
+        appInstallID: hash
+        editSessionToken: hash
+        errorText: keep
+        loginSessionToken: hash
+        source: keep
+        ts: keep
+    useragent:
+        os_family: keep
+        wmf_app_version: keep
+    webhost: keep
+    wiki: keep
+
+MobileWikiAppMediaGallery:
+    event:
+        action: keep
+        appInstallID: hash
+        app_install_id: hash
+        gallerySessionToken: hash
+        session_token: hash
+        source: keep
+        timeSpent: keep
+        time_spent: keep
+        client_dt: keep
+    useragent:
+        os_family: keep
+        wmf_app_version: keep
+    webhost: keep
+    wiki: keep
+
+MobileWikiAppNavMenu:
+    event:
+        action: keep
+        appInstallID: hash
+        app_install_id: hash
+        menuItem: keep
+        sessionToken: hash
+    useragent:
+        os_family: keep
+        wmf_app_version: keep
+    webhost: keep
+    wiki: keep
+
+MobileWikiAppNotificationInteraction:
+    event:
+        notification_id: keep
+        notification_wiki: keep
+        notification_type: keep
+        action_rank: keep
+        action_icon: keep
+        selection_token: hash
+        app_install_id: hash
+        client_dt: keep
+    useragent:
+        os_family: keep
+        wmf_app_version: keep
+    webhost: keep
+    wiki: keep
+
+MobileWikiAppNotificationPreferences:
+    event:
+        type_toggles: keep
+        background_fetch: keep
+        app_install_id: hash
+        client_dt: keep
+    useragent:
+        os_family: keep
+        wmf_app_version: keep
+    webhost: keep
+    wiki: keep
+
+MobileWikiAppOnboarding:
+    event:
+        action: keep
+        onboardingToken: hash
+    useragent:
+        os_family: keep
+        wmf_app_version: keep
+    webhost: keep
+    wiki: keep
+
+MobileWikiAppPageScroll:
+    event:
+        maxPercentViewed: keep
+        pageHeight: keep
+        scrollFluxDown: keep
+        scrollFluxUp: keep
+        timeSpent: keep
+        time_spent: keep
+        app_install_id: hash
+        client_dt: keep
+    useragent:
+        os_family: keep
+        wmf_app_version: keep
+    webhost: keep
+    wiki: keep
+
+MobileWikiAppProtectedEditAttempt:
+    event:
+        protectionStatus: keep
+        appInstallID: hash
+        app_install_id: hash
+        client_dt: keep
+        ts: keep
+    useragent:
+        os_family: keep
+        wmf_app_version: keep
+    webhost: keep
+    wiki: keep
+
+MobileWikiAppRandomizer:
+    event:
+        fingerSwipesForward: keep
+        fingerSwipesBack: keep
+        diceClicks: keep
+        backClicks: keep
+        source: keep
+        time_spent: keep
+        app_install_id: keep
+        client_dt: keep
+    useragent:
+        os_family: keep
+        wmf_app_version: keep
+    webhost: keep
+    wiki: keep
+
+MobileWikiAppReadingLists:
+    event:
+        action: keep
+        addsource: keep
+        appInstallID: hash
+        app_install_id: hash
+        itemcount: keep
+        listcount: keep
+        client_dt: keep
+    useragent:
+        os_family: keep
+        wmf_app_version: keep
+    webhost: keep
+    wiki: keep
+
+MobileWikiAppSavedPages:
+    event:
+        action: keep
+        appInstallID: hash
+        app_install_id: hash
+        savedPagesAppInstallToken: hash
+    useragent:
+        os_family: keep
+        wmf_app_version: keep
+    webhost: keep
+    wiki: keep
+
+MobileWikiAppSearch:
+    event:
+        action: keep
+        appInstallID: hash
+        app_install_id: hash
+        numberOfResults: keep
+        number_of_results: keep
+        position: keep
+        searchSessionToken: hash
+        session_token: hash
+        source: keep
+        invoke_source: keep
+        language: keep
+        timeToDisplayResults: keep
+        time_to_display_results: keep
+        typeOfSearch: keep
+        type_of_search: keep
+        client_dt: keep
+    useragent:
+        os_family: keep
+        wmf_app_version: keep
+    webhost: keep
+    wiki: keep
+
+MobileWikiAppSessions:
+    event:
+        action: keep
+        apiMode: keep
+        appInstallID: hash
+        app_install_id: hash
+        backPressed: keep
+        fromBack: keep
+        fromDisambig: keep
+        fromExternal: keep
+        fromHistory: keep
+        fromInternal: keep
+        fromLanglink: keep
+        fromNearby: keep
+        fromRandom: keep
+        fromReadingList: keep
+        fromSearch: keep
+        fromSuggestedEdits: keep
+        leadLatency: keep
+        length: keep
+        noDescription: keep
+        pagesViewedFromExternal: keep
+        pagesViewedFromHistory: keep
+        pagesViewedFromLanglink: keep
+        pagesViewedFromRandom: keep
+        pagesViewedFromSaved: keep
+        pagesViewedFromSearch: keep
+        restLatency: keep
+        totalPages: keep
+        totalPagesViewed: keep
+        languages: keep
+        session_token: hash
+        client_dt: keep
+    useragent:
+        os_family: keep
+        wmf_app_version: keep
+    webhost: keep
+    wiki: keep
+
+MobileWikiAppShareAFact:
+    event:
+        action: keep
+        appInstallID: hash
+        client_dt: keep
+        shareSessionToken: hash
+        sessionToken: hash
+        session_token: hash
+        sharemode: keep
+        share_mode: keep
+        target: keep
+        ts: keep
+        tutorialFeatureEnabled: keep
+        tutorial_feature_enabled: keep
+        tutorialShown: keep
+        tutorial_shown: keep
+        client_dt: keep
+    useragent:
+        os_family: keep
+        wmf_app_version: keep
+    webhost: keep
+    wiki: keep
+
+MobileWikiAppStuffHappens:
+    event:
+        applicationContext: keep
+        failedEndpoint: keep
+    useragent:
+        os_family: keep
+        wmf_app_version: keep
+    webhost: keep
+    wiki: keep
+
+MobileWikiAppSuggestedEdits:
+    event:
+        time_spent: keep
+        edit_tasks: keep
+        help_opened: keep
+        scorecard_opened: keep
+        source: keep
+        session_token: hash
+        app_install_id: hash
+        client_dt: keep
+    useragent:
+        os_family: keep
+        wmf_app_version: keep
+    webhost: keep
+    wiki: keep
+
+MobileWikiAppTabs:
+    event:
+        action: keep
+        appInstallID: hash
+        app_install_id: hash
+        tabCount: keep
+        tabIndex: keep
+        tabsSessionToken: hash
+        client_dt: keep
+    useragent:
+        os_family: keep
+        wmf_app_version: keep
+    webhost: keep
+    wiki: keep
+
+MobileWikiAppToCInteraction:
+    event:
+        action: keep
+        appInstallID: hash
+        app_install_id: hash
+        numSections: keep
+        num_sections: keep
+        sectionIndex: keep
+        section_index: keep
+        timeSpent: keep
+        time_spent: keep
+        tocInteractionToken: hash
+        ts: keep
+        interaction_token: hash
+        client_dt: keep
+    useragent:
+        os_family: keep
+        wmf_app_version: keep
+    webhost: keep
+    wiki: keep
+
+MobileWikiAppWidgets:
+    event:
+        action: keep
+        appInstallID: hash
+        app_install_id: hash
+    useragent:
+        os_family: keep
+        wmf_app_version: keep
+    webhost: keep
+    wiki: keep
+
+MobileWikiAppWiktionaryPopup:
+    event:
+        text: keep
+        timeSpent: keep
+        time_spent: keep
+        app_install_id: hash
+        client_dt: keep
+    useragent:
+        os_family: keep
+        wmf_app_version: keep
+    webhost: keep
+    wiki: keep
+
+MobileWikiAppiOSUserHistory:
+    event:
+        measure_readinglist_listcount: keep
+        measure_readinglist_itemcount: keep
+        readinglist_sync: keep
+        readinglist_showdefault: keep
+        measure_font_size: keep
+        theme: keep
+        feed_disabled: keep
+        trend_notify: keep
+        search_tab: keep
+        primary_language: keep
+        is_anon: keep
+        app_install_id: hash
+        event_dt: keep
+        session_id: hash
+        feed_enabled_list:
+            fa:
+                !!str on: keep
+                !!str off: keep
+            tr:
+                !!str on: keep
+                !!str off: keep
+            od:
+                !!str on: keep
+                !!str off: keep
+            ns:
+                !!str on: keep
+                !!str off: keep
+            pl:
+                !!str on: keep
+                !!str off: keep
+            rd:
+                !!str on: keep
+                !!str off: keep
+            rp: keep
+            cr: keep
+            pd: keep
+    useragent:
+        os_family: keep
+        os_major: keep
+        wmf_app_version: keep
+    geocoded_data:
+        country: keep
+    webhost: keep
+    wiki: keep
+
+MultimediaViewerAttribution:
+    event:
+        authorPresent: keep
+        licensePresent: keep
+        loggedIn: keep
+        samplingFactor: keep
+        sourcePresent: keep
+    webhost: keep
+    wiki: keep
+
+MultimediaViewerDuration:
+    event:
+        country: keep
+        duration: keep
+        loggedIn: keep
+        samplingFactor: keep
+        type: keep
+        uploadTimestamp: keep
+    webhost: keep
+    wiki: keep
+
+MultimediaViewerNetworkPerformance:
+    event:
+        XCache: keep
+        XVarnish: keep
+        age: keep
+        bandwidth: keep
+        cache: keep
+        contentHost: keep
+        contentLength: keep
+        country: keep
+        dns: keep
+        imageWidth: keep
+        isHttps: keep
+        lastModified: keep
+        metered: keep
+        redirect: keep
+        request: keep
+        response: keep
+        status: keep
+        tcp: keep
+        timestamp: keep
+        total: keep
+        type: keep
+        uploadTimestamp: keep
+        urlHost: keep
+        varnish1: keep
+        varnish1hits: keep
+        varnish2: keep
+        varnish2hits: keep
+        varnish3: keep
+        varnish3hits: keep
+        varnish4: keep
+        varnish4hits: keep
+    webhost: keep
+    wiki: keep
+
+MultimediaViewerVersusPageFilePerformance:
+    event:
+        cache: keep
+        duration: keep
+        type: keep
+        windowSize: keep
+    webhost: keep
+    wiki: keep
+
+NavigationTiming:
+    event:
+        action: keep
+        cacheResponseType: keep
+        connectEnd: keep
+        connectStart: keep
+        connecting: keep
+        dnsLookup: keep
+        domComplete: keep
+        domContentLoadedEventEnd: keep
+        domContentLoadedEventStart: keep
+        domInteractive: keep
+        domLoading: keep
+        domainLookupEnd: keep
+        domainLookupStart: keep
+        deviceMemory: keep
+        fetchStart: keep
+        gaps: keep
+        hardwareConcurrency: keep
+        isAnon: keep
+        isHiDPI: keep
+        isHttp2: keep
+        isHttps: keep
+        isOversample: keep
+        loadEventEnd: keep
+        loadEventStart: keep
+        loading: keep
+        mediaWikiLoadComplete: keep
+        mediaWikiLoadEnd: keep
+        mediaWikiLoadStart: keep
+        mediaWikiVersion: keep
+        mobileMode: keep
+        namespaceId: keep
+        netinfoDownlink: keep
+        netinfoEffectiveConnectionType: keep
+        netinfoRtt: keep
+        pageviewToken: hash
+        phpEngine: keep
+        oversampleReason: keep
+        receiving: keep
+        redirectCount: keep
+        redirectEnd: keep
+        redirectStart: keep
+        redirecting: keep
+        rendering: keep
+        requestStart: keep
+        responseEnd: keep
+        responseStart: keep
+        runtime: keep
+        secureConnectionStart: keep
+        sending: keep
+        transferSize: keep
+        unload: keep
+        unloadEventEnd: keep
+        unloadEventStart: keep
+        waiting: keep
+    webhost: keep
+    wiki: keep
+
+netflow:
+    as_dst: keep
+    as_name_dst: keep
+    as_name_src: keep
+    as_path: keep
+    as_src: keep
+    bytes: keep
+    country_ip_dst: keep
+    country_ip_src: keep
+    ip_proto: keep
+    ip_version: keep
+    packets: keep
+    parsed_comms: keep
+    peer_as_dst: keep
+    region: keep
+    stamp_inserted: keep
+    tag2: keep
+
+PaintTiming:
+    event:
+        pageviewToken: hash
+        name: keep
+        startTime: keep
+        isOversample: keep
+        oversampleReason: keep
+        isAnon: keep
+        mobileMode: keep
+        originCountry: keep
+    webhost: keep
+    wiki: keep
+
+Popups:
+    event:
+        action: keep
+        api: keep
+        checkin: keep
+        duration: keep
+        hovercardsSuppressedByGadget: keep
+        isAnon: keep
+        linkInteractionToken: hash
+        namespaceIdHover: keep
+        namespaceIdSource: keep
+        pageToken: hash
+        perceivedWait: keep
+        popupDelay: keep
+        popupEnabled: keep
+        previewCountBucket: keep
+        previewType: keep
+        sessionID: hash
+        sessionToken: hash
+        totalInteractionTime: keep
+        version: keep
+    webhost: keep
+    wiki: keep
+
+# https://meta.wikimedia.org/wiki/Schema:PrefUpdate
+#
+# NOTE: This is also loaded into Druid/Turnilo, which aggregates by
+# event.isDefault, event.property and wiki (see operations/puppet).
+#
+# For ad-hoc queries, also keep major version and webhost.
+PrefUpdate:
+    event:
+        isDefault: keep
+        property: keep
+        version: keep
+    webhost: keep
+    wiki: keep
+
+Print:
+    event:
+        action: keep
+        isAnon: keep
+        namespaceId: keep
+        sessionToken: keep
+        skin: keep
+
+QuickSurveyInitiation:
+    event:
+        eventName: keep
+        pageviewToken: hash
+        performanceNow: keep
+        surveyCodeName: keep
+        surveyInstanceToken: keep
+        surveySessionToken: keep
+    webhost: keep
+    wiki: keep
+
+QuickSurveysResponses:
+    event:
+        editCountBucket: keep
+        isLoggedIn: keep
+        isTablet: keep
+        namespaceId: keep
+        pageId: keep
+        pageTitle: keep
+        pageviewToken: hash
+        platform: keep
+        surveyCodeName: keep
+        surveyInstanceToken: keep
+        surveyResponseValue: keep
+        surveySessionToken: keep
+    webhost: keep
+    wiki: keep
+
+ReadingDepth:
+    event:
+        action: keep
+        domInteractiveTime: keep
+        firstPaintTime: keep
+        isAnon: keep
+        namespaceId: keep
+        pageTitle: keep
+        pageID: keep
+        revisionID: keep
+        pageToken: hash
+        skin: keep
+        totalLength: keep
+        visibleLength: keep
+        default_sample: keep
+        page_issues_a_sample: keep
+        page_issues_b_sample: keep
+    webhost: keep
+    wiki: keep
+
+RelatedArticles:
+    event:
+        clickIndex: keep
+        eventName: keep
+        pageId: keep
+        skin: keep
+        userSessionToken: keep
+    webhost: keep
+    wiki: keep
+
+ReferencePreviewsBaseline:
+    event:
+        action: keep
+    webhost: keep
+    wiki: keep
+
+ReferencePreviewsCite:
+    event:
+        action: keep
+    webhost: keep
+    wiki: keep
+
+ReferencePreviewsPopups:
+    event:
+        action: keep
+        scrollbarsPresent: keep
+    webhost: keep
+    wiki: keep
+
+ResourceTiming:
+    event:
+        connectEnd: keep
+        connectStart: keep
+        domainLookupEnd: keep
+        domainLookupStart: keep
+        decodedBodySize: keep
+        duration: keep
+        encodedBodySize: keep
+        fetchStart: keep
+        initiatorType: keep
+        label: keep
+        name: keep
+        nextHopProtocol: keep
+        pageviewToken: hash
+        redirectEnd: keep
+        redirectStart: keep
+        requestStart: keep
+        responseEnd: keep
+        responseStart: keep
+        secureConnectionStart: keep
+        startTime: keep
+        transferSize: keep
+        workerStart: keep
+    webhost: keep
+    wiki: keep
+
+RUMSpeedIndex:
+    event:
+        pageviewToken: hash
+        RSI: keep
+
+SaveTiming:
+    event:
+        duration: keep
+        mediaWikiVersion: keep
+        runtime: keep
+        saveTiming: keep
+    webhost: keep
+    wiki: keep
+
+ServerSideAccountCreation:
+    event:
+        campaign: keep
+        displayMobile: keep
+        isApi: keep
+        isSelfMade: keep
+        isStable: keep
+        token: hash
+        userBuckets: keep
+        userId: keep
+        userName: keep
+    webhost: keep
+    wiki: keep
+
+TaskRecommendation:
+    event:
+        offset: keep
+        pageId: keep
+        setId: keep
+    webhost: keep
+    wiki: keep
+
+TaskRecommendationClick:
+    event:
+        pageId: keep
+        setId: keep
+    webhost: keep
+    wiki: keep
+
+TaskRecommendationImpression:
+    event:
+        interface: keep
+        offset: keep
+        pageId: keep
+        setId: keep
+        userId: keep
+    webhost: keep
+    wiki: keep
+
+TaskRecommendationLightbulbClick:
+    event:
+        pageId: keep
+        userId: keep
+    webhost: keep
+    wiki: keep
+
+TemplateDataEditor:
+    event:
+        action: keep
+        page_id: keep
+        page_namespace: keep
+        page_title: keep
+        rev_id: keep
+        # TODO: user_edit_count_bucket
+        # user_edit_count: purge
+        # user_id: purge
+    wiki: keep
+
+TestSearchSatisfaction:
+    event:
+        action: keep
+        depth: keep
+        logId: keep
+        pageId: keep
+        searchSessionId: keep
+    webhost: keep
+    wiki: keep
+
+TwoColConflictConflict:
+    event:
+        baseRevisionId: keep
+        conflictChars: keep
+        conflictChunks: keep
+        # TODO: should have an editCountBucket, instead we only pass editCount
+        editTime: keep
+        hasJavascript: keep
+        isAnon: keep
+        latestRevisionId: keep
+        pageNs: keep
+        pageTitle: keep
+        parentRevisionId: keep
+        startTime: keep
+        twoColConflictShown: keep
+    webhost: keep
+    wiki: keep
+
+TwoColConflictExit:
+    event:
+        action: keep
+        base_rev_id: keep
+        latest_rev_id: keep
+        page_namespace: keep
+        page_title: keep
+        selections: keep
+        session_token: keep
+        start_time_ts_ms: keep
+    webhost: keep
+    wiki: keep
+
+UploadWizardErrorFlowEvent:
+    event:
+        code: keep
+        flowId: keep
+        flowPosition: keep
+        message: keep
+        step: keep
+    webhost: keep
+    wiki: keep
+
+UploadWizardExceptionFlowEvent:
+    event:
+        column: keep
+        flowId: keep
+        flowPosition: keep
+        line: keep
+        stack: keep
+        url: keep
+    webhost: keep
+    wiki: keep
+
+UploadWizardFlowEvent:
+    event:
+        event: keep
+        flowId: keep
+        flowPosition: keep
+    webhost: keep
+    wiki: keep
+
+UploadWizardStep:
+    event:
+        flowId: keep
+        flowPosition: keep
+        skipped: keep
+        step: keep
+    webhost: keep
+    wiki: keep
+
+UploadWizardTutorialActions:
+    event:
+        action: keep
+        language: keep
+        username: keep
+    webhost: keep
+    wiki: keep
+
+UploadWizardUploadFlowEvent:
+    event:
+        duration: keep
+        error: keep
+        event: keep
+        extension: keep
+        flowId: keep
+        flowPosition: keep
+        quantity: keep
+        size: keep
+    webhost: keep
+    wiki: keep
+
+VET135171:
+    event:
+        msg: keep
+    webhost: keep
+    wiki: keep
+
+VisualEditorFeatureUse:
+    event:
+        action: keep
+        editingsessionid: keep
+        feature: keep
+        platform: keep
+        integration: keep
+        editor_interface: keep
+        user_id: keep
+        user_editcount: keep
+        bucket: keep
+    webHost: keep
+    wiki: keep
+
+WikibasePingback:
+    event:
+        database: keep
+        extensions: keep
+        federation: keep
+        hasEntities: keep
+        termbox: keep
+        mediawiki: keep
+        memoryLimit: keep
+    wiki: keep
+
+WikimediaBlogVisit:
+    event:
+        referrerUrl: keep
+        requestUrl: keep
+    webhost: keep
+    wiki: keep
+
+WikipediaPortal:
+    event:
+        session_id: hash
+        event_type: keep
+        section_used: keep
+        # TODO add referer when approved by Legal
+        # referer: keep
+        accept_language: keep
+        cohort: keep
+        selected_language: keep
+    geocoded_data:
+        continent: keep
+        country_code: keep
+    useragent:
+        browser_family: keep
+        is_bot: keep
+        os_family: keep
+
+WikipediaZeroUsage:
+    event:
+        action: keep
+        net: keep
+        time: keep
+        xcs: keep
+    webhost: keep
+    wiki: keep
+
+SpecialMuteSubmit:
+    event:
+        emailsBefore: keep
+        emailsAfter: keep
+        notificationsBefore: keep
+        notificationsAfter: keep
+    wiki: keep
+    webhost: keep
+
+SpecialInvestigate:
+    event:
+        action: keep
+        targetsCount: keep
+        excludeTargetsCount: keep
+        relevantTargetsCount: keep
+        tab: keep
+        queryTime: keep
+        resultsCount: keep
+        resultsIncomplete: keep
+        tool: keep
+    wiki: keep
+    webhost: keep
