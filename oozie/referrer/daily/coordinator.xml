@@ -78,7 +78,8 @@
 
     <input-events>
         <data-in name="pageview_actor" dataset="pageview_actor">
-            <instance>${coord:current(0)}</instance>
+            <start-instance>${coord:current(0)}</start-instance>
+            <end-instance>${coord:current(23)}</end-instance>
         </data-in>
     </input-events>
 
