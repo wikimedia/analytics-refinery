@@ -216,6 +216,10 @@
                     <name>archive_file</name>
                     <value>${archive_directory}/${archive_file_name}.tsv</value>
                 </property>
+                <property>
+                    <name>check_done</name>
+                    <value>false</value>
+                </property>
             </configuration>
         </sub-workflow>
         <!-- Could also mark a dataset as done if other jobs want to depend on this -->

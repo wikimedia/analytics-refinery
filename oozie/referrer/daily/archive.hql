@@ -11,7 +11,30 @@
 
  insert overwrite directory '${destination_directory}'
     ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
- select * from ${source_table}
+
+-- hack: this space -> '[ ]country' has to be there for the header to sort first
+ select ' country' as country,
+        'lang',
+        'browser_family',
+        'os_family',
+        'search_engine',
+        'num_referrals',
+        'day'
+
+  union all
+
+ select country,
+        lang,
+        browser_family,
+        os_family,
+        search_engine,
+        cast(num_referrals as string),
+        CONCAT(LPAD(year, 4, "0"), LPAD(month, 2, "0"), LPAD(day, 2, "0")) AS day
+
+   from ${source_table}
   where year=${year}
     and month=${month}
-    and day=${day};
+    and day=${day}
+  order by country
+  limit 1000000
+;
