@@ -6,7 +6,7 @@ mediawiki_page_create: keep_all
 mediawiki_page_delete: keep_all
 mediawiki_page_links_change: keep_all
 mediawiki_page_move: keep_all
-mediawiki_page_properties_change: keep_all
+mediawiki_page_properties_change: keep_all  # NOTE: This table does not exist yet, need T281483
 mediawiki_page_restrictions_change: keep_all
 mediawiki_page_suppress: keep_all
 mediawiki_page_undelete: keep_all
