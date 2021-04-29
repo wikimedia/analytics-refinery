@@ -79,7 +79,7 @@ def sqoop_wiki(config):
         The config object with updated try number if the sqoop errored or failed in any way
     """
     if not config.is_sqoopable:
-        logger.info('SKIPPING: Table {} is not available for database {}'.format(config.table, config.dbname))
+        logger.info('SKIPPING: Table {} is not to be sqooped for database {}'.format(config.table, config.dbname))
         return None
 
     full_table = '.'.join([config.dbname, config.table])
@@ -100,10 +100,12 @@ def sqoop_wiki(config):
             '-D'                , "mapreduce.job.queuename={}".format(config.yarn_queue),
             '--username'        , config.user,
             '--password-file'   , config.password_file,
-            '--driver'          , config.driver_class,
             '--connect'         , config.jdbc_string,
             '--query'           , query,
         ]
+
+        if config.driver_class:
+            sqoop_arguments += ['--driver' , config.driver_class]
 
         if config.target_jar_dir:
             sqoop_arguments += [
@@ -271,7 +273,13 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
             'ar_user_text=String',
             'ar_text_id=Long',
         ])),
-        'boundary-query': 'SELECT MIN(ar_id), MAX(ar_id) FROM archive',
+        'boundary-query': '''
+            SELECT MIN(ar_id),
+                   MAX(ar_id)
+              FROM archive
+             WHERE TRUE
+                 {ts_clause}
+        '''.format(ts_clause=make_timestamp_clause('ar_timestamp', from_timestamp, to_timestamp)),,
         'split-by': 'ar_id',
         'mappers-weight': 0.5,
     }
@@ -324,7 +332,13 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
             'cl_collation=String',
             'cl_type=String',
         ])),
-        'boundary-query': 'SELECT MIN(cl_from), MAX(cl_from) FROM categorylinks',
+        'boundary-query': '''
+            SELECT MIN(cl_from),
+                   MAX(cl_from)
+              FROM categorylinks
+             WHERE TRUE
+                 {ts_clause}
+        '''.format(ts_clause=make_timestamp_clause('cl_timestamp', from_timestamp, to_timestamp)),
         'split-by': 'cl_from',
         'mappers-weight': 1.0,
     }
@@ -533,7 +547,13 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
             'ipb_reason=String',
             'ipb_reason_id=Long',
         ])),
-        'boundary-query': 'SELECT MIN(ipb_id), MAX(ipb_id) FROM ipblocks',
+        'boundary-query': '''
+            SELECT MIN(ipb_id),
+                   MAX(ipb_id)
+              FROM ipblocks
+             WHERE TRUE
+                 {ts_clause}
+        '''.format(ts_clause=make_timestamp_clause('ipb_timestamp', from_timestamp, to_timestamp)),
         'split-by': 'ipb_id',
         'mappers-weight': 0.0,
     }
@@ -618,7 +638,13 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
             'log_user=Long',
             'log_user_text=String',
         ])),
-        'boundary-query': 'SELECT MIN(log_id), MAX(log_id) FROM logging',
+        'boundary-query': '''
+            SELECT MIN(log_id),
+                   MAX(log_id)
+              FROM logging
+             WHERE TRUE
+                 {ts_clause}
+        '''.format(ts_clause=make_timestamp_clause('log_timestamp', from_timestamp, to_timestamp)),,
         'split-by': 'log_id',
         'mappers-weight': 1.0,
     }
@@ -764,7 +790,13 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
             'rev_content_model=String',
             'rev_content_format=String',
         ])),
-        'boundary-query': 'SELECT MIN(rev_id), MAX(rev_id) FROM revision',
+        'boundary-query': '''
+            SELECT MIN(rev_id),
+                   MAX(rev_id)
+              FROM revision
+             WHERE TRUE
+                 {ts_clause}
+        '''.format(ts_clause=make_timestamp_clause('rev_timestamp', from_timestamp, to_timestamp)),
         'split-by': 'rev_id',
         'mappers-weight': 1.0,
     }
@@ -927,7 +959,13 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         'map-types': '"{}"'.format(','.join([
             'cuc_minor=Boolean',
         ])),
-        'boundary-query': 'SELECT MIN(cuc_id), MAX(cuc_id) FROM cu_changes',
+        'boundary-query': '''
+            SELECT MIN(cuc_id),
+                   MAX(cuc_id)
+              FROM cu_changes
+             WHERE TRUE
+                 {ts_clause}
+        '''.format(ts_clause=make_timestamp_clause('cuc_timestamp', from_timestamp, to_timestamp)),
         'split-by': 'cuc_id',
         'mappers-weight': 0.5,
     }
