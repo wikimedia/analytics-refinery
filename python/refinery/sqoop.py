@@ -279,7 +279,7 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
               FROM archive
              WHERE TRUE
                  {ts_clause}
-        '''.format(ts_clause=make_timestamp_clause('ar_timestamp', from_timestamp, to_timestamp)),,
+        '''.format(ts_clause=make_timestamp_clause('ar_timestamp', from_timestamp, to_timestamp)),
         'split-by': 'ar_id',
         'mappers-weight': 0.5,
     }
@@ -644,7 +644,7 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
               FROM logging
              WHERE TRUE
                  {ts_clause}
-        '''.format(ts_clause=make_timestamp_clause('log_timestamp', from_timestamp, to_timestamp)),,
+        '''.format(ts_clause=make_timestamp_clause('log_timestamp', from_timestamp, to_timestamp)),
         'split-by': 'log_id',
         'mappers-weight': 1.0,
     }
