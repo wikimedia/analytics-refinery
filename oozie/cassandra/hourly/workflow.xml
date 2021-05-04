@@ -152,6 +152,20 @@
             <description>The partition's hour</description>
         </property>
 
+        <!-- Cassandra-3 double loading special values -->
+        <property>
+          <name>refinery_cassandra_3_jar_path</name>
+          <description>The path the cassandra-3 jar</description>
+        </property>
+        <property>
+          <name>cassandra_3_output_format_class</name>
+          <description>The CqlOutputFormat to use for cassandra-3</description>
+        </property>
+        <property>
+          <name>cassandra_3_host</name>
+          <description>The cassandra-3 host to bootstrap loading</description>
+        </property>
+
     </parameters>
 
     <credentials>
@@ -427,6 +441,221 @@
                 </property>
             </configuration>
             <archive>${refinery_cassandra_jar_path}</archive>
+
+        </map-reduce>
+        <ok to="load_cassandra_3"/>
+        <error to="send_error_email"/>
+    </action>
+
+    <action name="load_cassandra_3">
+        <map-reduce>
+            <job-tracker>${job_tracker}</job-tracker>
+            <name-node>${name_node}</name-node>
+            <configuration>
+
+                <!-- Global Configuration -->
+
+                <!-- Ensure classpath jars are loading in correct order-->
+                <property>
+                    <name>mapreduce.job.user.classpath.first</name>
+                    <value>true</value>
+                </property>
+
+                <!--Set queue -->
+                <property>
+                    <name>mapreduce.job.queuename</name>
+                    <value>${queue_name}</value>
+                </property>
+
+                <!--make sure oozie:launcher runs in a low priority queue -->
+                <property>
+                    <name>oozie.launcher.mapred.job.queue.name</name>
+                    <value>${oozie_launcher_queue_name}</value>
+                </property>
+                <property>
+                    <name>oozie.launcher.mapreduce.map.memory.mb</name>
+                    <value>${oozie_launcher_memory}</value>
+                </property>
+
+                <!-- Set mapper and reducer to yarn api style-->
+                <property>
+                    <name>mapred.mapper.new-api</name>
+                    <value>true</value>
+                </property>
+                <property>
+                    <name>mapred.reducer.new-api</name>
+                    <value>true</value>
+                </property>
+
+                <!-- Set logging to INFO -->
+                <property>
+                    <name>mapreduce.map.log.level</name>
+                    <value>INFO</value>
+                </property>
+                <property>
+                    <name>mapreduce.reduce.log.level</name>
+                    <value>INFO</value>
+                </property>
+
+
+                <!-- Map side -->
+                <!-- Default mapper - Nothing done -->
+                <property>
+                    <name>mapreduce.map.class</name>
+                    <value>org.apache.hadoop.mapreduce.Mapper</value>
+                </property>
+                <!-- compress map output -->
+                <property>
+                    <name>mapreduce.map.output.compress</name>
+                    <value>true</value>
+                </property>
+                <!-- input format and classes -->
+                <property>
+                    <name>mapreduce.job.inputformat.class</name>
+                    <value>org.apache.hadoop.mapreduce.lib.input.TextInputFormat</value>
+                </property>
+                <property>
+                    <name>mapreduce.job.input.key.class</name>
+                    <value>org.apache.hadoop.io.LongWritable</value>
+                </property>
+                <property>
+                    <name>mapreduce.job.input.value.class</name>
+                    <value>org.apache.hadoop.io.Text</value>
+                </property>
+                <!-- map output classes-->
+                <property>
+                    <name>mapreduce.map.output.key.class</name>
+                    <value>org.apache.hadoop.io.LongWritable</value>
+                </property>
+                <property>
+                    <name>mapreduce.map.output.value.class</name>
+                    <value>org.apache.hadoop.io.Text</value>
+                </property>
+                <!-- input dir -->
+                <property>
+                    <name>mapreduce.input.fileinputformat.inputdir</name>
+                    <value>${temporary_directory}/${wf:id()}-${cassandra_keyspace}</value>
+                </property>
+
+
+                <!-- Reduce side -->
+                <!-- Load to Cassandra reducer with X reducers-->
+                <property>
+                    <name>mapreduce.reduce.class</name>
+                    <value>${cassandra_reducer_class}</value>
+                </property>
+                <property>
+                    <name>mapreduce.job.reduces</name>
+                    <value>${cassandra_parallel_loaders}</value>
+                </property>
+                <property>
+                    <name>mapreduce.reduce.speculative</name>
+                    <value>false</value>
+                </property>
+
+                <!-- Cassandra output format and classes -->
+                <property>
+                    <name>mapreduce.job.outputformat.class</name>
+                    <value>${cassandra_3_output_format_class}</value>
+                </property>
+                <property>
+                    <name>mapreduce.job.output.key.class</name>
+                    <value>java.util.Map</value>
+                </property>
+                <property>
+                    <name>mapreduce.job.output.value.class</name>
+                    <value>java.util.List</value>
+                </property>
+
+                <!-- Cassandra reducer core config-->
+                <!-- Cassandra host - legacy naming-->
+                <property>
+                    <name>cassandra.output.thrift.address</name>
+                    <value>${cassandra_3_host}</value>
+                </property>
+                <property>
+                    <name>cassandra.output.native.port</name>
+                    <value>${cassandra_port}</value>
+                </property>
+                <property>
+                    <name>cassandra.input.native.auth.provider</name>
+                    <value>com.datastax.driver.core.PlainTextAuthProvider</value>
+                </property>
+                <property>
+                    <name>cassandra.username</name>
+                    <value>${cassandra_username}</value>
+                </property>
+                <property>
+                    <name>cassandra.password</name>
+                    <value>${cassandra_password}</value>
+                </property>
+                <property>
+                    <!--Write consistency level -->
+                    <name>cassandra.consistencylevel.write</name>
+                    <value>${cassandra_write_consistency}</value>
+                </property>
+                <property>
+                    <name>cassandra.output.keyspace</name>
+                    <value>${cassandra_keyspace}</value>
+                </property>
+                <property>
+                    <!-- actually used for column familly -->
+                    <name>mapreduce.output.basename</name>
+                    <value>${cassandra_table}</value>
+                </property>
+                <property>
+                    <name>cassandra.output.partitioner.class</name>
+                    <value>Murmur3Partitioner</value>
+                </property>
+                <property>
+                    <name>cassandra.output.cql</name>
+                    <value>${cassandra_cql}</value>
+                </property>
+                <property>
+                    <name>mapreduce.output.columnfamilyoutputformat.batch.threshold</name>
+                    <value>${batch_size}</value>
+                </property>
+                <property>
+                    <name>mapreduce.output.columnfamilyoutputformat.queue.size</name>
+                    <value>${batch_size * cassandra_nodes}</value>
+                </property>
+
+
+                <!-- Cassandra reducer specific config-->
+                <property>
+                    <name>input_separator</name>
+                    <value>${hive_value_separator}</value>
+                </property>
+                <property>
+                    <name>input_fields</name>
+                    <value>${hive_fields}</value>
+                </property>
+                <property>
+                    <name>input_fields_types</name>
+                    <value>${hive_fields_types}</value>
+                </property>
+                <property>
+                    <name>output_fields</name>
+                    <value>${cassandra_fields}</value>
+                </property>
+                <property>
+                    <name>output_primary_keys</name>
+                    <value>${cassandra_primary_keys}</value>
+                </property>
+                <property>
+                    <name>${constant_output_domain_field}</name>
+                    <value>${constant_output_domain_value}</value>
+                </property>
+                <property>
+                    <name>${constant_output_granularity_field}</name>
+                    <value>${constant_output_granularity_value}</value>
+                </property>
+                <property>
+                    <name>${constant_output_tid_field}</name>
+                    <value>${constant_output_tid_value}</value>
+                </property>
+            </configuration>
+            <archive>${refinery_cassandra_3_jar_path}</archive>
 
         </map-reduce>
         <ok to="remove_temporary_data"/>
