@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow-app xmlns="uri:oozie:workflow:0.4"
+    name="wikidata-reliability_metrics-wf-${year}-${month}-${day}">
+
+    <parameters>
+        <!-- Allows changing spark version to be used by oozie -->
+        <property>
+            <name>oozie.action.sharelib.for.spark</name>
+            <value>${oozie_spark_lib}</value>
+        </property>
+
+        <!-- Default values for inner oozie settings -->
+        <property>
+            <name>oozie_launcher_queue_name</name>
+            <value>${queue_name}</value>
+        </property>
+        <property>
+            <name>oozie_launcher_memory</name>
+            <value>2048</value>
+        </property>
+
+        <!-- Required properties -->
+        <property><name>name_node</name></property>
+        <property><name>job_tracker</name></property>
+        <property><name>hive_principal</name></property>
+        <property><name>hive_metastore_uri</name></property>
+        <property><name>queue_name</name></property>
+
+        <property>
+            <name>spark_master</name>
+            <description>Master to be used for Spark (yarn, local, other)</description>
+        </property>
+        <property>
+            <name>spark_assembly_zip</name>
+            <description>The spark assembly zip file on HDFS, preventing to repackage it everytime</description>
+        </property>
+        <property>
+            <name>spark_job_jar</name>
+            <description>Path to the jar to be used to run spark job</description>
+        </property>
+        <property>
+            <name>spark_job_class</name>
+            <description>Class of the spark job to be run</description>
+        </property>
+        <property>
+            <name>spark_executor_memory</name>
+            <description>Memory to allocate for each spark executor</description>
+        </property>
+        <property>
+            <name>spark_driver_memory</name>
+            <description>Memory to allocate for spark driver process</description>
+        </property>
+        <property>
+            <name>spark_max_executors</name>
+            <description>Maximum number of executors for spark</description>
+        </property>
+        <property>
+            <name>webrequest_table</name>
+            <description>The webrequest table</description>
+        </property>
+        <property>
+            <name>year</name>
+            <description>The partition's year</description>
+        </property>
+        <property>
+            <name>month</name>
+            <description>The partition's month</description>
+        </property>
+        <property>
+            <name>day</name>
+            <description>The partition's day</description>
+        </property>
+        <property>
+            <name>graphite_host</name>
+            <description>Graphite Host url</description>
+        </property>
+        <property>
+            <name>graphite_port</name>
+            <description>Graphite port</description>
+        </property>
+        <property>
+            <name>graphite_namespace</name>
+            <description>Namespace/prefix for metric in Graphite</description>
+        </property>
+        <property>
+            <name>error_emails_recipients</name>
+            <description>Emails to send errors to</description>
+        </property>
+        <property>
+            <name>send_error_email_workflow_file</name>
+            <description>Workflow for sending an email</description>
+        </property>
+    </parameters>
+
+    <credentials>
+        <credential name="hcat-cred" type="hcat">
+            <property>
+                <name>hcat.metastore.principal</name>
+                <value>${hive_principal}</value>
+            </property>
+            <property>
+               <name>hcat.metastore.uri</name>
+               <value>${hive_metastore_uri}</value>
+            </property>
+        </credential>
+    </credentials>
+
+
+    <start to="generate_wikidata_reliability_metrics"/>
+
+    <action name="generate_wikidata_reliability_metrics" cred="hcat-cred">
+        <spark xmlns="uri:oozie:spark-action:0.1">
+
+            <job-tracker>${job_tracker}</job-tracker>
+            <name-node>${name_node}</name-node>
+            <configuration>
+                <!--make sure oozie:launcher runs in a low priority queue -->
+                <property>
+                    <name>oozie.launcher.mapred.job.queue.name</name>
+                    <value>${oozie_launcher_queue_name}</value>
+                </property>
+                <property>
+                    <name>oozie.launcher.mapreduce.map.memory.mb</name>
+                    <value>${oozie_launcher_memory}</value>
+                </property>
+            </configuration>
+            <master>${spark_master}</master>
+            <mode>${spark_deploy}</mode>
+            <name>${spark_job_name}-${year}-${month}-${day}</name>
+            <class>${spark_job_class}</class>
+            <jar>${spark_job_jar}</jar>
+            <spark-opts>--conf spark.yarn.archive=${spark_assembly_zip} --conf spark.dynamicAllocation.enabled=true --conf spark.shuffle.service.enabled=true --executor-memory ${spark_executor_memory} --conf spark.dynamicAllocation.maxExecutors=${spark_max_executors} --driver-memory ${spark_driver_memory} --queue ${queue_name}</spark-opts>
+            <arg>--year</arg>
+            <arg>${year}</arg>
+            <arg>--month</arg>
+            <arg>${month}</arg>
+            <arg>--day</arg>
+            <arg>${day}</arg>
+            <arg>--graphite-host</arg>
+            <arg>${graphite_host}</arg>
+            <arg>--graphite-port</arg>
+            <arg>${graphite_port}</arg>
+            <arg>--graphite-namespace</arg>
+            <arg>${graphite_namespace}</arg>
+            <arg>--webrequest-table</arg>
+            <arg>${webrequest_table}</arg>
+        </spark>
+        <ok to="end" />
+        <error to="send_error_email" />
+    </action>
+
+    <action name="send_error_email">
+        <sub-workflow>
+            <app-path>${send_error_email_workflow_file}</app-path>
+            <propagate-configuration/>
+            <configuration>
+                <property>
+                    <name>to</name>
+                    <value>${error_emails_recipients}</value>
+                </property>
+                <property>
+                    <name>parent_name</name>
+                    <value>${wf:name()}</value>
+                </property>
+                <property>
+                    <name>parent_failed_action</name>
+                    <value>${wf:lastErrorNode()}</value>
+                </property>
+                <property>
+                    <name>parent_error_code</name>
+                    <value>${wf:errorCode(wf:lastErrorNode())}</value>
+                </property>
+                <property>
+                    <name>parent_error_message</name>
+                    <value>${wf:errorMessage(wf:lastErrorNode())}</value>
+                </property>
+            </configuration>
+        </sub-workflow>
+        <ok to="kill"/>
+        <error to="kill"/>
+    </action>
+
+    <kill name="kill">
+        <message>Action failed, error message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+    </kill>
+    <end name="end"/>
+</workflow-app>
