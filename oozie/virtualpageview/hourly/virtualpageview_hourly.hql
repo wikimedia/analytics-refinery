@@ -1,5 +1,5 @@
 --
--- Aggregate from event.VirtualPageView into wmf.virtualpageview_hourly.
+-- Aggregate from event.virtualpageview into wmf.virtualpageview_hourly.
 --
 -- Parameters:
 --     artifacts_directory   -- Version of the jar to import for UDFs.
@@ -19,7 +19,7 @@
 --     hive -f virtualpageview_hourly.hql \
 --         -d artifacts_directory=/wmf/refinery/current/artifacts \
 --         -d refinery_jar_version=0.0.58 \
---         -d source_table=event.VirtualPageView \
+--         -d source_table=event.virtualpageview \
 --         -d destination_table=wmf.virtualpageview_hourly \
 --         -d record_version=0.0.1 \
 --         -d whitelist_table=wmf.pageview_whitelist \

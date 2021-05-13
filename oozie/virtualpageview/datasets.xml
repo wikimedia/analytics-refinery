@@ -22,7 +22,7 @@ Use this dataset in your coordinator.xml files by setting:
 
     <!--
     The virtualpageview_hourly dataset contains aggregated virtualpageviews
-    over interesting dimensions from EventLogging VirtualPageView data.
+    over interesting dimensions from EventLogging virtualpageview data.
     -->
     <dataset name="virtualpageview_hourly"
              frequency="${coord:hours(1)}"
@@ -35,7 +35,7 @@ Use this dataset in your coordinator.xml files by setting:
     <!--
     The virtualpageview_source data set contains events emmited by the
     EventLogging client on "page previews"/"popups" desktop feature. See:
-    https://meta.wikimedia.org/wiki/Schema:VirtualPageView
+    https://meta.wikimedia.org/wiki/Schema:virtualpageview
     -->
     <dataset name="virtualpageview_source"
              frequency="${coord:hours(1)}"
