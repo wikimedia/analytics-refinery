@@ -46,7 +46,8 @@
                 "tls_version",
                 "tls_key_exchange",
                 "tls_auth",
-                "tls_cipher"
+                "tls_cipher",
+                "is_from_public_cloud"
             ]
           },
           "timestampSpec" : {
