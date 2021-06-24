@@ -203,7 +203,7 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
     query to execute for import.
 
     Notes
-        - convert(... using utf8) is used to decode varbinary fields into strings
+        - convert(... using utf8mb4) is used to decode varbinary fields into strings
         - map-types is used to handle some databases having booleans in
           tinyint(1) and others in tinyint(3,4) (newer databases like wikivoyage)
         - from_timestamp and to_timestamp are optional
@@ -235,12 +235,12 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         'query': '''
              select ar_id,
                     ar_namespace,
-                    convert(ar_title using utf8) ar_title,
+                    convert(ar_title using utf8mb4) ar_title,
                     null ar_text,
                     null ar_comment,
                     null ar_user,
                     null ar_user_text,
-                    convert(ar_timestamp using utf8) ar_timestamp,
+                    convert(ar_timestamp using utf8mb4) ar_timestamp,
                     ar_minor_edit,
                     null ar_flags,
                     ar_rev_id,
@@ -249,7 +249,7 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
                     ar_len,
                     ar_page_id,
                     ar_parent_id,
-                    convert(ar_sha1 using utf8) ar_sha1,
+                    convert(ar_sha1 using utf8mb4) ar_sha1,
                     null ar_content_model,
                     null ar_content_format,
                     ar_actor,
@@ -288,7 +288,7 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
     queries['category'] = {
         'query': '''
              select cat_id,
-                    convert(cat_title using utf8) cat_title,
+                    convert(cat_title using utf8mb4) cat_title,
                     cat_pages,
                     cat_subcats,
                     cat_files
@@ -312,12 +312,12 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
     queries['categorylinks'] = {
         'query': '''
              select cl_from,
-                    convert(cl_to using utf8) cl_to,
-                    convert(cl_sortkey using utf8) cl_sortkey,
-                    convert(cl_sortkey_prefix using utf8) cl_sortkey_prefix,
-                    convert(cl_timestamp using utf8) cl_timestamp,
-                    convert(cl_collation using utf8) cl_collation,
-                    convert(cl_type using utf8) cl_type
+                    convert(cl_to using utf8mb4) cl_to,
+                    convert(cl_sortkey using utf8mb4) cl_sortkey,
+                    convert(cl_sortkey_prefix using utf8mb4) cl_sortkey_prefix,
+                    convert(cl_timestamp using utf8mb4) cl_timestamp,
+                    convert(cl_collation using utf8mb4) cl_collation,
+                    convert(cl_type using utf8mb4) cl_type
 
                from categorylinks
               where $CONDITIONS
@@ -349,7 +349,7 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
                     ct_log_id,
                     ct_rev_id,
                     ct_tag_id,
-                    convert(ct_params using utf8) ct_params
+                    convert(ct_params using utf8mb4) ct_params
 
                from change_tag
               where $CONDITIONS
@@ -368,7 +368,7 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
     queries['change_tag_def'] = {
         'query': '''
              select ctd_id,
-                    convert(ctd_name using utf8) ctd_name,
+                    convert(ctd_name using utf8mb4) ctd_name,
                     ctd_user_defined,
                     ctd_count
 
@@ -389,9 +389,9 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         'query': '''
              select content_id,
                     content_size,
-                    convert(content_sha1 using utf8) content_sha1,
+                    convert(content_sha1 using utf8mb4) content_sha1,
                     content_model,
-                    convert(content_address using utf8) content_address
+                    convert(content_address using utf8mb4) content_address
 
                from content
               where $CONDITIONS
@@ -413,7 +413,7 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
     queries['content_models'] = {
         'query': '''
              select model_id,
-                    convert(model_name using utf8) model_name
+                    convert(model_name using utf8mb4) model_name
 
                from content_models
               where $CONDITIONS
@@ -430,9 +430,9 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         'query': '''
              select el_id,
                     el_from,
-                    convert(el_to using utf8) el_to,
-                    convert(el_index using utf8) el_index,
-                    convert(el_index_60 using utf8) el_index_60
+                    convert(el_to using utf8mb4) el_to,
+                    convert(el_index using utf8mb4) el_index,
+                    convert(el_index_60 using utf8mb4) el_index_60
 
                from externallinks
               where $CONDITIONS
@@ -451,21 +451,21 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
 
     queries['image'] = {
         'query': '''
-             select convert(img_name using utf8) img_name,
+             select convert(img_name using utf8mb4) img_name,
                     img_size,
                     img_width,
                     img_height,
                     -- Field not sqooped as it can contain more than 10Mb of data
                     -- leading to job failure (commonswiki database only)
-                    -- convert(img_metadata using utf8) img_metadata,
+                    -- convert(img_metadata using utf8mb4) img_metadata,
                     img_bits,
-                    convert(img_media_type using utf8) img_media_type,
-                    convert(img_major_mime using utf8) img_major_mime,
-                    convert(img_minor_mime using utf8) img_minor_mime,
+                    convert(img_media_type using utf8mb4) img_media_type,
+                    convert(img_major_mime using utf8mb4) img_major_mime,
+                    convert(img_minor_mime using utf8mb4) img_minor_mime,
                     img_description_id,
                     img_actor,
-                    convert(img_timestamp using utf8) img_timestamp,
-                    convert(img_sha1 using utf8) img_sha1
+                    convert(img_timestamp using utf8mb4) img_timestamp,
+                    convert(img_sha1 using utf8mb4) img_sha1
 
                from image
               where $CONDITIONS
@@ -495,7 +495,7 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
     queries['imagelinks'] = {
         'query': '''
              select il_from,
-                    convert(il_to using utf8) il_to,
+                    convert(il_to using utf8mb4) il_to,
                     il_from_namespace
 
                from imagelinks
@@ -509,19 +509,19 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
     queries['ipblocks'] = {
         'query': '''
              select ipb_id,
-                    convert(ipb_address using utf8) ipb_address,
+                    convert(ipb_address using utf8mb4) ipb_address,
                     ipb_user,
                     null ipb_by,
                     null ipb_by_text,
                     null ipb_reason,
-                    convert(ipb_timestamp using utf8) ipb_timestamp,
+                    convert(ipb_timestamp using utf8mb4) ipb_timestamp,
                     ipb_auto,
                     ipb_anon_only,
                     ipb_create_account,
                     ipb_enable_autoblock,
-                    convert(ipb_expiry using utf8) ipb_expiry,
-                    convert(ipb_range_start using utf8) ipb_range_start,
-                    convert(ipb_range_end using utf8) ipb_range_end,
+                    convert(ipb_expiry using utf8mb4) ipb_expiry,
+                    convert(ipb_range_start using utf8mb4) ipb_range_start,
+                    convert(ipb_range_end using utf8mb4) ipb_range_end,
                     ipb_deleted,
                     ipb_block_email,
                     ipb_allow_usertalk,
@@ -575,8 +575,8 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
     queries['iwlinks'] = {
         'query': '''
              select iwl_from,
-                    convert(iwl_prefix using utf8) iwl_prefix,
-                    convert(iwl_title using utf8) iwl_title
+                    convert(iwl_prefix using utf8mb4) iwl_prefix,
+                    convert(iwl_title using utf8mb4) iwl_title
 
                from iwlinks
               where $CONDITIONS
@@ -594,8 +594,8 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
     queries['langlinks'] = {
         'query': '''
              select ll_from,
-                    convert(ll_lang using utf8) ll_lang,
-                    convert(ll_title using utf8) ll_title
+                    convert(ll_lang using utf8mb4) ll_lang,
+                    convert(ll_title using utf8mb4) ll_title
 
                from langlinks
               where $CONDITIONS
@@ -613,14 +613,14 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
     queries['logging'] = {
         'query': '''
              select log_id,
-                    convert(log_type using utf8) log_type,
-                    convert(log_action using utf8) log_action,
-                    convert(log_timestamp using utf8) log_timestamp,
+                    convert(log_type using utf8mb4) log_type,
+                    convert(log_action using utf8mb4) log_action,
+                    convert(log_timestamp using utf8mb4) log_timestamp,
                     null log_user,
                     log_namespace,
-                    convert(log_title using utf8) log_title,
+                    convert(log_title using utf8mb4) log_title,
                     null log_comment,
-                    convert(log_params using utf8) log_params,
+                    convert(log_params using utf8mb4) log_params,
                     log_deleted,
                     null log_user_text,
                     log_page,
@@ -653,16 +653,16 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         'query': '''
              select page_id,
                     page_namespace,
-                    convert(page_title using utf8) page_title,
-                    convert(page_restrictions using utf8) page_restrictions,
+                    convert(page_title using utf8mb4) page_title,
+                    convert(page_restrictions using utf8mb4) page_restrictions,
                     page_is_redirect,
                     page_is_new,
                     page_random,
-                    convert(page_touched using utf8) page_touched,
-                    convert(page_links_updated using utf8) page_links_updated,
+                    convert(page_touched using utf8mb4) page_touched,
+                    convert(page_links_updated using utf8mb4) page_links_updated,
                     page_latest,
                     page_len,
-                    convert(page_content_model using utf8) page_content_model
+                    convert(page_content_model using utf8mb4) page_content_model
 
                from page
               where $CONDITIONS
@@ -680,7 +680,7 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         'query': '''
              select pl_from,
                     pl_namespace,
-                    convert(pl_title using utf8) pl_title,
+                    convert(pl_title using utf8mb4) pl_title,
                     pl_from_namespace
 
                from pagelinks
@@ -694,8 +694,8 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
     queries['page_props'] = {
         'query': '''
              select pp_page,
-                    convert(pp_propname using utf8) pp_propname,
-                    convert(pp_value using utf8) pp_value,
+                    convert(pp_propname using utf8mb4) pp_propname,
+                    convert(pp_value using utf8mb4) pp_value,
                     pp_sortkey
 
                from page_props
@@ -716,11 +716,11 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         'query': '''
              select pr_id,
                     pr_page,
-                    convert(pr_type using utf8) pr_type,
-                    convert(pr_level using utf8) pr_level,
+                    convert(pr_type using utf8mb4) pr_type,
+                    convert(pr_level using utf8mb4) pr_level,
                     pr_cascade,
                     pr_user,
-                    convert(pr_expiry using utf8) pr_expiry
+                    convert(pr_expiry using utf8mb4) pr_expiry
 
                from page_restrictions
               where $CONDITIONS
@@ -743,9 +743,9 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         'query': '''
              select rd_from,
                     rd_namespace,
-                    convert(rd_title using utf8) rd_title,
-                    convert(rd_interwiki using utf8) rd_interwiki,
-                    convert(rd_fragment using utf8) rd_fragment
+                    convert(rd_title using utf8mb4) rd_title,
+                    convert(rd_interwiki using utf8mb4) rd_interwiki,
+                    convert(rd_fragment using utf8mb4) rd_fragment
 
                from redirect
               where $CONDITIONS
@@ -763,12 +763,12 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
                     null rev_comment,
                     null rev_user,
                     null rev_user_text,
-                    convert(rev_timestamp using utf8) rev_timestamp,
+                    convert(rev_timestamp using utf8mb4) rev_timestamp,
                     rev_minor_edit,
                     rev_deleted,
                     rev_len,
                     rev_parent_id,
-                    convert(rev_sha1 using utf8) rev_sha1,
+                    convert(rev_sha1 using utf8mb4) rev_sha1,
                     null rev_content_model,
                     null rev_content_format,
                     rev_actor,
@@ -819,7 +819,7 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
     queries['slot_roles'] = {
         'query': '''
              select role_id,
-                    convert(role_name using utf8) role_name
+                    convert(role_name using utf8mb4) role_name
 
                from slot_roles
               where $CONDITIONS
@@ -834,7 +834,7 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
              select tl_from,
                     tl_from_namespace,
                     tl_namespace,
-                    convert(tl_title using utf8) tl_title
+                    convert(tl_title using utf8mb4) tl_title
 
                from templatelinks
               where $CONDITIONS
@@ -853,14 +853,14 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
     queries['user'] = {
         'query': '''
              select user_id,
-                    convert(user_name using utf8) user_name,
+                    convert(user_name using utf8mb4) user_name,
                     user_name user_name_binary,
-                    convert(user_real_name using utf8) user_real_name,
-                    convert(user_email using utf8) user_email,
-                    convert(user_touched using utf8) user_touched,
-                    convert(user_registration using utf8) user_registration,
+                    convert(user_real_name using utf8mb4) user_real_name,
+                    convert(user_email using utf8mb4) user_email,
+                    convert(user_touched using utf8mb4) user_touched,
+                    convert(user_registration using utf8mb4) user_registration,
                     user_editcount,
-                    convert(user_password_expires using utf8) user_password_expires
+                    convert(user_password_expires using utf8mb4) user_password_expires
 
                from user
               where $CONDITIONS
@@ -873,7 +873,7 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
     queries['user_groups'] = {
         'query': '''
              select ug_user,
-                    convert(ug_group using utf8) ug_group
+                    convert(ug_group using utf8mb4) ug_group
 
                from user_groups
               where $CONDITIONS
@@ -886,8 +886,8 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
     queries['user_properties'] = {
         'query': '''
              select up_user,
-                    convert(up_property using utf8) up_property,
-                    convert(up_value using utf8) up_value
+                    convert(up_property using utf8mb4) up_property,
+                    convert(up_value using utf8mb4) up_value
 
                from user_properties
               where $CONDITIONS
@@ -909,8 +909,8 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
     queries['wbc_entity_usage'] = {
         'query': '''
              select eu_row_id,
-                    convert(eu_entity_id using utf8) eu_entity_id,
-                    convert(eu_aspect using utf8) eu_aspect,
+                    convert(eu_entity_id using utf8mb4) eu_entity_id,
+                    convert(eu_aspect using utf8mb4) eu_aspect,
                     eu_page_id
 
                from wbc_entity_usage
@@ -941,15 +941,15 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
                     cuc_namespace,
                     cuc_title,
                     cuc_user,
-                    convert(cuc_user_text using utf8) cuc_user_text,
+                    convert(cuc_user_text using utf8mb4) cuc_user_text,
                     cuc_actiontext,
-                    convert(cuc_comment using utf8) cuc_comment,
+                    convert(cuc_comment using utf8mb4) cuc_comment,
                     cuc_minor,
                     cuc_page_id,
                     cuc_this_oldid,
                     cuc_last_oldid,
                     cuc_type,
-                    convert(cuc_timestamp using utf8) cuc_timestamp,
+                    convert(cuc_timestamp using utf8mb4) cuc_timestamp,
                     cuc_ip,
                     cuc_agent
                from cu_changes
@@ -976,7 +976,7 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         'query': '''
              select actor_id,
                     actor_user,
-                    convert(actor_name using utf8) actor_name
+                    convert(actor_name using utf8mb4) actor_name
                from actor
               where $CONDITIONS
         ''',
@@ -989,7 +989,7 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         # NOTE: skipping comment_hash and comment_data, not needed
         'query': '''
              select comment_id,
-                    convert(comment_text using utf8) comment_text
+                    convert(comment_text using utf8mb4) comment_text
                from comment
               where $CONDITIONS
         ''',
@@ -1003,8 +1003,8 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
              select wl_id,
                     wl_user,
                     wl_namespace,
-                    convert(wl_title using utf8) wl_title,
-                    convert(wl_notificationtimestamp using utf8) wl_notificationtimestamp
+                    convert(wl_title using utf8mb4) wl_title,
+                    convert(wl_notificationtimestamp using utf8mb4) wl_notificationtimestamp
 
                from watchlist
               where $CONDITIONS
@@ -1086,7 +1086,7 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
     queries['wbt_text'] = {
         'query': '''
              select wbx_id,
-                    convert(wbx_text using utf8) wbx_text
+                    convert(wbx_text using utf8mb4) wbx_text
                from wbt_text
               where $CONDITIONS
         ''',
@@ -1103,7 +1103,7 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
     queries['wbt_text_in_lang'] = {
         'query': '''
              select wbxl_id,
-                    convert(wbxl_language using utf8) wbxl_language,
+                    convert(wbxl_language using utf8mb4) wbxl_language,
                     wbxl_text_id
                from wbt_text_in_lang
               where $CONDITIONS
@@ -1122,7 +1122,7 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
     queries['wbt_type'] = {
         'query': '''
              select wby_id,
-                    convert(wby_name using utf8) wby_name
+                    convert(wby_name using utf8mb4) wby_name
                from wbt_type
               where $CONDITIONS
         ''',

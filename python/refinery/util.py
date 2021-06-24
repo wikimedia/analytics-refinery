@@ -33,7 +33,9 @@ MW_CONFIG_PATH = '/srv/mediawiki-config'
 
 CLOUD_DB_HOST = 'clouddb1021.eqiad.wmnet'
 CLOUD_DB_POSTFIX = '_p'
-JDBC_TEMPLATE_WITH_PORT = 'jdbc:mysql://{host}:{port}/{dbname}'
+# explicitly set character encoding, because on cloud replicas and production instances,
+# connections still default to mysql's buggy utf8 instead of the proper utf8mb4
+JDBC_TEMPLATE_WITH_PORT = 'jdbc:mysql://{host}:{port}/{dbname}?characterEncoding=UTF-8'
 MW_CONFIG_DBLISTS_FOLDER = 'dblists'
 
 
