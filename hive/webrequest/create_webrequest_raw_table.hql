@@ -49,13 +49,9 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `webrequest` (
     `hour`              int     COMMENT 'Unpadded hour of request')
 ROW FORMAT SERDE
     'org.apache.hive.hcatalog.data.JsonSerDe'
--- We only care about the INPUTFORMAT, not the OUTPUTFORMAT. But
--- Hive's syntax does not allow to specify one without the
--- other. Hence, we give both and use a default for the OUTPUTFORMAT.
-STORED AS INPUTFORMAT
-    'org.apache.hadoop.mapred.SequenceFileInputFormat'
-OUTPUTFORMAT
-    'org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat'
+STORED AS TEXTFILE
 LOCATION
     'hdfs://analytics-hadoop/wmf/data/raw/webrequest'
 ;
+
+
