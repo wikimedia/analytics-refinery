@@ -25,7 +25,7 @@ not specify the datacenter partition.  This will get all available data.
              initial-instance="2017-10-28T20:00Z"
              timezone="Universal">
         <!-- The syntax for month, day and hour changes padded values to non-padded ones -->
-        <uri-template>${event_data_directory}/mediawiki_page_move/datacenter=eqiad/year=${YEAR}/month=${"$"}{MONTH + 0}/day=${"$"}{DAY + 0}/hour=${"$"}{HOUR + 0}</uri-template>
+        <uri-template>${event_data_directory}/mediawiki_page_move/datacenter=codfw/year=${YEAR}/month=${"$"}{MONTH + 0}/day=${"$"}{DAY + 0}/hour=${"$"}{HOUR + 0}</uri-template>
         <done-flag>_REFINED</done-flag>
     </dataset>
 
