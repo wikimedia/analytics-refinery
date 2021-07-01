@@ -1,0 +1,96 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+""" Wrapper for launching Gobblin job
+
+Usage: gobblin [options] <jobconfig-file>
+
+Options:
+    -h --help                           Show this help message and exit.
+    -n --dry-run                        Prints command that would have been run without running anything.
+    -j --jar=<jar-file>                 Path to Gobblin shaded .jar file.  [default: {0}/artifacts/gobblin-wmf.jar]
+    -S --sysconfig=<sysconfig-file>     Path to Gobblin common sysconfig properties file. [default: {0}/gobblin/common/analytics-hadoop.sysconfig.properties]
+    -L --log4j=<log4j-file>             Path to log4j properties file to use. [default: {0}/gobblin/common/log4j.properties]
+"""
+__author__ = 'Andrew Otto <otto@wikimedia.org>'
+
+import os
+import sys
+import logging
+from docopt import docopt
+import pathlib
+from refinery.util import sh
+
+
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s %(levelname)-6s %(message)s',
+                    datefmt='%Y-%m-%dT%H:%M:%S')
+
+
+def env_dict_to_shell(env):
+    """
+    Converts a dict of key=val pairs to a string
+    suitable for setting them as env vars on thet CLI.
+    Useful for logging.
+    """
+    return ' '.join([f'{key}=\'{env[key]}\'' for key in env.keys()])
+
+
+def get_gobblin_command(gobblin_jar, sysconfig_file, jobconfig_file, log4j_file):
+    """
+    Returns a (command, env) tuple where
+    command is the string command that should be used to launch gobblin,
+    and env is a dic of environment variables that should be set to launch gobblin.
+    """
+
+    command = f'/usr/bin/hadoop jar {gobblin_jar} org.apache.gobblin.runtime.mapreduce.CliMRJobLauncher -libjars {gobblin_jar} -sysconfig {sysconfig_file} -jobconfig {jobconfig_file}'
+
+
+    hadoop_classpath_default = f'{gobblin_jar}:' + sh('hadoop classpath')
+    env = {
+        'HADOOP_CLASSPATH': os.environ.get('HADOOP_CLASSPATH', hadoop_classpath_default),
+        'HADOOP_USER_CLASSPATH_FIRST': os.environ.get('HADOOP_USER_CLASSPATH_FIRST', 'true')
+    }
+    env['HADOOP_OPTS'] = os.environ.get('HADOOP_OPTS', '') + f' -Dlog4j.configuration=file:///{log4j_file} -Dmapreduce.job.user.classpath.first={env["HADOOP_USER_CLASSPATH_FIRST"]}'
+    return (command, env)
+
+
+if __name__ == '__main__':
+    refinery_path = pathlib.Path(__file__).parent.parent.resolve()
+    # parse arguments
+    arguments = docopt(__doc__.format(refinery_path))
+    exit_value = 0
+
+    (command, env) = get_gobblin_command(
+        gobblin_jar=arguments['--jar'],
+        sysconfig_file=arguments['--sysconfig'],
+        jobconfig_file=arguments['<jobconfig-file>'],
+        log4j_file=arguments['--log4j']
+    )
+
+    # Used just for logging of command to be run, in case when troubleshoting
+    # user wants to manually launche the gobblin job.
+    env_commands = env_dict_to_shell(env)
+    command_desc = f'gobblin job\n{env_commands} {command}'
+
+    if arguments['--dry-run']:
+        logging.info(f'DRY-RUN: Would have submitted {command_desc}')
+    else:
+        logging.info(f'Submitting {command_desc}')
+        # os.environ is inherited by the env of os.system(command).
+        os.environ.update(env)
+        exit_value += os.system(command)
+
+    sys.exit(exit_value)

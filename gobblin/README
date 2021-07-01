@@ -1,0 +1,9 @@
+Gobblin job properties files go here.
+
+- common/ contains Gobblin sysconfig and other common properties files that the
+  job specific properties files might include.
+
+- jobs/ contains Gobblin job properties files.
+
+
+TODO: move job definition to Airflow.
