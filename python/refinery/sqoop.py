@@ -950,14 +950,28 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
                     cuc_last_oldid,
                     cuc_type,
                     convert(cuc_timestamp using utf8mb4) cuc_timestamp,
-                    cuc_ip,
-                    cuc_agent
+                    convert(cuc_ip using utf8mb4) cuc_ip,
+                    convert(cuc_agent using utf8mb4) cuc_agent
                from cu_changes
               where $CONDITIONS
                 {ts_clause}
         '''.format(ts_clause=make_timestamp_clause('cuc_timestamp', from_timestamp, to_timestamp)),
         'map-types': '"{}"'.format(','.join([
+            'cuc_id=Long',
+            'cuc_namespace=Integer',
+            'cuc_title=String',
+            'cuc_user=Long',
+            'cuc_user_text=String',
+            'cuc_actiontext=String',
+            'cuc_comment=String',
             'cuc_minor=Boolean',
+            'cuc_page_id=Long',
+            'cuc_this_oldid=Long',
+            'cuc_last_oldid=Long',
+            'cuc_type=Integer',
+            'cuc_timestamp=String',
+            'cuc_ip=String',
+            'cuc_agent=String',
         ])),
         'boundary-query': '''
             SELECT MIN(cuc_id),
