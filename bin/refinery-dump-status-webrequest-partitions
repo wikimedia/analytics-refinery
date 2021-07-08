@@ -417,12 +417,11 @@ dump_dataset_raw_webrequest_partition() {
 dump_dataset_raw_webrequest() {
     local DATE="$1"
 
-    # We need both the padded-date in and the partition-formatted date:
-    #  - The later is use to check for success flag
-    #  - The former is used to extract percent-loss
+    # We need both the slash-formated date and the partition-formatted date:
+    #  - The former is used to extract percent-loss as in hive query
+    #  - The later is use to check for success flag in files (NO PADDING)
     local DATE_HDFS_PADDED="$(date --utc -d "$DATE" +'%Y/%m/%d/%H')"
     local DATE_DIRS_REL="$(date --utc -d "$DATE" +'year=%Y/month=%m/day=%d/hour=%H')"
-    DATE_DIRS_REL="${DATE_DIRS_REL//=0/=}"
 
     for SOURCE in text upload
     do
