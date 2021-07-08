@@ -10,6 +10,8 @@ writer.partition.timestamp.columns=stamp_inserted
 writer.partition.timestamp.format=yyyy-MM-dd' 'HH:mm:ss
 
 mr.job.max.mappers=4
+mapreduce.job.queuename=essential
+
 bootstrap.with.offset=latest
 
 # To be changed to /wmf/data/raw/netflow when finalizing
