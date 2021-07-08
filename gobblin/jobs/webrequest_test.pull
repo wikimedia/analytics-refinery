@@ -9,7 +9,6 @@ topic.include=webrequest_test_text
 writer.partition.timestamp.columns=dt
 
 mr.job.max.mappers=1
-mapreduce.job.queuename=essential
 
 bootstrap.with.offset=latest
 

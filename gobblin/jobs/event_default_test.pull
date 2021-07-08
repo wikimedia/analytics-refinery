@@ -19,7 +19,7 @@ event_stream_config.stream_names=eventgate-analytics.test.event,mediawiki.page-d
 writer.partition.timestamp.columns=meta.dt
 
 mr.job.max.mappers=2
-mapreduce.job.queuename=essential
+
 bootstrap.with.offset=latest
 
 # To be changed to /wmf/data/raw/event when finalizing

@@ -19,7 +19,6 @@ event_stream_config.stream_names=eventlogging_NavigationTiming
 writer.partition.timestamp.columns=meta.dt
 
 mr.job.max.mappers=1
-mapreduce.job.queuename=essential
 
 bootstrap.with.offset=latest
 
