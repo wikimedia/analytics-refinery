@@ -171,7 +171,6 @@ do
 done
 
 RAW_WEBREQUEST_DATA_DIR_ABS="$HDFS_MOUNT_DIR_ABS/wmf/data/raw/webrequest"
-RAW_WEBREQUEST_STATISTICS_DIR_ABS="$HDFS_MOUNT_DIR_ABS/wmf/data/raw/webrequests_faulty_hosts"
 WEBREQUEST_DATA_DIR_ABS="$HDFS_MOUNT_DIR_ABS/wmf/data/wmf/webrequest"
 ARCHIVE_DATA_DIR_ABS="$HDFS_MOUNT_DIR_ABS/wmf/data/archive"
 PAGEVIEW_DATA_DIR_ABS="$HDFS_MOUNT_DIR_ABS/wmf/data/wmf/pageview/hourly"
@@ -396,28 +395,21 @@ dump_dataset_mediacounts() {
 dump_dataset_raw_webrequest_partition() {
 
     local DATE_HDFS_PADDED="$1"
-    local SOURCE="$2"
+    local DATE_DIRS_REL="$2"
+    local SOURCE="$3"
     local STATUS=
 
-    local DATE_HDFS_UNPADDED="${DATE_HDFS_PADDED///0//}"
-
-    STATISTICS_FILE_ABS="$RAW_WEBREQUEST_STATISTICS_DIR_ABS/$SOURCE/$DATE_HDFS_UNPADDED/000000_0"
-    if [ -e "$STATISTICS_FILE_ABS" -a ! -s "$STATISTICS_FILE_ABS" ]
+    if [ -e "$RAW_WEBREQUEST_DATA_DIR_ABS/webrequest_$SOURCE/$DATE_DIRS_REL/_SUCCESS" ]
     then
-        STATUS="     ."
+        STATUS="     M"
     else
-        if [ -e "$RAW_WEBREQUEST_DATA_DIR_ABS/webrequest_$SOURCE/hourly/$DATE_HDFS_PADDED/_SUCCESS" ]
+        if [ "$PERCENT_LOST" = "yes" ]
         then
-            STATUS="     M"
+            STATUS="$(get_percent_different "$DATE_HDFS_PADDED" "$SOURCE")"
         else
-            if [ "$PERCENT_LOST" = "yes" ]
-            then
-                STATUS="$(get_percent_different "$DATE_HDFS_PADDED" "$SOURCE")"
-            else
-                STATUS="     X"
-            fi
-            HAS_FAULTY=yes
+            STATUS="     X"
         fi
+        HAS_FAULTY=yes
     fi
     log_no_lf "$STATUS"
 }
@@ -425,12 +417,17 @@ dump_dataset_raw_webrequest_partition() {
 dump_dataset_raw_webrequest() {
     local DATE="$1"
 
+    # We need both the padded-date in and the partition-formatted date:
+    #  - The later is use to check for success flag
+    #  - The former is used to extract percent-loss
     local DATE_HDFS_PADDED="$(date --utc -d "$DATE" +'%Y/%m/%d/%H')"
+    local DATE_DIRS_REL="$(date --utc -d "$DATE" +'year=%Y/month=%m/day=%d/hour=%H')"
+    DATE_DIRS_REL="${DATE_DIRS_REL//=0/=}"
 
     for SOURCE in text upload
     do
         log_no_lf " "
-        dump_dataset_raw_webrequest_partition "$DATE_HDFS_PADDED" "$SOURCE"
+        dump_dataset_raw_webrequest_partition "$DATE_HDFS_PADDED" "$DATE_DIRS_REL" "$SOURCE"
         log_no_lf "      |"
     done
 }
