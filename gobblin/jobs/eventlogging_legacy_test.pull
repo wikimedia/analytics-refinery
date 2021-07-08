@@ -1,0 +1,22 @@
+include=/srv/deployment/analytics/refinery/gobblin/common/kafka_to_hdfs_hourly.properties
+
+job.name=eventlogging_legacy_test
+job.group=gobblin
+extract.namespace=org.wikimedia.analytics.eventlogging_legacy_test
+
+event_stream_config.uri=https://meta.wikimedia.org/w/api.php
+# Use WMF production network settings (this allows us to access meta.wikimedia.org without an http proxy).
+event_stream_config.is_wmf_production=true
+# Filter for streams that match these settings.
+event_stream_config.settings_filters=/consumers/analytics_hadoop_ingestion/job_name:eventlogging_legacy,/consumers/analytics_hadoop_ingestion/enabled:true
+# For test job, limit the streams we import only to eventlogging_NavigationTiming
+event_stream_config.stream_names=eventlogging_NavigationTiming
+
+writer.partition.timestamp.columns=meta.dt
+
+mr.job.max.mappers=1
+bootstrap.with.offset=latest
+
+# To be changed to /wmf/data/raw/eventlogging_legacy when finalizing
+# the move from camus to gobblin
+data.publisher.final.dir=/wmf/data/raw/eventlogging_legacy_gobblin
