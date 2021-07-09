@@ -22,6 +22,4 @@ mr.job.max.mappers=2
 
 bootstrap.with.offset=latest
 
-# To be changed to /wmf/data/raw/event when finalizing
-# the move from camus to gobblin
-data.publisher.final.dir=/wmf/data/raw/event_gobblin
+data.publisher.final.dir=/wmf/data/raw/event
