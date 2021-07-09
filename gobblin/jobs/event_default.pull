@@ -1,0 +1,26 @@
+#
+# Pulls event streams discovered via stream config with job_name:event_default.
+#
+
+include=/srv/deployment/analytics/refinery/gobblin/common/kafka_to_hdfs_hourly.properties
+
+job.name=event_default
+job.group=gobblin
+extract.namespace=org.wikimedia.analytics.event_default
+
+event_stream_config.uri=https://meta.wikimedia.org/w/api.php
+# Use WMF production network settings (this allows us to access meta.wikimedia.org without an http proxy).
+event_stream_config.is_wmf_production=true
+# Filter for streams that match these settings.
+event_stream_config.settings_filters=/consumers/analytics_hadoop_ingestion/job_name:event_default,/consumers/analytics_hadoop_ingestion/enabled:true
+
+writer.partition.timestamp.columns=meta.dt
+
+
+# Set this greater than the approximate number of Kafka topic partitions to import.
+# kafka topics --describe | grep -E 'Topic:(codfw|eqiad)' | grep -v 'mediawiki.job' | cut -f 2 | cut -d : -f 2 | python -c "import sys; print(sum(int(l) for l in sys.stdin))"
+mr.job.max.mappers=300
+
+bootstrap.with.offset=latest
+
+data.publisher.final.dir=/wmf/data/raw/event_gobblin
