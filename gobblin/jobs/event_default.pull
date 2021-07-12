@@ -27,4 +27,4 @@ mr.job.max.mappers=128
 
 bootstrap.with.offset=latest
 
-data.publisher.final.dir=/wmf/data/raw/event_gobblin
+data.publisher.final.dir=/wmf/data/raw/event
