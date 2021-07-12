@@ -19,7 +19,7 @@ writer.partition.timestamp.columns=meta.dt
 
 # There are quite a few event streams topic partitions, and usually we want to have more mappers
 # than number of partitions.  As of 2021-07 there are 200-300 event stream topic partitions.
-However, most of the partitions will be really small and will
+# However, most of the partitions will be really small and will
 # finish import very quickly. We don't yet know how many mappers can be doing real work
 # in parallel, but set this to 128 now to try to find a balance between parallelizing
 # and reusing mapper task processes if they finish quickly.
