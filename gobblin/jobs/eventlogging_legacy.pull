@@ -1,0 +1,22 @@
+#
+# Pulls legacy eventlogging streams.
+#
+
+include=/srv/deployment/analytics/refinery/gobblin/common/kafka_to_hdfs_hourly.properties
+
+job.name=eventlogging_legacy
+job.group=gobblin
+extract.namespace=org.wikimedia.analytics.eventlogging_legacy
+
+# TODO: Once EventLogging migration is fully complete, we can rely on EventStreamConfig
+# to discover eventlogging legacy streams just like we do in the eventlogging_legacy_test job.
+# Until then, just import all Kafka topics that start with eventlogging_
+topic.include=^eventlogging_.+
+
+writer.partition.timestamp.columns=meta.dt,dt
+
+mr.job.max.mappers=100
+
+bootstrap.with.offset=latest
+
+data.publisher.final.dir=/wmf/data/raw/eventlogging_legacy
