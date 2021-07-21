@@ -23,6 +23,7 @@ Options:
     -j --jar=<jar-file>                 Path to Gobblin shaded .jar file.  [default: {0}/artifacts/gobblin-wmf.jar]
     -S --sysconfig=<sysconfig-file>     Path to Gobblin common sysconfig properties file. [default: {0}/gobblin/common/analytics-hadoop.sysconfig.properties]
     -L --log4j=<log4j-file>             Path to log4j properties file to use. [default: {0}/gobblin/common/log4j.properties]
+    -f --force                          If set, job will be submitted without checking if it is already running.
 """
 __author__ = 'Andrew Otto <otto@wikimedia.org>'
 
@@ -31,7 +32,7 @@ import sys
 import logging
 from docopt import docopt
 import pathlib
-from refinery.util import sh
+from refinery.util import is_yarn_application_running, sh, read_properties_file
 
 
 logging.basicConfig(level=logging.INFO,
@@ -79,6 +80,20 @@ if __name__ == '__main__':
         jobconfig_file=arguments['<jobconfig-file>'],
         log4j_file=arguments['--log4j']
     )
+
+
+    # Read the job.name out of the jobconfig properties file and ensure that
+    # this job isn't already running in YARN.
+    job_properties = read_properties_file(arguments['<jobconfig-file>'])
+    try:
+        job_name = f"Gobblin-{job_properties['job.name']}"
+    except KeyError:
+        raise ValueError(f'job.name must be set in {jobconfig_file}')
+
+
+    if not arguments['--force'] and is_yarn_application_running(job_name):
+        logging.warn(f'Not submitting gobblin job "{job_name}", it is currently running.')
+        sys.exit(1)
 
     # Used just for logging of command to be run, in case when troubleshoting
     # user wants to manually launche the gobblin job.

@@ -26,6 +26,7 @@ import subprocess
 import glob
 import functools
 import operator
+from configparser import ConfigParser
 
 
 logger = logging.getLogger('refinery-util')
@@ -263,3 +264,17 @@ def flatten(l):
     Given a list of lists, flattens them into a single list.
     """
     return functools.reduce(operator.concat, l)
+
+
+def read_properties_file(file_path):
+    """
+    Given a file_path, read the contents
+    as a text properties file of key=val pairs, one on each line, and return
+    a dict of the properties.
+    """
+    config = ConfigParser()
+    with open(file_path) as f:
+        # ConfigParser expects sections; add a dummy section header.
+        config.read_string('[config]\n' + f.read())
+
+    return dict(config['config'])
