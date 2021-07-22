@@ -138,6 +138,75 @@
             <description>Constant value for cassandra _tid field</description>
         </property>
 
+        <!-- Cassandra 3 spark load parameters -->
+        <property><name>hive_metastore_uri</name></property>
+        <property>
+            <name>oozie.action.sharelib.for.spark</name>
+            <value>${oozie_spark_lib}</value>
+        </property>
+
+        <property>
+            <name>spark_master</name>
+            <description>Master to be used for Spark (yarn, local, other)</description>
+        </property>
+        <property>
+            <name>spark_deploy</name>
+            <description>Spark deploy-mode for the job (cluster or client)</description>
+        </property>
+        <property>
+            <name>spark_job_name</name>
+            <description>Spark job name to be used</description>
+        </property>
+        <property>
+            <name>spark_assembly_zip</name>
+            <description>The spark assembly zip file on HDFS, preventing to repackage it everytime</description>
+        </property>
+        <property>
+            <name>spark_job_jar</name>
+            <description>Path to the jar to be used to run spark job</description>
+        </property>
+        <property>
+            <name>spark_job_class</name>
+            <description>Class of the spark job to be run</description>
+        </property>
+        <property>
+            <name>spark_executor_memory</name>
+            <description>Memory to allocate for each spark executor</description>
+        </property>
+        <property>
+            <name>spark_executor_cores</name>
+            <description>CPU-Cores to allocate for each spark executor</description>
+        </property>
+        <property>
+            <name>spark_driver_memory</name>
+            <description>Memory to allocate for spark driver process</description>
+        </property>
+        <property>
+            <name>spark_max_executors</name>
+            <description>Maximum number of executors for spark</description>
+        </property>
+
+        <property>
+            <name>cassandra3_host</name>
+            <description>The cassandra3 host to connect for load</description>
+        </property>
+        <property>
+            <name>cassandra3_username</name>
+            <description>The cassandra3 username for load</description>
+        </property>
+        <property>
+            <name>cassandra3_password</name>
+            <description>The cassandra3 password for load</description>
+        </property>
+        <property>
+            <name>cassandra3_columns</name>
+            <description>Cassandra3 columns to load (same order as in the HQL)</description>
+        </property>
+        <property>
+            <name>cassandra3_hql</name>
+            <description>HQL to get the data to be loaded on cassandra3</description>
+        </property>
+
         <!-- Time parameters-->
         <property>
             <name>year</name>
@@ -159,6 +228,16 @@
             <property>
                <name>hive2.jdbc.url</name>
                <value>${hive2_jdbc_url}</value>
+            </property>
+        </credential>
+        <credential name="hcat-cred" type="hcat">
+            <property>
+                <name>hcat.metastore.principal</name>
+                <value>${hive_principal}</value>
+            </property>
+            <property>
+               <name>hcat.metastore.uri</name>
+               <value>${hive_metastore_uri}</value>
             </property>
         </credential>
     </credentials>
@@ -442,8 +521,50 @@
         <fs>
             <delete path="${temporary_directory}/${wf:id()}-${cassandra_keyspace}"/>
         </fs>
-        <ok to="end"/>
+        <ok to="load_cassandra3_spark"/>
         <error to="send_error_email"/>
+    </action>
+
+    <action name="load_cassandra3_spark" cred="hcat-cred">
+        <spark xmlns="uri:oozie:spark-action:0.1">
+
+            <job-tracker>${job_tracker}</job-tracker>
+            <name-node>${name_node}</name-node>
+            <configuration>
+                <property>
+                    <name>oozie.launcher.mapred.job.queue.name</name>
+                    <value>${oozie_launcher_queue_name}</value>
+                </property>
+                <property>
+                    <name>oozie.launcher.mapreduce.map.memory.mb</name>
+                    <value>${oozie_launcher_memory}</value>
+                </property>
+            </configuration>
+            <master>${spark_master}</master>
+            <mode>${spark_deploy}</mode>
+            <name>${spark_job_name}-${year}-${month}</name>
+            <class>${spark_job_class}</class>
+            <jar>${spark_job_jar}</jar>
+            <spark-opts>--conf spark.yarn.archive=${spark_assembly_zip} --conf spark.dynamicAllocation.enabled=true --conf spark.shuffle.service.enabled=true --executor-memory ${spark_executor_memory} --executor-cores ${spark_executor_cores} --conf spark.dynamicAllocation.maxExecutors=${spark_max_executors} --driver-memory ${spark_driver_memory} --queue ${queue_name}</spark-opts>
+            <arg>--cassandra_host</arg>
+            <arg>${cassandra3_host}</arg>
+            <arg>--cassandra_username</arg>
+            <arg>${cassandra3_username}</arg>
+            <arg>--cassandra_password</arg>
+            <arg>${cassandra3_password}</arg>
+            <arg>--cassandra_keyspace</arg>
+            <arg>${cassandra_keyspace}</arg>
+            <arg>--cassandra_table</arg>
+            <arg>${cassandra_table}</arg>
+            <arg>--cassandra_load_parallelism</arg>
+            <arg>${cassandra_parallel_loaders}</arg>
+            <arg>--cassandra_columns</arg>
+            <arg>${cassandra3_columns}</arg>
+            <arg>--hql_query</arg>
+            <arg>${replaceAll(replaceAll(cassandra3_hql, "_YEAR_", year), "_MONTH_", month)}</arg>
+        </spark>
+        <ok to="end" />
+        <error to="send_error_email" />
     </action>
 
     <action name="send_error_email">
