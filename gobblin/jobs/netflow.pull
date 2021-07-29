@@ -13,6 +13,4 @@ mr.job.max.mappers=4
 
 bootstrap.with.offset=latest
 
-# To be changed to /wmf/data/raw/netflow when finalizing
-# the move from camus to gobblin
 data.publisher.final.dir=/wmf/data/raw/netflow
