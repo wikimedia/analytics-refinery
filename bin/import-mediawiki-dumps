@@ -388,8 +388,8 @@ class MediawikiProjectDumpImporter(object):
         project_dump_info = os.path.join(self.input_base, self.project, self.dump_date, DUMP_INFO_FILE)
         # Check dump status in DUMP_INFO_FILE for dump-type
         with open(project_dump_info, "r") as json_file:
-            json_project_dumps_info = json.load(json_file)
             try:
+                json_project_dumps_info = json.load(json_file)
                 json_dump_info = json_project_dumps_info['jobs'][DUMPS_PARAMS[self.dump_type][JSON_NAME_KEY]]
                 if json_dump_info['status'] != 'done':
                     logger.warning('Dump status not done in json dump-info file '
