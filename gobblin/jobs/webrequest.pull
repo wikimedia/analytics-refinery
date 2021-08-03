@@ -12,6 +12,4 @@ mr.job.max.mappers=48
 
 bootstrap.with.offset=latest
 
-# To be changed to /wmf/data/raw/webrequest when finalizing
-# the move from camus to gobblin
 data.publisher.final.dir=/wmf/data/raw/webrequest

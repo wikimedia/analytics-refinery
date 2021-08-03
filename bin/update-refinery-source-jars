@@ -88,7 +88,7 @@ fi
 archiva_base_uri="https://archiva.wikimedia.org/repository/releases/org/wikimedia/analytics/refinery"
 
 # This list is hardcoded now. TODO: Make this configurable
-for j in camus core job cassandra hive; do
+for j in core job cassandra hive; do
     (curl -L -o ./artifacts/org/wikimedia/analytics/refinery/"refinery-$j-${VERSION}.jar" \
 		"${archiva_base_uri}/$j/refinery-$j/$VERSION/refinery-$j-$VERSION.jar" \
         && ln -sfv org/wikimedia/analytics/refinery/"refinery-$j-${VERSION}.jar" ./artifacts/refinery-$j.jar) &
