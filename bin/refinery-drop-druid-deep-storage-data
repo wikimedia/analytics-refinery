@@ -26,7 +26,7 @@ Options:
                                     sent to druid
     -f --log-file=<file>            File to send info logs to
     --beginning-of-time=<day>       Day from which we drop data. [default: 2001-01-01]
-    --druid-host=<host>             Druid host to request [default: druid1001.eqiad.wmnet]
+    --druid-host=<host>             Druid host to request [default: an-druid1001.eqiad.wmnet]
     --druid-coord-port=<port>       Port for druid coordinator [default: 8081]
     --druid-overlord-port=<port>    Port for druid overlord [default: 8090]
     --no-datasource-check           Turn off datasource validity check in Druid (useful for

@@ -39,7 +39,7 @@ class DruidLoader(object):
     _STATUS_SUCCEEDED = 'SUCCEEDED'
 
     def __init__(self, template_path, target_datasource, data_path, period,
-                 host='http://druid1001.eqiad.wmnet:8090',
+                 host='http://an-druid1001.eqiad.wmnet:8090',
                  hadoop_queue='default',
                  sleep=10):
         self.template_path = template_path
@@ -112,9 +112,9 @@ if __name__ == '__main__':
     parser.add_argument('period', help='The druid indexation period ' +
                         '(YYYY-MM-DD/YYY-MM-DD) format')
     parser.add_argument('--overlord',
-                        default='http://druid1001.eqiad.wmnet:8090',
+                        default='http://an-druid1001.eqiad.wmnet:8090',
                         help='The druid overlord url (defaults to ' +
-                             'http://druid1001.eqiad.wmnet:8090)')
+                             'http://an-druid1001.eqiad.wmnet:8090)')
     parser.add_argument('--hadoop-queue',
                         default='default',
                         help='The hadoop queue for jobs to run in ' +

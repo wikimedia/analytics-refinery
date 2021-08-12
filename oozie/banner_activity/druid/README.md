@@ -44,5 +44,5 @@ To start the supervisor you'd use the following command from a stat100X machine:
 ```
 curl -L -X POST -H 'Content-Type: application/json' \
   -d @druid_kafka_supervisor_example.json \
-  http://druid1001.eqiad.wmnet:8090/druid/indexer/v1/supervisor
+  http://an-druid1001.eqiad.wmnet:8090/druid/indexer/v1/supervisor
 ```
