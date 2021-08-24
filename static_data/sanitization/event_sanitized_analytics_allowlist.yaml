@@ -1724,6 +1724,27 @@ TwoColConflictExit:
     webhost: keep
     wiki: keep
 
+UniversalLanguageSelector:
+    wiki: keep
+    webhost: keep
+    event:
+        action: keep
+        contentFont: keep
+        contentLanguage: keep
+        context: keep
+        inputMethod: keep
+        interfaceFont: keep
+        interfaceLanguage: keep
+        languageSelectionMethod: keep
+        web_session_id: hash
+        web_pageview_id: hash
+        isAnon: keep
+        userEditBucket: keep
+        selectedInterfaceLanguage: keep
+        timeToChangeLanguage: keep
+        skin: keep
+        skinVersion: keep
+
 UploadWizardErrorFlowEvent:
     event:
         code: keep
@@ -1870,3 +1891,4 @@ SpecialInvestigate:
         tool: keep
     wiki: keep
     webhost: keep
+
