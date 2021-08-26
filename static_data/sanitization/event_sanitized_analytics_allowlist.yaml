@@ -1625,6 +1625,26 @@ SaveTiming:
     webhost: keep
     wiki: keep
 
+SearchSatisfaction:
+    event:
+        action: keep
+        searchSessionId: hash
+        pageViewId: hash
+        scroll: keep
+        checkin: keep
+        hitsReturned: keep
+        position: keep
+        source: keep
+        inputLocation: keep
+        autocompleteType: keep
+        msToDisplayResults: keep
+        skin: keep
+        skinVersion: keep
+        isAnon: keep
+        userEditBucket: keep
+    webhost: keep
+    wiki: keep
+
 ServerSideAccountCreation:
     event:
         campaign: keep
