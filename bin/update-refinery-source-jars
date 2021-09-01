@@ -30,6 +30,12 @@ BRANCH="master"
 GERRIT_USER=
 MODE="dry-run"
 
+# List of refinery-source modules that have jars that should be symlinked.
+# This list is hardcoded now.
+# TODO: it'd be nice if we could read the refinery-source pom.xml file to automate this list.
+REFINERY_SOURCE_MODULES="cassandra core hive job spark tools"
+
+
 SCRIPT_NAME=$(basename "$0")
 
 function HELP {
@@ -87,11 +93,19 @@ fi
 
 archiva_base_uri="https://archiva.wikimedia.org/repository/releases/org/wikimedia/analytics/refinery"
 
-# This list is hardcoded now. TODO: Make this configurable
-for j in core job cassandra hive; do
-    (curl -L -o ./artifacts/org/wikimedia/analytics/refinery/"refinery-$j-${VERSION}.jar" \
+for j in $REFINERY_SOURCE_MODULES; do
+
+    # Download and symlink the standard (non shaded) version of the jar
+    (curl -Lf -o ./artifacts/org/wikimedia/analytics/refinery/"refinery-$j-${VERSION}.jar" \
 		"${archiva_base_uri}/$j/refinery-$j/$VERSION/refinery-$j-$VERSION.jar" \
         && ln -sfv org/wikimedia/analytics/refinery/"refinery-$j-${VERSION}.jar" ./artifacts/refinery-$j.jar) &
+
+    # Download and symlink the shaded version of the jar, if it exists.
+    # (If it doesn't curl will just fail)
+    (curl -Lf -o ./artifacts/org/wikimedia/analytics/refinery/"refinery-$j-${VERSION}-shaded.jar" \
+    "${archiva_base_uri}/$j/refinery-$j/$VERSION/refinery-$j-$VERSION-shaded.jar" \
+        && ln -sfv org/wikimedia/analytics/refinery/"refinery-$j-${VERSION}-shaded.jar" ./artifacts/refinery-$j-shaded.jar) &
+
 done
 
 wait
