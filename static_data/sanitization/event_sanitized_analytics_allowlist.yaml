@@ -8,6 +8,8 @@ __defaults__:
     topic: keep
     uuid: keep
 
+# Legacy EventLogging schemas:
+
 CentralNoticeBannerHistory:
     event:
         i: keep
@@ -1892,3 +1894,31 @@ SpecialInvestigate:
     wiki: keep
     webhost: keep
 
+# Event Platform streams:
+
+mediawiki_content_translation_event:
+    wiki_db: keep
+    access_method: keep
+    content_translation_session_id: keep
+    content_translation_session_position: keep
+    event_type: keep
+    event_subtype: keep
+    event_source: keep
+    translation_type: keep
+    translation_id: keep
+    translation_source_language: keep
+    translation_source_title: keep
+    translation_source_section: keep
+    translation_target_language: keep
+    translation_target_title: keep
+    translation_target_section: keep
+    translation_target_exists: keep
+    translation_provider: keep
+    human_modification_rate: keep
+    human_modification_threshold: keep
+    published_page_id: keep
+    published_revision_id: keep
+    user_is_anonymous: keep
+    user_global_edit_count_bucket: keep
+    utm_source: keep
+    utm_campaign: keep
