@@ -64,6 +64,10 @@
             <name>spark_max_num_executors</name>
             <description>Maximum number of concurrent executors for spark with dynamic allocation</description>
         </property>
+        <property>
+            <name>spark_partitions_number</name>
+            <description>Number of partitions to be used by spark job to parallelize tasks</description>
+        </property>
 
         <property>
             <name>mw_denormalized_history_table</name>
@@ -259,6 +263,8 @@
             <arg>${new_snapshot}</arg>
             <arg>--wikis-to-check</arg>
             <arg>${wikis_to_check}</arg>
+            <arg>--num-partitions</arg>
+            <arg>${spark_partitions_number}</arg>
             <arg>--min-events-growth-threshold</arg>
             <arg>${min_events_growth}</arg>
             <arg>--max-events-growth-threshold</arg>

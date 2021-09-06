@@ -38,6 +38,7 @@
         <property><name>spark_executor_cores</name></property>
         <property><name>spark_driver_memory</name></property>
         <property><name>spark_max_num_executors</name></property>
+        <property><name>spark_num_partitions</name></property>
 
 
         <property><name>wikis_to_check</name></property>

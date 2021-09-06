@@ -30,6 +30,7 @@
         <property><name>spark_executor_cores</name></property>
         <property><name>spark_driver_memory</name></property>
         <property><name>spark_max_num_executors</name></property>
+        <property><name>spark_partitions_number</name></property>
 
         <property><name>datasets_file</name></property>
         <property><name>mw_directory</name></property>
