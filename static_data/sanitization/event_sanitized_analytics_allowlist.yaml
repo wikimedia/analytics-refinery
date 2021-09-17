@@ -310,84 +310,14 @@ GettingStartedRedirectImpression:
     webhost: keep
     wiki: keep
 
-GuidedTour:
-    event:
-        action: keep
-        eventId: keep
-        lastGuiderId: keep
-        step: keep
-        tour: keep
-        tourName: keep
-        userId: keep
-    webhost: keep
-    wiki: keep
-
-GuidedTourButtonClick:
-    event:
-        action: keep
-        label: keep
-        labelKey: keep
-        sessionToken: keep
-        step: keep
-        tour: keep
-        userId: keep
-        userText: keep
-    webhost: keep
-    wiki: keep
-
-GuidedTourExited:
-    event:
-        sessionToken: keep
-        step: keep
-        tour: keep
-        userId: keep
-        userText: keep
-    webhost: keep
-    wiki: keep
-
-GuidedTourExternalLinkActivation:
-    event:
-        href: keep
-        label: keep
-        sessionToken: keep
-        step: keep
-        tour: keep
-        userId: keep
-        userText: keep
-    webhost: keep
-    wiki: keep
-
-GuidedTourGuiderHidden:
-    event:
-        sessionToken: keep
-        step: keep
-        tour: keep
-        userId: keep
-        userText: keep
-    webhost: keep
-    wiki: keep
-
-GuidedTourGuiderImpression:
-    event:
-        sessionToken: keep
-        step: keep
-        tour: keep
-        userId: keep
-        userText: keep
-    webhost: keep
-    wiki: keep
-
-GuidedTourInternalLinkActivation:
-    event:
-        label: keep
-        pageName: keep
-        sessionToken: keep
-        step: keep
-        tour: keep
-        userId: keep
-        userText: keep
-    webhost: keep
-    wiki: keep
+# Per T288416 removing all Guided Tour data
+# GuidedTour:
+# GuidedTourButtonClick:
+# GuidedTourExited:
+# GuidedTourExternalLinkActivation:
+# GuidedTourGuiderHidden:
+# GuidedTourGuiderImpression:
+# GuidedTourInternalLinkActivation:
 
 KaiOSAppFirstRun:
     event:
