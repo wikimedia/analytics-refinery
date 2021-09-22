@@ -110,7 +110,7 @@ done
 
 wait
 
-ADD_COMMAND="git add ./artifacts/refinery-*.jar ./artifacts/org/wikimedia/analytics/refinery/refinery-*-${VERSION}.jar"
+ADD_COMMAND="git add ./artifacts/refinery-*.jar ./artifacts/org/wikimedia/analytics/refinery/refinery-*-${VERSION}*.jar"
 COMMIT_COMMAND="git commit -m 'Add refinery-source jars for v${VERSION} to artifacts'"
 
 # If this is a dry run, just print the git commands to run and exit
