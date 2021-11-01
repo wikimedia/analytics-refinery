@@ -1012,6 +1012,37 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         'mappers-weight': 1.0,
     }
 
+    queries['discussiontools_subscription'] = {
+        'query': '''
+             select sub_id,
+                    convert(sub_item using utf8mb4) sub_item,
+                    sub_namespace,
+                    convert(sub_title using utf8mb4) sub_title,
+                    convert(sub_section using utf8mb4) sub_section,
+                    sub_state,
+                    sub_user,
+                    convert(sub_created using utf8mb4) sub_created,
+                    convert(sub_notified using utf8mb4) sub_notified
+
+               from discussiontools_subscription
+              where $CONDITIONS
+        ''',
+        'map-types': '"{}"'.format(','.join([
+            'sub_id=Long',
+            'sub_item=String',
+            'sub_namespace=Integer',
+            'sub_title=String',
+            'sub_section=String',
+            'sub_state=Integer',
+            'sub_user=Long',
+            'sub_created=String',
+            'sub_notified=String',
+        ])),
+        'boundary-query': 'SELECT MIN(sub_id), MAX(sub_id) FROM discussiontools_subscription',
+        'split-by': 'sub_id',
+        'mappers-weight': 1.0,
+    }
+
     queries['watchlist'] = {
         'query': '''
              select wl_id,
