@@ -1872,3 +1872,10 @@ mediawiki_content_translation_event:
     user_global_edit_count_bucket: keep
     utm_source: keep
     utm_campaign: keep
+
+mediawiki_skin_diff:
+    user_hash: hash
+    initial_state: keep
+    final_state: keep
+    bucketed_user_edit_count: keep
+    normalized_host: keep
