@@ -1873,9 +1873,14 @@ mediawiki_content_translation_event:
     utm_source: keep
     utm_campaign: keep
 
-#mediawiki_skin_diff:
-    #user_hash: hash
-    #initial_state: keep
-    #final_state: keep
-    #bucketed_user_edit_count: keep
-    #normalized_host: keep_all # does not work
+mediawiki_skin_diff:
+    user_hash: hash
+    initial_state: keep
+    final_state: keep
+    bucketed_user_edit_count: keep
+    normalized_host:
+        project_class: keep
+        project: keep
+        qualifiers: keep
+        tld: keep
+        project_family: keep
