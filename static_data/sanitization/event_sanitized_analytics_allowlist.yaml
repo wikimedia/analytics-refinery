@@ -1878,4 +1878,4 @@ mediawiki_skin_diff:
     initial_state: keep
     final_state: keep
     bucketed_user_edit_count: keep
-    normalized_host: keep
+    normalized_host: keep_all
