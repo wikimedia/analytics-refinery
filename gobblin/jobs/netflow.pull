@@ -4,7 +4,7 @@ job.name=netflow
 job.group=gobblin
 extract.namespace=org.wikimedia.analytics.netflow
 
-topic.include=netflow
+topic.include=netflow|network_internal_flows
 
 writer.partition.timestamp.columns=stamp_inserted
 writer.partition.timestamp.format=yyyy-MM-dd' 'HH:mm:ss
