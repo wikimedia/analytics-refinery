@@ -3,8 +3,7 @@
 -- (i.e. event.navigationtiming) and stores them in the anomaly detection table.
 --
 -- Params:
---     artifacts_directory     HDFS path where to find jars.
---     refinery_jar_version    Semantic version of the Hive jar (for UDFs).
+--     refinery_hive_jar       HDFS path of the refinery-hive jar (for UDFs).
 --     source_table            Event table from where to extract metrics.
 --     destination_table       Anomaly detection table to write metrics to.
 --     source                  Name of the job producing these metrics.
