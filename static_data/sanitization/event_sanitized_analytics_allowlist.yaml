@@ -50,61 +50,6 @@ DesktopWebUIActionsTracking:
     webhost: keep
     wiki: keep
 
-DiacriticsPoll:
-    event:
-        country: keep
-        text: keep
-    webhost: keep
-    wiki: keep
-
-DiacriticsVisibility:
-    event:
-        country: keep
-        issues: keep
-    webhost: keep
-    wiki: keep
-
-Edit:
-    event:
-        action: keep
-        action.abort.mechanism: keep
-        action.abort.timing: keep
-        action.abort.type: keep
-        action.init.mechanism: keep
-        action.init.timing: keep
-        action.init.type: keep
-        action.loaded.timing: keep
-        action.ready.timing: keep
-        action.saveAttempt.timing: keep
-        action.saveFailure.message: keep
-        action.saveFailure.timing: keep
-        action.saveFailure.type: keep
-        action.saveIntent.timing: keep
-        action.saveSuccess.timing: keep
-        editingSessionId: keep
-        editor: keep
-        integration: keep
-        latency: keep
-        mediawiki.version: keep
-        page.id: keep
-        page.length: keep
-        page.ns: keep
-        page.revid: keep
-        page.title: keep
-        pageId: keep
-        pageName: keep
-        pageNs: keep
-        pageViewSessionId: keep
-        platform: keep
-        revId: keep
-        user.class: keep
-        user.editCount: keep
-        user.id: keep
-        userId: keep
-        version: keep
-    webhost: keep
-    wiki: keep
-
 EditAttemptStep:
     event:
         action: keep
@@ -221,105 +166,6 @@ MobileOptionsTracking:
     webhost: keep
     wiki: keep
 
-MobileWebBrowse:
-    event:
-        action: keep
-        article: keep
-        articleIndex: keep
-        mobileMode: keep
-        tag: keep
-    webhost: keep
-    wiki: keep
-
-MobileWebClickTracking:
-    editCountBucket: keep
-    event:
-        editCountBucket: keep
-        mobileMode: keep
-        name: keep
-        userEditCount: keep
-    webhost: keep
-    wiki: keep
-
-MobileWebCta:
-    editCountBucket: keep
-    event:
-        campaign: keep
-        campaignStep: keep
-        editCountBucket: keep
-        mobileMode: keep
-        status: keep
-        userEditCount: keep
-    webhost: keep
-    wiki: keep
-
-MobileWebDiffClickTracking:
-    editCountBucket: keep
-    event:
-        editCountBucket: keep
-        mobileMode: keep
-        name: keep
-        userEditCount: keep
-    webhost: keep
-    wiki: keep
-
-MobileWebEditing:
-    event:
-        action: keep
-        editor: keep
-        errorText: keep
-        funnel: keep
-        isTestA: keep
-        mobileMode: keep
-        namespace: keep
-        pageId: keep
-        revId: keep
-        section: keep
-        token: keep
-        userEditCount: keep
-    webhost: keep
-    wiki: keep
-
-MobileWebInfobox:
-    event:
-        height: keep
-        in: keep
-        infoboxLength: keep
-        out: keep
-        start: keep
-        wasInteraction: keep
-        width: keep
-    webhost: keep
-    wiki: keep
-
-MobileWebLanguageSwitcher:
-    event:
-        beaconCapable: keep
-        event: keep
-        exitModal: keep
-        funnelToken: keep
-        languageButtonTappedBucket: keep
-        languageButtonVersion: keep
-        languageCount: keep
-        languageOverlayVersion: keep
-        languageTapped: keep
-        mobileMode: keep
-        positionOfLanguageTapped: keep
-        primaryLanguageOfUser: keep
-        searchInputHasQuery: keep
-    webhost: keep
-    wiki: keep
-
-MobileWebMainMenuClickTracking:
-    editCountBucket: keep
-    event:
-        editCountBucket: keep
-        mobileMode: keep
-        name: keep
-        userEditCount: keep
-    webhost: keep
-    wiki: keep
-
 MobileWebSearch:
     event:
         action: keep
@@ -335,29 +181,6 @@ MobileWebSearch:
     webhost: keep
     wiki: keep
 
-MobileWebSectionUsage:
-    event:
-        eventName: keep
-        hasServiceWorkerSupport: keep
-        isTablet: keep
-        isTestA: keep
-        namespace: keep
-        pageId: keep
-        section: keep
-        sectionCount: keep
-    webhost: keep
-    wiki: keep
-
-MobileWebShareButton:
-    event:
-        action: keep
-        isAnon: keep
-        pageTitle: keep
-        pageToken: keep
-        namespaceId: keep
-    webhost: keep
-    wiki: keep
-
 MobileWebUIActionsTracking:
     event:
         action: keep
@@ -365,98 +188,6 @@ MobileWebUIActionsTracking:
         modes: keep
         isAnon: keep
         editCountBucket: keep
-    webhost: keep
-    wiki: keep
-
-MobileWebUIClickTracking:
-    editCountBucket: keep
-    event:
-        editCountBucket: keep
-        mobileMode: keep
-        name: keep
-        userEditCount: keep
-    webhost: keep
-    wiki: keep
-
-MobileWebUploads:
-    event:
-        action: keep
-        errorText: keep
-        funnel: keep
-        isEditable: keep
-        mobileMode: keep
-        pageId: keep
-        token: keep
-    webhost: keep
-    wiki: keep
-
-MobileWebWatching:
-    editCountBucket: keep
-    event:
-        editCountBucket: keep
-        funnel: keep
-        isWatched: keep
-        mobileMode: keep
-        userEditCount: keep
-    webhost: keep
-    wiki: keep
-
-MobileWebWatchlistClickTracking:
-    editCountBucket: keep
-    event:
-        editCountBucket: keep
-        mobileMode: keep
-        name: keep
-        userEditCount: keep
-    webhost: keep
-    wiki: keep
-
-MobileWebWikiGrok:
-    event:
-        action: keep
-        isLoggedIn: keep
-        mobileMode: keep
-        scrollOffset: keep
-        taskToken: keep
-        taskType: keep
-        testing: keep
-        userEditCount: keep
-        userToken: keep
-        username: keep
-        version: keep
-        widgetOffset: keep
-    webhost: keep
-    wiki: keep
-
-MobileWebWikiGrokError:
-    event:
-        error: keep
-        isLoggedIn: keep
-        mobileMode: keep
-        taskToken: keep
-        taskType: keep
-        testing: keep
-        userToken: keep
-    webhost: keep
-    wiki: keep
-
-MobileWebWikiGrokResponse:
-    event:
-        isLoggedIn: keep
-        mobileMode: keep
-        property: keep
-        propertyId: keep
-        response: keep
-        sourceWiki: keep
-        subject: keep
-        subjectId: keep
-        taskToken: keep
-        taskType: keep
-        testing: keep
-        userEditCount: keep
-        userToken: keep
-        value: keep
-        valueId: keep
     webhost: keep
     wiki: keep
 
@@ -1373,38 +1104,6 @@ ServerSideAccountCreation:
     webhost: keep
     wiki: keep
 
-TaskRecommendation:
-    event:
-        offset: keep
-        pageId: keep
-        setId: keep
-    webhost: keep
-    wiki: keep
-
-TaskRecommendationClick:
-    event:
-        pageId: keep
-        setId: keep
-    webhost: keep
-    wiki: keep
-
-TaskRecommendationImpression:
-    event:
-        interface: keep
-        offset: keep
-        pageId: keep
-        setId: keep
-        userId: keep
-    webhost: keep
-    wiki: keep
-
-TaskRecommendationLightbulbClick:
-    event:
-        pageId: keep
-        userId: keep
-    webhost: keep
-    wiki: keep
-
 TemplateDataApi:
     event:
         has_template_data: keep
@@ -1426,16 +1125,6 @@ TemplateWizard:
         namespace_id: keep
         performer:
             user_edit_count_bucket: keep
-    wiki: keep
-
-TestSearchSatisfaction:
-    event:
-        action: keep
-        depth: keep
-        logId: keep
-        pageId: keep
-        searchSessionId: keep
-    webhost: keep
     wiki: keep
 
 TwoColConflictConflict:
@@ -1489,12 +1178,6 @@ UniversalLanguageSelector:
         timeToChangeLanguage: keep
         skin: keep
         skinVersion: keep
-
-VET135171:
-    event:
-        msg: keep
-    webhost: keep
-    wiki: keep
 
 VisualEditorFeatureUse:
     event:
@@ -1551,15 +1234,6 @@ WikipediaPortal:
         browser_family: keep
         is_bot: keep
         os_family: keep
-
-WikipediaZeroUsage:
-    event:
-        action: keep
-        net: keep
-        time: keep
-        xcs: keep
-    webhost: keep
-    wiki: keep
 
 SpecialInvestigate:
     event:
