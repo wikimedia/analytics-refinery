@@ -62,6 +62,16 @@ ChangesListFilters:
     webhost: keep
     wiki: keep
 
+CodeMirrorUsage:
+    event:
+        editor: keep
+        edit_start_ts_ms: keep
+        enabled: keep
+        session_token: hash
+        toggled: keep
+        user_edit_count_bucket: keep
+    wiki: keep
+
 CpuBenchmark:
     event:
         score: keep
@@ -1623,6 +1633,11 @@ TaskRecommendationLightbulbClick:
     webhost: keep
     wiki: keep
 
+TemplateDataApi:
+    event:
+        has_template_data: keep
+    wiki: keep
+
 TemplateDataEditor:
     event:
         action: keep
@@ -1630,9 +1645,15 @@ TemplateDataEditor:
         page_namespace: keep
         page_title: keep
         rev_id: keep
-        # TODO: user_edit_count_bucket
-        # user_edit_count: purge
-        # user_id: purge
+        user_edit_count_bucket: keep
+    wiki: keep
+
+TemplateWizard:
+    event:
+        action: keep
+        namespace_id: keep
+        performer:
+            user_edit_count_bucket: keep
     wiki: keep
 
 TestSearchSatisfaction:
@@ -1774,6 +1795,12 @@ VisualEditorFeatureUse:
         user_editcount: keep
         bucket: keep
     webHost: keep
+    wiki: keep
+
+VisualEditorTemplateDialogUse:
+    event:
+        action: keep
+        user_edit_count_bucket: keep
     wiki: keep
 
 WikibasePingback:
