@@ -1,3 +1,5 @@
+Deprecated by hql/aqs/hourly + Airflow
+
 # Aggregation / reduction of aqs data from webrequest
 
 This job is responsible for filtering aqs data

@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
+FIXME Deprecated by hql/aqs/hourly + Airflow
+
 Defines reusable datasets for aqs data.
 Use this dataset in your coordinator.xml files by setting:
 
