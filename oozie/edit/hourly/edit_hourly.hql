@@ -134,6 +134,7 @@ formatted_edit_history AS (
             WHEN array_contains(revision_tags, 'visualeditor') THEN 'VisualEditor'
             WHEN array_contains(revision_tags, 'visualeditor-wikitext') THEN '2017 wikitext editor'
             WHEN array_contains(revision_tags, 'visualeditor-switched') THEN 'Switched from VisualEditor to wikitext editor'
+            WHEN array_contains(revision_tags, 'wikieditor') THEN '2010 wikitext editor'
             ELSE 'Other'
         END AS interface,
         revision_tags,
