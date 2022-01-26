@@ -59,7 +59,10 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `webrequest`(
     `isp_data`          map<string, string>  COMMENT 'Internet Service Provider data in a map with keys isp, organization, autonomous_system_organization and autonomous_system_number',
     `accept`            string  COMMENT 'Accept header of request',
     `tls`               string  COMMENT 'TLS information of request',
-    `tls_map`           map<string, string>  COMMENT 'Map view of TLS information (keys are vers, keyx, auth and ciph)'
+    `tls_map`           map<string, string>  COMMENT 'Map view of TLS information (keys are vers, keyx, auth and ciph)',
+    `ch_ua`             string  COMMENT 'Value of the Sec-CH-UA request header',
+    `ch_ua_mobile`      string  COMMENT 'Value of the Sec-CH-UA-Mobile request header',
+    `ch_ua_platform`    string  COMMENT 'Value of the Sec-CH-UA-Platform request header'
 )
 PARTITIONED BY (
     `webrequest_source` string  COMMENT 'Source cluster',

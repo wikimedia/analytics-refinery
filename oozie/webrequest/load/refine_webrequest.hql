@@ -113,7 +113,10 @@ WITH distinct_rows AS (
         `range`,
         x_cache,
         accept,
-        tls
+        tls,
+        ch_ua,
+        ch_ua_mobile,
+        ch_ua_platform
     FROM
         ${source_table}
     WHERE
@@ -153,8 +156,10 @@ distinct_rows_and_reused_fields AS (
         CASE COALESCE(x_analytics, '-')
           WHEN '-' THEN NULL
           ELSE str_to_map(x_analytics, '\;', '=')
-        END as x_analytics_map
-
+        END as x_analytics_map,
+        ch_ua,
+        ch_ua_mobile,
+        ch_ua_platform
     FROM distinct_rows
 
 )
@@ -212,6 +217,9 @@ INSERT OVERWRITE TABLE ${destination_table}
         CASE COALESCE(tls, '-')
           WHEN '-' THEN NULL
           ELSE str_to_map(tls, '\;', '=')
-        END as tls_map
+        END as tls_map,
+        ch_ua,
+        ch_ua_mobile,
+        ch_ua_platform
     FROM distinct_rows_and_reused_fields
 ;

@@ -40,7 +40,10 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `webrequest` (
     `range`             string  COMMENT 'Range header of response',
     `x_cache`           string  COMMENT 'Cache path of request',
     `accept`            string  COMMENT 'Accept header of request',
-    `tls`               string  COMMENT 'TLS information of request'
+    `tls`               string  COMMENT 'TLS information of request',
+    `ch_ua`             string  COMMENT 'Value of the Sec-CH-UA request header',
+    `ch_ua_mobile`      string  COMMENT 'Value of the Sec-CH-UA-Mobile request header',
+    `ch_ua_platform`    string  COMMENT 'Value of the Sec-CH-UA-Platform request header'
 ) PARTITIONED BY (
     `webrequest_source` string  COMMENT 'Source cluster',
     `year`              int     COMMENT 'Unpadded year of request',
