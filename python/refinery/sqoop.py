@@ -719,7 +719,6 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
                     convert(pr_type using utf8mb4) pr_type,
                     convert(pr_level using utf8mb4) pr_level,
                     pr_cascade,
-                    pr_user,
                     convert(pr_expiry using utf8mb4) pr_expiry
 
                from page_restrictions
