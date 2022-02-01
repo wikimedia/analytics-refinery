@@ -730,7 +730,6 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
             'pr_type=String',
             'pr_level=String',
             'pr_cascade=Integer',
-            'pr_user=Long',
             'pr_expiry=String',
         ])),
         'boundary-query': 'SELECT MIN(pr_id), MAX(pr_id) FROM page_restrictions',
