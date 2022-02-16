@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- FIXME Deprecated by hql/wikidata/item_page_link/weekly -->
 <coordinator-app xmlns="uri:oozie:coordinator:0.4"
     xmlns:sla="uri:oozie:sla:0.2"
     name="wikidata-item_page_link-weekly-coord"
