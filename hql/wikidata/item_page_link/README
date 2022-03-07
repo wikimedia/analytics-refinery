@@ -1,8 +1,7 @@
-*FIXME* Deprecated by hql/wikidata/item_page_link/weekly
-
 This directory contains the weekly job computing wikidata item-page links
 from a wikidata_entity snapshot, a mediawiki-page-history snapshot and
 a project-namespace-map snapshot.
+
 The link-information is encoded as wikidata-entity sitelink values. Those
 values are URLs to the pages the entity is the equal concept, on every wiki
 (for instance the entity Q3044 'Charlemagne' has sitelinks like

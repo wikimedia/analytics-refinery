@@ -20,6 +20,7 @@ Use this dataset in your coordinator.xml files by setting:
         <done-flag>_SUCCESS</done-flag>
     </dataset>
 
+    <!-- FIXME Deprecated by hql/wikidata/item_page_link/weekly -->
     <dataset name="wikidata_item_page_link_parquet"
              frequency="${coord:days(7)}"
              initial-instance="${start_time}"
@@ -37,6 +38,7 @@ Use this dataset in your coordinator.xml files by setting:
         <done-flag>_PARTITIONED</done-flag>
     </dataset>
 
+    <!-- FIXME Deprecated by hql/wikidata/item_page_link/weekly -->
     <dataset name="wikidata_item_page_link_partitioned"
              frequency="${coord:days(7)}"
              initial-instance="${start_time}"

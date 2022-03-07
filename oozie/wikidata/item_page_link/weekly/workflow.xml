@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- FIXME Deprecated by hql/wikidata/item_page_link/weekly -->
 <workflow-app xmlns="uri:oozie:workflow:0.4"
     name="wikidata-item_page_link-weekly-wf-${wikidata_snapshot}">
 
