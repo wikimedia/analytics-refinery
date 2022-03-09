@@ -1,3 +1,5 @@
+# FIXME Deprecated by hql/session_length/daily + Airflow
+
 # Session length daily
 
 This job computes daily session length data from session tick events.

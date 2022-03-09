@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- FIXME Deprecated by hql/session_length/daily + Airflow -->
 <workflow-app
         xmlns="uri:oozie:workflow:0.4"
         name="session_length-daily-wf-${year}-${month}-${day}">
