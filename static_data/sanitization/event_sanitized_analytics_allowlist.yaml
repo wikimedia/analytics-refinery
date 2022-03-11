@@ -230,20 +230,6 @@ EventTiming:
         duration: keep
         cancelable: keep
 
-ExternalGuidance:
-    event:
-        action: keep
-        service: keep
-        source_language: keep
-        target_language: keep
-        session_token: hash
-    geocoded_data:
-        country: keep
-    useragent:
-        is_bot: keep
-    webhost: keep
-    wiki: keep
-
 FirstInputTiming:
     event:
         pageviewToken: hash
