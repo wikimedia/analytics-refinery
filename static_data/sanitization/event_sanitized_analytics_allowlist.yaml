@@ -322,15 +322,6 @@ GettingStartedRedirectImpression:
     webhost: keep
     wiki: keep
 
-# Per T288416 removing all Guided Tour data
-# GuidedTour:
-# GuidedTourButtonClick:
-# GuidedTourExited:
-# GuidedTourExternalLinkActivation:
-# GuidedTourGuiderHidden:
-# GuidedTourGuiderImpression:
-# GuidedTourInternalLinkActivation:
-
 KaiOSAppFirstRun:
     event:
         app_id: keep
