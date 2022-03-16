@@ -24,6 +24,7 @@
         <done-flag>_REFINED</done-flag>
     </dataset>
 
+    <!-- FIXME Deprecated by hql/session_length/daily + Airflow -->
     <dataset name="session_length_daily"
              frequency="${coord:days(1)}"
              initial-instance="${start_time}"
