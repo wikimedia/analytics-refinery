@@ -3,6 +3,7 @@
 Refinery contains scripts, artifacts, and configuration for WMF's
 analytics cluster.
 
+
 ## Setting up the refinery repository
 
 1. Install git-fat from https://github.com/jedbrown/git-fat on your
