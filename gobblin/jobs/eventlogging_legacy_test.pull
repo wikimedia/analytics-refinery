@@ -23,7 +23,3 @@ mr.job.max.mappers=1
 bootstrap.with.offset=latest
 
 data.publisher.final.dir=/wmf/data/raw/eventlogging_legacy
-
-# Enable metric reporting to Prometheus via Prometheus PushGateway.
-metrics.reporting.custom.builders=org.wikimedia.gobblin.metrics.prometheus.PrometheusEventReporterFactory
-metrics.reporting.prometheus.pushgateway.url=prometheus-pushgateway.discovery.wmnet
