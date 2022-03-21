@@ -26,4 +26,4 @@ data.publisher.final.dir=/wmf/data/raw/eventlogging_legacy
 
 # Enable metric reporting to Prometheus via Prometheus PushGateway.
 metrics.reporting.custom.builders=org.wikimedia.gobblin.metrics.prometheus.PrometheusEventReporterFactory
-metrics.reporting.prometheus.pushgateway.url=http://prometheus-pushgateway.discovery.wmnet
+metrics.reporting.prometheus.pushgateway.url=prometheus-pushgateway.discovery.wmnet
