@@ -116,7 +116,12 @@ WITH distinct_rows AS (
         tls,
         ch_ua,
         ch_ua_mobile,
-        ch_ua_platform
+        ch_ua_platform,
+        ch_ua_arch,
+        ch_ua_bitness,
+        ch_ua_full_version_list,
+        ch_ua_model,
+        ch_ua_platform_version
     FROM
         ${source_table}
     WHERE
@@ -159,7 +164,12 @@ distinct_rows_and_reused_fields AS (
         END as x_analytics_map,
         ch_ua,
         ch_ua_mobile,
-        ch_ua_platform
+        ch_ua_platform,
+        ch_ua_arch,
+        ch_ua_bitness,
+        ch_ua_full_version_list,
+        ch_ua_model,
+        ch_ua_platform_version
     FROM distinct_rows
 
 )
@@ -220,6 +230,11 @@ INSERT OVERWRITE TABLE ${destination_table}
         END as tls_map,
         ch_ua,
         ch_ua_mobile,
-        ch_ua_platform
+        ch_ua_platform,
+        ch_ua_arch,
+        ch_ua_bitness,
+        ch_ua_full_version_list,
+        ch_ua_model,
+        ch_ua_platform_version
     FROM distinct_rows_and_reused_fields
 ;
