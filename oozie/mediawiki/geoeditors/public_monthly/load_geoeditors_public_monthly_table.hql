@@ -36,7 +36,9 @@ WITH active_wikis AS (
         FROM ${editors_daily_table}
         WHERE
             month = '${month}' AND
-            size(user_is_bot_by) = 0 AND
+            -- Spark 2 will not let us save [] so we handle both:
+            -- size(NULL) returns -1 and size([]) returns 0
+            size(user_is_bot_by) <= 0 AND
             action_type IN (0, 1)
         GROUP BY
             wiki_db,
