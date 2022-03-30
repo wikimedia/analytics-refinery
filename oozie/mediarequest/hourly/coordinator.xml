@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--TODO Deprecated by hql/mediarequest/hourly.hql + Airflow-->
 <coordinator-app xmlns="uri:oozie:coordinator:0.4"
     xmlns:sla="uri:oozie:sla:0.2"
     name="mediarequest-hourly-coord"

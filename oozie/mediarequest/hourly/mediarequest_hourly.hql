@@ -1,3 +1,5 @@
+-- TODO Deprecated by hql/mediarequest/hourly.hql + Airflow
+
 -- Parameters:
 --  artifacts_directory  -- The hdfs refinery-artificats folder to use
 --  refinery_jar_version -- The refinery-hive jar version to use for UDFs

@@ -11,6 +11,7 @@ Use this dataset in your coordinator.xml files by setting:
 -->
 
 <datasets>
+    <!--TODO Deprecated by hql/mediarequest/hourly.hql + Airflow-->
     <dataset name="mediarequest_hourly"
              frequency="${coord:hours(1)}"
              initial-instance="${start_time}"
