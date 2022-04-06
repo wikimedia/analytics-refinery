@@ -1660,65 +1660,6 @@ UniversalLanguageSelector:
         skin: keep
         skinVersion: keep
 
-UploadWizardErrorFlowEvent:
-    event:
-        code: keep
-        flowId: keep
-        flowPosition: keep
-        message: keep
-        step: keep
-    webhost: keep
-    wiki: keep
-
-UploadWizardExceptionFlowEvent:
-    event:
-        column: keep
-        flowId: keep
-        flowPosition: keep
-        line: keep
-        stack: keep
-        url: keep
-    webhost: keep
-    wiki: keep
-
-UploadWizardFlowEvent:
-    event:
-        event: keep
-        flowId: keep
-        flowPosition: keep
-    webhost: keep
-    wiki: keep
-
-UploadWizardStep:
-    event:
-        flowId: keep
-        flowPosition: keep
-        skipped: keep
-        step: keep
-    webhost: keep
-    wiki: keep
-
-UploadWizardTutorialActions:
-    event:
-        action: keep
-        language: keep
-        username: keep
-    webhost: keep
-    wiki: keep
-
-UploadWizardUploadFlowEvent:
-    event:
-        duration: keep
-        error: keep
-        event: keep
-        extension: keep
-        flowId: keep
-        flowPosition: keep
-        quantity: keep
-        size: keep
-    webhost: keep
-    wiki: keep
-
 VET135171:
     event:
         msg: keep
