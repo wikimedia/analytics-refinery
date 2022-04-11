@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--TODO Deprecated by hql/mediarequest/hourly.hql + Airflow-->
 <workflow-app xmlns="uri:oozie:workflow:0.4"
     name="mediarequest-hourly-wf-${year}-${month}-${day}-${hour}">
 
