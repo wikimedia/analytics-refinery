@@ -273,41 +273,6 @@ GatherFlags:
     webhost: keep
     wiki: keep
 
-GettingStartedNavbarNoArticle:
-    event:
-        funnel: keep
-        version: keep
-    webhost: keep
-    wiki: keep
-
-GettingStartedOnRedirect:
-    event:
-        action: keep
-        bucket: keep
-        funnel: keep
-        isEditable: keep
-        isNavbarVisible: keep
-        pageId: keep
-        pageNS: keep
-        revId: keep
-        source: keep
-        userId: keep
-        version: keep
-    webhost: keep
-    wiki: keep
-
-GettingStartedRedirectImpression:
-    event:
-        action: keep
-        ctaType: keep
-        currentRevId: keep
-        isEditable: keep
-        pageId: keep
-        pageNS: keep
-        userId: keep
-    webhost: keep
-    wiki: keep
-
 KaiOSAppFirstRun:
     event:
         app_id: keep
