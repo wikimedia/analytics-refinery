@@ -1783,6 +1783,28 @@ mediawiki_content_translation_event:
     utm_source: keep
     utm_campaign: keep
 
+mediawiki_reading_depth:
+    access_method: keep
+    action: keep
+    dom_interactive_time: keep
+    first_paint_time: keep
+    is_anon: keep
+    meta:
+        dt: keep
+        domain: keep
+    page_length: keep
+    page_namespace: keep
+    session_token: hash
+    total_length: keep
+    visibility_listeners_time: keep
+    visible_length: keep
+    normalized_host:
+        project_class: keep
+        project: keep
+        qualifiers: keep
+        tld: keep
+        project_family: keep
+
 mediawiki_skin_diff:
     user_hash: hash
     initial_state: keep
