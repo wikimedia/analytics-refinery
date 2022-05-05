@@ -27,7 +27,7 @@ to be removed is not time, it's "snapshot". The number of snapshot kept is
 6 for all tables except it is 2 for mediawiki_wikitext_history (huge dataset).
 
 Note: Ad-hoc snapshots not following the default naming convention
-snapshot=YYYY-MM, like private snapshots, are not considered neither
+snapshot=YYYY-MM[-DD], like private snapshots, are not considered neither
 affected by this script.
 
 Usage: refinery-drop-mediawiki-snapshots [options]
@@ -36,13 +36,11 @@ Options:
     -h --help                       Show this help message and exit.
     -v --verbose                    Turn on verbose debug logging.
     -n --dry-run                    Don't actually drop any partitions, just output Hive queries.
-    -x --non-strict                 Don't enforce to-be-deleted hive-partitions to match to-be-deleted
-                                    folders and vice-versa
 """
 
 
 from docopt import docopt
-from refinery.hive import Hive
+from refinery.hive import Hive, HivePartition
 from refinery.hdfs import Hdfs
 import datetime
 import logging
@@ -135,7 +133,6 @@ WIKI_DB_TABLES = [
 def get_partitions_to_drop(hive, table, keep_snapshots):
     logger.debug('Getting partitions to drop...')
     partitions = hive.partition_specs(table)
-    spec_separator = Hive.partition_spec_separator
 
     # For tables partitioned by dimensions other than snapshot
     # extract just the snapshot spec:
@@ -143,7 +140,7 @@ def get_partitions_to_drop(hive, table, keep_snapshots):
     if table in WIKI_DB_TABLES:
         snapshots = set([])
         for partition in partitions:
-            snapshot = partition.split(spec_separator)[0]
+            snapshot = partition.split(Hive.partition_spec_separator)[0]
             snapshots.add(snapshot)
         partitions = list(snapshots)
 
@@ -157,53 +154,34 @@ def get_partitions_to_drop(hive, table, keep_snapshots):
     partitions.sort(reverse = True)
     partitions_to_drop = partitions[keep_snapshots:]
 
-    # HACK: For tables partitioned by dimensions other than snapshot
-    # add <dimension>!='' to snapshot spec, so that Hive deletes
-    # the whole snapshot partition with all sub-partitions in it.
-    if table in WIKI_DB_TABLES:
-        partitions_to_drop = [
-            spec_separator.join([p, "wiki_db!=''"])
-            for p in partitions_to_drop
-        ]
     return partitions_to_drop
 
 # Returns the directories to be removed given a hive table
-def get_directories_to_remove(hive, table, keep_snapshots):
+# and its partitions to be dropped
+# Note: directories to be removed are computed from table base-path
+# joined to the the snapshot partition. This script doesn't work
+# if the partition-path is set manually to a non hive-formatted location.
+def get_directories_to_remove(hive, table, partitions_to_drop):
     logger.debug('Getting directories to remove...')
     table_location = hive.table_location(table)
 
-    # Get partition directories having a _SUCCESS file to only consider fully
-    # imported/computed snapshots
-    glob = os.path.join(table_location, '*/_SUCCESS')
-    directories = Hdfs.ls(glob, include_children=False)
-
-    # Filter out non-date snapshots
-    directories = [
-        d[:(len(d) - len('/_SUCCESS'))] for d in directories
-        if re.match('^.*/snapshot=[0-9]{4}-[0-9]{2}(-[0-9]{2})?/_SUCCESS$', d)
+    return [
+        HivePartition(p).path(table_location)
+        for p in partitions_to_drop
     ]
-
-    # Select directories to drop (keep the most recent <keep_snapshots> ones)
-    directories.sort(reverse = True)
-    return directories[keep_snapshots:]
-
-# Raises an error if partitions and directories do not match
-def check_partitions_vs_directories(partitions, directories):
-    spec_separator = Hive.partition_spec_separator
-    partition_snapshots = set([p.split(spec_separator)[0].replace("'", '') for p in partitions])
-    directory_snapshots = set([os.path.basename(d) for d in directories])
-    if partition_snapshots != directory_snapshots:
-        logger.error(
-            'Selected partitions extracted from table specs ({0}) '
-            'does not match selected partitions extracted from data paths ({1}). '
-            'HDFS directories to check: {2}'
-            .format(partition_snapshots, directory_snapshots, directories)
-        )
-        sys.exit(1)
 
 # Drop given hive table partitions (if dry_run, just print)
 def drop_partitions(hive, table, partitions, dry_run):
     if partitions:
+        # HACK: For tables partitioned by dimensions other than snapshot
+        # add <dimension>!='' to snapshot spec, so that Hive deletes
+        # the whole snapshot partition with all sub-partitions in it.
+        if table in WIKI_DB_TABLES:
+            partitions = [
+                Hive.partition_spec_separator.join([p, "wiki_db!=''"])
+                for p in partitions
+            ]
+
         logger.info(
             'Dropping {0} partitions from {1}.{2}'
             .format(len(partitions), hive.database, table))
@@ -236,18 +214,15 @@ if __name__ == '__main__':
     arguments = docopt(__doc__)
     verbose         = arguments['--verbose']
     dry_run         = arguments['--dry-run']
-    non_strict      = arguments['--non-strict']
 
     # Setup logging level
     logger.setLevel(logging.INFO)
     if verbose:
         logger.setLevel(logging.DEBUG)
-
     logger.debug("Running in VERBOSE mode")
+
     if dry_run:
         logger.info("Running in DRY-RUN mode")
-    if non_strict:
-        logger.info("Running in NON_STRICT mode")
 
     for database, tables_and_keep_snapshots in AFFECTED_TABLES.items():
         # Instantiate Hive
@@ -257,8 +232,6 @@ if __name__ == '__main__':
         for table, keep_snapshot in tables_and_keep_snapshots.items():
             logger.debug('Processing table {0} keeping {1} snapshots'.format(table, keep_snapshot))
             partitions = get_partitions_to_drop(hive, table, keep_snapshot)
-            directories = get_directories_to_remove(hive, table, keep_snapshot)
-            if not non_strict:
-                check_partitions_vs_directories(partitions, directories)
+            directories = get_directories_to_remove(hive, table, partitions)
             drop_partitions(hive, table, partitions, dry_run)
             remove_directories(hive, table, directories, dry_run)
