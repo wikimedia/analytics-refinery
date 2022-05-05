@@ -162,7 +162,7 @@ def get_partitions_to_drop(hive, table, keep_snapshots):
 # Returns the directories to be removed given a hive table
 # and its partitions to be dropped
 # Note: directories to be removed are computed from table base-path
-# joined to the the snapshot partition. This script doesn't work
+# joined to the snapshot partition. This script doesn't work
 # if the partition-path is set manually to a non hive-formatted location.
 def get_directories_to_remove(hive, table, partitions_to_drop):
     logger.debug('Getting directories to remove...')
