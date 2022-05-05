@@ -15,7 +15,7 @@ Use this dataset in your coordinator.xml files by setting:
     The webrequest_subset dataset contains refined webrequest
     partitioned into subsets of smaller partitions for optimisation
 
-    It is to be noticed the the partitioning defined here the last
+    It is to be noticed the partitioning defined here the last
     partition level (subset=...) because it is data dependent and
     therefore generated using dynamic partitioning
     -->
