@@ -109,6 +109,9 @@ AFFECTED_TABLES = {
         'mediawiki_wikitext_current': 6,
         'wikidata_entity': 6,
         'wikidata_item_page_link': 6,
+    },
+    'structured_data': {
+        'commons_entity': 6,
     }
 }
 
