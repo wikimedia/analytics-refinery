@@ -14,6 +14,12 @@
 --         -d month=5
 --
 
+
+-- Throttle the maximum number of concurrent reducers to 350
+-- This makes the reduce step longer but prevents the job to
+-- saturate network links.
+SET mapreduce.job.running.reduce.limit = 350;
+
 SET hive.exec.compress.output=true;
 SET mapreduce.output.fileoutputformat.compress.codec=org.apache.hadoop.io.compress.GzipCodec;
 

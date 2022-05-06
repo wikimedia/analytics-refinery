@@ -21,6 +21,11 @@ SET parquet.compression              = SNAPPY;
 -- Allocate resources to almost all maps before starting reducers
 SET mapreduce.job.reduce.slowstart.completedmaps=0.99;
 
+-- Throttle the maximum number of concurrent reducers to 350
+-- This makes the reduce step longer but prevents the job to
+-- saturate network links.
+SET mapreduce.job.running.reduce.limit = 350;
+
 WITH last_access_dates AS (
     SELECT
         year,
