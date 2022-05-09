@@ -1,3 +1,5 @@
+<!--TODO Deprecated, this job has been migrated to Airflow. -->
+
 <!--
   This subworkflow wraps the archive subworkflow to map the loop_value
   parameter to the archive path.

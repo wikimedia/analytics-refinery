@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--TODO Deprecated, this job has been migrated to Airflow. -->
 <workflow-app xmlns="uri:oozie:workflow:0.4"
     name="clickstream-wf-${year}-${month}">
 
