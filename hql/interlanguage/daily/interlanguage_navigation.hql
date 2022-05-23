@@ -17,11 +17,11 @@
 --      day               -- day of partition to aggregate, left zero-padded
 --
 -- Usage:
---     spark2-sql -f interlanguage_links.hql                                                      \
+--     spark2-sql -f interlanguage_navigation.hql                                                      \
 --         -d refinery_hive_jar_path=hdfs://analytics-hadoop/wmf/refinery/current/artifacts/refinery-hive.jar    \
---         -d refinery_jar_version=0.0.115                                                  \
+--         -d coalesce_partitions=1    \
 --         -d source_table=wmf.pageview_actor                                               \
---         -d destination_table=wmf.interlanguage_links                                     \
+--         -d destination_table=wmf.interlanguage_navigation                                     \
 --         -d year=2017                                                                     \
 --         -d month=10                                                                      \
 --         -d day=03
@@ -33,9 +33,10 @@ SET parquet.compression = SNAPPY;
 CREATE TEMPORARY FUNCTION normalize_host AS 'org.wikimedia.analytics.refinery.hive.GetHostPropertiesUDF';
 
 INSERT OVERWRITE TABLE ${destination_table}
-    PARTITION(`date`='${year}-${month}-${day}')
+    PARTITION(`date`='LPAD(${year},4,"0")-LPAD((${month}, 2, "0")-LPAD((${day}, 2, "0")')
 
-     SELECT normalized_host.project_family,
+     SELECT /*+ COALESCE(${coalesce_partitions}) */
+            normalized_host.project_family,
             normalized_host.project AS current_project,
             normalize_host(parse_url(referer, 'HOST')).project as previous_project,
             COUNT(*) AS navigation_count
