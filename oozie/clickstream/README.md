@@ -1,3 +1,5 @@
+TODO Deprecated, this job has been migrated to Airflow.
+
 Oozie job to schedule generating clickstream datasets for various projects.
 The job runs every month and its TSV results are synchronised to the public.
 
