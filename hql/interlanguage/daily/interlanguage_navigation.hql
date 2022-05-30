@@ -10,18 +10,22 @@
 --                           aggregation from.
 --      refinery_hive_jar_path
 --                        -- The hdfs path to the refinery-hive jar to use for UFS
+--      coalesce_partitions
+                          -- Number of partitions to write at the end of the query
 --      destination_table -- Fully qualified table name to fill in
 --                           aggregated values.
+--      padded_date       -- Date of the partition to aggregate in YYYY-MM-DD format
 --      year              -- year of partition to aggregate
 --      month             -- month of partition to aggregate, left zero-padded
 --      day               -- day of partition to aggregate, left zero-padded
 --
 -- Usage:
---     spark2-sql -f interlanguage_navigation.hql                                                      \
+--     spark2-sql -f interlanguage_navigation.hql                                           \
 --         -d refinery_hive_jar_path=hdfs://analytics-hadoop/wmf/refinery/current/artifacts/refinery-hive.jar    \
---         -d coalesce_partitions=1    \
+--         -d coalesce_partitions=1                                                         \
 --         -d source_table=wmf.pageview_actor                                               \
---         -d destination_table=wmf.interlanguage_navigation                                     \
+--         -d destination_table=wmf.interlanguage_navigation                                \
+--         -d padded_date=2017-10-03                                                        \
 --         -d year=2017                                                                     \
 --         -d month=10                                                                      \
 --         -d day=03
@@ -33,7 +37,7 @@ SET parquet.compression = SNAPPY;
 CREATE TEMPORARY FUNCTION normalize_host AS 'org.wikimedia.analytics.refinery.hive.GetHostPropertiesUDF';
 
 INSERT OVERWRITE TABLE ${destination_table}
-    PARTITION(`date`='LPAD(${year},4,"0")-LPAD((${month}, 2, "0")-LPAD((${day}, 2, "0")')
+    PARTITION(`date`='${padded_date}')
 
      SELECT /*+ COALESCE(${coalesce_partitions}) */
             normalized_host.project_family,
