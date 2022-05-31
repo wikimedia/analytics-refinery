@@ -1,0 +1,26 @@
+#!/bin/bash
+
+####
+# Checks stat machines, HDFS, and Hive for
+#   anything that a user might have left behind
+#   after their relationship with Wikimedia Foundation ends
+####
+
+if [ -z "$1" ]
+  then
+    echo "You need to input the username to check"
+    exit 1
+fi
+
+for hostname in stat1004 stat1005 stat1006 stat1007 stat1008
+do
+  echo -e "\n====== $hostname ======"
+  ssh $hostname.eqiad.wmnet "ls -l /srv/home/${1}"
+  ssh $hostname.eqiad.wmnet "ls -l /var/userarchive | grep ${1}"
+done
+
+echo -e "\n======= HDFS ========"
+ssh an-launcher1002.eqiad.wmnet "sudo -u hdfs kerberos-run-command hdfs hdfs dfs -ls /user/${1}"
+
+echo -e "\n====== Hive ========="
+ssh an-launcher1002.eqiad.wmnet "sudo -u hdfs kerberos-run-command hdfs hdfs dfs -ls /user/hive/warehouse/*" | grep ${1}
