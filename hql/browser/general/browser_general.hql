@@ -7,6 +7,7 @@
 -- breakdown, etc.
 --
 -- Parameters:
+--     coalesce_partitions      -- Number of partitions to write at query end
 --     projectview_source       -- Table containing hourly projectviews.
 --     pageview_source          -- Table containing hourly pageviews.
 --     year                     -- Year of the date to update.
@@ -20,23 +21,19 @@
 --     destination_table        -- Table where to write the report.
 --
 -- Usage:
---     spark2-sql -f browser_general.hql
---         -d projectview_source=wmf.projectview_hourly
---         -d pageview_source=wmf.pageview_hourly
---         -d year=2016
---         -d month=1
---         -d day=1
---         -d threshold=0.1
---         -d os_family_unknown=Unknown
---         -d os_major_unknown=Unknown
---         -d browser_family_unknown=Unknown
---         -d browser_major_unknown=Unknown
+--     spark2-sql -f browser_general.hql                     \
+--         -d coalesce_partitions=1                          \
+--         -d projectview_source=wmf.projectview_hourly      \
+--         -d pageview_source=wmf.pageview_hourly            \
+--         -d year=2016                                      \
+--         -d month=1                                        \
+--         -d day=1                                          \
+--         -d threshold=0.1                                  \
+--         -d os_family_unknown=Unknown                      \
+--         -d os_major_unknown=Unknown                       \
+--         -d browser_family_unknown=Unknown                 \
+--         -d browser_major_unknown=Unknown                  \
 --         -d destination_table=dbname.browser_general
-
--- Force 1 reducer to output to a single file.
-SET mapred.reduce.tasks = 1;
--- Permits cartesian join of small enough table.
-SET hive.mapred.mode = nonstrict;
 
 WITH
     total AS (
@@ -87,7 +84,7 @@ WITH
         -- Note that the access_method dimension is not anonymized, because
         -- it is not privacy sensitive in this case. After that, it regroups
         -- the rows to collapse the long tail, and sorts them by view count.
-        SELECT
+        SELECT /*+ COALESCE(${coalesce_partitions}) */
             access_method,
             IF(`percent` > ${threshold}, os_family, '${os_family_unknown}') AS os_family,
             IF(`percent` > ${threshold}, os_major, '${os_major_unknown}') AS os_major,
@@ -101,7 +98,7 @@ WITH
             IF(`percent` > ${threshold}, os_major, '${os_major_unknown}'),
             IF(`percent` > ${threshold}, browser_family, '${browser_family_unknown}'),
             IF(`percent` > ${threshold}, browser_major, '${browser_major_unknown}')
-        ORDER BY view_count DESC LIMIT 1000000
+        ORDER BY view_count DESC
     )
 
 -- Overwrites the partition in the destination table.
