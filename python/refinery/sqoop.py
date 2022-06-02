@@ -654,7 +654,6 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
              select page_id,
                     page_namespace,
                     convert(page_title using utf8mb4) page_title,
-                    convert(page_restrictions using utf8mb4) page_restrictions,
                     page_is_redirect,
                     page_is_new,
                     page_random,
