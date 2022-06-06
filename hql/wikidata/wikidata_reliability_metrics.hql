@@ -112,7 +112,7 @@ SELECT *
 FROM median_time_query
 UNION
 SELECT
-  CONCAT(request_category,'.',is_cached),
+  CONCAT('request_count.',request_category,'.',is_cached),
   metric_count,
   ts
 FROM

@@ -17,7 +17,6 @@
 --         -d year=2021                                                   \
 --         -d month=5                                                     \
 --         -d day=4                                                       \
---         -d hour=2                                                      \
 --         -d coalesce_partitions=4                                       \
 --
 CREATE TEMPORARY VIEW wd_specialdataentity_data AS
@@ -34,7 +33,7 @@ CREATE TEMPORARY VIEW wd_specialdataentity_data AS
       ELSE 'unknown'
     END AS format_key,
     user_agent,
-    CAST('${year}-${month}-${day} ${hour}:00:00' as timestamp ) as ts
+    CAST('${year}-${month}-${day}' as timestamp ) as ts
   FROM ${webrequest_table}
   WHERE webrequest_source = 'text'
     AND year = ${year}
