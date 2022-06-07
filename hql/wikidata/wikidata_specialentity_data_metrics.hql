@@ -8,7 +8,6 @@
 --     year               -- year of metric to compute for.
 --     month              -- month of metric to compute for.
 --     day                -- day of metric to compute for.
---     hour               -- hour of metric to compute for.
 --     coalesce_partitions-- number of partitions to reduce to.
 --
 -- Usage:
@@ -19,7 +18,7 @@
 --         -d day=4                                                       \
 --         -d coalesce_partitions=4                                       \
 --
-CREATE TEMPORARY VIEW wd_specialdataentity_data AS
+CREATE TEMPORARY VIEW wd_specialentity_data AS
   SELECT
     agent_type,
     content_type,
@@ -43,7 +42,7 @@ CREATE TEMPORARY VIEW wd_specialdataentity_data AS
     AND normalized_host.project_class = 'wikidata'
     AND uri_path like '/wiki/Special:EntityData/%';
 
-CACHE TABLE wd_specialdataentity_data;
+CACHE TABLE wd_specialentity_data;
 
 WITH
 agent_type_metric AS (
@@ -51,7 +50,7 @@ agent_type_metric AS (
     CONCAT('agent_types.',agent_type),
     COUNT(1),
     ts
-  FROM wd_specialdataentity_data
+  FROM wd_specialentity_data
   GROUP BY
     agent_type,
     ts
@@ -62,7 +61,7 @@ format_content_metric AS (
     CONCAT('format.', format_key),
     COUNT(1),
     ts
-  FROM wd_specialdataentity_data
+  FROM wd_specialentity_data
   GROUP BY
     format_key,
     ts
@@ -73,7 +72,7 @@ wdqs_updater_agent_type_metric AS (
     CONCAT('wdqs_updater.agent_types.',agent_type),
     COUNT(1),
     ts
-  FROM wd_specialdataentity_data
+  FROM wd_specialentity_data
   WHERE user_agent LIKE 'Wikidata Query Service Updater%'
   GROUP BY
     agent_type,
@@ -85,7 +84,7 @@ wdqs_updater_format_content_metric AS (
     CONCAT('wdqs_updater.format.', format_key),
     COUNT(1),
     ts
-  FROM wd_specialdataentity_data
+  FROM wd_specialentity_data
   WHERE user_agent LIKE 'Wikidata Query Service Updater%'
   GROUP BY
     format_key,
