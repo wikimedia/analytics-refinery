@@ -862,6 +862,10 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
                from user
               where $CONDITIONS
         ''',
+        'map-types': '"{}"'.format(','.join([
+            'user_id=Long',
+            'user_editcount=Long',
+        ])),
         'boundary-query': 'SELECT MIN(user_id), MAX(user_id) FROM user',
         'split-by': 'user_id',
         'mappers-weight': 0.5,
