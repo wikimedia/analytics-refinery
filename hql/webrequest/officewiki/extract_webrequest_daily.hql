@@ -29,5 +29,6 @@ CREATE TEMPORARY FUNCTION get_actor_signature AS 'org.wikimedia.analytics.refine
    from ${source_table}
 
   where year=${year} and month=${month} and day=${day}
+    and webrequest_source = 'text'
     and uri_host = 'office.wikimedia.org'
 ;
