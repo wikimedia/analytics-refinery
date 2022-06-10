@@ -5,12 +5,14 @@
 --     source_table         -- Read raw data from here
 --     destination_table    -- Insert results here
 --     month                -- YYYY-MM to compute statistics for
+--     coalesce_partitions  -- Number of partitions to write
 --
 -- Usage:
---     hive -f insert_geoeditors_monthly_data.hql         \
+--     hive -f geoeditors_monthly.hql         \
 --          -d source_table=wmf.editors_daily             \
 --          -d destination_table=wmf.geoeditors_monthly   \
 --          -d month=2022-02
+--          -d coalesce_partitions=1
 --
 
 WITH overall AS (
@@ -84,7 +86,8 @@ WITH overall AS (
 INSERT OVERWRITE TABLE ${destination_table}
        PARTITION (month='${month}')
 
-     SELECT coalesce(overall.wiki_db, only_ns0.wiki_db),
+     SELECT /*+ COALESCE(${coalesce_partitions}) */
+            coalesce(overall.wiki_db, only_ns0.wiki_db),
             coalesce(overall.country_code, only_ns0.country_code),
             coalesce(overall.users_are_anonymous, only_ns0.users_are_anonymous),
             coalesce(overall.activity_level, only_ns0.activity_level),
@@ -95,4 +98,4 @@ INSERT OVERWRITE TABLE ${destination_table}
                                 AND overall.country_code = only_ns0.country_code
                                 AND overall.users_are_anonymous = only_ns0.users_are_anonymous
                                 AND overall.activity_level = only_ns0.activity_level
-;                                
+;

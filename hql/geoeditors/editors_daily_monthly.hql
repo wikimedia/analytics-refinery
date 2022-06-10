@@ -8,29 +8,26 @@
 --     user_history_table   -- Look up whether a user is a bot here
 --     destination_table    -- Insert results here
 --     month                -- YYYY-MM to compute statistics for
+--     coalesce_partitions  -- Number of partitions to write
 --
 -- Usage:
---     hive -f insert_editors_daily_data.hql                                                   \
+--     hive -f editors_daily_monthly.hql                                                   \
 --          -d refinery_hive_jar=hdfs://analytics-hadoop/some/path/to/refinery-hive-0.1.9.jar  \
 --          -d source_table=wmf_raw.mediawiki_private_cu_changes                               \
 --          -d user_history_table=wmf.mediawiki_user_history                                   \
 --          -d destination_table=wmf.editors_daily                                             \
 --          -d month=2022-02
+--          -d coalesce_partitions=1
 --
 ADD JAR ${refinery_hive_jar};
 CREATE TEMPORARY FUNCTION geocode as 'org.wikimedia.analytics.refinery.hive.GeocodedDataUDF';
 CREATE TEMPORARY FUNCTION network_origin as 'org.wikimedia.analytics.refinery.hive.GetNetworkOriginUDF';
 
--- Prevent hive from using a map-side join as it regularly causes
--- the following non-deterministic hive bug (map-join + UDF):
--- https://issues.apache.org/jira/browse/HIVE-14555
-SET hive.auto.convert.join           = false;
-
-
 INSERT OVERWRITE TABLE ${destination_table}
        PARTITION (month='${month}')
 
-     SELECT wiki_db,
+     SELECT /*+ COALESCE(${coalesce_partitions}) */
+            wiki_db,
             country_code,
             user_fingerprint_or_id,
             user_is_anonymous,
