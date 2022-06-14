@@ -74,6 +74,12 @@
         <data-in name="mw_archive_table" dataset="mw_archive_table">
             <instance>${coord:current(0)}</instance>
         </data-in>
+        <data-in name="mw_change_tag_table" dataset="mw_change_tag_table">
+            <instance>${coord:current(0)}</instance>
+        </data-in>
+        <data-in name="mw_change_tag_def_table" dataset="mw_change_tag_def_table">
+            <instance>${coord:current(0)}</instance>
+        </data-in>
         <data-in name="mw_logging_table" dataset="mw_logging_table">
             <instance>${coord:current(0)}</instance>
         </data-in>
