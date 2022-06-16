@@ -26,7 +26,7 @@ INSERT OVERWRITE TABLE ${destination_table}
        from ${source_table}
       where month = '${month}'
           -- Filter out bot actions and non-edit actions
-        and size(user_is_bot_by) = -1
+        and size(user_is_bot_by) = 0
         and action_type IN (0, 1)
       group by wiki_db,
             country_code,
