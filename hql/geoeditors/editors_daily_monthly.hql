@@ -45,7 +45,8 @@ INSERT OVERWRITE TABLE ${destination_table}
                     cuc_type as action_type,
                     if(cuc_user = 0, md5(concat(cuc_ip, cuc_agent)), cuc_user) as user_fingerprint_or_id,
                     if(cuc_user = 0, TRUE, FALSE) as user_is_anonymous,
-                    if(cuc_namespace = 0, TRUE, FALSE) as page_is_namespace_zero,
+                    -- Using integers for the sum above
+                    if(cuc_namespace = 0, 1, 0) as page_is_namespace_zero,
                     concat(
                         substring(cuc_timestamp, 0, 4), '-',
                         substring(cuc_timestamp, 5, 2), '-',
