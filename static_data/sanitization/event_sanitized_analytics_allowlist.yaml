@@ -298,14 +298,6 @@ LayoutShift:
         value: keep
         entryTime: keep
 
-MediaViewer:
-    event:
-        action: keep
-        samplingFactor: keep
-        variant: keep
-    webhost: keep
-    wiki: keep
-
 MediaWikiPingback:
     event:
         MediaWiki: keep
@@ -1186,72 +1178,6 @@ MobileWikiAppiOSUserHistory:
         wmf_app_version: keep
     geocoded_data:
         country: keep
-    webhost: keep
-    wiki: keep
-
-MultimediaViewerAttribution:
-    event:
-        authorPresent: keep
-        licensePresent: keep
-        loggedIn: keep
-        samplingFactor: keep
-        sourcePresent: keep
-    webhost: keep
-    wiki: keep
-
-MultimediaViewerDuration:
-    event:
-        country: keep
-        duration: keep
-        loggedIn: keep
-        samplingFactor: keep
-        type: keep
-        uploadTimestamp: keep
-    webhost: keep
-    wiki: keep
-
-MultimediaViewerNetworkPerformance:
-    event:
-        XCache: keep
-        XVarnish: keep
-        age: keep
-        bandwidth: keep
-        cache: keep
-        contentHost: keep
-        contentLength: keep
-        country: keep
-        dns: keep
-        imageWidth: keep
-        isHttps: keep
-        lastModified: keep
-        metered: keep
-        redirect: keep
-        request: keep
-        response: keep
-        status: keep
-        tcp: keep
-        timestamp: keep
-        total: keep
-        type: keep
-        uploadTimestamp: keep
-        urlHost: keep
-        varnish1: keep
-        varnish1hits: keep
-        varnish2: keep
-        varnish2hits: keep
-        varnish3: keep
-        varnish3hits: keep
-        varnish4: keep
-        varnish4hits: keep
-    webhost: keep
-    wiki: keep
-
-MultimediaViewerVersusPageFilePerformance:
-    event:
-        cache: keep
-        duration: keep
-        type: keep
-        windowSize: keep
     webhost: keep
     wiki: keep
 
