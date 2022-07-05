@@ -11,12 +11,12 @@
 --     coalesce_partitions-- number of partitions to reduce to.
 --
 -- Usage:
---     spark2-sql --master yarn -f wikidata_specialdataentity_metrics.hql \
---         -d webrequest_table=wmf.webrequest                             \
---         -d year=2021                                                   \
---         -d month=5                                                     \
---         -d day=4                                                       \
---         -d coalesce_partitions=4                                       \
+--     spark2-sql --master yarn -f wikidata_specialentity_data_metrics.hql \
+--         -d webrequest_table=wmf.webrequest                              \
+--         -d year=2021                                                    \
+--         -d month=5                                                      \
+--         -d day=4                                                        \
+--         -d coalesce_partitions=4                                        \
 --
 CREATE TEMPORARY VIEW wd_specialentity_data AS
   SELECT
