@@ -15,8 +15,9 @@
 --         -d year=2021                                                            \
 --         -d month=5                                                              \
 --         -d day=4                                                                \
---
+
 SELECT
+    'requests' as metric_id,
     COUNT(*),
     CAST('${year}-${month}-${day}' as timestamp ) as ts
 FROM ${webrequest_table}
