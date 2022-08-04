@@ -26,7 +26,7 @@ WITH overall AS (
        FROM (select wiki_db,
                     country_code,
                     user_is_anonymous,
-                    user_fingerprint_or_id,
+                    user_fingerprint_or_name,
                     case
                         when sum(edit_count) >= 100 then '100 or more'
                         when sum(edit_count) >= 5 then '5 to 99'
@@ -40,7 +40,7 @@ WITH overall AS (
               group by wiki_db,
                     country_code,
                     user_is_anonymous,
-                    user_fingerprint_or_id
+                    user_fingerprint_or_name
             ) editors_with_monthly_activity
 
       GROUP BY wiki_db,
@@ -59,7 +59,7 @@ WITH overall AS (
        FROM (select wiki_db,
                     country_code,
                     user_is_anonymous,
-                    user_fingerprint_or_id,
+                    user_fingerprint_or_name,
                     case
                         when sum(namespace_zero_edit_count) >= 100 then '100 or more'
                         when sum(namespace_zero_edit_count) >= 5 then '5 to 99'
@@ -75,7 +75,7 @@ WITH overall AS (
               group by wiki_db,
                     country_code,
                     user_is_anonymous,
-                    user_fingerprint_or_id
+                    user_fingerprint_or_name
             ) editors_with_monthly_activity
 
       GROUP BY wiki_db,

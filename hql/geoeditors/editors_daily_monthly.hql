@@ -11,13 +11,13 @@
 --     coalesce_partitions  -- Number of partitions to write
 --
 -- Usage:
---     hive -f editors_daily_monthly.hql                                                   \
---          -d refinery_hive_jar=hdfs://analytics-hadoop/some/path/to/refinery-hive-0.1.9.jar  \
---          -d source_table=wmf_raw.mediawiki_private_cu_changes                               \
---          -d user_history_table=wmf.mediawiki_user_history                                   \
---          -d destination_table=wmf.editors_daily                                             \
---          -d month=2022-02
---          -d coalesce_partitions=1
+--     spark2-sql -f editors_daily_monthly.hql                                                       \
+--                -d refinery_hive_jar=hdfs://analytics-hadoop/some/path/to/refinery-hive-0.1.9.jar  \
+--                -d source_table=wmf_raw.mediawiki_private_cu_changes                               \
+--                -d user_history_table=wmf.mediawiki_user_history                                   \
+--                -d destination_table=wmf.editors_daily                                             \
+--                -d month=2022-02                                                                   \
+--                -d coalesce_partitions=1
 --
 ADD JAR ${refinery_hive_jar};
 CREATE TEMPORARY FUNCTION geocode as 'org.wikimedia.analytics.refinery.hive.GeocodedDataUDF';
@@ -29,7 +29,7 @@ INSERT OVERWRITE TABLE ${destination_table}
      SELECT /*+ COALESCE(${coalesce_partitions}) */
             wiki_db,
             country_code,
-            user_fingerprint_or_id,
+            user_fingerprint_or_name,
             user_is_anonymous,
             `date`,
             count(*) as edit_count,
@@ -43,7 +43,7 @@ INSERT OVERWRITE TABLE ${destination_table}
                     network_origin(cuc_ip) as network_origin,
                     coalesce(is_bot_by_historical, array()) as user_is_bot_by,
                     cuc_type as action_type,
-                    if(cuc_user = 0, md5(concat(cuc_ip, cuc_agent)), cuc_user) as user_fingerprint_or_id,
+                    if(cuc_user = 0, md5(concat(cuc_ip, cuc_agent)), cuc_user_text) as user_fingerprint_or_name,
                     if(cuc_user = 0, TRUE, FALSE) as user_is_anonymous,
                     -- Using integers for the sum above
                     if(cuc_namespace = 0, 1, 0) as page_is_namespace_zero,
@@ -71,7 +71,7 @@ INSERT OVERWRITE TABLE ${destination_table}
       GROUP BY wiki_db,
             country_code,
             `date`,
-            user_fingerprint_or_id,
+            user_fingerprint_or_name,
             user_is_anonymous,
             network_origin,
             user_is_bot_by,

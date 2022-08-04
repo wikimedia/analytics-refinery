@@ -32,7 +32,7 @@ WITH active_wikis AS (
     FROM (
         SELECT
             wiki_db,
-            user_fingerprint_or_id
+            user_fingerprint_or_name
         FROM ${editors_daily_table}
         WHERE
             month = '${month}' AND
@@ -42,7 +42,7 @@ WITH active_wikis AS (
             action_type IN (0, 1)
         GROUP BY
             wiki_db,
-            user_fingerprint_or_id
+            user_fingerprint_or_name
         HAVING sum(edit_count) >= 5
     ) AS active_editors
     GROUP BY wiki_db
