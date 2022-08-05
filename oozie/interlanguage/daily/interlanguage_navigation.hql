@@ -19,7 +19,7 @@
 -- Usage:
 --     hive -f interlanguage_links.hql                                                      \
 --         -d refinery_hive_jar_path=hdfs://analytics-hadoop/wmf/refinery/current/artifacts/refinery-hive.jar    \
---         -d refinery_jar_version=0.0.115                                                  \
+--         -d refinery_jar_version=X.X.X                                                    \
 --         -d source_table=wmf.pageview_actor                                               \
 --         -d destination_table=wmf.interlanguage_links                                     \
 --         -d year=2017                                                                     \

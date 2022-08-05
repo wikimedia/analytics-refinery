@@ -18,7 +18,7 @@
 -- Usage example:
 --     hive -f virtualpageview_hourly.hql \
 --         -d artifacts_directory=/wmf/refinery/current/artifacts \
---         -d refinery_jar_version=0.0.58 \
+--         -d refinery_jar_version=X.X.X \
 --         -d source_table=event.virtualpageview \
 --         -d destination_table=wmf.virtualpageview_hourly \
 --         -d record_version=0.0.1 \
@@ -32,7 +32,7 @@
 SET parquet.compression = SNAPPY;
 SET mapred.reduce.tasks = 8;
 
-ADD JAR ${artifacts_directory}/org/wikimedia/analytics/refinery/refinery-hive-${refinery_jar_version}.jar;
+ADD JAR ${artifacts_directory}/org/wikimedia/analytics/refinery/refinery-hive-${0.1.0refinery_jar_version}.jar;
 CREATE TEMPORARY FUNCTION get_pageview_info AS 'org.wikimedia.analytics.refinery.hive.GetPageviewInfoUDF';
 
 WITH decorated_virtualpageviews AS (

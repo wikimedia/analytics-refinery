@@ -5,7 +5,7 @@
 -- Usage:
 --     sudo -u analytics hive -f traffic_entropy_by_country.hql \
 --         -d artifacts_directory='hdfs://analytics-hadoop/wmf/refinery/current/artifacts' \
---         -d refinery_jar_version='0.0.104' \
+--         -d refinery_jar_version=X.X.X \
 --         -d source_table='wmf.pageview_hourly' \
 --         -d destination_table='analytics.data_quality_stats_incoming' \
 --         -d year=2019 \

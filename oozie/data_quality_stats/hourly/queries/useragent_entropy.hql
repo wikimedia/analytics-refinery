@@ -5,7 +5,7 @@
 -- Usage:
 --     sudo -u analytics hive -f useragent_entropy.hql \
 --         -d artifacts_directory='hdfs://analytics-hadoop/wmf/refinery/current/artifacts' \
---         -d refinery_jar_version='0.0.104' \
+--         -d refinery_jar_version=X.X.X \
 --         -d source_table='event.navigationtiming' \
 --         -d destination_table='analytics.data_quality_stats_incoming' \
 --         -d year=2019 \

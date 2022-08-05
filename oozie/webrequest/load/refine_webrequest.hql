@@ -24,7 +24,7 @@
 --
 -- Usage:
 --     hive -f refine_webrequest.hql                              \
---         -d refinery_jar_version=0.0.7                     \
+--         -d refinery_jar_version=X.X.X                          \
 --         -d artifacts_directory=/wmf/refinery/current/artifacts \
 --         -d source_table=wmf_raw.webrequest                     \
 --         -d destination_table=wmf.webrequest                    \

@@ -99,7 +99,7 @@ oozie job --oozie $OOZIE_URL \
     -Dstart_time='2019-07-01T00:00Z' \
     -Dstop_time='2019-07-01T00:01Z' \
     -Doozie_directory='hdfs://analytics-hadoop/user/mforns/oozie' \
-    -Dspark_job_jar='hdfs://analytics-hadoop/user/mforns/jars/refinery-job-0.0.97-SNAPSHOT.jar' \
+    -Dspark_job_jar='hdfs://analytics-hadoop/user/mforns/jars/refinery-job-X.X.X.jar' \
     -Doutput_base_path='hdfs://analytics-hadoop/user/mforns/mediawiki/history/dumps' \
     -config /home/mforns/refinery/oozie/mediawiki/history/dumps/coordinator.properties \
     -run

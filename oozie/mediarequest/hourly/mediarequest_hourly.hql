@@ -17,7 +17,7 @@
 -- Usage:
 --     hive -f mediarequest_hourly.hql                                    \
 --         -d artifacts_directory=hdfs:///wmf/refinery/current/artifacts  \
---         -d refinery_jar_version=0.1.0                                  \
+--         -d refinery_jar_version=X.X.X                                  \
 --         -d source_table=wmf.webrequest                                 \
 --         -d destination_table=wmf.mediarequest                          \
 --         -d temporary_directory=/wmf/tmp/analytics/mediarequest_xyz     \
