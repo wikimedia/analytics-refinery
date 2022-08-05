@@ -34,7 +34,7 @@ INSERT OVERWRITE TABLE ${destination_table}
 
      SELECT wiki_db,
             country_code,
-            user_fingerprint_or_id,
+            user_fingerprint_or_name,
             user_is_anonymous,
             `date`,
             count(*) as edit_count,
@@ -48,7 +48,7 @@ INSERT OVERWRITE TABLE ${destination_table}
                     network_origin(cuc_ip) as network_origin,
                     coalesce(is_bot_by_historical, array()) as user_is_bot_by,
                     cuc_type as action_type,
-                    if(cuc_user = 0, md5(concat(cuc_ip, cuc_agent)), cuc_user) as user_fingerprint_or_id,
+                    if(cuc_user = 0, md5(concat(cuc_ip, cuc_agent)), cuc_user_text) as user_fingerprint_or_name,
                     if(cuc_user = 0, 1, 0) as user_is_anonymous,
                     if(cuc_namespace = 0, 1, 0) as page_is_namespace_zero,
                     concat(
@@ -78,7 +78,7 @@ INSERT OVERWRITE TABLE ${destination_table}
       GROUP BY wiki_db,
             country_code,
             `date`,
-            user_fingerprint_or_id,
+            user_fingerprint_or_name,
             user_is_anonymous,
             network_origin,
             user_is_bot_by,
