@@ -610,6 +610,25 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         'mappers-weight': 0.5,
     }
 
+    queries['linktarget'] = {
+        'query': '''
+             select lt_id,
+                    lt_namespace,
+                    convert(lt_title using utf8mb4) lt_title
+
+               from linktarget
+              where $CONDITIONS
+        ''',
+        'map-types': '"{}"'.format(','.join([
+            'lt_id=Long',
+            'lt_namespace=Integer',
+            'lt_title=String',
+        ])),
+        'boundary-query': 'SELECT MIN(lt_id), MAX(lt_id) FROM linktarget',
+        'split-by': 'lt_id',
+        'mappers-weight': 1.0,
+    }
+
     queries['logging'] = {
         'query': '''
              select log_id,
@@ -830,17 +849,19 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         'query': '''
              select tl_from,
                     tl_from_namespace,
-                    tl_namespace,
-                    convert(tl_title using utf8mb4) tl_title
+                    null as tl_namespace,
+                    null as tl_title,
+                    tl_target_id
 
                from templatelinks
               where $CONDITIONS
         ''',
         'map-types': '"{}"'.format(','.join([
             'tl_from=Long',
+            'tl_from_namespace=Integer',
             'tl_namespace=Integer',
             'tl_title=String',
-            'tl_from_namespace=Integer',
+            'tl_target_id=Long',
         ])),
         'boundary-query': 'SELECT MIN(tl_from), MAX(tl_from) FROM templatelinks',
         'split-by': 'tl_from',

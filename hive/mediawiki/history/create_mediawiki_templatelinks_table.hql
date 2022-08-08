@@ -12,8 +12,9 @@
 CREATE EXTERNAL TABLE `mediawiki_templatelinks`(
   `tl_from`           bigint  COMMENT 'Key to the page_id of the page containing the link.',
   `tl_from_namespace` int     COMMENT 'page_namespace of the page containing the link.',
-  `tl_namespace`      int     COMMENT 'Key to page_namespace of the target page. Used in conjunction with tl_title.',
-  `tl_title`          string  COMMENT 'Key to page_title of the target page. Used in conjunction with tl_namespace.'
+  `tl_namespace`      int     COMMENT 'null since summer 2022, replaced with tl_target_id',
+  `tl_title`          string  COMMENT 'null since summer 2022, replaced with tl_target_id',
+  `tl_target_id`      bigint  COMMENT 'Foreign key to www.mediawiki.org/wiki/Manual:Linktarget_table'
 )
 COMMENT
   'See most up to date documentation at https://www.mediawiki.org/wiki/Manual:Templatelinks_table'
