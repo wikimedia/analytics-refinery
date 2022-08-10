@@ -209,76 +209,69 @@ def get_directories_to_remove(hdfs, base_path, path_format, threshold, allowed_i
     """
     Gets all directories within the given base_path that match path_format
     and need to be removed according to the datetime threshold.
-    Returns the directories grouped by dataset name in a dict.
-    Also, raises a RuntimeError if any directory to remove
-    falls outside the allowed interval.
+    Returns the directories in a flat list. Also, raises a RuntimeError
+    if any directory to remove falls outside the allowed interval.
     """
-    directories_to_remove = {}
     full_path_format = os.path.join(base_path, path_format)
-    dataset_directories = hdfs.ls([base_path])
+    directories_to_expand = [base_path]
+    directories_to_remove = []
 
-    for dataset_directory in dataset_directories:
-        # We consider the dataset name to be the directory name immediately
-        # after the base path, i.e.: /base/path/<dataset_name>/other/stuff.
-        dataset_name = dataset_directory[len(base_path):].strip('/').split('/')[0]
-        directories_to_expand = [dataset_directory]
-        directories_to_remove[dataset_name] = []
+    while len(directories_to_expand) > 0:
+        # Collect the sub-paths of the directories to expand (deletion candidates).
+        # Note that hdfs.ls(F) will return F, if F is a file path (not a directory path).
+        # Filter out such 'recursive' paths to avoid infinite loops.
+        candidate_paths = [
+            path for path in hdfs.ls(directories_to_expand)
+            if path not in directories_to_expand
+        ]
+        # Empty directories to expand for next iteration.
+        directories_to_expand = []
 
-        while len(directories_to_expand) > 0:
-            # Collect the sub-paths of the directories to expand (deletion candidates).
-            # Note that hdfs.ls(F) will return F, if F is a file path (not a directory path).
-            # Filter out such 'recursive' paths to avoid infinite loops.
-            candidate_paths = [
-                path for path in hdfs.ls(directories_to_expand)
-                if path not in directories_to_expand
-            ]
-            directories_to_expand = []
+        for candidate_path in candidate_paths:
+            time_interval = extract_time_interval_from_directory(candidate_path, full_path_format)
+            if time_interval is None:
+                # No time information was found in the path.
+                if path_is_partial_match(full_path_format, candidate_path):
+                    # The path still can contain data to be deleted.
+                    directories_to_expand.append(candidate_path)
+                continue
 
-            for path in candidate_paths:
-                time_interval = extract_time_interval_from_directory(path, full_path_format)
-                if time_interval is None:
-                    # No time information was found in the path.
-                    if path_is_partial_match(full_path_format, path):
-                        directories_to_expand.append(path)
-                    continue
-
-                start_time, end_time = time_interval
-                if end_time < threshold:
-                    # The whole directory is older than the threshold.
-                    if start_time < allowed_interval_start:
-                        raise RuntimeError(
-                            'Dataset {0} has directories outside of the allowed drop interval.'
-                            .format(dataset_directory))
-                    directories_to_remove[dataset_name].append(path)
-                elif start_time < threshold:
-                    # The threshold is in between the directory's start and end.
-                    directories_to_expand.append(path)
+            start_time, end_time = time_interval
+            if end_time < threshold:
+                # The whole directory is older than the threshold.
+                if start_time < allowed_interval_start:
+                    # The directory contains data outside of the allowed interval.
+                    raise RuntimeError(
+                        'Path {0} has directories outside of the allowed drop interval.'
+                        .format(candidate_path))
+                directories_to_remove.append(candidate_path)
+            elif start_time < threshold:
+                # The threshold is in between the directory's start and end.
+                # We need to go deeper to determine which subfolders are deleted.
+                directories_to_expand.append(candidate_path)
 
     return directories_to_remove
 
 
-def remove_directories(hdfs, directory_dict, skip_trash, execute):
+def remove_directories(hdfs, directories, skip_trash, execute):
     """
     If execute is specified, then removes the specified directories from hdfs.
     Otherwise, just logs the commands that would have been used.
-    Iterates over the directories by dataset.
     """
-    for dataset, directories in directory_dict.items():
-        if len(directories) > 0:
-            if execute:
-                logger.info('Removing {0} directories for dataset {1}.'.format(len(directories), dataset))
-                hdfs.rm(' '.join(directories), skip_trash=skip_trash)
-            else:
-                logger.info(
-                    ('DRY RUN: {0} directories would be removed ' +
-                    'for dataset {1} with the following command:')
-                    .format(len(directories), dataset))
-                logger.info(
-                    'hdfs dfs -rm -R ' +
-                    ('-skipTrash  \\\n' if skip_trash else '\\\n') +
-                    ' \\\n'.join(directories))
+    if len(directories) > 0:
+        if execute:
+            logger.info('Removing {0} directories.'.format(len(directories)))
+            hdfs.rm(' '.join(directories), skip_trash=skip_trash)
         else:
-            logger.info('No directories removed for dataset {0}.'.format(dataset))
+            logger.info(
+                'DRY RUN: {0} directories would be removed with the following command:'
+                .format(len(directories)))
+            logger.info(
+                'hdfs dfs -rm -R ' +
+                ('-skipTrash  \\\n' if skip_trash else '\\\n') +
+                ' \\\n'.join(directories))
+    else:
+        logger.info('No directories removed.')
 
 
 def extract_time_interval_from_directory(path, full_path_format):
@@ -418,7 +411,7 @@ def main(args):
 
     # Check and format allowed interval argument.
     if allowed_interval is None:
-        allowed_interval_start = datetime.fromtimestamp(0) # 1970-01-01
+        raise RuntimeError('The argument --allowed-interval is mandatory.')
     else:
         if allowed_interval.isdigit():
             allowed_interval_start = threshold - timedelta(days=int(allowed_interval))
@@ -538,7 +531,7 @@ class TestRefineryDropOlderThan(unittest.TestCase):
             '--base-path': '/test/data/path',
             '--path-format': 'test/(?P<year>[0-9]+)(/(?P<month>[0-9]+))?',
             '--older-than': '90',
-            '--allowed-interval': None,
+            '--allowed-interval': '18250', # 50 years
             '--skip-trash': None,
             '--execute': None}
         default_args.update(override)
@@ -577,7 +570,7 @@ class TestRefineryDropOlderThan(unittest.TestCase):
             '--tables': None,
             '--base-path': None,
             '--path-format': None,
-            '--execute': '3b8fe028c45cb3d118b0b288a0b87f89'})
+            '--execute': 'e588b2d4eb50446c6e4887a7cc0b4dc3'})
 
     def test_security_checksum_changes_with_arguments(self):
         self.assertNotEqual(
@@ -667,13 +660,13 @@ class TestRefineryDropOlderThan(unittest.TestCase):
 
         self.assertEqual(
             directories_to_remove,
-            { 'dataset': [
+            [
                 '/some/path/dataset/2017',
                 '/some/path/dataset/2018/10',
                 '/some/path/dataset/2018/11/21',
                 '/some/path/dataset/2018/11/22/01',
                 '/some/path/dataset/2018/11/22/02'
-            ]}
+            ]
         )
 
         # Test directory out of allowed interval.
@@ -690,7 +683,7 @@ class TestRefineryDropOlderThan(unittest.TestCase):
         fake_hdfs = self.FakeHdfs()
         remove_directories(
             fake_hdfs,
-            {'dataset_name': ['/base/path/dataset_name/2018/11/01']},
+            ['/base/path/dataset_name/2018/11/01'],
             False,
             True)
         fake_hdfs.rm.assert_called_with(
@@ -701,7 +694,7 @@ class TestRefineryDropOlderThan(unittest.TestCase):
         fake_hdfs = self.FakeHdfs()
         remove_directories(
             fake_hdfs,
-            {'dataset_name': ['/base/path/dataset_name/2018/11/01']},
+            ['/base/path/dataset_name/2018/11/01'],
             False,
             False)
         fake_hdfs.rm.assert_not_called()
@@ -710,7 +703,7 @@ class TestRefineryDropOlderThan(unittest.TestCase):
         fake_hdfs = self.FakeHdfs()
         remove_directories(
             fake_hdfs,
-            {'dataset_name': ['/base/path/dataset_name/2018/11/01']},
+            ['/base/path/dataset_name/2018/11/01'],
             True,
             True)
         fake_hdfs.rm.assert_called_with(
