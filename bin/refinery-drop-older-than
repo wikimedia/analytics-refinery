@@ -69,6 +69,13 @@ Options:
                                     a YYYY-MM-DD timestamp or the relative number
                                     of days from now. If not specified, no
                                     partitions or directories will be deleted.
+    -i --allowed-interval=<days>    If any Hive partition or data directory
+                                    to be deleted doesn't fall within the first
+                                    <days> days immediately before --older-than
+                                    threshold, do not drop any partitions or
+                                    remove any directories (no-op) and exit with
+                                    a non-0 status code. Use this optionally as
+                                    safety measure to avoid unexpected deletion.
     -s --skip-trash                 Permanently delete directories (do not
                                     send them to the trash).
     -v --verbose                    Turn on verbose debug logging.
@@ -105,6 +112,7 @@ logger = logging.getLogger()
 
 # Add here base paths and databases that should never be deleted.
 # Under undeletable_base_paths you can use prefixes as well.
+undeletable_databases = ['archive']
 undeletable_base_paths = [
     # We can not add the full /wmf/data/archive directory to this list,
     # because we need to delete data from /wmf/data/archive/mediawiki.
@@ -122,44 +130,32 @@ undeletable_base_paths = [
     '/wmf/data/archive/project',
     '/wmf/data/archive/unique_devices',
     '/wmf/data/archive/webrequest']
-undeletable_databases = ['archive']
 
 
-def drop_partitions(hive, database, tables_regex, threshold, execute):
+def get_partitions_to_drop(hive, tables_regex, threshold, allowed_interval_start):
     """
-    Lists all partitions within the given database and tables, and
-    selects those that should be deleted according to the datetime threshold.
-    If execute is specified, then drops those partitions from hive.
-    Otherwise, just logs the commands that would have been used.
+    Gets all partitions within the given database and tables
+    that need to be dropped according to the datetime threshold.
+    Returns the partitions grouped by table in a dict.
+    Also, raises a RuntimeError if any partition to drop
+    falls outside the allowed interval.
     """
-    database_tables = hive.get_tables()
-
-    if not tables_regex.endswith('$'):
-        tables_regex += '$'
-    tables = [t for t in database_tables if re.match(tables_regex, t)]
+    partitions_to_drop = {}
+    tables = [t for t in hive.get_tables() if re.match(tables_regex, t)]
 
     for table in tables:
-        partitions_to_drop = []
-
+        partitions_to_drop[table] = []
         candidate_partitions = hive.partitions(table)
+
         for partition in candidate_partitions:
             if should_drop_partition(partition, threshold):
-                partitions_to_drop.append(partition.spec())
+                if partition.datetime() < allowed_interval_start:
+                    raise RuntimeError(
+                        'Table {0} has partitions outside of the allowed drop interval.'
+                        .format(table))
+                partitions_to_drop[table].append(partition.spec())
 
-        if len(partitions_to_drop) > 0:
-            if execute:
-                logger.info('Dropping {0} Hive partitions from table {1}.{2}.'
-                    .format(len(partitions_to_drop), database, table))
-                hive.drop_partitions(table, partitions_to_drop)
-            else:
-                logger.info(
-                    ('DRY RUN: {0} Hive partitions from table {1}.{2} ' +
-                    'would be dropped with the following command:')
-                    .format(len(partitions_to_drop), database, table))
-                logger.info(hive.drop_partitions_ddl(table, partitions_to_drop))
-        else:
-            logger.info('No Hive partitions dropped for table {0}.{1}.'
-                .format(database, table))
+    return partitions_to_drop
 
 
 def should_drop_partition(partition, threshold):
@@ -168,6 +164,7 @@ def should_drop_partition(partition, threshold):
     than the given threshold. Returns False otherwise.
     """
     partition_dt = partition.datetime()
+
     if "hour" in partition:
         partition_end = partition_dt.replace(minute=59, second=59)
     elif "day" in partition or "date" in partition:
@@ -181,61 +178,107 @@ def should_drop_partition(partition, threshold):
             month=12, day=31, hour=23, minute=59, second=59)
     else:
         return False
+
     return partition_end < threshold
 
 
-def remove_directories(hdfs, base_path, path_format, threshold, skip_trash, execute):
+def drop_partitions(hive, partition_dict, execute):
     """
-    Lists all paths within base_path and selects those that should be deleted
-    according to the specified path_format and datetime threshold.
-    If execute is specified, then removes those paths from hdfs.
+    If execute is set, drops the specified partitions from hive.
     Otherwise, just logs the commands that would have been used.
+    Iterates over the partitions by table.
     """
-    full_path_format = os.path.join(base_path, path_format)
-
-    directories_to_expand = [base_path]
-    directories_to_remove = []
-    while len(directories_to_expand) > 0:
-        # Collect the sub-paths of the directories to expand (deletion candidates).
-        # Note that hdfs.ls(F) will return F, if F is a file path (not a directory path).
-        # Filter out such 'recursive' paths to avoid infinite loops.
-        candidate_paths = [
-            path for path in hdfs.ls(directories_to_expand)
-            if path not in directories_to_expand
-        ]
-        directories_to_expand = []
-        for path in candidate_paths:
-            time_interval = extract_time_interval_from_directory(path, full_path_format)
-            if time_interval is None:
-                # No time information was found in the path.
-                if path_is_partial_match(full_path_format, path):
-                    directories_to_expand.append(path)
-                continue
-
-            start_time, end_time = time_interval
-
-            if end_time < threshold:
-                # The whole directory is older than the threshold.
-                directories_to_remove.append(path)
-            elif start_time < threshold:
-                # The threshold is in between the directory's start and end.
-                directories_to_expand.append(path)
-
-    if len(directories_to_remove) > 0:
-        if execute:
-            logger.info('Removing {0} directories.'.format(len(directories_to_remove)))
-            hdfs.rm(' '.join(directories_to_remove), skip_trash=skip_trash)
+    for table, partitions in partition_dict.items():
+        if len(partitions) > 0:
+            if execute:
+                logger.info('Dropping {0} Hive partitions from table {1}.{2}.'
+                    .format(len(partitions), hive.database, table))
+                hive.drop_partitions(table, partitions)
+            else:
+                logger.info(
+                    ('DRY RUN: {0} Hive partitions from table {1}.{2} ' +
+                    'would be dropped with the following command:')
+                    .format(len(partitions), hive.database, table))
+                logger.info(hive.drop_partitions_ddl(table, partitions))
         else:
-            logger.info(
-                ('DRY RUN: {0} directories ' +
-                'would be removed with the following command:')
-                .format(len(directories_to_remove)))
-            logger.info(
-                'hdfs dfs -rm -R ' +
-                ('-skipTrash  \\\n' if skip_trash else '\\\n') +
-                ' \\\n'.join(directories_to_remove))
-    else:
-        logger.info('No directories removed.')
+            logger.info('No Hive partitions dropped for table {0}.{1}.'
+                .format(hive.database, table))
+
+
+def get_directories_to_remove(hdfs, base_path, path_format, threshold, allowed_interval_start):
+    """
+    Gets all directories within the given base_path that match path_format
+    and need to be removed according to the datetime threshold.
+    Returns the directories grouped by dataset name in a dict.
+    Also, raises a RuntimeError if any directory to remove
+    falls outside the allowed interval.
+    """
+    directories_to_remove = {}
+    full_path_format = os.path.join(base_path, path_format)
+    dataset_directories = hdfs.ls([base_path])
+
+    for dataset_directory in dataset_directories:
+        # We consider the dataset name to be the directory name immediately
+        # after the base path, i.e.: /base/path/<dataset_name>/other/stuff.
+        dataset_name = dataset_directory[len(base_path):].strip('/').split('/')[0]
+        directories_to_expand = [dataset_directory]
+        directories_to_remove[dataset_name] = []
+
+        while len(directories_to_expand) > 0:
+            # Collect the sub-paths of the directories to expand (deletion candidates).
+            # Note that hdfs.ls(F) will return F, if F is a file path (not a directory path).
+            # Filter out such 'recursive' paths to avoid infinite loops.
+            candidate_paths = [
+                path for path in hdfs.ls(directories_to_expand)
+                if path not in directories_to_expand
+            ]
+            directories_to_expand = []
+
+            for path in candidate_paths:
+                time_interval = extract_time_interval_from_directory(path, full_path_format)
+                if time_interval is None:
+                    # No time information was found in the path.
+                    if path_is_partial_match(full_path_format, path):
+                        directories_to_expand.append(path)
+                    continue
+
+                start_time, end_time = time_interval
+                if end_time < threshold:
+                    # The whole directory is older than the threshold.
+                    if start_time < allowed_interval_start:
+                        raise RuntimeError(
+                            'Dataset {0} has directories outside of the allowed drop interval.'
+                            .format(dataset_directory))
+                    directories_to_remove[dataset_name].append(path)
+                elif start_time < threshold:
+                    # The threshold is in between the directory's start and end.
+                    directories_to_expand.append(path)
+
+    return directories_to_remove
+
+
+def remove_directories(hdfs, directory_dict, skip_trash, execute):
+    """
+    If execute is specified, then removes the specified directories from hdfs.
+    Otherwise, just logs the commands that would have been used.
+    Iterates over the directories by dataset.
+    """
+    for dataset, directories in directory_dict.items():
+        if len(directories) > 0:
+            if execute:
+                logger.info('Removing {0} directories for dataset {1}.'.format(len(directories), dataset))
+                hdfs.rm(' '.join(directories), skip_trash=skip_trash)
+            else:
+                logger.info(
+                    ('DRY RUN: {0} directories would be removed ' +
+                    'for dataset {1} with the following command:')
+                    .format(len(directories), dataset))
+                logger.info(
+                    'hdfs dfs -rm -R ' +
+                    ('-skipTrash  \\\n' if skip_trash else '\\\n') +
+                    ' \\\n'.join(directories))
+        else:
+            logger.info('No directories removed for dataset {0}.'.format(dataset))
 
 
 def extract_time_interval_from_directory(path, full_path_format):
@@ -315,13 +358,14 @@ def main(args):
     Parses and checks main arguments and checksum.
     Then applies partition dropping and/or directory removal.
     """
-    database        = args['--database']
-    tables_regex    = args['--tables']
-    base_path       = args['--base-path']
-    path_format     = args['--path-format']
-    older_than      = args['--older-than']
-    skip_trash      = args['--skip-trash']
-    execute         = args['--execute']
+    database = args['--database']
+    tables_regex = args['--tables']
+    base_path = args['--base-path']
+    path_format = args['--path-format']
+    older_than = args['--older-than']
+    allowed_interval = args['--allowed-interval']
+    skip_trash = args['--skip-trash']
+    execute = args['--execute']
 
     if execute is None:
         logger.info('Starting DRY-RUN.')
@@ -337,6 +381,10 @@ def main(args):
         if tables_regex is None:
             raise RuntimeError(
                 'The argument --tables is mandatory when using --database.')
+
+    # Check and format tables_regex argument.
+    if tables_regex is not None and not tables_regex.endswith('$'):
+        tables_regex += '$'
 
     # Check base path and path format arguments.
     if base_path is not None:
@@ -368,25 +416,49 @@ def main(args):
         now_hourly_truncated = datetime.now().replace(minute=0, second=0, microsecond=0)
         threshold = now_hourly_truncated - timedelta(days=int(older_than))
 
+    # Check and format allowed interval argument.
+    if allowed_interval is None:
+        allowed_interval_start = datetime.fromtimestamp(0) # 1970-01-01
+    else:
+        if allowed_interval.isdigit():
+            allowed_interval_start = threshold - timedelta(days=int(allowed_interval))
+        else:
+            raise RuntimeError('The argument --allowed-interval must be an int.')
+
     # Check and format security checksum.
     checksum = get_security_checksum(args)
     if execute is not None and execute != checksum:
         raise RuntimeError('Invalid security checksum passed with --execute.')
 
+    # Collect and check partitions to drop.
+    partitions_to_drop = get_partitions_to_drop(
+        Hive(database),
+        tables_regex,
+        threshold,
+        allowed_interval_start
+    ) if database is not None else {}
+
+    # Collect and check directories to remove.
+    directories_to_remove = get_directories_to_remove(
+        Hdfs,
+        base_path,
+        path_format,
+        threshold,
+        allowed_interval_start
+    ) if base_path is not None else {}
+
+    # Drop selected partitions.
     if database is not None:
         drop_partitions(
             Hive(database),
-            database,
-            tables_regex,
-            threshold,
+            partitions_to_drop,
             execute is not None)
 
+    # Remove selected directories.
     if base_path is not None:
         remove_directories(
             Hdfs,
-            base_path,
-            path_format,
-            threshold,
+            directories_to_remove,
             skip_trash,
             execute is not None)
 
@@ -406,7 +478,8 @@ class TestRefineryDropOlderThan(unittest.TestCase):
     """
 
     class FakeHive(object):
-        def __init__(self, tables, partitions):
+        def __init__(self, tables=[], partitions=[]):
+            self.database = 'fake_database'
             self.get_tables = MagicMock(return_value=tables)
             self.partitions = MagicMock(return_value=partitions)
             self.drop_partitions = MagicMock()
@@ -421,7 +494,7 @@ class TestRefineryDropOlderThan(unittest.TestCase):
             return iter(self.keys)
 
     class FakeHdfs(object):
-        def __init__(self, paths):
+        def __init__(self, paths=[]):
             self.ls = MagicMock(return_value=paths)
             self.rm = MagicMock()
 
@@ -465,6 +538,7 @@ class TestRefineryDropOlderThan(unittest.TestCase):
             '--base-path': '/test/data/path',
             '--path-format': 'test/(?P<year>[0-9]+)(/(?P<month>[0-9]+))?',
             '--older-than': '90',
+            '--allowed-interval': None,
             '--skip-trash': None,
             '--execute': None}
         default_args.update(override)
@@ -503,7 +577,7 @@ class TestRefineryDropOlderThan(unittest.TestCase):
             '--tables': None,
             '--base-path': None,
             '--path-format': None,
-            '--execute': 'c1c19330c726064068fa1dca914a77c3'})
+            '--execute': '3b8fe028c45cb3d118b0b288a0b87f89'})
 
     def test_security_checksum_changes_with_arguments(self):
         self.assertNotEqual(
@@ -552,20 +626,22 @@ class TestRefineryDropOlderThan(unittest.TestCase):
             extract_time_interval_from_directory(path, format),
             (datetime(2017, 9, 29, 3, 0, 0), datetime(2017, 9, 29, 3, 59, 59)))
 
-    def test_directory_expansion(self):
+    def test_get_directories_to_remove(self):
         """
         Because the entirety of 2017 is older than the 2018 cutoff,
         the whole 2017 directory should be removed.
         """
         paths = {
             'some':{
-                'due':{
-                    'path': {
+                'path':{
+                    'dataset': {
                         '2017': {
                             '01': {}
                         },
                         '2018': {
+                            '10': {},
                             '11': {
+                                '21': {},
                                 '22': {
                                     '01': {},
                                     '02': {},
@@ -581,52 +657,100 @@ class TestRefineryDropOlderThan(unittest.TestCase):
 
         fake_hdfs = self.FakeHdfsTree(paths)
 
-        remove_directories(
+        directories_to_remove = get_directories_to_remove(
             fake_hdfs,
-            '/some/due/path',
-            '(?P<year>[0-9]+)(/(?P<month>[0-9]+)(/(?P<day>[0-9]+)(/(?P<hour>[0-9]+))?)?)?',
+            '/some/path',
+            '[^/]+/(?P<year>[0-9]+)(/(?P<month>[0-9]+)(/(?P<day>[0-9]+)(/(?P<hour>[0-9]+))?)?)?',
             datetime(2018, 11, 22, 3),
-            False,
-            True
+            datetime(2017, 1, 1, 0)
         )
 
-        fake_hdfs.rm.assert_called_with(
-            '/some/due/path/2017 /some/due/path/2018/11/22/01 /some/due/path/2018/11/22/02',
-            skip_trash=False
+        self.assertEqual(
+            directories_to_remove,
+            { 'dataset': [
+                '/some/path/dataset/2017',
+                '/some/path/dataset/2018/10',
+                '/some/path/dataset/2018/11/21',
+                '/some/path/dataset/2018/11/22/01',
+                '/some/path/dataset/2018/11/22/02'
+            ]}
         )
+
+        # Test directory out of allowed interval.
+        with self.assertRaises(RuntimeError):
+            get_directories_to_remove(
+                fake_hdfs,
+                '/some/path',
+                '[^/]+/(?P<year>[0-9]+)(/(?P<month>[0-9]+)(/(?P<day>[0-9]+)(/(?P<hour>[0-9]+))?)?)?',
+                datetime(2018, 11, 22, 3),
+                datetime(2017, 1, 2, 0)
+            )
 
     def test_remove_directories_does_delete_with_execute(self):
-        fake_hdfs = self.FakeHdfs(['/some/due/path/2018/11/01'])
+        fake_hdfs = self.FakeHdfs()
         remove_directories(
             fake_hdfs,
-            '/some/due/path',
-            '(?P<year>[0-9]+)/(?P<month>[0-9]+)/(?P<day>[0-9]+)',
-            datetime(2018, 11, 22, 0),
+            {'dataset_name': ['/base/path/dataset_name/2018/11/01']},
             False,
             True)
-        fake_hdfs.rm.assert_called_with('/some/due/path/2018/11/01', skip_trash=False)
+        fake_hdfs.rm.assert_called_with(
+            '/base/path/dataset_name/2018/11/01',
+            skip_trash=False)
 
     def test_remove_directories_does_nothing_with_dryrun(self):
-        fake_hdfs = self.FakeHdfs(['/some/due/path/2018/11/01'])
+        fake_hdfs = self.FakeHdfs()
         remove_directories(
             fake_hdfs,
-            '/some/due/path',
-            '(?P<year>[0-9]+)/(?P<month>[0-9]+)/(?P<day>[0-9]+)',
-            datetime(2018, 11, 22, 0),
+            {'dataset_name': ['/base/path/dataset_name/2018/11/01']},
             False,
             False)
         fake_hdfs.rm.assert_not_called()
 
     def test_remove_directories_sets_skip_trash_parameter(self):
-        fake_hdfs = self.FakeHdfs(['/some/due/path/2018/11/01'])
+        fake_hdfs = self.FakeHdfs()
         remove_directories(
             fake_hdfs,
-            '/some/due/path',
-            '(?P<year>[0-9]+)/(?P<month>[0-9]+)/(?P<day>[0-9]+)',
-            datetime(2018, 11, 22, 0),
+            {'dataset_name': ['/base/path/dataset_name/2018/11/01']},
             True,
             True)
-        fake_hdfs.rm.assert_called_with('/some/due/path/2018/11/01', skip_trash=True)
+        fake_hdfs.rm.assert_called_with(
+            '/base/path/dataset_name/2018/11/01',
+            skip_trash=True)
+
+    def test_get_partitions_to_drop_ignores_mismatching_table(self):
+        partition = self.FakePartition(datetime(2017, 1, 1), 'spec1', ['year'])
+        fake_hive = self.FakeHive(tables=['mismatching_table'], partitions=[partition])
+        tables_regex = '[^_]+$' # Does not match the table.
+        threshold = datetime(2019, 1, 1)
+        allowed_interval_start = datetime.fromtimestamp(0) # 1970-01-01
+        self.assertEqual(
+            get_partitions_to_drop(fake_hive, tables_regex, threshold, allowed_interval_start),
+            {})
+
+    def test_get_partitions_to_drop_filters_partitions_correctly(self):
+        partition1 = self.FakePartition(datetime(2017, 1, 1), 'spec1', ['year'])
+        partition2 = self.FakePartition(datetime(2018, 1, 1), 'spec2', ['year'])
+        fake_hive = self.FakeHive(
+            tables=['some_table'],
+            partitions=[partition1, partition2])
+        tables_regex = 'some_table$'
+        threshold = datetime(2018, 1, 1)
+        allowed_interval_start = datetime.fromtimestamp(0) # 1970-01-01
+        self.assertEqual(
+            get_partitions_to_drop(fake_hive, tables_regex, threshold, allowed_interval_start),
+            {'some_table': ['spec1']})
+
+    def test_get_partitions_to_drop_fails_with_allowed_interval(self):
+        partition1 = self.FakePartition(datetime(2017, 1, 1), 'spec1', ['year'])
+        partition2 = self.FakePartition(datetime(2018, 1, 1), 'spec2', ['year'])
+        fake_hive = self.FakeHive(
+            tables=['some_table'],
+            partitions=[partition1, partition2])
+        tables_regex = 'some_table$'
+        threshold = datetime(2018, 1, 1)
+        allowed_interval_start = datetime(2017, 10, 1)
+        with self.assertRaises(RuntimeError):
+            get_partitions_to_drop(fake_hive, tables_regex, threshold, allowed_interval_start)
 
     def test_should_drop_partition_year_limits(self):
         partition = self.FakePartition(datetime(2017, 1, 1), 'spec1', ['year'])
@@ -664,19 +788,21 @@ class TestRefineryDropOlderThan(unittest.TestCase):
         self.assertFalse(should_drop_partition(partition, threshold2))
 
     def test_drop_partitions_does_delete_with_execute(self):
+        fake_hive = self.FakeHive()
         partition = self.FakePartition(datetime(2018, 11, 30, 0), 'spec1', ['day'])
-        fake_hive = self.FakeHive(['t1'], [partition])
-        drop_partitions(fake_hive, 'db1', 't1', datetime(2018, 12, 1, 0), True)
-        fake_hive.get_tables.assert_called()
-        fake_hive.partitions.assert_called_with('t1')
+        drop_partitions(
+            fake_hive,
+            {'t1': [partition.spec()]},
+            True)
         fake_hive.drop_partitions.assert_called_with('t1', ['spec1'])
 
     def test_drop_partitions_does_nothing_with_dryrun(self):
+        fake_hive = self.FakeHive()
         partition = self.FakePartition(datetime(2018, 11, 22, 0), 'spec1')
-        fake_hive = self.FakeHive(['t1'], [partition])
-        drop_partitions(fake_hive, 'db1', 't1', datetime(2018, 12, 1, 0), False)
-        fake_hive.get_tables.assert_called()
-        fake_hive.partitions.assert_called_with('t1')
+        drop_partitions(
+            fake_hive,
+            {'t1': [partition.spec()]},
+            False)
         fake_hive.drop_partitions.assert_not_called()
 
     def test_path_is_partial_match(self):
@@ -710,5 +836,5 @@ if __name__ == '__main__':
     try:
         main(args)
     except RuntimeError as e:
-        print(e)
+        print('ERROR: {0}'.format(e))
         sys.exit(1)
