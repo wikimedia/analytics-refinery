@@ -240,16 +240,6 @@ FirstInputTiming:
         duration: keep
         FID: keep
 
-FlowReplies:
-    event:
-        action: keep
-        entrypoint: keep
-        funnelId: keep
-        isAnon: keep
-        pageNs: keep
-    webhost: keep
-    wiki: keep
-
 GatherClicks:
     editCountBucket: keep
     event:
