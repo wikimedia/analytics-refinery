@@ -240,29 +240,6 @@ FirstInputTiming:
         duration: keep
         FID: keep
 
-GatherClicks:
-    editCountBucket: keep
-    event:
-        editCountBucket: keep
-        errorText: keep
-        eventName: keep
-        mobileMode: keep
-        skin: keep
-        source: keep
-        userEditCount: keep
-    webhost: keep
-    wiki: keep
-
-GatherFlags:
-    editCountBucket: keep
-    event:
-        collectionId: keep
-        editCountBucket: keep
-        userEditCount: keep
-        userGroups: keep
-    webhost: keep
-    wiki: keep
-
 KaiOSAppFirstRun:
     event:
         app_id: keep
