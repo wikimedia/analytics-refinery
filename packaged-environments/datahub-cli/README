@@ -14,10 +14,10 @@ At this point, go ahead and upload the archive to archiva so we can reference it
 
 * Group ID: datahub
 * Artifact ID: cli
-* Version: eg 0.8.38
+* Version: eg 0.8.43
 * Packaging: tgz
 (leave Generate Maven POM unchecked)
 
-Example: https://archiva.wikimedia.org/#artifact/datahub/cli/0.8.38
+Example: https://archiva.wikimedia.org/#artifact/datahub/cli/0.8.43
 
 Archiva docs at: https://wikitech.wikimedia.org/wiki/Analytics/Systems/Archiva
