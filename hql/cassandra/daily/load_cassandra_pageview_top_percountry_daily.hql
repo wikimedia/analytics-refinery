@@ -1,11 +1,12 @@
 -- Load pageview top-per-country daily to Cassandra
 -- Parameters:
---     destination_table     -- Cassandra table to write query output.
---     source_table          -- Fully qualified hive table to compute from.
---     year                   -- year of partition to compute from.
---     month                  -- month of partition to compute from.
---     day                    -- day of partition to compute from.
---     coalesce_partitions    -- number of partitions for destination data.
+--     destination_table       -- Cassandra table to write query output.
+--     source_table            -- Fully qualified hive table to compute from.
+--     country_deny_list_table -- Fully qualified table name containing the countries that should be excluded from the results
+--     year                    -- year of partition to compute from.
+--     month                   -- month of partition to compute from.
+--     day                     -- day of partition to compute from.
+--     coalesce_partitions     -- number of partitions for destination data.
 --
 -- Usage:
 -- spark-sql \
@@ -26,6 +27,7 @@
 --     -f load_cassandra_pageview_top_percountry_daily.hql \
 --     -d destination_table=aqs.local_group_default_T_top_percountry.data \
 --     -d source_table=wmf.projectview_hourly \
+--     -d country_deny_list_table=wmf.geoeditors_blacklist_country \
 --     -d coalesce_partitions=6 \
 --     -d year=2022 \
 --     -d month=07 \
@@ -55,8 +57,8 @@ WITH base_data AS (
         AND geocoded_data['country_code'] != '--'
         AND NOT EXISTS (
             SELECT 1
-            FROM wmf.geoeditors_blacklist_country country_blacklist
-            WHERE country_blacklist.country_code = source.geocoded_data['country_code']
+            FROM ${country_deny_list_table} country_deny_list
+            WHERE country_deny_list.country_code = source.geocoded_data['country_code']
         )
 ),
 raw AS (
