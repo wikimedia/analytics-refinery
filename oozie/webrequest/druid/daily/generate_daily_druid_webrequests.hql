@@ -47,6 +47,7 @@ CREATE EXTERNAL TABLE IF NOT EXISTS tmp_daily_druid_webrequests_${year}_${month}
     `tls_auth`              string,
     `tls_cipher`            string,
     `is_from_public_cloud`  boolean,
+    `requestctl`            string,
     `hits`                  bigint
 )
 ROW FORMAT SERDE 'org.apache.hive.hcatalog.data.JsonSerDe'
@@ -83,6 +84,7 @@ SELECT
     tls_map['auth'] as tls_auth,
     tls_map['ciph'] as tls_cipher,
     coalesce(x_analytics_map['public_cloud'], '0') = '1' as is_from_public_cloud,
+    x_analytics_map['requestctl'] as requestctl,
     count(1) as hits
 FROM ${source_table}
   TABLESAMPLE(BUCKET 1 OUT OF 128 ON hostname, sequence)
@@ -118,6 +120,7 @@ GROUP BY
     tls_map['keyx'],
     tls_map['auth'],
     tls_map['ciph'],
+    requestctl,
     coalesce(x_analytics_map['public_cloud'], '0') = '1'
 ;
 
