@@ -120,7 +120,7 @@ GROUP BY
     tls_map['keyx'],
     tls_map['auth'],
     tls_map['ciph'],
-    requestctl,
+    x_analytics_map['requestctl'],
     coalesce(x_analytics_map['public_cloud'], '0') = '1'
 ;
 
