@@ -40,7 +40,7 @@
         </property>
         <property>
             <name>features_actor_rollup_hourly_table</name>
-            <description>Table that stores actor features for teh last 24 hrs</description>
+            <description>Table that stores actor features for the last 24 hrs</description>
         </property>
 
         <property>
