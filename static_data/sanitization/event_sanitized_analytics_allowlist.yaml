@@ -1709,3 +1709,51 @@ mediawiki_skin_diff:
         qualifiers: keep
         tld: keep
         project_family: keep
+
+mediawiki_wikistories_consumption_event:
+    access_method: keep
+    activity_session_id: hash
+    event_type: keep
+    experiment_entry_date: keep
+    experiment_group: keep
+    meta:
+        domain: keep
+        dt: keep
+    normalized_host:
+        project_class: keep
+        project: keep
+        qualifiers: keep
+        tld: keep
+        project_family: keep
+    next_story_opened: keep
+    page_story_count: keep
+    page_title: hash
+    page_visible_time: keep
+    pageview_id: hash
+    referrer_type: keep
+    session_days: keep
+    session_is_first_of_day: keep
+    story_completed: keep
+    story_frame_count: keep
+    story_frames_viewed: keep
+    story_open_time: keep
+    story_title: hash
+
+mediawiki_wikistories_contribution_event:
+    access_method: keep
+    context_page_title: hash
+    event_type: keep
+    meta:
+        domain: keep
+        dt: keep
+    normalized_host:
+        project_class: keep
+        project: keep
+        qualifiers: keep
+        tld: keep
+        project_family: keep
+    story_already_exists: keep
+    story_title: hash
+    user_edit_count_bucket: keep
+    user_is_anonymous: keep
+    user_name: hash
