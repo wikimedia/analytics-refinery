@@ -23,45 +23,6 @@ CentralNoticeTiming:
         pageviewToken: hash
         time: keep
 
-ChangesListFilterGrouping:
-    event:
-        action: keep
-        filter: keep
-        groupIdentifier: keep
-    webhost: keep
-    wiki: keep
-
-ChangesListFilters:
-    event:
-        associated: keep
-        damaging: keep
-        enhancedFiltersEnabled: keep
-        goodfaith: keep
-        hideReviewed: keep
-        hideWikibase: keep
-        hideanons: keep
-        hidebots: keep
-        hidebyothers: keep
-        hidecategorization: keep
-        hidehumans: keep
-        hideliu: keep
-        hidelog: keep
-        hidemajor: keep
-        hideminor: keep
-        hidemyself: keep
-        hidenewpages: keep
-        hidenondamaging: keep
-        hidepageedits: keep
-        hidepatrolled: keep
-        hideunpatrolled: keep
-        invert: keep
-        namespace: keep
-        pagename: keep
-        tagfilter: keep
-        userExpLevel: keep
-    webhost: keep
-    wiki: keep
-
 CodeMirrorUsage:
     event:
         editor: keep
