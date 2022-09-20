@@ -12,7 +12,7 @@
 --
 -- Usage:
 --     hive -f insert_editors_daily_data.hql                                                \
---         -d refinery_jar_version=0.0.58                                                   \
+--         -d refinery_jar_version=X.X.X                                                    \
 --         -d artifacts_directory=hdfs://analytics-hadoop/wmf/refinery/current/artifacts    \
 --         -d source_table=wmf_raw.mediawiki_private_cu_changes                             \
 --         -d user_history_table=wmf.mediawiki_user_history                                 \

@@ -8,7 +8,7 @@
 --
 -- Usage:
 --     hive -f pageview_top_articles.hql                          \
---         -d refinery_hive_jar_path=hdfs://analytics-hadoop/wmf/refinery/current/artifacts/org/wikimedia/analytics/refinery/refinery-hive-0.0.115.jar \
+--         -d refinery_hive_jar_path=hdfs://analytics-hadoop/wmf/refinery/current/artifacts/org/wikimedia/analytics/refinery/refinery-hive-X.X.X.jar \
 --         -d destination_directory=/wmf/tmp/analytics/pageview_top_articles    \
 --         -d source_table=wmf.pageview_hourly                    \
 --         -d separator=\t                                        \
