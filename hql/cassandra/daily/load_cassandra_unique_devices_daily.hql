@@ -109,7 +109,7 @@ SELECT
 /*+ COALESCE(${coalesce_partitions}) */
     'analytics.wikimedia.org' as _domain,
     project,
-    access_site,
+    access_site as `access-site`,
     'daily' as granularity,
     dt as timestamp,
     '13814000-1dd2-11b2-8080-808080808080' as _tid,
