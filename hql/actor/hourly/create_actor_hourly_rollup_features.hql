@@ -20,7 +20,7 @@
 --     <none>
 --
 -- Usage
---     hive -f create_actor_rollup_hourly.hql \
+--     hive -f create_actor_hourly_rollup_features.hql \
 --         --database features
 --
 

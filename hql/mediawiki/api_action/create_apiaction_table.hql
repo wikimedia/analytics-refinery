@@ -1,4 +1,4 @@
--- Create ApiAction table
+-- Create apiaction table
 --
 -- MediaWiki Action API (api.php) requests
 --
@@ -16,10 +16,10 @@
 -- Parameters:
 --     None
 -- Usage:
---     hive -f create_ApiAction_table.hql --database wmf_raw
+--     hive -f create_apiaction_table.hql --database wmf_raw
 --
 
-CREATE EXTERNAL TABLE ApiAction
+CREATE EXTERNAL TABLE apiaction
 PARTITIONED BY (
   `year` string,
   `month` string,

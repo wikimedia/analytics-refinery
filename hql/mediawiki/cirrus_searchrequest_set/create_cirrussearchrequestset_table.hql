@@ -1,4 +1,4 @@
--- Create CirrusSearchRequestSet table
+-- Create cirrussearchrequestset table
 --
 -- Search requests from CirrusSearch
 --
@@ -16,10 +16,10 @@
 -- Parameters:
 --     None
 -- Usage:
---     hive -f create_CirrusSearchRequestSet_table.hql --database wmf_raw
+--     hive -f create_cirrussearchrequestset_table.hql --database wmf_raw
 --
 
-CREATE EXTERNAL TABLE CirrusSearchRequestSet
+CREATE EXTERNAL TABLE cirrussearchrequestset
 PARTITIONED BY (
   `year` string,
   `month` string,
