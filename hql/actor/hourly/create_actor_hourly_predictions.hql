@@ -19,7 +19,7 @@
 --     <none>
 --
 -- Usage
---     hive -f create_actor_label_hourly.hql \
+--     hive -f create_actor_hourly_predictions.hql \
 --         --database predictions
 --
 

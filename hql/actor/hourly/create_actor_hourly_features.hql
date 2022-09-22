@@ -17,7 +17,7 @@
 --     <none>
 --
 -- Usage
---     hive -f create_actor_hourly.hql \
+--     hive -f create_actor_hourly_features.hql \
 --         --database features
 --
 
