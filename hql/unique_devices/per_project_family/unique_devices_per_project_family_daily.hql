@@ -40,7 +40,11 @@ WITH last_access_dates AS (
         normalized_host.project_class AS project_family,
         geocoded_data['country'] AS country,
         geocoded_data['country_code'] AS country_code,
-        unix_timestamp(x_analytics_map['WMF-Last-Access-Global'], 'dd-MMM-yyyy') AS last_access_global,
+        -- Sometimes (~1 out of 1B times) WMF-Last-Access-Global is corrupted.
+        -- and Spark can not parse it. Check for the length of the string.
+        IF(length(x_analytics_map['WMF-Last-Access-Global']) = 11,
+           unix_timestamp(x_analytics_map['WMF-Last-Access-Global'], 'dd-MMM-yyyy'),
+           NULL) AS last_access_global,
         x_analytics_map['nocookies'] AS nocookies,
         actor_signature_per_project_family AS actor_signature
     FROM ${source_table}
