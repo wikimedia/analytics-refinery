@@ -41,7 +41,7 @@ CREATE TEMPORARY VIEW wd_reliability_data AS
     http_status,
     is_pageview,
     response_size,
-    time_firstbyte,
+    CAST(time_firstbyte * 1000 AS bigint) AS time_firstbyte,
     cache_status
   FROM ${webrequest_table}
   WHERE
@@ -57,9 +57,9 @@ CACHE TABLE wd_reliability_data;
 WITH
 median_payload_query AS (
   SELECT /*+ COALESCE(${coalesce_partitions}) */
-    'median_payload' as metric_id,
-    percentile_approx(response_size, 0.5) as metric_count,
-    CAST('${year}-${month}-${day}' as timestamp ) as ts
+    'median_payload' AS metric_id,
+    percentile_approx(response_size, 0.5) AS metric_count,
+    CAST('${year}-${month}-${day}' AS timestamp ) AS ts
   FROM
     wd_reliability_data
   WHERE
@@ -71,9 +71,9 @@ median_payload_query AS (
 
 median_time_query AS (
   SELECT /*+ COALESCE(${coalesce_partitions}) */
-    'median_time' as metric_id,
-    percentile_approx(time_firstbyte, 0.5) as metric_count,
-    CAST('${year}-${month}-${day}' as timestamp ) as ts
+    'median_time' AS metric_id,
+    percentile_approx(time_firstbyte, 0.5) AS metric_count,
+    CAST('${year}-${month}-${day}' AS timestamp ) AS ts
   FROM
     wd_reliability_data
   WHERE
@@ -86,14 +86,14 @@ median_time_query AS (
 
 request_count_query AS (
   SELECT /*+ COALESCE(${coalesce_partitions}) */
-    COUNT(*) as metric_count,
+    COUNT(*) AS metric_count,
     CASE WHEN is_pageview = TRUE THEN 'entity_page'
       WHEN uri_path LIKE '/w/api.php%' THEN 'api'
       WHEN uri_host = 'query.wikidata.org' AND uri_path LIKE '%/sparql' THEN 'wdqs'
       ELSE 'other'
     END AS request_category,
     CASE WHEN cache_status IN ('pass','miss') THEN 'miss' ELSE 'hit' END AS is_cached,
-    CAST('${year}-${month}-${day}' as timestamp ) as ts
+    CAST('${year}-${month}-${day}' AS timestamp ) AS ts
   FROM
     wd_reliability_data
   GROUP BY
