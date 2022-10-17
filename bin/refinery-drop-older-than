@@ -65,6 +65,9 @@ Options:
                                     If you want non-leaf directories to be deleted
                                     the regular expression should match those. Ex:
                                     '(?P<year>[0-9]+)(/(?P<month>[0-9]+))?'
+                                    The script assumes time-based partitions are
+                                    consecutive: year=X/month=Y/day=Z (good) and
+                                    not: year=X/other=BLAH/month=Y/day=Z (bad).
     -o --older-than=<threshold>     Drop data older than this threshold. It can be
                                     a YYYY-MM-DD timestamp or the relative number
                                     of days from now. If not specified, no
@@ -238,12 +241,23 @@ def get_directories_to_remove(hdfs, base_path, path_format, threshold, allowed_i
 
             start_time, end_time = time_interval
             if end_time < threshold:
-                # The whole directory is older than the threshold.
+                # The whole directory needs to be removed.
                 if start_time < allowed_interval_start:
-                    # The directory contains data outside of the allowed interval.
-                    raise RuntimeError(
-                        'Path {0} has directories outside of the allowed drop interval.'
-                        .format(candidate_path))
+                    # The directory starts before the allowed_interval_start.
+                    # This doesn't mean necessarily that it can not be removed,
+                    # since the data inside the directory might still fall within
+                    # the allowed_interval_start. For instance, at the end of months
+                    # when a monthly directory only contains the subdirectory of
+                    # the last day of that month. Thus, we have to look inside the
+                    # directory and get the time of the oldest data within it.
+                    # NOTE: If the data_start_time is None, it means the directory
+                    # is empty and we should remove it.
+                    data_start_time = get_data_start_time(hdfs, candidate_path, full_path_format, start_time)
+                    if data_start_time is not None and data_start_time < allowed_interval_start:
+                        # The directory contains data outside of the allowed interval.
+                        raise RuntimeError(
+                            'Path {0} has directories outside of the allowed drop interval.'
+                            .format(candidate_path))
                 directories_to_remove.append(candidate_path)
             elif start_time < threshold:
                 # The threshold is in between the directory's start and end.
@@ -251,6 +265,38 @@ def get_directories_to_remove(hdfs, base_path, path_format, threshold, allowed_i
                 directories_to_expand.append(candidate_path)
 
     return directories_to_remove
+
+
+def get_data_start_time(hdfs, path, path_format, path_start_time):
+    """
+    Returns a datetime object containing the start time of the oldest data
+    within the given directory. If the directory doesn't have data, returns None.
+    Assumes that the given path has time information (path_start_time is not None).
+    """
+    child_paths = hdfs.ls([path])
+
+    if len(child_paths) == 0:
+        # The given path is an empty directory.
+        return None
+    elif len(child_paths) == 1 and child_paths[0] == path:
+        # The given path is a file.
+        return path_start_time
+    else:
+        # The given path is a non-empty directory.
+        # Determine the oldest child.
+        oldest_child_path, oldest_child_start_time = None, None
+        for child_path in child_paths:
+            child_time_interval = extract_time_interval_from_directory(child_path, path_format)
+            if child_time_interval is None:
+                # The child path has no further time information.
+                # We consider it to be data belonging to the current directory.
+                return path_start_time
+            if oldest_child_start_time is None or child_time_interval[0] < oldest_child_start_time:
+                oldest_child_start_time = child_time_interval[0]
+                oldest_child_path = child_path
+
+        # Recursive call to get the data start time from the oldest child.
+        return get_data_start_time(hdfs, oldest_child_path, path_format, oldest_child_start_time)
 
 
 def remove_directories(hdfs, directories, skip_trash, execute):
@@ -504,14 +550,20 @@ class TestRefineryDropOlderThan(unittest.TestCase):
                     parts = path.lstrip(os.path.sep).split(os.path.sep)
 
                     for part in parts:
-                        current = current.get(part, {})
+                        if part not in current:
+                            raise RuntimeError('FakeHdfsTree: Path {0} does not exist.'.format(path))
+                        current = current[part]
 
-                    files = [
-                        os.path.join(path, name)
-                        for name in sorted(current.keys())
-                    ]
-
-                    result += files
+                    if type(current) is dict:
+                        # Path is a folder.
+                        files = [
+                            os.path.join(path, name)
+                            for name in sorted(current.keys())
+                        ]
+                        result += files
+                    elif current is None:
+                        # Path is a file.
+                        result.append(path)
 
                 return result
 
@@ -629,7 +681,7 @@ class TestRefineryDropOlderThan(unittest.TestCase):
                 'path':{
                     'dataset': {
                         '2017': {
-                            '01': {}
+                            '00000_0': None  # This is a file.
                         },
                         '2018': {
                             '10': {},
@@ -805,6 +857,55 @@ class TestRefineryDropOlderThan(unittest.TestCase):
         self.assertFalse(path_is_partial_match('[a-z]+/[a-z]+/year=[0-9]+', 'too/long/path'))
         self.assertTrue(path_is_partial_match('(?!forbidden)[a-z]+/year=[0-9]+', 'allowed'))
         self.assertFalse(path_is_partial_match('(?!forbidden)[a-z]+/year=[0-9]+', 'forbidden'))
+
+    def test_get_data_start_time(self):
+        directory_tree = {
+            'some':{
+                'path':{
+                    '2017': {
+                        '00000_0': None,  # This is a file.
+                        '00000_1': None,  # This is a file.
+                        '00000_2': None  # This is a file.
+                    },
+                    '2018': {
+                        '07': {
+                            '21': {
+                                '00000_0': None,  # This is a file.
+                            },
+                            '22': {
+                                '00000_0': None,  # This is a file.
+                            }
+                        },
+                    },
+                    '2019': {
+                        '03': {
+                            '05': {},
+                            '06': {}
+                        },
+                    }
+                }
+            }
+        }
+        fake_hdfs = self.FakeHdfsTree(directory_tree)
+        path_format = '/some/path/(?P<year>[0-9]+)(/(?P<month>[0-9]+)(/(?P<day>[0-9]+)(/(?P<hour>[0-9]+))?)?)?'
+
+        # Test getting a year directory within.
+        self.assertEqual(
+            get_data_start_time(fake_hdfs, '/some/path/2017', path_format, datetime(2017, 1, 1)),
+            datetime(2017, 1, 1)
+        )
+
+        # Test getting an day directory within a month.
+        self.assertEqual(
+            get_data_start_time(fake_hdfs, '/some/path/2018/07', path_format, datetime(2018, 7, 1)),
+            datetime(2018, 7, 21)
+        )
+
+        # Test getting result with empty directories.
+        self.assertEqual(
+            get_data_start_time(fake_hdfs, '/some/path/2019/03', path_format, datetime(2019, 3, 1)),
+            None
+        )
 
 
 if __name__ == '__main__':
