@@ -1703,6 +1703,7 @@ mediawiki_wikistories_consumption_event:
 mediawiki_wikistories_contribution_event:
     access_method: keep
     context_page_title: hash
+    contribution_attempt_id: hash
     event_type: keep
     meta:
         domain: keep
