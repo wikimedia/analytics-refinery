@@ -1637,6 +1637,18 @@ mediawiki_content_translation_event:
     utm_source: keep
     utm_campaign: keep
 
+mediawiki_ipinfo_interaction:
+    event_action: keep
+    event_context: keep
+    event_ipinfo_version: keep
+    event_source: keep
+    user_edit_bucket: keep
+    user_groups: keep
+    meta:
+        dt: keep
+        domain:keep
+    normalized_host:keep
+
 mediawiki_reading_depth:
     access_method: keep
     action: keep
