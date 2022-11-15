@@ -1,0 +1,109 @@
+{
+  "type": "kafka",
+  "dataSchema": {
+    "dataSource": "webrequest_sampled_live",
+    "parser": {
+      "type": "string",
+      "parseSpec": {
+        "format": "json",
+        "flattenSpec": {
+          "useFieldDiscovery": false,
+          "fields": [
+              "webrequest_source",
+              "hostname",
+              "time_firstbyte",
+              "ip",
+              "http_status",
+              "response_size",
+              "http_method",
+              "uri_host",
+              "uri_path",
+              "uri_query",
+              "content_type",
+              "referer",
+              "user_agent",
+              "client_port",
+              "x_cache",
+              "continent",
+              "country_code",
+              "isp",
+              "as_number",
+              "is_pageview",
+              "is_debug",
+              "tls_version",
+              "tls_key_exchange",
+              "tls_auth",
+              "tls_cipher",
+              "requestctl",
+              "is_from_public_cloud"
+          ]
+        },
+        "dimensionsSpec": {
+          "dimensions": [
+              "webrequest_source",
+              "hostname",
+              "time_firstbyte",
+              "ip",
+              "http_status",
+              "response_size",
+              "http_method",
+              "uri_host",
+              "uri_path",
+              "uri_query",
+              "content_type",
+              "referer",
+              "user_agent",
+              "client_port",
+              "x_cache",
+              "continent",
+              "country_code",
+              "isp",
+              "as_number",
+              "is_pageview",
+              "is_debug",
+              "tls_version",
+              "tls_key_exchange",
+              "tls_auth",
+              "tls_cipher",
+              "requestctl",
+              "is_from_public_cloud"
+          ]
+        },
+        "timestampSpec" : {
+          "format" : "auto",
+          "column" : "dt"
+        }
+      }
+    },
+    "transformSpec": {},
+    "metricsSpec": [
+      {
+        "name": "hits",
+        "type": "count"
+      },
+      {
+        "name" : "aggregated_response_size",
+        "type" : "longSum",
+        "fieldName" : "response_size"
+      }
+    ],
+    "granularitySpec": {
+      "type": "uniform",
+      "segmentGranularity": "HOUR",
+      "queryGranularity": "SECOND"
+    }
+  },
+  "tuningConfig": {
+    "type": "kafka",
+    "maxRowsPerSegment": 5000000
+  },
+  "ioConfig": {
+    "topic": "webrequest_sampled",
+    "consumerProperties": {
+      "bootstrap.servers": "kafka-jumbo1001.eqiad.wmnet:9092"
+    },
+    "taskCount": 1,
+    "replicas": 3,
+    "taskDuration": "PT1H"
+  }
+}
