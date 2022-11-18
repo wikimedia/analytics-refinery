@@ -1646,8 +1646,13 @@ mediawiki_ipinfo_interaction:
     user_groups: keep
     meta:
         dt: keep
-        domain:keep
-    normalized_host:keep
+        domain: keep
+    normalized_host:
+        project_class: keep
+        project: keep
+        qualifiers: keep
+        tld: keep
+        project_family: keep
 
 mediawiki_reading_depth:
     access_method: keep
