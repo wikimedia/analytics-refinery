@@ -27,6 +27,7 @@
                 "time_firstbyte",
                 "ip",
                 "http_status",
+                "cache_status",
                 "response_size",
                 "http_method",
                 "uri_host",
