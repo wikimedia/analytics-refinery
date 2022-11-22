@@ -87,6 +87,11 @@
         "name" : "aggregated_response_size",
         "type" : "longSum",
         "fieldName" : "response_size"
+      },
+      {
+        "name" : "aggregated_time_firstbyte",
+        "type" : "longSum",
+        "fieldName" : "time_firstbyte"
       }
     ],
     "granularitySpec": {
