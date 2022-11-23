@@ -1688,6 +1688,22 @@ mediawiki_skin_diff:
         tld: keep
         project_family: keep
 
+mediawiki_web_ab_test_enrollment:
+    experiment_name: keep
+    group: keep
+    meta:
+        dt: keep
+        domain: keep
+    web_session_id: hash
+    wiki: keep
+    normalized_host:
+        project_class: keep
+        project: keep
+        qualifiers: keep
+        tld: keep
+        project_family: keep
+    is_anon: keep
+
 mediawiki_wikistories_consumption_event:
     access_method: keep
     activity_session_id: hash
