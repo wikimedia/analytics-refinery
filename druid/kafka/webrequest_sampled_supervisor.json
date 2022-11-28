@@ -90,7 +90,7 @@
       },
       {
         "name" : "aggregated_time_firstbyte",
-        "type" : "longSum",
+        "type" : "doubleSum",
         "fieldName" : "time_firstbyte"
       }
     ],
