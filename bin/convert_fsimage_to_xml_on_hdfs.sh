@@ -35,10 +35,10 @@ if [[ ! ( "$#" == 2 ) ]] ; then
 fi
 
 raw_fsimage="$1"
-local_raw_fsimage="$(basename raw_fsimage)"  # eg: fsimage_2022-12-01.gz
-local_raw_fsimage_uncompressed="$(basename -s .gz raw_fsimage)"  # eg: fsimage_2022-12-01
+local_raw_fsimage="$(basename $raw_fsimage)"  # eg: fsimage_2022-12-01.gz
+local_raw_fsimage_uncompressed="$(basename -s .gz $raw_fsimage)"  # eg: fsimage_2022-12-01
 raw_xml_file="$2"
-local_raw_xml_file="$(basename raw_xml_file)"  # eg: fsimage_2022-12-01.xml
+local_raw_xml_file="$(basename $raw_xml_file)"  # eg: fsimage_2022-12-01.xml
 
 if ! hdfs dfs -test -e "${raw_fsimage}" ; then
     echo "Missing source file on HDFS ${raw_fsimage}"
