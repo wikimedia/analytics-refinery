@@ -1,5 +1,6 @@
 from unittest import TestCase
 from datetime import datetime
+from dateutil.parser import ParserError
 from refinery.hive import Hive, HivePartition
 
 class TestHivePartition(TestCase):
@@ -53,10 +54,32 @@ class TestHivePartition(TestCase):
         ]
         self.assertEqual(hive_partition.items(), should_be)
 
-    def test_datetime(self):
-        d = self.hive_partition.datetime()
-        should_be = datetime(2017,11,2,16)
-        self.assertEqual(d, should_be)
+    def test_datetime_from_year_month_day(self):
+        partition_desc = 'datacenter=eqiad/year=2017/month=11/day=2/hour=16'
+        partition = HivePartition(partition_desc)
+        should_be = datetime(2017, 11, 2, 16)
+        self.assertEqual(partition.datetime(), should_be)
+
+    def test_datetime_from_snapshot_representing_week(self):
+        partition_desc = 'snapshot=2022-12-05/wiki=enwiki'
+        partition = HivePartition(partition_desc)
+        should_be = datetime(2022, 12, 5)
+        self.assertEqual(partition.datetime(), should_be)
+        self.assertTrue(partition.contains_snapshot())
+        self.assertTrue(partition.snapshot_period() == 'week')
+
+    def test_datetime_from_snapshot_representing_month(self):
+        partition_desc = 'snapshot=2022-12/wiki=enwiki'
+        partition = HivePartition(partition_desc)
+        should_be = datetime(2022, 12, 1)
+        self.assertEqual(partition.datetime(), should_be)
+        self.assertTrue(partition.contains_snapshot())
+        self.assertTrue(partition.snapshot_period() == 'month')
+
+    def test_datetime_from_invalid_snapshot_fails(self):
+        partition_desc = 'snapshot=current/wiki=enwiki'
+        partition = HivePartition(partition_desc)
+        self.assertRaises(ParserError, partition.datetime)
 
     def test_list(self):
         self.assertEqual(self.partition_desc.split('/'), self.hive_partition.list())
@@ -102,7 +125,7 @@ class TestHive(TestCase):
                 'partitions_desc':      ['webrequest_source=text/year=2013/month=10/day=01/hour=01', 'webrequest_source=text/year=2013/month=10/day=01/hour=02'],
                 'partitions_spec':      ['`webrequest_source`=\'text\',`year`=2013,`month`=10,`day`=01,`hour`=01',
                                          '`webrequest_source`=\'text\',`year`=2013,`month`=10,`day`=01,`hour`=02'],
-                'partitions_datetime':  [datetime(2013,10,01,01), datetime(2013,10,01,02)],
+                'partitions_datetime':  [datetime(2013,10,1,1), datetime(2013,10,1,2)],
                 'partitions_path':      ['/path/to/table1/webrequest_text/hourly/2013/10/01/01', '/path/to/table1/webrequest_text/hourly/2013/10/01/02'],
             },
             'table2': {
@@ -110,7 +133,7 @@ class TestHive(TestCase):
                 'partitions_desc':      ['webrequest_source=text/year=2013/month=10/day=01/hour=01', 'webrequest_source=text/year=2013/month=10/day=01/hour=02'],
                 'partitions_spec':      ['`webrequest_source`=\'text\',`year`=2013,`month`=10,`day`=01,`hour`=01',
                                          '`webrequest_source`=\'text\',`year`=2013,`month`=10,`day`=01,`hour`=02'],
-                'partitions_datetime':  [datetime(2013,10,01,01), datetime(2013,10,01,02)],
+                'partitions_datetime':  [datetime(2013,10,1,1), datetime(2013,10,1,2)],
                 'partitions_path':      ['/path/to/table1/webrequest_source=text/year=2013/month=10/day=01/hour=01', '/path/to/table2/webrequest_source=text/year=2013/month=10/day=01/hour=02'],
             },
         }
