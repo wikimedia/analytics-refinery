@@ -1752,3 +1752,6 @@ mediawiki_wikistories_contribution_event:
     user_edit_count_bucket: keep
     user_is_anonymous: keep
     user_name: hash
+
+mwcli_command_execute:
+    command: keep
