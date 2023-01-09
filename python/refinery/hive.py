@@ -413,10 +413,15 @@ class HivePartition(OrderedDict):
         month=YYYY-MM
         day=YYYY-MM-DD
         hour=YYYY-MM-DD-HH
+
+        It also supports 'snapshot' partitions, a concept which in our datalake has been overloaded
+        to mean the equivalent of a 'week' in some tables, and a 'month' in others. Examples:
+        snapshot=YYYY-MM-DD    (represents the start of the week)
+        snapshot=YYYY-MM       (represents the start of the month)
         ...
         """
         # partitions can have non-datetime components
-        relevant_partition_keys = set(['dt', 'date', 'year', 'month', 'day', 'hour', 'minute'])
+        relevant_partition_keys = set(['snapshot', 'dt', 'date', 'year', 'month', 'day', 'hour', 'minute'])
         transformers = defaultdict(lambda: lambda x: x, {
             # 2018-5-15-05 is valid, but 2018-5-15-5 is not.  Prefix with 0 to mak
             # parser happy.
@@ -489,3 +494,29 @@ class HivePartition(OrderedDict):
         if base_path is not None:
             globs = [base_path] + globs
         return os.path.join(*globs)
+
+    def contains_snapshot(self):
+        """
+        Checks whether this partition includes a snapshot component. Examples:
+        'snapshot=2022-12-05/wiki=enwiki' would return True, while
+        'year=2022/wiki=enwiki' would return False.
+        """
+        return "snapshot" in self.keys()
+
+    def snapshot_period(self):
+        """
+        Snapshot partitions are overloaded and can represent a week or a month.
+        This function returns the period that snapshot represents. Examples:
+        'snapshot=2022-12-05/wiki=enwiki' returns 'week'
+        'snapshot=2022-12/wiki=enwiki' returns 'month'
+        'year=2022/wiki=enwiki' returns None
+        """
+        if self.contains_snapshot():
+            if re.search("^\d{4}-\d{2}-\d{2}$", self.get("snapshot")):  # Ex 2022-01-01
+                return 'week'
+            elif re.search("^\d{4}-\d{2}$", self.get("snapshot")):  # Ex 2022-01
+                return 'month'
+            else:
+                return None
+        else:
+            return None
