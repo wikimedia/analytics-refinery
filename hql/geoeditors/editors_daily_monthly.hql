@@ -19,6 +19,11 @@
 --                -d month=2022-02                                                                   \
 --                -d coalesce_partitions=1
 --
+-- NOTE: as discussed in https://phabricator.wikimedia.org/T324907#8541865,
+--   entries with cuc_type = 3 are being moved into separate tables
+--   currently these are not used downstream, but if they become useful, hopefully
+--   someone finds this comment
+
 ADD JAR ${refinery_hive_jar};
 CREATE TEMPORARY FUNCTION geocode as 'org.wikimedia.analytics.refinery.hive.GeocodedDataUDF';
 CREATE TEMPORARY FUNCTION network_origin as 'org.wikimedia.analytics.refinery.hive.GetNetworkOriginUDF';

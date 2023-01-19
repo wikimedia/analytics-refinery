@@ -14,6 +14,10 @@
 --                -d month=2022-02    \
 --                -d coalesce_partitions=1
 --
+-- NOTE: as discussed in https://phabricator.wikimedia.org/T324907#8541865,
+--   entries with cuc_type = 3 are being moved into separate tables
+--   currently these are not used downstream, but if they become useful, hopefully
+--   someone finds this comment
 
 WITH overall AS (
 

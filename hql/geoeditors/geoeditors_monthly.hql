@@ -14,6 +14,10 @@
 --          -d month=2022-02
 --          -d coalesce_partitions=1
 --
+-- NOTE: as discussed in https://phabricator.wikimedia.org/T324907#8541865,
+--   entries with cuc_type = 3 are being moved into separate tables
+--   In this job, action_type IN (0, 1) below means we don't use type 3,
+--   but if this becomes useful in the future, it'll need an update here.
 
 WITH overall AS (
 
