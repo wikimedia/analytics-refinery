@@ -965,7 +965,7 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
                     coalesce(actor_user, 0) cuc_user,
                     convert(actor_name using utf8mb4) cuc_user_text,
                     cuc_actiontext,
-                    convert(cuc_comment using utf8mb4) cuc_comment,
+                    convert(comment_text using utf8mb4) cuc_comment,
                     cuc_minor,
                     cuc_page_id,
                     cuc_this_oldid,
@@ -977,6 +977,8 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
                from cu_changes
                         inner join
                     actor           on actor_id = cuc_actor
+                        inner join
+                    comment         on comment_id = cuc_comment_id
               where $CONDITIONS
                 {ts_clause}
         '''.format(ts_clause=make_timestamp_clause('cuc_timestamp', from_timestamp, to_timestamp)),
