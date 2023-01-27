@@ -1,7 +1,7 @@
--- Table holds label per actor.
+-- Table holds label per webrequest actor.
 
--- Label can be "automated" if we estimate actor is a bot or "user" otherwise
--- Labels are assigned hourly using features calculated with data from the 24 hours prior
+-- Label can be "automated" if we estimate actor is a bot or "user" otherwise.
+-- Labels are assigned hourly using metrics calculated with data from the 24 hours prior.
 
 -- TODO once this is is been running for a while we need to see whether there are actors
 -- whose label shifts
@@ -19,11 +19,11 @@
 --     <none>
 --
 -- Usage
---     hive -f create_actor_hourly_predictions.hql \
---         --database predictions
+--     hive -f create_webrequest_actor_label_hourly_table.hql \
+--         --database wmf
 --
 
-CREATE EXTERNAL TABLE IF NOT EXISTS `actor_label_hourly`(
+CREATE EXTERNAL TABLE IF NOT EXISTS `webrequest_actor_label_hourly`(
     `version`                     string  COMMENT 'Version of the classifier that provided the label',
     `actor_signature`             string  COMMENT 'Actor signature',
     `label`                       string  COMMENT 'Label assigned by heuristics or ML classifier, so far we have two: <user> or <automated>',
@@ -36,5 +36,5 @@ PARTITIONED BY (
     `hour`                int    COMMENT 'Unpadded hour'
 )
 STORED AS PARQUET
-LOCATION '/wmf/data/learning/predictions/actor/hourly'
+LOCATION '/wmf/data/wmf/webrequest_actor/label/hourly'
 ;
