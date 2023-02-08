@@ -1,5 +1,5 @@
--- Table holds features per actor.
--- Features are used to be able to identify
+-- Table holds metrics per webrequest actor computed hourly.
+-- Metrics are used to be able to identify
 -- high volume bot spikes for traffic not self identified
 -- as bots
 --
@@ -17,11 +17,11 @@
 --     <none>
 --
 -- Usage
---     hive -f create_actor_hourly_features.hql \
---         --database features
+--     hive -f create_webrequest_actor_metrics_hourly_table.hql \
+--         --database wmf
 --
 
-CREATE EXTERNAL TABLE IF NOT EXISTS `actor_hourly`(
+CREATE EXTERNAL TABLE IF NOT EXISTS `webrequest_actor_metrics_hourly`(
   `version`                      string  COMMENT 'Version of software that calculates these features',
   `actor_signature`              string  COMMENT 'Actor signature as a hash',
   `first_interaction_dt`         string  COMMENT 'UTC timestamp in ISO 8601 format (e.g. 2019-08-27T14:00:00Z) of the actor first interaction for that hour',
@@ -39,5 +39,5 @@ PARTITIONED BY (
     `hour`                int    COMMENT 'Unpadded hour'
 )
 STORED AS PARQUET
-LOCATION '/wmf/data/learning/features/actor/hourly'
+LOCATION '/wmf/data/wmf/webrequest_actor/metrics/hourly'
 ;
