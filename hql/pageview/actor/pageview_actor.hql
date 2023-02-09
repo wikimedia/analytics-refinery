@@ -13,7 +13,7 @@
 --     hour                    -- hour of partition to compute aggregation for.
 --
 -- Usage:
---     hive -f pageview_actor.hql                                 \
+--     spark3-sql -f pageview_actor.hql                           \
 --         -d refinery_hive_jar_path=hdfs:///wmf/refinery/current/artifacts/refinery-hive-shaded.jar \
 --         -d source_table=wmf.webrequest                         \
 --         -d actor_label_table=wmf.webrequest_actor_label_hourly \
@@ -23,7 +23,6 @@
 --         -d day=30                                              \
 --         -d hour=0                                              \
 --         -d coalesce_partitions=32
-
 
 ADD JAR ${refinery_hive_jar_path};
 CREATE TEMPORARY FUNCTION is_redirect_to_pageview as 'org.wikimedia.analytics.refinery.hive.IsRedirectToPageviewUDF';
