@@ -11,7 +11,7 @@
 --         -d destination_table='wmf.edit_hourly'    \
 --         -d wiki_map_table='canonical_data.wikis'  \
 --         -d snapshot='2023-02'                     \
---         -d coalesce_partitions='8'
+--         -d coalesce_partitions='32'
 --
 
 WITH edit_history AS (
@@ -55,7 +55,7 @@ formatted_edit_history AS (
         wiki_db,
         event_user_is_anonymous AS user_is_anonymous,
         SIZE(event_user_is_bot_by_historical) > 0 AS user_is_bot,
-        ARRAY_CONTAINS(event_user_groups_historical, 'sysop') AS user_is_administrator,
+        ARRAY_CONTAINS(COALESCE(event_user_groups_historical, ARRAY()), 'sysop') AS user_is_administrator,
         event_user_groups_historical AS user_groups,
         CASE
             WHEN user_tenure < 86400 THEN 'Under 1 day'
