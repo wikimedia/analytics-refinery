@@ -7,19 +7,33 @@
 --     year                 -- YYYY to compute statistics for
 --
 -- Usage:
---     hive -f geoeditor_input_metrics.hql                     \
---          -d source_table=wmf.geoeditors_monthly             \
---          -d map_table=gdi.wiki_db_map_input_metrics         \
+--     hive -f geoeditor_input_metrics.hql                      \
+--          -d source_table=wmf.geoeditors_monthly              \
+--          -d map_table=gdi.wiki_db_map_input_metrics          \
+--          -d canonical_wiki=canonical_data.wikis              \
 --          -d destination_table=gdi.geoeditor_input_metrics    \
 --          -d year=2021
 --
-
+WITH wikis AS  (
+  SELECT DISTINCT *
+  FROM  (
+  SELECT database_code,
+         database_group as grouped_bin
+    FROM ${canonical_wiki}
+  UNION
+  SELECT database_code,
+         grouped_bin
+    FROM ${map_table}
+  )
+  WHERE grouped_bin in ('commons', 'mediawiki', 'wikidata', 'wikipedia','wikisource', 'sister_project', 'organizing_wiki')
+)
 INSERT OVERWRITE TABLE ${destination_table} PARTITION (year='${year}')
 SELECT mon.country_code,
-       sum(mon.distinct_editors) as distinct_editors,
-       lower(wdb.grouped_bin)    as grouped_bin,
+       sum(mon.distinct_editors)    AS distinct_editors,
+       lower(wikis.grouped_bin)     AS grouped_bin,
        mon.month
-  FROM ${map_table} wdb
-  JOIN ${source_table} mon ON (mon.wiki_db = wdb.database_code AND mon.month like '${year}-%')
- WHERE lower(wdb.grouped_bin) in ('commons', 'mediawiki', 'wikidata', 'wikipedia','wikisource', 'sister_project', 'organizing_wiki')
- GROUP BY mon.country_code, lower(wdb.grouped_bin), mon.month;
+  FROM wikis,
+       ${source_table} mon
+ WHERE mon.wiki_db = wikis.database_code
+   AND mon.month like '${year}-%'
+ GROUP BY mon.country_code, lower(wikis.grouped_bin), mon.month;
