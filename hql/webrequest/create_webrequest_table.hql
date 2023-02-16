@@ -68,7 +68,7 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `webrequest`(
     `ch_ua_full_version_list` string  COMMENT 'Value of the Sec-CH-UA-Full-Version-List request header',
     `ch_ua_model`             string  COMMENT 'Value of the Sec-CH-UA-Model request header',
     `ch_ua_platform_version`  string  COMMENT 'Value of the Sec-CH-UA-Platform-Version request header',
-    `referer_data`            struct<referer_class:string,referer_name:string> COMMENT 'Struct containing referer_class (indicates if a referer is internal, external, external(media sites), external(search engine) or unknown.) and referer name (name of referer when it's class is external(search engine) or external(media sites))'
+    `referer_data`            struct<referer_class:string,referer_name:string> COMMENT 'Struct containing referer_class (indicates if a referer is internal, external, external(media sites), external(search engine) or unknown.) and referer name (name of referer when referer class is external(search engine) or external(media sites))'
 )
 PARTITIONED BY (
     `webrequest_source` string  COMMENT 'Source cluster',
