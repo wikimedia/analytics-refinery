@@ -63,6 +63,7 @@ CREATE TEMPORARY FUNCTION get_pageview_info AS 'org.wikimedia.analytics.refinery
 CREATE TEMPORARY FUNCTION normalize_host AS 'org.wikimedia.analytics.refinery.hive.HostNormalizerUDF';
 CREATE TEMPORARY FUNCTION get_tags AS 'org.wikimedia.analytics.refinery.hive.GetWebrequestTagsUDF';
 CREATE TEMPORARY FUNCTION isp_data as 'org.wikimedia.analytics.refinery.hive.GetISPDataUDF';
+CREATE TEMPORARY FUNCTION get_referer_data as 'org.wikimedia.analytics.refinery.hive.GetRefererDataUDF';
 
 
 -- The distinct_rows CTE provides DISTINCT on raw data only.
@@ -235,6 +236,7 @@ INSERT OVERWRITE TABLE ${destination_table}
         ch_ua_bitness,
         ch_ua_full_version_list,
         ch_ua_model,
-        ch_ua_platform_version
+        ch_ua_platform_version,
+        get_referer_data(referer) as referer_data
     FROM distinct_rows_and_reused_fields
 ;
