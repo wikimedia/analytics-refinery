@@ -1755,3 +1755,4 @@ mediawiki_wikistories_contribution_event:
 
 mwcli_command_execute:
     command: keep
+    version: keep
