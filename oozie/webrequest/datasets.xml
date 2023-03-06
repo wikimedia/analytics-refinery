@@ -44,4 +44,14 @@ Use this dataset in your coordinator.xml files by setting:
         <uri-template>${webrequest_data_directory}/webrequest_source=upload/year=${YEAR}/month=${"$"}{MONTH + 0}/day=${"$"}{DAY + 0}/hour=${"$"}{HOUR + 0}</uri-template>
         <done-flag>_SUCCESS</done-flag>
     </dataset>
+
+    <!-- Dataset used in test-cluster only -->
+    <dataset name="webrequest_test_text"
+             frequency="${coord:hours(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${webrequest_data_directory}/webrequest_source=test_text/year=${YEAR}/month=${"$"}{MONTH + 0}/day=${"$"}{DAY + 0}/hour=${"$"}{HOUR + 0}</uri-template>
+        <done-flag>_SUCCESS</done-flag>
+    </dataset>
+
 </datasets>

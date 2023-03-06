@@ -75,4 +75,29 @@ Use this dataset in your coordinator.xml files by setting:
         <done-flag>_SUCCESS</done-flag>
     </dataset>
 
+
+    <!-- Dataset used in test-cluster only -->
+    <dataset name="webrequest_test_text_raw_unchecked"
+             frequency="${coord:hours(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${webrequest_raw_data_directory}/webrequest_test_text/year=${YEAR}/month=${MONTH}/day=${DAY}/hour=${HOUR}</uri-template>
+        <done-flag>_IMPORTED</done-flag>
+    </dataset>
+    <dataset name="webrequest_test_text_raw_partitioned"
+             frequency="${coord:hours(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${webrequest_raw_data_directory}/webrequest_test_text/year=${YEAR}/month=${MONTH}/day=${DAY}/hour=${HOUR}</uri-template>
+        <done-flag>_PARTITIONED</done-flag>
+    </dataset>
+    <dataset name="webrequest_test_text_raw"
+             frequency="${coord:hours(1)}"
+             initial-instance="${start_time}"
+             timezone="Universal">
+        <uri-template>${webrequest_raw_data_directory}/webrequest_test_text/year=${YEAR}/month=${MONTH}/day=${DAY}/hour=${HOUR}</uri-template>
+        <done-flag>_SUCCESS</done-flag>
+    </dataset>
+</datasets>
+
 </datasets>

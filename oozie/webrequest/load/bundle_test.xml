@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    NOTE: This bundle is a copy of bundle.xml file updated for the test-cluster
+    version of the webrequest job
+  -->
+<bundle-app xmlns="uri:oozie:bundle:0.2"
+    name="webrequest-load-bundle-test">
+
+    <parameters>
+
+        <!-- Required properties -->
+        <property><name>queue_name</name></property>
+        <property><name>coordinator_file</name></property>
+        <property><name>name_node</name></property>
+        <property><name>job_tracker</name></property>
+        <property><name>hive_principal</name></property>
+        <property><name>hive2_jdbc_url</name></property>
+        <property><name>workflow_file</name></property>
+        <property><name>start_time</name></property>
+        <property><name>stop_time</name></property>
+        <property><name>webrequest_raw_datasets_file</name></property>
+        <property><name>webrequest_raw_data_directory</name></property>
+        <property><name>webrequest_datasets_file</name></property>
+        <property><name>webrequest_data_directory</name></property>
+
+        <property><name>hive_site_xml</name></property>
+        <property><name>add_partition_workflow_file</name></property>
+        <property><name>refinery_jar_version</name></property>
+        <property><name>artifacts_directory</name></property>
+        <property><name>webrequest_raw_table</name></property>
+        <property><name>webrequest_table</name></property>
+        <property><name>statistics_table</name></property>
+        <property><name>statistics_hourly_table</name></property>
+        <property><name>record_version</name></property>
+        <property><name>data_loss_check_directory_base</name></property>
+        <property><name>error_incomplete_data_threshold</name></property>
+        <property><name>warning_incomplete_data_threshold</name></property>
+        <property><name>error_data_loss_threshold</name></property>
+        <property><name>warning_data_loss_threshold</name></property>
+        <property><name>mark_directory_done_workflow_file</name></property>
+        <property><name>send_error_email_workflow_file</name></property>
+        <property><name>sla_alert_contact</name></property>
+    </parameters>
+
+    <coordinator name="webrequest-load-coord-test-text">
+        <app-path>${coordinator_file}</app-path>
+        <configuration>
+            <property>
+                <name>webrequest_source</name>
+                <value>test_text</value>
+            </property>
+        </configuration>
+    </coordinator>
+
+</bundle-app>
