@@ -99,5 +99,3 @@ Use this dataset in your coordinator.xml files by setting:
         <done-flag>_SUCCESS</done-flag>
     </dataset>
 </datasets>
-
-</datasets>
