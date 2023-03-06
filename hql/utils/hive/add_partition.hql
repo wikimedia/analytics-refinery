@@ -13,7 +13,7 @@
 -- Usage:
 --     spark3-sql -f add_partition.hql \
 --         -d table=wmf_raw.webrequest \
---         -d partition_spec=year=2014,month=5,day=12,hour=1 \
+--         -d "partition_spec=year=2014,month=5,day=12,hour=1" \
 --         -d location=hdfs:///path/to/data
 --
 
