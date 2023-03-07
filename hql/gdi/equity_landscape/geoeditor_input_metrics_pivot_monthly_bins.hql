@@ -24,7 +24,11 @@ WITH pivot_data AS (
    ) data
    PIVOT (
          CAST (round(avg(distinct_editors),2) AS DECIMAL (38,18))
-         FOR grouped_bin IN ('commons','mediawiki','wikidata','wikipedia','wikisource','sister_project','organizing_wiki')
+         FOR grouped_bin IN
+            (
+
+         'commons','mediawiki','wikidata','wikipedia','wikisource','sister_project','organizing_wiki'
+      )
    )
 )
 INSERT OVERWRITE TABLE ${destination_table} PARTITION (year='${year}', metric='${metric}')
