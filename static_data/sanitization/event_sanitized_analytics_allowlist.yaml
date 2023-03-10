@@ -159,13 +159,6 @@ EditAttemptStep:
     webhost: keep
     wiki: keep
 
-EditorActivation:
-    event:
-        month: keep
-        userId: keep
-    webhost: keep
-    wiki: keep
-
 ElementTiming:
     event:
         pageviewToken: hash
