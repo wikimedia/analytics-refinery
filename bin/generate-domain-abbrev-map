@@ -48,7 +48,7 @@ from tempfile import mkstemp
 from subprocess import check_call
 
 
-WEBSTATSCOLLECTOR_WHITELISTED_WIKIMEDIA_WIKIS = [
+WEBSTATSCOLLECTOR_ALLOWLISTED_WIKIMEDIA_WIKIS = [
     'commons',
     'meta',
     'incubator',
@@ -139,7 +139,7 @@ def dbname_to_webstatscollector_abbreviation(dbname, site='desktop'):
                 abbreviation = "www" + abbreviation
 
             # Fix-up for wikimedia.org wikis
-            if abbreviation in WEBSTATSCOLLECTOR_WHITELISTED_WIKIMEDIA_WIKIS:
+            if abbreviation in WEBSTATSCOLLECTOR_ALLOWLISTED_WIKIMEDIA_WIKIS:
                 abbreviation += ".m"
 
             # Inject site modifier
