@@ -42,7 +42,5 @@ PARTITIONED BY (
     `month`               int    COMMENT 'Unpadded month',
     `day`                 int    COMMENT 'Unpadded day',
     `hour`                int    COMMENT 'Unpadded hour')
-CLUSTERED BY(base_name) INTO 64 BUCKETS
-STORED AS PARQUETFILE
-LOCATION '/wmf/data/wmf/mediacounts'
-;
+STORED AS PARQUET
+LOCATION '/wmf/data/wmf/mediacounts';
