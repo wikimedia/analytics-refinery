@@ -32,7 +32,7 @@
 SET parquet.compression = SNAPPY;
 SET mapred.reduce.tasks = 8;
 
-ADD JAR ${artifacts_directory}/org/wikimedia/analytics/refinery/refinery-hive-${0.1.0refinery_jar_version}.jar;
+ADD JAR ${artifacts_directory}/org/wikimedia/analytics/refinery/refinery-hive-${refinery_jar_version}.jar;
 CREATE TEMPORARY FUNCTION get_pageview_info AS 'org.wikimedia.analytics.refinery.hive.GetPageviewInfoUDF';
 
 WITH decorated_virtualpageviews AS (
