@@ -1,11 +1,15 @@
 -- Load the pageview top_articles daily to cassandra
+--
 -- Parameters:
---     destination_table     -- Cassandra table to write query output.
---     source_table          -- Fully qualified hive table to compute from.
---     year                   -- year of partition to compute from.
---     month                  -- month of partition to compute from.
---     day                    -- day of partition to compute from.
---     coalesce_partitions    -- number of partitions for destination data.
+--     destination_table                   -- Cassandra table to write query output.
+--     source_table                        -- Fully qualified hive table to compute from.
+--     disallowed_cassandra_articles_table -- Fully qualified hive table containing article titles we don't want to
+--                                            appear in the top list (ex: offensive language, DOS attack
+--                                            manipulations,...).
+--     year                                -- year of partition to compute from.
+--     month                               -- month of partition to compute from.
+--     day                                 -- day of partition to compute from.
+--     coalesce_partitions                 -- number of partitions for destination data.
 --
 -- Usage:
 -- spark-sql \
@@ -23,16 +27,43 @@
 -- --executor-memory 8G \
 -- --executor-cores 2 \
 -- --driver-memory 4G \
---     -f load_cassandra_pageview_top_articles_daily.hql \
---     -d destination_table=aqs.local_group_default_T_top_pageviews.data \
---     -d source_table=wmf.pageview_hourly \
---     -d coalesce_partitions=6 \
---     -d year=2022 \
---     -d month=07 \
---     -d day=01
+-- --name pageview_top_articles_daily \
+-- -f load_cassandra_pageview_top_articles_daily.hql \
+-- -d destination_table=aqs.local_group_default_T_top_pageviews.data \
+-- -d source_table=wmf.pageview_hourly \
+-- -d disallowed_cassandra_articles_table=wmf.disallowed_cassandra_articles \
+-- -d coalesce_partitions=6 \
+-- -d year=2022 \
+-- -d month=07 \
+-- -d day=01
 
 
-WITH ranked AS (
+WITH unranked as (
+    SELECT
+        source.project,
+        reflect('org.json.simple.JSONObject', 'escape', regexp_replace(page_title, '\t', '')) AS page_title,
+        COALESCE(regexp_replace(access_method, ' ', '-'), 'all-access') AS access,
+        LPAD(year, 4, '0') as year,
+        LPAD(month, 2, '0') as month,
+        LPAD(day, 2, '0') as day,
+        SUM(view_count) as views
+    FROM ${source_table} source
+        LEFT OUTER JOIN ${disallowed_cassandra_articles_table} disallowed_list
+    ON source.project = disallowed_list.project
+        AND lower(page_title) = lower(disallowed_list.article)
+    WHERE year = ${year}
+      AND month = ${month}
+      AND day = ${day}
+      AND agent_type = 'user'
+      AND page_title != '-'
+      AND disallowed_list.article IS NULL
+    GROUP BY source.project, regexp_replace(page_title, '\t', ''), access_method, year, month, day
+        GROUPING SETS (
+            (source.project, regexp_replace(page_title, '\t', ''), access_method, year, month, day),
+            (source.project, regexp_replace(page_title, '\t', ''), year, month, day)
+        )
+
+), ranked AS (
     SELECT
         project,
         page_title,
@@ -43,30 +74,9 @@ WITH ranked AS (
         views,
         rank() OVER (PARTITION BY project, access, year, month, day ORDER BY views DESC) as rank,
         row_number() OVER (PARTITION BY project, access, year, month, day ORDER BY views DESC) as rn
-    FROM (
-        SELECT
-            project,
-            reflect('org.json.simple.JSONObject', 'escape', regexp_replace(page_title, '\t', '')) AS page_title,
-            COALESCE(regexp_replace(access_method, ' ', '-'), 'all-access') AS access,
-            LPAD(year, 4, '0') as year,
-            LPAD(month, 2, '0') as month,
-            LPAD(day, 2, '0') as day,
-            SUM(view_count) as views
-        FROM  ${source_table}
-        WHERE
-            year = ${year}
-            AND month = ${month}
-            AND day = ${day}
-            AND agent_type = 'user'
-            AND page_title != '-'
-        GROUP BY project, regexp_replace(page_title, '\t', ''), access_method, year, month, day
-        GROUPING SETS (
-            (project, regexp_replace(page_title, '\t', ''), access_method, year, month, day),
-            (project, regexp_replace(page_title, '\t', ''), year, month, day)
-        )
-    ) raw
-),
-max_rank AS (
+    FROM unranked
+
+), max_rank AS (
     SELECT
         project as max_rank_project,
         access as max_rank_access,

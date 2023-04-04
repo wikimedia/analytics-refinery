@@ -1,12 +1,17 @@
 -- Load pageview top-per-country daily to Cassandra
+
 -- Parameters:
---     destination_table       -- Cassandra table to write query output.
---     source_table            -- Fully qualified hive table to compute from.
---     country_deny_list_table -- Fully qualified table name containing the countries that should be excluded from the results
---     year                    -- year of partition to compute from.
---     month                   -- month of partition to compute from.
---     day                     -- day of partition to compute from.
---     coalesce_partitions     -- number of partitions for destination data.
+--     destination_table                   -- Cassandra table to write query output.
+--     source_table                        -- Fully qualified hive table to compute from.
+--     country_deny_list_table             -- Fully qualified table name containing the countries that should be
+--                                            excluded from the results
+--     disallowed_cassandra_articles_table -- Fully qualified hive table containing article titles we don't want to
+--                                            appear in the top list (ex: offensive language, DOS attack
+--                                            manipulations,...).
+--     year                                -- year of partition to compute from.
+--     month                               -- month of partition to compute from.
+--     day                                 -- day of partition to compute from.
+--     coalesce_partitions                 -- number of partitions for destination data.
 --
 -- Usage:
 -- spark-sql \
@@ -24,14 +29,15 @@
 -- --executor-memory 8G \
 -- --executor-cores 2 \
 -- --driver-memory 4G \
---     -f load_cassandra_pageview_top_percountry_daily.hql \
---     -d destination_table=aqs.local_group_default_T_top_percountry.data \
---     -d source_table=wmf.pageview_actor \
---     -d country_deny_list_table=wmf.geoeditors_blacklist_country \
---     -d coalesce_partitions=6 \
---     -d year=2022 \
---     -d month=07 \
---     -d day=01
+-- -f load_cassandra_pageview_top_percountry_daily.hql \
+-- -d destination_table=aqs.local_group_default_T_top_percountry.data \
+-- -d source_table=wmf.pageview_actor \
+-- -d country_deny_list_table=wmf.geoeditors_blacklist_country \
+-- -d disallowed_cassandra_articles_table=wmf.disallowed_cassandra_articles \
+-- -d coalesce_partitions=6 \
+-- -d year=2022 \
+-- -d month=07 \
+-- -d day=01
 
 
 WITH base_data AS (
@@ -45,6 +51,9 @@ WITH base_data AS (
         LPAD(day, 2, '0') as day,
         actor_signature
     FROM ${source_table} source
+        LEFT OUTER JOIN ${disallowed_cassandra_articles_table} disallowed_list
+        ON pageview_info['project'] = disallowed_list.project
+            AND lower(pageview_info['page_title']) = lower(disallowed_list.article)
     WHERE
         year = ${year}
         AND month = ${month}
@@ -60,6 +69,7 @@ WITH base_data AS (
             FROM ${country_deny_list_table} country_deny_list
             WHERE country_deny_list.country_code = source.geocoded_data['country_code']
         )
+        AND disallowed_list.article IS NULL
 ),
 raw AS (
     SELECT
