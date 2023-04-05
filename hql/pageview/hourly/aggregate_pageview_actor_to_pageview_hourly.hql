@@ -36,7 +36,7 @@ INSERT OVERWRITE TABLE ${destination_table}
         access_method,
         NULL as zero_carrier,
         agent_type,
-        referer_class,
+        referer_data.referer_class AS referer_class,
         geocoded_data['continent'] AS continent,
         geocoded_data['country_code'] AS country_code,
         geocoded_data['country'] AS country,
@@ -56,7 +56,8 @@ INSERT OVERWRITE TABLE ${destination_table}
         '${record_version}' AS record_version,
         COUNT(1) AS view_count,
         page_id,
-        namespace_id
+        namespace_id,
+        referer_data.referer_name AS referer_name
     FROM ${source_table}
     WHERE year=${year} AND month=${month} AND day=${day} AND hour=${hour}
         AND is_pageview = TRUE
@@ -67,7 +68,7 @@ INSERT OVERWRITE TABLE ${destination_table}
         pageview_info['page_title'],
         access_method,
         agent_type,
-        referer_class,
+        referer_data.referer_class,
         geocoded_data['continent'],
         geocoded_data['country_code'],
         geocoded_data['country'],
@@ -81,5 +82,6 @@ INSERT OVERWRITE TABLE ${destination_table}
         user_agent_map['os_minor'],
         user_agent_map['wmf_app_version'],
         page_id,
-        namespace_id
+        namespace_id,
+        referer_data.referer_name
 ;

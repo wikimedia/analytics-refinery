@@ -12,7 +12,7 @@
 --     <none>
 --
 -- Usage
---     hive -f create_pageview_hourly_table.hql --database wmf
+--     spark3-sql -f create_pageview_hourly_table.hql --database wmf
 --
 
 CREATE EXTERNAL TABLE IF NOT EXISTS `pageview_hourly`(
@@ -32,7 +32,8 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `pageview_hourly`(
     `record_version`    string  COMMENT 'Keeps track of changes in the table content definition - https://wikitech.wikimedia.org/wiki/Analytics/Data/Pageview_hourly',
     `view_count`        bigint  COMMENT 'number of pageviews',
     `page_id`           bigint  COMMENT 'MediaWiki page_id for this page title. For redirects this could be the page_id of the redirect or the page_id of the target. This may not always be set, even if the page is actually a pageview.',
-    `namespace_id`      int     COMMENT 'MediaWiki namespace_id for this page title. This may not always be set, even if the page is actually a pageview.'
+    `namespace_id`      int     COMMENT 'MediaWiki namespace_id for this page title. This may not always be set, even if the page is actually a pageview.',
+    `referer_name`      string  COMMENT 'Name of referer when referer class is external(search engine) or external(media sites)'
 )
 PARTITIONED BY (
     `year`              int     COMMENT 'Unpadded year of pageviews',
