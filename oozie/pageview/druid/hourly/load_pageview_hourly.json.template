@@ -42,7 +42,8 @@
                 "ua_os_family",
                 "ua_os_major",
                 "ua_os_minor",
-                "ua_wmf_app_version"
+                "ua_wmf_app_version",
+                "referer_name"
             ]
           },
           "timestampSpec" : {

@@ -45,6 +45,7 @@ CREATE EXTERNAL TABLE IF NOT EXISTS tmp_daily_druid_pageviews_${year}_${month}_$
     `ua_os_major`               string,
     `ua_os_minor`               string,
     `ua_wmf_app_version`        string,
+    `referer_name`              string,
     `view_count`                bigint
 )
 ROW FORMAT SERDE 'org.apache.hive.hcatalog.data.JsonSerDe'
@@ -80,6 +81,7 @@ WITH formatted_data AS (
         user_agent_map['os_major'] AS ua_os_major,
         user_agent_map['os_minor'] AS ua_os_minor,
         user_agent_map['wmf_app_version'] AS ua_wmf_app_version,
+        referer_name,
         view_count
     FROM ${source_table}
     LEFT JOIN ${wiki_map_table} AS wmt ON
@@ -126,6 +128,7 @@ SELECT
     ua_os_major,
     ua_os_minor,
     ua_wmf_app_version,
+    referer_name,
     SUM(view_count) AS view_count
 FROM formatted_data
 GROUP BY
@@ -150,7 +153,8 @@ GROUP BY
     ua_os_family,
     ua_os_major,
     ua_os_minor,
-    ua_wmf_app_version
+    ua_wmf_app_version,
+    referer_name
 ;
 
 DROP TABLE IF EXISTS tmp_daily_druid_pageviews_${year}_${month}_${day};
