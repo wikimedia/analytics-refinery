@@ -1,27 +1,21 @@
 -- Creates table statement for raw webrequest table.
 --
--- NOTE:  When choosing partition field types,
--- one should take into consideration Hive's
--- insistence on storing partition values
--- as strings.  See:
+-- NOTE:  When choosing partition field types, one should take into consideration Hive's insistence on storing
+-- partition values as strings.  See:
 -- https://wikitech.wikimedia.org/wiki/File:Hive_partition_formats.png
--- and
--- http://bots.wmflabs.org/~wm-bot/logs/%23wikimedia-analytics/20140721.txt
 --
 -- Parameters:
---     <none>
+--     database: should be wmf_raw
 --
 -- Usage
---     hive -f create_webrequest_raw_table.hql \
---         --database wmf_raw
+--     spark3-sql -f create_webrequest_raw_table.hql \
+--       --database user1
 --
-
-ADD JAR /usr/lib/hive-hcatalog/share/hcatalog/hive-hcatalog-core.jar;
 
 CREATE EXTERNAL TABLE IF NOT EXISTS `webrequest` (
     `hostname`                string  COMMENT 'Source node hostname',
     `sequence`                bigint  COMMENT 'Per host sequence number',
-    `dt`                      string  COMMENT 'Timestame at cache in ISO 8601',
+    `dt`                      string  COMMENT 'Timestamp at cache in ISO 8601',
     `time_firstbyte`          double  COMMENT 'Time to first byte',
     `ip`                      string  COMMENT 'IP of packet at cache',
     `cache_status`            string  COMMENT 'Cache status',
@@ -61,5 +55,3 @@ STORED AS TEXTFILE
 LOCATION
     'hdfs://analytics-hadoop/wmf/data/raw/webrequest'
 ;
-
-

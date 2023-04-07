@@ -1,12 +1,11 @@
--- Create table statement for hourly aggregate sequence number
--- statistics for the raw webrequest table.
+-- Create table statement for hourly aggregate sequence number statistics for the raw webrequest table.
 --
 -- Parameters:
---     <none>
+--     database: should be wmf_raw
 --
 -- Usage
---     hive -f create_webrequest_sequence_stats_hourly_table.hql \
---         --database wmf_raw
+--     spark3-sql -f create_webrequest_sequence_stats_hourly_table.hql \
+--       --database user1
 --
 
 CREATE TABLE `webrequest_sequence_stats_hourly`(
