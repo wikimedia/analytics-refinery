@@ -1,16 +1,9 @@
 -- Create table statement for disallowed_cassandra_articles table.
 --
--- Update procedure:
---   * Fetch the disallowed list
---     ssh an-launcher1002.eqiad.wmnet
---     export TSV_FILENAME=disallowed_cassandra_articles.tsv
---     export TSV_HDFS_PATH="/wmf/refinery/current/static_data/cassandra/${TSV_FILENAME}"
---     hdfs dfs -cat $TSV_HDFS_PATH > $TSV_FILENAME
---   * Add or remove some entries (beware, tabs are expected between columns, not spaces)
---     vim $TSV_FILENAME
---   * Push the file back to HDFS
---     sudo -u hdfs kerberos-run-command hdfs hdfs dfs -put -f $TSV_FILENAME $TSV_HDFS_PATH
---     sudo -u hdfs kerberos-run-command hdfs hdfs dfs -chmod +r $TSV_HDFS_PATH
+-- This table is used to filter out some wiki articles from aggregation stats following data manipulation attacks.
+--
+-- More details here:
+-- https://wikitech.wikimedia.org/wiki/Data_Engineering/Systems/AQS#Data_filter_before_Cassandra_load
 --
 -- Parameters:
 --     database Should be `wmf`
