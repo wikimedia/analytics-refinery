@@ -682,6 +682,13 @@ class TestRefineryDropOlderThan(unittest.TestCase):
             extract_time_interval_from_directory(path, format),
             (datetime(2017, 9, 29, 3, 0, 0), datetime(2017, 9, 29, 3, 59, 59)))
 
+    def test_extract_time_interval_from_webrequest_dataloss_directory(self):
+        path = '/test/dataset/test_text/2023/4/13/8/WARNING'
+        format = '/test/dataset/((upload|text|test_text)(/(?P<year>[0-9]+)(/(?P<month>[0-9]+)(/(?P<day>[0-9]+)(/(?P<hour>[0-9]+)(/(WARNING|ERROR))?)?)?)?)?)?'
+        self.assertEqual(
+            extract_time_interval_from_directory(path, format),
+            (datetime(2023, 4, 13, 8, 0, 0), datetime(2023, 4, 13, 8, 59, 59)))
+
     def test_get_directories_to_remove(self):
         """
         Because the entirety of 2017 is older than the 2018 cutoff,
@@ -741,6 +748,72 @@ class TestRefineryDropOlderThan(unittest.TestCase):
                 datetime(2018, 11, 22, 3),
                 datetime(2017, 1, 2, 0)
             )
+
+    def test_get_directories_to_remove_for_webrequest_dataloss_case(self):
+        paths = {
+            'some':{
+                'dataset':{
+                    'upload': {
+                        '2022': {}
+                    },
+                    'test_text': {
+                        '2022': {
+                            '11': {
+                                '2': {
+                                    '5': {
+                                        'WARNING': {
+                                            '00000_0': None  # This is a file.
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        '2023': {
+                            '3': {},
+                            '11': {
+                                '2': {},
+                                '12': {
+                                    '1': {},
+                                    '2': {
+                                        'ERROR': {
+                                            'a_file_to_delete.tsv': None
+                                        }
+                                    },
+                                    '13': {
+                                        'a_file_to_keep.tsv': None
+                                    },
+                                    '14': {
+                                        'a_file_to_keep.tsv': None
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        fake_hdfs = self.FakeHdfsTree(paths)
+
+        directories_to_remove = get_directories_to_remove(
+            fake_hdfs,
+            '/some/dataset',
+            '((upload|text|test_text)(/(?P<year>[0-9]+)(/(?P<month>[0-9]+)(/(?P<day>[0-9]+)(/(?P<hour>[0-9]+)(/(WARNING|ERROR))?)?)?)?)?)?',
+            datetime(2023, 11, 12, 13),
+            datetime(2000, 1, 1, 0)
+        )
+
+        self.assertEqual(
+            directories_to_remove,
+            [
+                '/some/dataset/test_text/2022',
+                '/some/dataset/upload/2022',
+                '/some/dataset/test_text/2023/3',
+                '/some/dataset/test_text/2023/11/2',
+                '/some/dataset/test_text/2023/11/12/1',
+                '/some/dataset/test_text/2023/11/12/2'
+            ]
+        )
 
     def test_remove_directories_does_delete_with_execute(self):
         fake_hdfs = self.FakeHdfs()
@@ -958,7 +1031,7 @@ class TestRefineryDropOlderThan(unittest.TestCase):
 if __name__ == '__main__':
     args = docopt(__doc__)
 
-    # Configure loggging.
+    # Configure logging.
     verbose = args['--verbose']
     log_file = args['--log-file']
     log_level = logging.DEBUG if verbose else logging.INFO

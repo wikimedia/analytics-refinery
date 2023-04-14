@@ -1,0 +1,13 @@
+dependencies:
+  # The Python version currently used in production is 3.7.3.
+  # But conda does not propose python 3.7 anymore. We take the next version.
+  - python=3.8
+  # ipython is for convenience only
+  - ipython
+  - pip
+  - pip:
+      # The following dependencies are provided through apt in production.
+      - mock
+      - docopt
+      - dnspython
+      - python-dateutil
