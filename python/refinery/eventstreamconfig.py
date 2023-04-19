@@ -50,7 +50,7 @@ def streamconfigs_request(params={}, options={}):
     return requests.get(url, params=params, headers=options['headers'])
 
 
-def get_stream_configs(streams=None, all_settings=False, constraints=None, options={}):
+def get_stream_configs(streams=None, constraints=None, options={}):
     """
     Gets the stream configs for streams, or all streams if not provided.
     """
@@ -58,8 +58,6 @@ def get_stream_configs(streams=None, all_settings=False, constraints=None, optio
     if streams:
         # Mediawiki API uses | as item separator in list GET param.
         params['streams'] = '|'.join(streams)
-    if all_settings:
-        params['all_settings'] = 'true'
     if constraints:
         params['constraints'] = constraints
 
@@ -90,7 +88,6 @@ def get_topics_in_active_streams(streams=None, as_regex=False, constraints=None,
 
     stream_configs = get_stream_configs(
         streams=streams,
-        all_settings=True,
         constraints=constraints,
         options=options
     )
@@ -117,7 +114,6 @@ def main():
     Options:
         -h --help                           Show this help message and exit.
         -u --host=<host>                    Mediwiki API hostname to request. [default: {0}]
-        -A --all-settings                   Asks for all stream config settings to be returned.
         -C --constraints=<constraints>      A string like key1=val1|key2=val2 to pass to EventStreamConfig API
                                             as the constraints parameter.
                                             Example:
@@ -135,7 +131,6 @@ def main():
 
     stream_configs = get_stream_configs(
         arguments['<streams>'],
-        arguments['--all-settings'],
         arguments['--constraints'],
         {'headers': headers}
     )
@@ -150,7 +145,7 @@ if __name__ == '__main__':
         import unittest
         import requests_mock
 
-        stream_configs_url = 'https://{}/w/api.php?action=streamconfigs&format=json&all_settings=true'.format(default_options['host'])
+        stream_configs_url = 'https://{}/w/api.php?action=streamconfigs&format=json'.format(default_options['host'])
         mock_response_text = r'{"streams":{"eventlogging_SearchSatisfaction":{"stream":"eventlogging_SearchSatisfaction","schema_title":"analytics/legacy/searchsatisfaction","topics":["eventlogging_SearchSatisfaction"]},"test.event":{"stream":"test.event","schema_title":"test/event","topics":["eqiad.test.event","codfw.test.event"]},"/^mediawiki\\.job\\..+/":{"stream":"/^mediawiki\\.job\\..+/","schema_title":"error","topics":["/^(eqiad\\.|codfw\\.)mediawiki\\.job\\..+/"]}}}'
 
         @requests_mock.Mocker()
@@ -159,7 +154,7 @@ if __name__ == '__main__':
             def test_get_stream_configs(self, rmock):
                 rmock.get(stream_configs_url, text=mock_response_text)
 
-                stream_configs = get_stream_configs(None, True)
+                stream_configs = get_stream_configs(None)
                 expected = json.loads(mock_response_text)['streams']
 
                 self.assertEqual(stream_configs, expected)
