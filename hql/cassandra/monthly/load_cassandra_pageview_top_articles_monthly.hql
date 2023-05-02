@@ -35,8 +35,9 @@
 -- -d year=2022 \
 -- -d month=7
 
+
 WITH unranked as (
-    SELECT
+    SELECT /*+ BROADCAST(disallowed_list) */
         source.project,
         reflect('org.json.simple.JSONObject', 'escape', regexp_replace(page_title, '\t', '')) AS page_title,
         COALESCE(regexp_replace(access_method, ' ', '-'), 'all-access') AS access,
