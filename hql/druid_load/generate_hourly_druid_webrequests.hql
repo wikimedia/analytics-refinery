@@ -131,5 +131,5 @@ WITH filtered_data AS (
 )
 
 INSERT OVERWRITE TABLE ${destination_table}
-SELECT * /*+ COALESCE(${coalesce_partitions}) */
+SELECT /*+ COALESCE(${coalesce_partitions}) */ *
 FROM filtered_data TABLESAMPLE (BUCKET 1 OUT OF 128);
