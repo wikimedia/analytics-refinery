@@ -1116,6 +1116,7 @@ NavigationTiming:
         connectEnd: keep
         connectStart: keep
         connecting: keep
+        cumulativeLayoutShift: keep
         dnsLookup: keep
         domComplete: keep
         domContentLoadedEventEnd: keep
@@ -1126,6 +1127,8 @@ NavigationTiming:
         domainLookupStart: keep
         deviceMemory: keep
         fetchStart: keep
+        firstPaint: keep
+        firstContentfulPaint: keep
         gaps: keep
         hardwareConcurrency: keep
         isAnon: keep
@@ -1133,9 +1136,13 @@ NavigationTiming:
         isHttp2: keep
         isHttps: keep
         isOversample: keep
+        largestContentfulPaint: keep
+        largestContentfulPaintElement: keep
         loadEventEnd: keep
         loadEventStart: keep
         loading: keep
+        longTaskTotalTasks: keep
+        longTaskTotalDuration: keep
         mediaWikiLoadComplete: keep
         mediaWikiLoadEnd: keep
         mediaWikiLoadStart: keep
