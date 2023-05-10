@@ -1111,7 +1111,22 @@ MobileWikiAppiOSUserHistory:
 
 NavigationTiming:
     event:
+        # Instrumentation metadata
+        isOversample: keep
+        # Pageview, user, and software context metadata
         action: keep
+        isAnon: keep
+        mediaWikiVersion: keep
+        mobileMode: keep
+        namespaceId: keep
+        pageviewToken: hash
+        # Device measurements
+        deviceMemory: keep
+        hardwareConcurrency: keep
+        netinfoDownlink: keep
+        netinfoEffectiveConnectionType: keep
+        netinfoRtt: keep
+        # Page load measurements
         cacheResponseType: keep
         connectEnd: keep
         connectStart: keep
@@ -1125,17 +1140,10 @@ NavigationTiming:
         domLoading: keep
         domainLookupEnd: keep
         domainLookupStart: keep
-        deviceMemory: keep
         fetchStart: keep
         firstPaint: keep
         firstContentfulPaint: keep
         gaps: keep
-        hardwareConcurrency: keep
-        isAnon: keep
-        isHiDPI: keep
-        isHttp2: keep
-        isHttps: keep
-        isOversample: keep
         largestContentfulPaint: keep
         largestContentfulPaintElement: keep
         loadEventEnd: keep
@@ -1146,15 +1154,6 @@ NavigationTiming:
         mediaWikiLoadComplete: keep
         mediaWikiLoadEnd: keep
         mediaWikiLoadStart: keep
-        mediaWikiVersion: keep
-        mobileMode: keep
-        namespaceId: keep
-        netinfoDownlink: keep
-        netinfoEffectiveConnectionType: keep
-        netinfoRtt: keep
-        pageviewToken: hash
-        phpEngine: keep
-        oversampleReason: keep
         receiving: keep
         redirectCount: keep
         redirectEnd: keep
@@ -1164,10 +1163,8 @@ NavigationTiming:
         requestStart: keep
         responseEnd: keep
         responseStart: keep
-        runtime: keep
         secureConnectionStart: keep
         sending: keep
-        transferSize: keep
         unload: keep
         unloadEventEnd: keep
         unloadEventStart: keep
