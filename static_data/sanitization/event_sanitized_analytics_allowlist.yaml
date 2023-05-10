@@ -18,11 +18,6 @@ CentralNoticeBannerHistory:
         n: keep
         l: keep
 
-CentralNoticeTiming:
-    event:
-        pageviewToken: hash
-        time: keep
-
 CodeMirrorUsage:
     event:
         editor: keep
