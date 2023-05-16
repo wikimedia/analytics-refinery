@@ -17,7 +17,7 @@ DROP TABLE IF EXISTS ${destination_table};
 
 
 CREATE TABLE IF NOT EXISTS ${destination_table} (
-    `ts`                        string,
+    `dt`                        string,
     `project`                   string,
     `language_variant`          string,
     `project_family`            string,
@@ -44,7 +44,7 @@ LOCATION '${destination_directory}';
 
 WITH formatted_data AS (
     SELECT /*+ broadcast(nmt) */
-        ts,
+        dt,
         project,
         language_variant,
         project_family,
@@ -70,7 +70,7 @@ WITH formatted_data AS (
                 LPAD(year, 4, '0'), '-',
                 LPAD(month, 2, '0'), '-',
                 LPAD(day, 2, '0'), 'T00:00:00Z'
-            ) AS ts,
+            ) AS dt,
             project,
             language_variant,
             wmt.database_group AS project_family,
@@ -112,7 +112,7 @@ WITH formatted_data AS (
 
 INSERT OVERWRITE TABLE ${destination_table}
 SELECT /*+COALESCE(${coalesce_partitions})*/
-    ts,
+    dt,
     project,
     language_variant,
     project_family,
@@ -134,7 +134,7 @@ SELECT /*+COALESCE(${coalesce_partitions})*/
     SUM(view_count) AS view_count
 FROM formatted_data
 GROUP BY
-    ts,
+    dt,
     project,
     language_variant,
     project_family,
