@@ -15,7 +15,7 @@
 
 
 """
-Wikimedia Anaytics Refinery sqoop python helpers
+Wikimedia Analytics Refinery sqoop python helpers
 """
 import sys
 import logging
@@ -430,9 +430,8 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         'query': '''
              select el_id,
                     el_from,
-                    convert(el_to using utf8mb4) el_to,
-                    convert(el_index using utf8mb4) el_index,
-                    convert(el_index_60 using utf8mb4) el_index_60
+                    convert(el_to_domain_index using utf8mb4) el_to_domain_index,
+                    convert(el_to_path using utf8mb4) el_to_path
 
                from externallinks
               where $CONDITIONS
@@ -440,9 +439,8 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         'map-types': '"{}"'.format(','.join([
             'el_id=Long',
             'el_from=Long',
-            'el_to=String',
-            'el_index=String',
-            'el_index_60=String',
+            'el_to_domain_index=String',
+            'el_to_path=String'
         ])),
         'boundary-query': 'SELECT MIN(el_id), MAX(el_id) FROM externallinks',
         'split-by': 'el_id',

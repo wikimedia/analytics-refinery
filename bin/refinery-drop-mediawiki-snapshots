@@ -94,6 +94,7 @@ AFFECTED_TABLES = {
         'mediawiki_content_models': 6,
         'mediawiki_content': 6,
         'mediawiki_externallinks': 6,
+        'mediawiki_externallinks_old': 6,  # Should be removed completely by 2023-12-01
         'mediawiki_image': 6,
         'mediawiki_imagelinks': 6,
         'mediawiki_ipblocks_restrictions': 6,
