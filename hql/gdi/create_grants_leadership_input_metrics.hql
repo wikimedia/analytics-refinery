@@ -13,8 +13,8 @@ CREATE EXTERNAL TABLE IF NOT EXISTS gdi.grants_leadership_input_metrics (
   `sum_historical_affiliate_grants`              double      COMMENT 'Sum of all Wikimedia Foundation Grants awarded from 2010 through referenced year to affiliates in USD ($)',
   `count_calendar_year_affiliate_grants`         int         COMMENT 'Number of grants in the calendar year to affiliates',
   `count_historical_affiliate_grants`            int         COMMENT 'Number of historical grants to date to affiliates',
-  `annual_affiliate_grants_weighted`             double      COMMENT 'sum_calendar_year_grants_affiliates divided by the country\'s GDP per capita, PPP (current international $)',
-  `historical_affiliate_grants_weighted`         double      COMMENT 'sum_historical_grants_to_date_affiliates divided by the country\'s GDP per capita, PPP (constant international $)'
+  `annual_affiliate_grants_weighted`             double      COMMENT 'The total annual value in USD for all WMF grant awarded to officially recognized affiliates weighted by GDP per capita PPP current, adjusted for inflation',
+  `historical_affiliate_grants_weighted`         double      COMMENT 'sum_historical_grants_to_date_affiliates divided by the country''s GDP per capita, PPP (constant international $)'
 )
 COMMENT
   'Stores grants leadership input metrics for each country'
