@@ -15,7 +15,7 @@
 -- --conf spark.sql.catalog.aqs.spark.cassandra.auth.username=aqsloader \
 -- --conf spark.sql.catalog.aqs.spark.cassandra.auth.password=cassandra \
 -- --conf spark.sql.catalog.aqs.spark.cassandra.output.batch.size.rows=1024 \
--- --jars /srv/deployment/analytics/refinery/artifacts/org/wikimedia/analytics/refinery/refinery-job-0.2.4-shaded.jar \
+-- --jars /srv/deployment/analytics/refinery/artifacts/org/wikimedia/analytics/refinery/refinery-job-0.2.17-shaded.jar \
 -- --conf spark.dynamicAllocation.maxExecutors=128 \
 -- --conf spark.yarn.maxAppAttempts=1 \
 -- --conf spark.executor.memoryOverhead=3072  \
@@ -25,6 +25,7 @@
 --     -f load_cassandra_pageview_top_bycountry_monthly.hql \
 --     -d destination_table=aqs.local_group_default_T_top_bycountry.data \
 --     -d source_table=wmf.projectview_hourly \
+--     -d country_deny_list_table=canonical_data.countries \
 --     -d coalesce_partitions=6 \
 --     -d year=2022 \
 --     -d month=07
@@ -64,8 +65,7 @@ WITH ranked AS (
     ) raw
 )
 INSERT INTO ${destination_table}
-SELECT
-/*+ COALESCE(${coalesce_partitions}) */
+SELECT /*+ COALESCE(${coalesce_partitions}), BROADCAST(denied_countries) */
     'analytics.wikimedia.org' as _domain,
     ranked.project as project,
     ranked.access as access,
@@ -79,8 +79,11 @@ SELECT
                 ',"rank":', CAST(ranked.rank AS STRING), '}'))
     ),']') as countriesJSON
 FROM ranked
+LEFT ANTI JOIN ${country_deny_list_table} denied_countries
+    ON ranked.country = denied_countries.iso_code
+        AND denied_countries.is_protected IS TRUE
 GROUP BY
     ranked.project,
     ranked.access,
     ranked.year,
-    ranked.month
+    ranked.month;
