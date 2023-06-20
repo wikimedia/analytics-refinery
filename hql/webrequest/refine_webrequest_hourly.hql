@@ -5,18 +5,23 @@
 -- This dataset describes a view of the traffic arriving to the servers of the foundation. See more details on DataHub.
 --
 -- Parameters:
---   refinery_jar        -- path to the jar to import for UDFs (HDFS path or local path).
---   source_table        -- Fully qualified table name to compute the statistics for.
---   destination_table   -- Fully qualified table name to store the computed statistics in. This table should have the
---                          schema described in the first sub-request.
---   webrequest_source   -- webrequest_source of partition to compute statistics for. (text, upload, or test_text)
---   record_version      -- record_version keeping track of changes in the table content definition.
---                          (See more details on Wikitech https//w.wiki/6Qpg)
---   coalesce_partitions -- number of files in the output partition can't exceed it.
---   year                -- year of partition to compute statistics for.
---   month               -- month of partition to compute statistics for.
---   day                 -- day of partition to compute statistics for.
---   hour                -- hour of partition to compute statistics for.
+--   refinery_jar                 -- path to the jar to import for UDFs (HDFS path or local path).
+--   source_table                 -- Fully qualified table name to compute the statistics for.
+--   destination_table            -- Fully qualified table name to store the computed statistics in. This table should have the
+--                                   schema described in the first sub-request.
+--   webrequest_source            -- webrequest_source of partition to compute statistics for. (text, upload, or test_text)
+--   record_version               -- record_version keeping track of changes in the table content definition.
+--                                  (See more details on Wikitech https//w.wiki/6Qpg)
+--   coalesce_partitions          -- number of files in the output partition can't exceed it.
+--   spark_sql_shuffle_partitions -- The number of partitions to use when computing
+--   excluded_row_ids             -- A list of rows to remove, defined from their hostname and sequence values, formatted as
+--                                   "'hostname1',sequence1,'hostname2',sequence2", or empty-string if no row is to be removed.
+--                                   This is to be used when a small number of rows has incorrect formatting for instance.
+--                                   More doc here: https://wikitech.wikimedia.org/wiki/Analytics/Data_Lake/Traffic/Webrequest#Pipeline_Administration
+--   year                         -- year of partition to compute statistics for.
+--   month                        -- month of partition to compute statistics for.
+--   day                          -- day of partition to compute statistics for.
+--   hour                         -- hour of partition to compute statistics for.
 --
 -- Usage example:
 --     spark3-sql \
@@ -35,6 +40,7 @@
 --         -d record_version=0.0.1 \
 --         -d coalesce_partitions=256 \
 --         -d spark_sql_shuffle_partitions=256 \
+--         -d excluded_row_ids= \
 --         -d year=2022 \
 --         -d month=12 \
 --         -d day=30 \
@@ -71,9 +77,13 @@ SET spark.sql.shuffle.partitions = ${spark_sql_shuffle_partitions};
 --  * fields computed from fields already present in any CTE and used a single time in the main select need to be added
 --    to the main SELECT only
 
-WITH distinct_rows AS (
+WITH excluded_rows AS (
+  SELECT explode(map(${excluded_row_ids})) AS (excluded_hostname, excluded_sequence)
+),
 
-    SELECT DISTINCT
+distinct_rows AS (
+
+    SELECT /*+ BROADCAST(excluded_rows) */ DISTINCT
         hostname,
         sequence,
         dt,
@@ -106,6 +116,8 @@ WITH distinct_rows AS (
         ch_ua_platform_version
     FROM
         ${source_table}
+    LEFT ANTI JOIN excluded_rows
+      ON hostname = excluded_hostname AND sequence = excluded_sequence
     WHERE
         webrequest_source='${webrequest_source}' AND
         year=${year} AND month=${month} AND day=${day} AND hour=${hour}
