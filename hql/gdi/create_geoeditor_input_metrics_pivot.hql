@@ -9,7 +9,7 @@ CREATE EXTERNAL TABLE IF NOT EXISTS gdi.`geoeditor_input_metrics_pivot` (
   `organizing_wiki`             double     COMMENT 'Represents the wiki that is the primary source of information for the project'
   )
 COMMENT
-  'This table is a pivot of the data from geoeditor_metrics table.'
+  'This table is a pivot of the data from geoeditor_input_metrics table.'
 PARTITIONED BY (
   `year`   int COMMENT 'The year in YYYY format',
   `metric` string COMMENT 'The metric being measured, e.g. monthly_bins, ann_presence, yoy_change,annual_growth, presence_by_growth, editorship_percentiles, etc'

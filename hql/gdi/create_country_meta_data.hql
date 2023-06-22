@@ -10,10 +10,10 @@ CREATE EXTERNAL TABLE IF NOT EXISTS gdi.country_meta_data (
 `nine_ninety_region`            STRING          COMMENT 'The regional classification for the annual 990 financial report which is publicly shared by the Foundation',
 `emerging_classification`       STRING          COMMENT 'The 2017 Community Resources country classification of developed, emerging, and least developed Wikimedia communities.',
 `wmf_market_research`           STRING          COMMENT '2020 Foundation Market Research classifications',
-`imf_country`                   STRING          COMMENT 'Binary indicator as to whether the country is a standard location among International Monetary Fund nations',
-`pwt_country`                   STRING          COMMENT 'Binary indicator as to whether the country is a standard location among Penn World Table nations',
-`un_country`                    STRING          COMMENT 'Binary indicator as to whether the country is a standard location among United Nations nations',
-`world_bank_country`            STRING          COMMENT 'Binary indicator as to whether the country is a standard location among World Bank nations'
+`is_imf_country`                STRING          COMMENT 'Binary indicator as to whether the country is a standard location among International Monetary Fund nations',
+`is_pwt_country`                STRING          COMMENT 'Binary indicator as to whether the country is a standard location among Penn World Table nations',
+`is_un_country`                 STRING          COMMENT 'Binary indicator as to whether the country is a standard location among United Nations nations',
+`is_world_bank_country`         STRING          COMMENT 'Binary indicator as to whether the country is a standard location among World Bank nations'
 )
 COMMENT
   'Contains country metadata'
