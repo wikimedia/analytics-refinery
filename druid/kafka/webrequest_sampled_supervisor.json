@@ -36,7 +36,8 @@
               "tls_auth",
               "tls_cipher",
               "requestctl",
-              "is_from_public_cloud"
+              "is_from_public_cloud",
+              "https"
           ]
         },
         "dimensionsSpec": {
@@ -68,7 +69,8 @@
               "tls_auth",
               "tls_cipher",
               "requestctl",
-              "is_from_public_cloud"
+              "is_from_public_cloud",
+              "https"
           ]
         },
         "timestampSpec" : {
