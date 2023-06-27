@@ -2,7 +2,7 @@
 --
 -- This has fewer dimensions than the private dataset
 -- and limits what data is output as follows:
---   * respects a blacklist of countries
+--   * respects a disallowed list of countries
 --   * only reports '5 to 99' and '100+' activity levels
 --   * only reports numbers for Wikipedia projects
 --   * excludes private or closed wikis
@@ -20,7 +20,7 @@
 --               -d editors_daily_table=wmf.editors_daily \
 --               -d geoeditors_monthly_table=wmf.geoeditors_monthly \
 --               -d country_info_table=canonical_data.countries \
---               -d country_blacklist_table=wmf.geoeditors_blacklist_country \
+--               -d disallowed_countries_table=canonical_data.countries \
 --               -d project_namespace_map_table=wmf_raw.mediawiki_project_namespace_map \
 --               -d destination_table=wmf.geoeditors_public_monthly \
 --               -d month=2019-07                                   \
@@ -62,7 +62,7 @@ public_active_wikipedias AS (
         hostname
 ),
 ceil_counts AS (
-    SELECT
+    SELECT /*+ BROADCAST(disallowed_countries) */
         g.wiki_db,
         w.project,
         c.name AS country_name,
@@ -72,11 +72,12 @@ ceil_counts AS (
     FROM ${geoeditors_monthly_table} AS g
         INNER JOIN public_active_wikipedias AS w ON w.wiki_db = g.wiki_db
         INNER JOIN ${country_info_table} AS c ON c.iso_code = g.country_code
-        LEFT JOIN ${country_blacklist_table} AS b ON b.country_code = g.country_code
+        LEFT ANTI JOIN ${disallowed_countries_table} AS disallowed_countries
+            ON disallowed_countries.iso_code = g.country_code
+                AND disallowed_countries.is_protected IS TRUE
     WHERE
         month = '${month}' AND
-        activity_level IN ('5 to 99', '100 or more') AND
-        b.country_code IS null
+        activity_level IN ('5 to 99', '100 or more')
     GROUP BY
         g.wiki_db,
         w.project,

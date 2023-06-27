@@ -22,7 +22,7 @@
 -- --conf spark.sql.catalog.aqs.spark.cassandra.auth.username=aqsloader \
 -- --conf spark.sql.catalog.aqs.spark.cassandra.auth.password=cassandra \
 -- --conf spark.sql.catalog.aqs.spark.cassandra.output.batch.size.rows=1024 \
--- --jars /srv/deployment/analytics/refinery/artifacts/org/wikimedia/analytics/refinery/refinery-job-0.2.4-shaded.jar  \
+-- --jars /srv/deployment/analytics/refinery/artifacts/org/wikimedia/analytics/refinery/refinery-job-0.2.17-shaded.jar  \
 -- --conf spark.dynamicAllocation.maxExecutors=64 \
 -- --conf spark.yarn.maxAppAttempts=1 \
 -- --conf spark.executor.memoryOverhead=2048  \
@@ -32,7 +32,7 @@
 -- -f load_cassandra_pageview_top_percountry_daily.hql \
 -- -d destination_table=aqs.local_group_default_T_top_percountry.data \
 -- -d source_table=wmf.pageview_actor \
--- -d country_deny_list_table=wmf.geoeditors_blacklist_country \
+-- -d country_deny_list_table=canonical_data.countries \
 -- -d disallowed_cassandra_articles_table=wmf.disallowed_cassandra_articles \
 -- -d coalesce_partitions=6 \
 -- -d year=2022 \
@@ -41,7 +41,7 @@
 
 
 WITH base_data AS (
-    SELECT
+    SELECT /*+ BROADCAST(disallowed_articles_list), BROADCAST(country_deny_list) */
         geocoded_data['country_code'] AS country_code,
         REGEXP_REPLACE(access_method, ' ', '-') AS access,
         pageview_info['project'] AS project,
@@ -51,9 +51,12 @@ WITH base_data AS (
         LPAD(day, 2, '0') as day,
         actor_signature
     FROM ${source_table} source
-        LEFT OUTER JOIN ${disallowed_cassandra_articles_table} disallowed_list
-        ON pageview_info['project'] = disallowed_list.project
-            AND lower(pageview_info['page_title']) = lower(disallowed_list.article)
+    LEFT ANTI JOIN ${disallowed_cassandra_articles_table} disallowed_articles_list
+        ON pageview_info['project'] = disallowed_articles_list.project
+            AND lower(pageview_info['page_title']) = lower(disallowed_articles_list.article)
+    LEFT ANTI JOIN ${country_deny_list_table} country_deny_list
+        ON country_deny_list.iso_code = source.geocoded_data['country_code']
+            AND country_deny_list.is_protected IS TRUE
     WHERE
         year = ${year}
         AND month = ${month}
@@ -64,12 +67,6 @@ WITH base_data AS (
         AND is_pageview
         AND pageview_info['page_title'] != '-'
         AND geocoded_data['country_code'] != '--'
-        AND NOT EXISTS (
-            SELECT 1
-            FROM ${country_deny_list_table} country_deny_list
-            WHERE country_deny_list.country_code = source.geocoded_data['country_code']
-        )
-        AND disallowed_list.article IS NULL
 ),
 raw AS (
     SELECT
@@ -189,4 +186,4 @@ GROUP BY
     access,
     year,
     month,
-    day
+    day;
