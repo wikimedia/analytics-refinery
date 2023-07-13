@@ -1071,6 +1071,52 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         'mappers-weight': 1.0,
     }
 
+    queries['wikilambda_zobject_labels'] = {
+        'query': '''
+             select wlzl_id,
+                    convert(wlzl_zobject_zid using utf8mb4) wlzl_zobject_zid,
+                    convert(wlzl_type using utf8mb4) wlzl_type,
+                    convert(wlzl_language using utf8mb4) wlzl_language,
+                    wlzl_label_primary,
+                    convert(wlzl_return_type using utf8mb4) wlzl_return_type
+
+               from wikilambda_zobject_labels
+              where $CONDITIONS
+        ''',
+        'map-types': '"{}"'.format(','.join([
+            'wlzl_id=Long',
+            'wlzl_zobject_zid=String',
+            'wlzl_type=String',
+            'wlzl_language=String',
+            'wlzl_label_primary= Boolean',
+            'wlzl_return_type=String'
+        ])),
+        'boundary-query': 'SELECT MIN(wlzl_id), MAX(wlzl_id) FROM wikilambda_zobject_labels',
+        'split-by': 'wlzl_id',
+        'mappers-weight': 1.0,
+    }
+
+    queries['wikilambda_zobject_function_join'] = {
+        'query': '''
+             select wlzf_id,
+                    convert(wlzf_ref_zid using utf8mb4) wlzf_ref_zid,
+                    convert(wlzf_zfunction_zid using utf8mb4) wlzf_zfunction_zid,
+                    convert(wlzf_type using utf8mb4) wlzf_type
+
+               from wikilambda_zobject_function_join
+              where $CONDITIONS
+        ''',
+        'map-types': '"{}"'.format(','.join([
+            'wlzf_id=Long',
+            'wlzf_ref_zid=String',
+            'wlzf_zfunction_zid=String',
+            'wlzf_type=String'
+        ])),
+        'boundary-query': 'SELECT MIN(wlzf_id), MAX(wlzf_id) FROM wikilambda_zobject_function_join',
+        'split-by': 'wlzf_id',
+        'mappers-weight': 1.0,
+    }
+
     queries['watchlist'] = {
         'query': '''
              select wl_id,
