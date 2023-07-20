@@ -28,5 +28,5 @@ STORED AS INPUTFORMAT
 OUTPUTFORMAT
   'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'
 LOCATION
-  'hdfs://analytics-hadoop/wmf/data/raw/wikifunctions/tables/wikilambda_zobject_labels'
+  'hdfs://analytics-hadoop/wmf/data/raw/mediawiki_private/tables/wikilambda_zobject_labels'
 ;
