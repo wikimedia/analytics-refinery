@@ -4,7 +4,7 @@
 --     <none>
 --
 -- Usage
---     spark2-sql -f create_editors_by_country_monthly_table.hql.hql   \
+--     spark3-sql -f create_editors_by_country_monthly_table.hql.hql   \
 --          --database wmf
 --
 

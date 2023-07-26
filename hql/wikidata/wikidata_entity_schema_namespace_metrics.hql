@@ -10,7 +10,7 @@
 --     day                -- day of metric to compute for.
 --
 -- Usage:
---     spark2-sql --master yarn -f wikidata_entity_schema_namespace_metrics.hql \
+--     spark3-sql --master yarn -f wikidata_entity_schema_namespace_metrics.hql \
 --         -d webrequest_table=wmf.webrequest                                   \
 --         -d year=2022                                                         \
 --         -d month=10                                                          \

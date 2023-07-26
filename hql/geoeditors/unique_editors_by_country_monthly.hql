@@ -8,7 +8,7 @@
 --     coalesce_partitions  -- Number of partitions to write
 --
 -- Usage:
---     spark2-sql -f unique_editors_by_country_monthly.hql         \
+--     spark3-sql -f unique_editors_by_country_monthly.hql         \
 --                -d source_table=wmf.editors_daily             \
 --                -d destination_table=wmf.unique_editors_by_country_monthly   \
 --                -d month=2022-02    \

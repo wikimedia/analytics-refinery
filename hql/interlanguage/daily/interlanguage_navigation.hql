@@ -20,7 +20,7 @@
 --      day               -- day of partition to aggregate, left zero-padded
 --
 -- Usage:
---     spark2-sql -f interlanguage_navigation.hql                                           \
+--     spark3-sql -f interlanguage_navigation.hql                                           \
 --         -d refinery_hive_jar_path=hdfs://analytics-hadoop/wmf/refinery/current/artifacts/refinery-hive.jar    \
 --         -d coalesce_partitions=1                                                         \
 --         -d source_table=wmf.pageview_actor                                               \

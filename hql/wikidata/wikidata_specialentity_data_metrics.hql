@@ -11,7 +11,7 @@
 --     coalesce_partitions-- number of partitions to reduce to.
 --
 -- Usage:
---     spark2-sql --master yarn -f wikidata_specialentity_data_metrics.hql \
+--     spark3-sql --master yarn -f wikidata_specialentity_data_metrics.hql \
 --         -d webrequest_table=wmf.webrequest                              \
 --         -d year=2021                                                    \
 --         -d month=5                                                      \

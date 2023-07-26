@@ -1,7 +1,7 @@
 -- Compute daily session length data from session tick events.
 -- See README.md for more info.
 --
--- Run this job from spark2-sql or Airflow.
+-- Run this job from spark3-sql or Airflow.
 --
 -- Parameters:
 --     source_table               -- Table to read session tick data from

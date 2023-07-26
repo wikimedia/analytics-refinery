@@ -9,7 +9,7 @@
 --     snapshot                       -- month YYYY-MM of snapshot to compute metric for.
 --
 -- Usage:
---     spark2-sql --master yarn -f coeditors_metrics.hql                              \
+--     spark3-sql --master yarn -f coeditors_metrics.hql                              \
 --         -d mw_project_namespace_map_table=wmf_raw.mediawiki_project_namespace_map  \
 --         -d mw_history_table=wmf.mediawiki_history                                  \
 --         -d snapshot=2022-02                                                        \

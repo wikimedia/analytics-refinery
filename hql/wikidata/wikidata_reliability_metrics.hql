@@ -25,7 +25,7 @@
 --     day                -- day of metric to compute for .
 --
 -- Usage:
---     spark2-sql --master yarn -f wikidata_reliability_metrics.hql    \
+--     spark3-sql --master yarn -f wikidata_reliability_metrics.hql    \
 --         -d webrequest_table=wmf.webrequest                          \
 --         -d year=2021                                                \
 --         -d month=5                                                  \

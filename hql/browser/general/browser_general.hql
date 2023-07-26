@@ -21,7 +21,7 @@
 --     destination_table        -- Table where to write the report.
 --
 -- Usage:
---     spark2-sql -f browser_general.hql                     \
+--     spark3-sql -f browser_general.hql                     \
 --         -d coalesce_partitions=1                          \
 --         -d projectview_source=wmf.projectview_hourly      \
 --         -d pageview_source=wmf.pageview_hourly            \

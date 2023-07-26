@@ -4,7 +4,7 @@
 --     <none>
 --
 -- Usage
---     spark2-sql -f create_wikidata_entity_table.hql \
+--     spark3-sql -f create_wikidata_entity_table.hql \
 --         --database wmf
 --
 

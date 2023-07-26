@@ -26,7 +26,7 @@
 --
 --
 -- Usage:
---     spark2-sql --master yarn -S -f check_dataloss_false_positives.sparksql \
+--     spark3-sql --master yarn -S -f check_dataloss_false_positives.sparksql \
 --         -d table_name=wmf.webrequest           \
 --         -d webrequest_source=upload            \
 --         -d year=2018                           \

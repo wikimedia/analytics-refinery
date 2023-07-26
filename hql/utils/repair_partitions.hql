@@ -4,7 +4,7 @@
 --     table           -- Fully qualified table name to repair partition.
 --
 -- Usage:
---     spark2-sql -f repair_partitions.hql \
+--     spark3-sql -f repair_partitions.hql \
 --         -d table=wmf.webrequest
 --
 

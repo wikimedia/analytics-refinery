@@ -11,7 +11,7 @@
 --     coalesce_partitions  -- Number of partitions to write
 --
 -- Usage:
---     spark2-sql -f editors_daily_monthly.hql                                                       \
+--     spark3-sql -f editors_daily_monthly.hql                                                       \
 --                -d refinery_hive_jar=hdfs://analytics-hadoop/some/path/to/refinery-hive-0.1.9.jar  \
 --                -d source_table=wmf_raw.mediawiki_private_cu_changes                               \
 --                -d user_history_table=wmf.mediawiki_user_history                                   \

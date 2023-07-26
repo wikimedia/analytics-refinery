@@ -21,7 +21,7 @@
 --     hour                 -- hour of API to compute metric for.
 --
 -- Usage:
---     spark2-sql --master yarn -f api_metrics.hql                                  \
+--     spark3-sql --master yarn -f api_metrics.hql                                  \
 --         -d source_table = wmf.webrequest                                         \
 --         -d year=2021                                                             \
 --         -d month=4                                                               \

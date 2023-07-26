@@ -16,7 +16,7 @@
 --     coalesce_partitions-- the number of partitions.
 --
 -- Usage:
---     spark2-sql --master yarn -f wikidata_articleplaceholder_metrics.hql    \
+--     spark3-sql --master yarn -f wikidata_articleplaceholder_metrics.hql    \
 --         -d webrequest_table=wmf.webrequest                                 \
 --         -d year=2021                                                       \
 --         -d month=5                                                         \

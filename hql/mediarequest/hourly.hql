@@ -11,7 +11,7 @@
 --  hour                 -- hour of partition to compute aggregation for.
 --
 -- Usage:
--- spark2-sql
+-- spark3-sql
 --         --name=mediarequest_hourly_manual \
 --         --master=yarn \
 --         -f mediarequest_hourly.hql \
