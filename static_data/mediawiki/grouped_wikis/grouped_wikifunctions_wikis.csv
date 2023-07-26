@@ -1,0 +1,4 @@
+# Wikifunctions has only one wiki
+# Format is wiki,group,edit size
+# The 3rd value, at present, is an arbitrary placeholder for edit size
+wikifunctionswiki,1,1000000
