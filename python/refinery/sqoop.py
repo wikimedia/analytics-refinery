@@ -1088,7 +1088,7 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
             'wlzl_zobject_zid=String',
             'wlzl_type=String',
             'wlzl_language=String',
-            'wlzl_label_primary= Boolean',
+            'wlzl_label_primary=Boolean',
             'wlzl_return_type=String'
         ])),
         'boundary-query': 'SELECT MIN(wlzl_id), MAX(wlzl_id) FROM wikilambda_zobject_labels',
