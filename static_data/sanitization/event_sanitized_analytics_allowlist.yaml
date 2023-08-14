@@ -1577,15 +1577,6 @@ WikipediaZeroUsage:
     webhost: keep
     wiki: keep
 
-SpecialMuteSubmit:
-    event:
-        emailsBefore: keep
-        emailsAfter: keep
-        notificationsBefore: keep
-        notificationsAfter: keep
-    wiki: keep
-    webhost: keep
-
 SpecialInvestigate:
     event:
         action: keep
