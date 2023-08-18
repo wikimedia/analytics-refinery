@@ -243,7 +243,7 @@ alert_dry_run
 
 guard_against_uninitialized_git_fat
 
-GIT_DESCRIPTION="$(git describe $GIT_EXTRA_OPTION --always --dirty 2>/dev/null || true)"
+GIT_DESCRIPTION="$(/usr/bin/sudo -u analytics-deploy /usr/bin/git describe --always --dirty 2>/dev/null || true)"
 [[ ! -z "$GIT_DESCRIPTION" ]] || error "Cannot describe current version"
 TIMESTAMP="$(echo_timestamp)"
 # For the git description, we need to guard
