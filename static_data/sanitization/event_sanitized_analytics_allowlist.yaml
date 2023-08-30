@@ -134,6 +134,7 @@ EditAttemptStep:
         user_editcount: keep
         user_id: keep
         version: keep
+    client_dt: keep
     webhost: keep
     wiki: keep
 
