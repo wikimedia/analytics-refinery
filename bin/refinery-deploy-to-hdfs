@@ -112,7 +112,8 @@ run_hdfs() {
         shift
         SKIP_RUNNING_COMMAND="no"
     fi
-    local CMD=( hdfs "$@" )
+    # The following command requires that the user be in the analytics-admins group.
+    local CMD=( /usr/bin/sudo -u hdfs /usr/local/bin/kerberos-run-command hdfs hdfs "$@" )
     if [ "$LOG_INVOCATION" = "yes" ]
     then
         if [ "$DRY_RUN" = "no" ]
