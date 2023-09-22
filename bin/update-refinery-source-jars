@@ -33,7 +33,7 @@ MODE="dry-run"
 # List of refinery-source modules that have jars that should be symlinked.
 # This list is hardcoded now.
 # TODO: it'd be nice if we could read the refinery-source pom.xml file to automate this list.
-REFINERY_SOURCE_MODULES="cassandra core hive job spark tools"
+REFINERY_SOURCE_MODULES="core hive job spark tools"
 
 
 SCRIPT_NAME=$(basename "$0")
