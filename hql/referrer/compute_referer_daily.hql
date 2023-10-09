@@ -4,14 +4,18 @@
 -- spark3-sql -f compute_referer_daily.hql                                                    \
 --            -d min_num_daily_referrals=500                                                  \
 --            -d source_table=wmf.pageview_actor                                              \
---            -d referer_daily_destination_table=wmf.referrer_daily                           \
+--            -d referer_daily_destination_table=wmf_traffic.referrer_daily                   \
 --            -d coalesce_partitions=1                                                        \
 --            -d year=2021                                                                    \
 --            -d month=3                                                                      \
---            -d day=3                                                                        \
+--            -d day=3
 --
 
+-- Delete existing data for the period to prevent duplication of data in case of recomputation
+DELETE FROM ${referer_daily_destination_table}
+WHERE day = TO_DATE(CONCAT_WS('-', LPAD(${year}, 4, '0'), LPAD(${month}, 2, '0'), LPAD(${day}, 2, '0')), 'yyyy-MM-dd');
 
+-- Compute data for the period
 WITH se_pageviews AS (SELECT geocoded_data['country']         AS country,
                              normalized_host.project          AS lang,
                              user_agent_map['browser_family'] AS browser_family,
@@ -50,20 +54,20 @@ WITH se_pageviews AS (SELECT geocoded_data['country']         AS country,
                                  IF(num_referrals >= ${min_num_daily_referrals}, os_family, 'other')      AS os_family,
                                  num_referrals
                           FROM pageview_counts)
-INSERT OVERWRITE TABLE ${referer_daily_destination_table}
-PARTITION (year = ${year}, month = ${month}, day = ${day})
+INSERT INTO ${referer_daily_destination_table}
 SELECT /*+ COALESCE(${coalesce_partitions}) */
        country,
        lang,
        browser_family,
        os_family,
        search_engine,
-       SUM(num_referrals) AS num_referrals
+       SUM(num_referrals) AS num_referrals,
+       TO_DATE(CONCAT_WS('-', LPAD(${year}, 4, '0'), LPAD(${month}, 2, '0'), LPAD(${day}, 2, '0')), 'yyyy-MM-dd') AS day
 FROM privacy_enforced
 GROUP BY country,
          lang,
          search_engine,
          browser_family,
          os_family
-HAVING SUM(num_referrals) >= ${min_num_daily_referrals};
-
+HAVING SUM(num_referrals) >= ${min_num_daily_referrals}
+ORDER BY day;

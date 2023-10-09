@@ -1,12 +1,10 @@
 -- Prepares a CSV dataset containing one day of referer data to be archived
 --
 -- Usage:
--- spark3-sql -f compute_archive_daily.hql                                      \
---            -d referer_archive_source_table=wmf.referrer_daily                \
+-- spark3-sql -f compute_referer_archive_daily.hql                              \
+--            -d referer_archive_source_table=wmf_traffic.referrer_daily        \
 --            -d destination_directory=/tmp/archive_test                        \
---            -d year=2021                                                      \
---            -d month=3                                                        \
---            -d day=3                                                          \
+--            -d day=2021-03-03                                                 \
 --
 
 INSERT OVERWRITE DIRECTORY '${destination_directory}'
@@ -18,10 +16,8 @@ SELECT /*+ COALESCE(1) */
     os_family,
     search_engine,
     num_referrals,
-    CONCAT(LPAD(year, 4, "0"), LPAD(month, 2, "0"), LPAD(day, 2, "0")) AS day
+    DATE_FORMAT(day, 'yyyyMMdd') AS day
 
 FROM ${referer_archive_source_table}
-WHERE year = ${year}
-  and month = ${month}
-  and day = ${day}
+WHERE day = '${day}'
 ORDER BY country;
