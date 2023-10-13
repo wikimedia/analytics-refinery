@@ -5,6 +5,7 @@
 --            -d min_num_daily_referrals=500                                                  \
 --            -d source_table=wmf.pageview_actor                                              \
 --            -d referer_daily_destination_table=wmf_traffic.referrer_daily                   \
+--            -d countries_table=canonical_data.countries                                     \
 --            -d coalesce_partitions=1                                                        \
 --            -d year=2021                                                                    \
 --            -d month=3                                                                      \
@@ -16,12 +17,15 @@ DELETE FROM ${referer_daily_destination_table}
 WHERE day = TO_DATE(CONCAT_WS('-', LPAD(${year}, 4, '0'), LPAD(${month}, 2, '0'), LPAD(${day}, 2, '0')), 'yyyy-MM-dd');
 
 -- Compute data for the period
-WITH se_pageviews AS (SELECT geocoded_data['country']         AS country,
+WITH se_pageviews AS (SELECT /*+ BROADCAST(countries) */
+                             geocoded_data['country']         AS country,
                              normalized_host.project          AS lang,
                              user_agent_map['browser_family'] AS browser_family,
                              user_agent_map['os_family']      AS os_family,
                              referer_data.referer_name        AS search_engine
                       FROM ${source_table}
+                      LEFT OUTER JOIN ${countries_table} countries
+                        ON countries.iso_code = geocoded_data['country_code']
                       WHERE year = ${year}
                         AND month = ${month}
                         AND day = ${day}
@@ -29,7 +33,7 @@ WITH se_pageviews AS (SELECT geocoded_data['country']         AS country,
                         AND agent_type = 'user'
                         AND referer_data.referer_class = 'external (search engine)'
                         AND normalized_host.project_class = 'wikipedia'
-                        AND geocoded_data['country_code'] NOT IN ('DJ', 'GQ', 'ER', 'LA', 'KP', 'SO', 'TM')),
+                        AND NOT COALESCE(countries.is_protected, FALSE)),
      pageview_counts AS (SELECT country,
                                 lang,
                                 browser_family,
