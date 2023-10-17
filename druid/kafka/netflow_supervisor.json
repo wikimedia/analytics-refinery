@@ -9,7 +9,25 @@
         "flattenSpec": {
           "useFieldDiscovery": false,
           "fields": [
-              "as_dst","as_path","peer_as_dst","as_src","ip_dst","ip_proto","ip_src","peer_as_src","port_dst","port_src","country_ip_src","country_ip_dst","tag2","tcp_flags","packets","bytes","peer_ip_src"
+              "as_dst",
+              "as_path",
+              "peer_as_dst",
+              "as_src",
+              "ip_dst",
+              "ip_proto",
+              "ip_src",
+              "peer_as_src",
+              "port_dst",
+              "port_src",
+              "country_ip_src",
+              "country_ip_dst",
+              "tag2",
+              "tcp_flags",
+              "packets",
+              "bytes",
+              "peer_ip_src",
+              "iface_out",
+              "peer_ip_dst"
           ]
         },
         "timestampSpec": {
@@ -18,12 +36,35 @@
         },
         "dimensionsSpec": {
           "dimensions": [
-              "as_dst","as_path","peer_as_dst","as_src","ip_dst","ip_proto","ip_src","peer_as_src","port_dst","port_src","country_ip_src","country_ip_dst","tag2","tcp_flags","peer_ip_src"
+              "as_dst",
+              "as_path",
+              "peer_as_dst",
+              "as_src",
+              "ip_dst",
+              "ip_proto",
+              "ip_src",
+              "peer_as_src",
+              "port_dst",
+              "port_src",
+              "country_ip_src",
+              "country_ip_dst",
+              "tag2",
+              "tcp_flags",
+              "peer_ip_src",
+              "forwarded"
           ]
         }
       }
     },
-    "transformSpec": {},
+    "transformSpec": {
+      "transforms": [
+        {
+          "type": "expression",
+          "name": "forwarded",
+          "expression": "!(iface_out == 0 && (peer_ip_dst == '::' || peer_ip_dst == '0.0.0.0'))"
+        }
+      ]
+    },
     "metricsSpec": [
       {
         "name": "count",
