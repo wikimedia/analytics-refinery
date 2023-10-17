@@ -61,9 +61,9 @@ headers = {
     'From': 'dandreescu@wikimedia.org'
 }
 
-project_namespace_map_query = ''.join([
+wikis_query = ''.join([
     'https://www.mediawiki.org/w/api.php?action=sitematrix',
-    '&smsiteprop=url|dbname|code',
+    '&smsiteprop=code|dbname|sitename|lang|url',
     '&smstate=all',
     '&format=json',
 ])
@@ -72,9 +72,8 @@ namespace_query = ''.join([
     '/w/api.php?action=query',
     '&format=json',
     '&meta=siteinfo',
-    '&siprop=namespaces',
+    '&siprop=general|namespaces',
 ])
-
 
 if __name__ == '__main__':
     # parse arguments
@@ -95,7 +94,7 @@ if __name__ == '__main__':
     if verbose:
         log_level = logging.DEBUG
 
-    proxies = {'https': proxy } if proxy else {}
+    proxies = {'https': proxy} if proxy else {}
 
     logging.basicConfig(level=log_level,
                         format='%(asctime)s %(levelname)-6s %(message)s',
@@ -104,7 +103,7 @@ if __name__ == '__main__':
 
 def get_wikis(closed):
     matrix = requests.get(
-        project_namespace_map_query,
+        wikis_query,
         headers=headers,
         proxies=proxies
     ).json().get('sitematrix', {})
@@ -139,8 +138,13 @@ logging.info('Fetching namespace info for {} wikis'.format(len(wikis)))
 ###
 # Writes mapping as: (hostname, dbname, ns integer, ns canonical, ns localized, content)
 # hostname      : ja.wikipedia.org
+# language      : ja
+# sitename      : Wikipedia
 # dbname        : jawiki
-# ns integer    : 2, 100, etc.
+# home page     : https://ja.wikipedia.org/wiki/%E3%83%A1%E3%82%A4%E3%83%B3%E3%83%9A%E3%83%BC%E3%82%B8
+# mw version    : MediaWiki 1.41.0-wmf.28
+# case setting  : first-letter
+# namespace     : 2, 100, etc.
 # ns canonical  : the english prefix if exists, otherwise the localized prefix
 # ns localized  : the localized prefix
 # content       : whether or not this namespace is a content namespace
@@ -153,23 +157,36 @@ with open(outfile, 'w', encoding='utf-8') as w:
 
     for wiki in wikis:
         site = wiki.get('url', '')
+        sitename = wiki.get('sitename', '')
+        lang = wiki.get('lang', '')
         host = site.replace('https://', '')
         dbname = wiki.get('dbname', host)
         try:
             r = requests.get(site + namespace_query, headers=headers, proxies=proxies)
-            ns = json.loads(r.text)['query']['namespaces']
+            query = json.loads(r.text)['query']
+            general = query['general']
+            home_page = general.get('base', host)
+            mw_version = general.get('generator', 'Unknown MediaWiki Version')
+            case_setting = general.get('case', 'uknown case')
+            ns = query['namespaces']
 
-            for k, v in ns.items():
+            for ns_key, v in ns.items():
                 is_content = 0
                 if 'content' in v:
                     is_content = 1
 
                 row = [
                     host,
+                    lang,
+                    sitename,
                     dbname,
-                    k,
+                    home_page,
+                    mw_version,
+                    case_setting,
+                    ns_key,
                     v.get('canonical', ''),
                     v.get('*', ''),
+                    v.get('case', 'unknown case'),
                     is_content,
                 ]
                 spamwriter.writerow(row)
