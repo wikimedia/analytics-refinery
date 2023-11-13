@@ -41,5 +41,6 @@ SELECT /*+ COALESCE(${coalesce_partitions}) */
     TO_DATE(CONCAT_WS('-', LPAD(${year}, 4, '0'), LPAD(${month}, 2, '0'), '01'), 'yyyy-MM-dd') AS day
 FROM
     ${unique_devices_source_table}
+WHERE day = TO_DATE(CONCAT_WS('-', LPAD(${year}, 4, '0'), LPAD(${month}, 2, '0'), '01'), 'yyyy-MM-dd')
 ORDER BY day, project_family, country_code
 ;
