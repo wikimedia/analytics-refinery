@@ -43,6 +43,8 @@ SELECT /*+ COALESCE(${coalesce_partitions}) */
     TO_DATE(CONCAT_WS('-', LPAD(${year}, 4, '0'), LPAD(${month}, 2, '0'), LPAD(${day}, 2, '0')), 'yyyy-MM-dd') AS day
 FROM
     ${unique_devices_source_table}
-WHERE day = TO_DATE(CONCAT_WS('-', LPAD(${year}, 4, '0'), LPAD(${month}, 2, '0'), LPAD(${day}, 2, '0')), 'yyyy-MM-dd')
+WHERE year = ${year}
+    AND month = ${month}
+    AND day = ${day}
 ORDER BY day, project_family, country_code
 ;
