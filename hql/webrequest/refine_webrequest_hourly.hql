@@ -15,7 +15,7 @@
 --   coalesce_partitions          -- number of files in the output partition can't exceed it.
 --   spark_sql_shuffle_partitions -- The number of partitions to use when computing
 --   excluded_row_ids             -- A list of rows to remove, defined from their hostname and sequence values, formatted as
---                                   "'hostname1',sequence1,'hostname2',sequence2", or empty-string if no row is to be removed.
+--                                   "'hostname1,sequence1','hostname2,sequence2'", or empty-string if no row is to be removed.
 --                                   This is to be used when a small number of rows has incorrect formatting for instance.
 --                                   More doc here: https://wikitech.wikimedia.org/wiki/Analytics/Data_Lake/Traffic/Webrequest#Pipeline_Administration
 --   year                         -- year of partition to compute statistics for.
@@ -78,7 +78,12 @@ SET spark.sql.shuffle.partitions = ${spark_sql_shuffle_partitions};
 --    to the main SELECT only
 
 WITH excluded_rows AS (
-  SELECT explode(map(${excluded_row_ids})) AS (excluded_hostname, excluded_sequence)
+    SELECT
+        substr(row_id, 0, locate(',', row_id) - 1) AS excluded_hostname,
+        cast(substr(row_id, locate(',', row_id) + 1, length(row_id)) AS BIGINT) AS excluded_sequence
+    FROM (
+        SELECT explode(array(${excluded_row_ids})) AS row_id
+    )
 ),
 
 distinct_rows AS (
