@@ -60,6 +60,9 @@ CREATE TEMPORARY FUNCTION get_tags AS 'org.wikimedia.analytics.refinery.hive.Get
 CREATE TEMPORARY FUNCTION isp_data as 'org.wikimedia.analytics.refinery.hive.GetISPDataUDF';
 CREATE TEMPORARY FUNCTION get_referer_data as 'org.wikimedia.analytics.refinery.hive.GetRefererDataUDF';
 
+-- We set spark.sql.mapKeyDedupPolicy to LAST_WIN to prevent duplicate map keys
+-- in str_to_map() calls to break the query. See: https://phabricator.wikimedia.org/T351909
+SET spark.sql.mapKeyDedupPolicy = LAST_WIN;
 SET spark.sql.shuffle.partitions = ${spark_sql_shuffle_partitions};
 
 -- The distinct_rows CTE provides DISTINCT on raw data only. This prevents augmented fields to be shuffled, therefore
