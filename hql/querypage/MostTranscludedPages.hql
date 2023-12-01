@@ -14,6 +14,7 @@
 -- --executor-cores 1 \
 -- --executor-memory 1G \
 -- --master yarn \
+-- --conf spark.hadoop.mapred.output.compress=false \
 -- --conf spark.dynamicAllocation.maxExecutors=16 \
 -- --conf spark.yarn.maxAppAttempts=1 \
 -- --conf spark.executor.memoryOverhead=2G \
