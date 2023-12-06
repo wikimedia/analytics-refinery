@@ -1,15 +1,15 @@
--- Creates table statement for raw mediawiki_linktarget table.
+-- Creates table statement for raw mediawiki_private_linktarget table.
 --
 -- Parameters:
 --     <none>
 --
 -- Usage
---     hive -f create_mediawiki_linktarget_table.hql \
+--     hive -f create_mediawiki_private_linktarget_table.hql \
 --         --database wmf_raw
 --
 
 
-CREATE EXTERNAL TABLE `mediawiki_linktarget`(
+CREATE EXTERNAL TABLE `mediawiki_private_linktarget`(
   `lt_id`           bigint  COMMENT 'Primary key.',
   `lt_namespace`    int     COMMENT 'Namespace of the link target.',
   `lt_title`        string  COMMENT 'Text part of link target excluding namespace.'
@@ -26,5 +26,5 @@ STORED AS INPUTFORMAT
 OUTPUTFORMAT
   'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'
 LOCATION
-  'hdfs://analytics-hadoop/wmf/data/raw/mediawiki/tables/linktarget'
+  'hdfs://analytics-hadoop/wmf/data/raw/mediawiki_private/tables/linktarget'
 ;
