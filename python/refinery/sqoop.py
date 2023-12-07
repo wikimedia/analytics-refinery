@@ -608,6 +608,9 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         'mappers-weight': 0.5,
     }
 
+    # NOTE: when updating the sanitization rule below,
+    #   please also update the cloud replica logic that does the same thing:
+    #   https://gerrit.wikimedia.org/g/operations/puppet/+/refs/heads/production/modules/profile/templates/wmcs/db/wikireplicas/maintain-views.yaml#566
     queries['linktarget'] = {
         'query': '''
              select lt_id,
@@ -616,6 +619,9 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
 
                from linktarget
               where $CONDITIONS
+                and (   exists(select 1 from templatelinks where tl_target_id = lt_id)
+                     or exists(select 1 from pagelinks where pl_target_id = lt_id)
+                    )
         ''',
         'map-types': '"{}"'.format(','.join([
             'lt_id=Long',
