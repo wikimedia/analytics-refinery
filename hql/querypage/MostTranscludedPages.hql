@@ -21,7 +21,7 @@
 --     -f MostTranscludedPages.hql \
 --     -d destination_directory=/tmp/test-MostTranscludedPages \
 --     -d source_table_templatelinks=wmf_raw.mediawiki_templatelinks  \
---     -d source_table_linktarget=wmf_raw.mediawiki_linktarget  \
+--     -d source_table_linktarget=wmf_raw.mediawiki_private_linktarget  \
 --     -d wiki=rowiki \
 --     -d year=2023 \
 --     -d month=10
