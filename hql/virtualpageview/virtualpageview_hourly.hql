@@ -86,6 +86,7 @@ GROUP BY pageview_info['project'],
          IF(useragent.is_bot, 'spider', 'user'),
          geocoded_data['continent'],
          geocoded_data['country_code'],
+         -- NOTE: can change as MaxMind renames countries
          geocoded_data['country'],
          geocoded_data['subdivision'],
          geocoded_data['city'],

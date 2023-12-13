@@ -18,7 +18,8 @@ WHERE day = TO_DATE(CONCAT_WS('-', LPAD(${year}, 4, '0'), LPAD(${month}, 2, '0')
 
 -- Compute data for the period
 WITH se_pageviews AS (SELECT /*+ BROADCAST(countries) */
-                             geocoded_data['country']         AS country,
+                             -- NOTE: geocoded_data['country'] can change unpredictably, use our canonical name instead
+                             countries.name                   AS country,
                              normalized_host.project          AS lang,
                              user_agent_map['browser_family'] AS browser_family,
                              user_agent_map['os_family']      AS os_family,

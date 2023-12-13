@@ -3,6 +3,7 @@
 -- Parameters:
 --     source_table         -- Table containing source data
 --     destination_table    -- Table where to write newly computed data
+--     countries_table      -- Canonical names of countries
 --     year                 -- year of the to-be-generated
 --     month                -- month of the to-be-generated
 --     day                  -- day of the to-be-generated
@@ -26,6 +27,7 @@
 --         -f hdfs://analytics-hadoop/user/mforns/unique_devices_per_project_family_daily.hql \
 --         -d source_table=wmf.pageview_actor \
 --         -d destination_table=mforns.unique_devices_per_project_family_daily \
+--         -d countries_table=canonical_data.countries \
 --         -d year=2022 \
 --         -d month=8 \
 --         -d day=14 \
@@ -38,7 +40,6 @@ WITH last_access_dates AS (
         month,
         day,
         normalized_host.project_class AS project_family,
-        geocoded_data['country'] AS country,
         geocoded_data['country_code'] AS country_code,
         -- Sometimes (~1 out of 1B times) WMF-Last-Access-Global is corrupted.
         -- and Spark can not parse it. Check for the length of the string.
@@ -61,14 +62,12 @@ WITH last_access_dates AS (
 fresh_sessions_aggregated AS (
     SELECT
         project_family,
-        country,
         country_code,
         COUNT(1) AS uniques_offset
     FROM (
         SELECT
             actor_signature,
             project_family,
-            country,
             country_code,
             SUM(CASE WHEN (nocookies IS NOT NULL) THEN 1 ELSE 0 END)
         FROM
@@ -76,14 +75,12 @@ fresh_sessions_aggregated AS (
         GROUP BY
             actor_signature,
             project_family,
-            country,
             country_code
         -- Only keeping clients having done 1 event without cookies
         HAVING SUM(CASE WHEN (nocookies IS NOT NULL) THEN 1 ELSE 0 END) = 1
         ) fresh_sessions
     GROUP BY
         project_family,
-        country,
         country_code
 ),
 
@@ -93,7 +90,6 @@ fresh_sessions_aggregated AS (
 last_access_uniques_aggregated AS (
     SELECT
         project_family,
-        country,
         country_code,
         SUM(CASE
             -- project_family set, last-access-global not set and client accept cookies --> first visit, count
@@ -108,7 +104,6 @@ last_access_uniques_aggregated AS (
         last_access_dates
     GROUP BY
         project_family,
-        country,
         country_code
 )
 
@@ -119,13 +114,15 @@ INSERT OVERWRITE TABLE ${destination_table}
 -- to calculate uniques_estimate = uniques_underestimate + uniques_offset.
 SELECT /*+ COALESCE(${coalesce_partitions}) */
     last_access_uniques.project_family,
-    last_access_uniques.country,
+    COALESCE(countries.name, '(missing country name)'),
     last_access_uniques.country_code,
     last_access_uniques.uniques_underestimate,
     COALESCE(fresh_sessions.uniques_offset, 0) AS uniques_offset,
     last_access_uniques.uniques_underestimate + COALESCE(fresh_sessions.uniques_offset, 0) AS uniques_estimate
 FROM
     last_access_uniques_aggregated AS last_access_uniques
+    LEFT JOIN ${countries_table} AS countries
+        ON countries.iso_code = last_access_uniques.country_code
     -- Outer join to keep every row from both table
     FULL OUTER JOIN fresh_sessions_aggregated AS fresh_sessions
         -- No need to add country here as country_code matches
