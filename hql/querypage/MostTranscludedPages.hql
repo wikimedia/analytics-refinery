@@ -45,9 +45,9 @@ WITH output as (
     LIMIT 5000
 )
 
--- will output a file that looks like {"most_transcluded_pages":"[{\"qc_type\":\"...},...,{...}]"}
+-- will output a file that looks like [{"qc_type":"...},...,{...}]
 INSERT OVERWRITE DIRECTORY "${destination_directory}"
-USING json
+USING text
     SELECT /*+ COALESCE(1) */
         to_json(collect_list(
             named_struct(
