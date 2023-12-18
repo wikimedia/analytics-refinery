@@ -6,8 +6,7 @@
 --         -d source_table=wmf.unique_devices_per_project_family_monthly \
 --         -d destination_table=tmp_druid_unique_devices_per_project_family_monthly_2023_01
 --         -d destination_directory=/wmf/tmp/druid/unique_devices_per_project_family_monthly_json \
---         -d year=2023 \
---         -d month=1
+--         -d day=2023-01-01
 --
 
 
@@ -30,9 +29,7 @@ LOCATION '${destination_directory}';
 
 INSERT OVERWRITE TABLE ${destination_table}
 SELECT /*+ COALESCE(1) */
-    CONCAT(
-        LPAD(year, 4, '0'), '-',
-        LPAD(month, 2, '0'), '-01T00:00:00Z') AS dt,
+    CONCAT('${day}', 'T00:00:00Z') AS dt,
     project_family AS project_family,
     country AS country,
     country_code AS country_code,
@@ -40,6 +37,5 @@ SELECT /*+ COALESCE(1) */
     uniques_offset AS uniques_offset,
     uniques_estimate AS uniques_estimate
 FROM ${source_table}
-WHERE year = ${year}
-    AND month = ${month}
+WHERE day = TO_DATE('${day}', 'yyyy-MM-dd')
     AND project_family != 'wikimedia';

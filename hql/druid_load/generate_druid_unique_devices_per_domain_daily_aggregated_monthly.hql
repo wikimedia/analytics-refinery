@@ -5,8 +5,7 @@
 --         -d source_table=wmf.unique_devices_per_domain_daily \
 --         -d destination_table=wmf.tmp_druid_unique_devices_per_domain_daily_aggregated_monthly_2023_01 \
 --         -d destination_directory=/wmf/tmp/druid/unique_devices_per_domain_daily_json \
---         -d year=2023 \
---         -d month=1
+--         -d day=2023-01-01
 --
 
 
@@ -29,12 +28,12 @@ LOCATION '${destination_directory}';
 
 WITH filtered_domains AS (
     SELECT
-        domain AS filtered_domain,
+        domain,
         day,
         SUM(uniques_estimate) AS checked_uniques_estimate
     FROM ${source_table}
-    WHERE year=${year}
-      AND month=${month}
+    WHERE day >= TO_DATE('${day}', 'yyyy-MM-dd')
+        AND day < ADD_MONTHS(TO_DATE('${day}', 'yyyy-MM-dd'), 1);
     GROUP BY
         domain,
         day
@@ -44,10 +43,7 @@ WITH filtered_domains AS (
 
 INSERT OVERWRITE TABLE ${destination_table}
 SELECT /*+ COALESCE(1) */
-    CONCAT(
-        LPAD(year, 4, '0'), '-',
-        LPAD(month, 2, '0'), '-',
-        LPAD(s.day, 2, '0'), 'T00:00:00Z') AS dt,
+    CONCAT('${beginning_of_month}', 'T00:00:00Z') AS dt,
     domain AS domain,
     country AS country,
     country_code AS country_code,
@@ -55,8 +51,6 @@ SELECT /*+ COALESCE(1) */
     uniques_offset AS uniques_offset,
     uniques_estimate AS uniques_estimate
 FROM ${source_table} s
-    INNER JOIN filtered_domains f
-        ON (s.domain = f.filtered_domain
-          AND s.day = f.day)
-WHERE year = ${year}
-    AND month = ${month};
+    INNER JOIN filtered_domains using (domain, day)
+WHERE day >= TO_DATE('${day}', 'yyyy-MM-dd')
+    AND day < ADD_MONTHS(TO_DATE('${day}', 'yyyy-MM-dd'), 1);

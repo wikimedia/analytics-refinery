@@ -2,11 +2,10 @@
 --
 -- Usage:
 --     spark-sql -f generate_druid_unique_devices_per_domain_monthly.hql \
---         -d source_table=wmf.unique_devices_per_domain_monthly \
+--         -d source_table=wmf_readership.unique_devices_per_domain_monthly \
 --         -d destination_table=tmp_druid_unique_devices_per_domain_monthly_2023_01 \
 --         -d destination_directory=/wmf/tmp/druid/unique_devices_per_domain_monthly_json \
---         -d year=2023 \
---         -d month=1
+--         -d day=2023-01-01
 --
 
 
@@ -32,8 +31,7 @@ WITH filtered_domains AS (
         domain AS filtered_domain,
         SUM(uniques_estimate) AS checked_uniques_estimate
     FROM ${source_table}
-    WHERE year=${year}
-      AND month=${month}
+    WHERE day = TO_DATE('${day}', 'yyyy-MM-dd')
     GROUP BY
         domain
     HAVING
@@ -42,9 +40,7 @@ WITH filtered_domains AS (
 
 INSERT OVERWRITE TABLE ${destination_table}
 SELECT /*+ COALESCE(1) */
-    CONCAT(
-        LPAD(year, 4, '0'), '-',
-        LPAD(month, 2, '0'), '-01T00:00:00Z') AS dt,
+    CONCAT('${day}', 'T00:00:00Z') AS dt,
     domain AS domain,
     country AS country,
     country_code AS country_code,
@@ -54,5 +50,4 @@ SELECT /*+ COALESCE(1) */
 FROM ${source_table}
     INNER JOIN filtered_domains
         ON domain = filtered_domain
-WHERE year = ${year}
-    AND month = ${month};
+WHERE day = TO_DATE('${day}', 'yyyy-MM-dd');
