@@ -71,6 +71,10 @@ INSERT OVERWRITE TABLE ${destination_table}
         referer_data.referer_class,
         geocoded_data['continent'],
         geocoded_data['country_code'],
+        -- this is going to cause a split in case MaxMind renames a country.  However,
+        -- we may find this split useful in understanding how data changes across these
+        -- renames.  There's an argument for keeping this grouping and just grouping
+        -- by country_code in any downstream queries.
         geocoded_data['country'],
         geocoded_data['subdivision'],
         geocoded_data['city'],
