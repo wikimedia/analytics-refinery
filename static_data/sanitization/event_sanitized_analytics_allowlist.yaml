@@ -1223,7 +1223,7 @@ wikifunctions_ui:
         revision_id: keep
     performer:
         edit_count_bucket: keep
-        id: hash
+        name: hash
         is_bot: keep
         is_logged_in: keep
         pageview_id: hash
