@@ -37,19 +37,25 @@ SELECT
     entropy(counts) AS value
 FROM (
     SELECT
-        p.country,
+        -- Use the country name from traffic_anomaly_checked_countries
+        -- instead of the country name from pageview_hourly,
+        -- since the latter is calculated via geocoding
+        -- and can change with MaxMind updates, breaking the metrics.
+        c.country,
         city,
         COUNT(*) AS counts
     FROM ${source_table} AS p
     JOIN wmf.traffic_anomaly_checked_countries AS c
-    ON p.country = c.country
+    -- Join on country_code instead of country (name)
+    -- for the same reason as explained in the select above.
+    ON p.country_code = c.country_code
     WHERE
         year = ${year} AND
         month = ${month} AND
         day = ${day} AND
         agent_type = 'user'
     GROUP BY
-        p.country,
+        c.country,
         city
 ) AS aux
 GROUP BY country
