@@ -65,7 +65,7 @@ INSERT OVERWRITE TABLE ${destination_table}
         user_agent,
         accept_language,
         is_pageview,
-        is_redirect_to_pageview(uri_host, uri_path, uri_query, http_status, content_type, user_agent, x_analytics) AS is_redirect_to_pageview,
+        is_redirect_to_pageview(uri_host, uri_path, uri_query, http_status, content_type, user_agent, x_analytics_map) AS is_redirect_to_pageview,
         geocoded_data,
         user_agent_map,
         x_analytics_map,
@@ -85,7 +85,7 @@ INSERT OVERWRITE TABLE ${destination_table}
     WHERE webrequest_source IN ('text') AND
         year=${year} AND month=${month} AND day=${day} AND hour=${hour}
         AND (is_pageview = TRUE
-          OR is_redirect_to_pageview(uri_host, uri_path, uri_query, http_status, content_type, user_agent, x_analytics) = TRUE)
+          OR is_redirect_to_pageview(uri_host, uri_path, uri_query, http_status, content_type, user_agent, x_analytics_map) = TRUE)
     -- Group by all fields (no aggregation as we have unique (hostname, sequence))
     -- to force a reduce step and have the expected number of output files
     GROUP BY
@@ -104,7 +104,7 @@ INSERT OVERWRITE TABLE ${destination_table}
         user_agent,
         accept_language,
         is_pageview,
-        is_redirect_to_pageview(uri_host, uri_path, uri_query, http_status, content_type, user_agent, x_analytics),
+        is_redirect_to_pageview(uri_host, uri_path, uri_query, http_status, content_type, user_agent, x_analytics_map),
         geocoded_data,
         user_agent_map,
         x_analytics_map,

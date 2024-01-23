@@ -130,18 +130,25 @@ distinct_rows AS (
         webrequest_source='${webrequest_source}' AND
         year=${year} AND month=${month} AND day=${day} AND hour=${hour}
 
+), distinct_rows_and_x_analytics_map AS (
+
+    SELECT
+        distinct_rows.*,
+        -- parse x_analytics string into a map
+        CASE COALESCE(x_analytics, '-')
+            WHEN '-' THEN NULL
+            ELSE str_to_map(x_analytics, '\;', '=')
+            END as x_analytics_map
+    FROM distinct_rows
+
 ), distinct_rows_and_reused_fields AS (
 
      SELECT
-         distinct_rows.*,
+         distinct_rows_and_x_analytics_map.*,
          -- Materialize reused computed fields
-         is_pageview(uri_host, uri_path, uri_query, http_status, content_type, user_agent, x_analytics) as is_pageview,
-         ua_parser(user_agent) as user_agent_map,
-         CASE COALESCE(x_analytics, '-')
-             WHEN '-' THEN NULL
-             ELSE str_to_map(x_analytics, '\;', '=')
-             END as x_analytics_map
-     FROM distinct_rows
+         is_pageview(uri_host, uri_path, uri_query, http_status, content_type, user_agent, x_analytics_map) as is_pageview,
+         ua_parser(user_agent) as user_agent_map
+     FROM distinct_rows_and_x_analytics_map
 
 )
 
@@ -189,7 +196,7 @@ SELECT /*+ COALESCE(${coalesce_partitions}) */
         END as pageview_info,
     CAST(x_analytics_map['page_id'] AS BIGINT) as page_id,
     CAST(x_analytics_map['ns'] AS BIGINT) as namespace_id,
-    get_tags(uri_host, uri_path, uri_query, http_status, content_type, user_agent, x_analytics) as tags,
+    get_tags(uri_host, uri_path, uri_query, http_status, content_type, user_agent, x_analytics_map) as tags,
     isp_data(ip) as isp_data,
     accept,
     tls,
