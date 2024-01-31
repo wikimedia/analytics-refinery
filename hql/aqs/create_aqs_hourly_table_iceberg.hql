@@ -21,7 +21,7 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `aqs_hourly`(
 )
 USING ICEBERG
 TBLPROPERTIES (
-    'write.parquet.compression-codec' = 'lz4'
+    'write.parquet.compression-codec' = 'zstd'
 )
 PARTITIONED BY (days(hour))
 LOCATION '${location}'
