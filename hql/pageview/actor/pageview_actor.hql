@@ -54,7 +54,7 @@ INSERT OVERWRITE TABLE ${destination_table}
         user_agent,
         accept_language,
         is_pageview,
-        is_redirect_to_pageview(uri_host, uri_path, uri_query, http_status, content_type, user_agent, x_analytics) AS is_redirect_to_pageview,
+        is_redirect_to_pageview(uri_host, uri_path, uri_query, http_status, content_type, user_agent, x_analytics_map) AS is_redirect_to_pageview,
         geocoded_data,
         user_agent_map,
         x_analytics_map,
