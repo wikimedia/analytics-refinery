@@ -1,16 +1,22 @@
--- Compute daily session length data from session tick events.
+-- Compute daily session length data from session tick events and send it to Hive.
 -- See README.md for more info.
 --
 -- Run this job from spark3-sql or Airflow.
 --
 -- Parameters:
---     source_table               -- Table to read session tick data from
---     destination_table          -- Table to write session length data to
---     year                       -- Unpadded year of the date to compute
---     month                      -- Unpadded month of the date to compute
---     day                        -- Unpadded day of the date to compute
---     output_files_cardinality   -- Number of files in the output
-SET parquet.compression = SNAPPY;
+--   source_table        -- Table to read session tick data from
+--   destination_table   -- Iceberg table to write session length data to
+--   year                -- year of the date to compute
+--   month               -- month of the date to compute
+--   day                 -- day of the date to compute
+--
+-- Usage:
+--   spark3-sql -f session_length_daily.hql \
+--     -d source_table=event.mediawiki_client_session_tick \
+--     -d destination_table=wmf.session_length_daily \
+--     -d year=2023 \
+--     -d month=1 \
+--     -d day=30
 
 WITH
     base_data AS (
