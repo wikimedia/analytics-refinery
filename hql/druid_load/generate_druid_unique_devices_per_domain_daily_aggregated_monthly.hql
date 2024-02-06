@@ -33,7 +33,7 @@ WITH filtered_domains AS (
         SUM(uniques_estimate) AS checked_uniques_estimate
     FROM ${source_table}
     WHERE day >= TO_DATE('${day}', 'yyyy-MM-dd')
-        AND day < ADD_MONTHS(TO_DATE('${day}', 'yyyy-MM-dd'), 1);
+        AND day < ADD_MONTHS(TO_DATE('${day}', 'yyyy-MM-dd'), 1)
     GROUP BY
         domain,
         day
