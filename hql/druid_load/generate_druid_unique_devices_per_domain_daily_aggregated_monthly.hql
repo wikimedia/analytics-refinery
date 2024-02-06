@@ -43,7 +43,7 @@ WITH filtered_domains AS (
 
 INSERT OVERWRITE TABLE ${destination_table}
 SELECT /*+ COALESCE(1) */
-    CONCAT('${beginning_of_month}', 'T00:00:00Z') AS dt,
+    CONCAT('${day}', 'T00:00:00Z') AS dt,
     domain AS domain,
     country AS country,
     country_code AS country_code,
