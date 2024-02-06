@@ -1210,59 +1210,6 @@ WikibasePingback:
         memoryLimit: keep
     wiki: keep
 
-wikifunctions_ui:
-    agent:
-        client_platform_family: keep
-    meta:
-        domain: keep
-        dt: keep
-    name: keep
-    page:
-        title: keep
-        id: keep
-        revision_id: keep
-    performer:
-        edit_count_bucket: keep
-        name: hash
-        is_bot: keep
-        is_logged_in: keep
-        pageview_id: hash
-        session_id: hash
-    custom_data:
-        edit:
-            data_type: keep
-            value: keep
-        haserrors:
-            data_type: keep
-            value: keep
-        implementationtype:
-            data_type: keep
-            value: keep
-        isdirty:
-            data_type: keep
-            value: keep
-        isnewzobject:
-            data_type: keep
-            value: keep
-        loadtime:
-            data_type: keep
-            value: keep
-        resulthaserror:
-            data_type: keep
-            value: keep
-        selectedfunctionzid:
-            data_type: keep
-            value: keep
-        zobjectid:
-            data_type: keep
-            value: keep
-        zobjecttype:
-            data_type: keep
-            value: keep
-        viewname:
-            data_type: keep
-            value: keep
-
 WikimediaBlogVisit:
     event:
         referrerUrl: keep
@@ -1469,3 +1416,56 @@ mediawiki_wikistories_contribution_event:
 mwcli_command_execute:
     command: keep
     version: keep
+
+wikifunctions_ui:
+    agent:
+        client_platform_family: keep
+    meta:
+        domain: keep
+        dt: keep
+    name: keep
+    page:
+        title: keep
+        id: keep
+        revision_id: keep
+    performer:
+        edit_count_bucket: keep
+        name: hash
+        is_bot: keep
+        is_logged_in: keep
+        pageview_id: hash
+        session_id: hash
+    custom_data:
+        edit:
+            data_type: keep
+            value: keep
+        haserrors:
+            data_type: keep
+            value: keep
+        implementationtype:
+            data_type: keep
+            value: keep
+        isdirty:
+            data_type: keep
+            value: keep
+        isnewzobject:
+            data_type: keep
+            value: keep
+        loadtime:
+            data_type: keep
+            value: keep
+        resulthaserror:
+            data_type: keep
+            value: keep
+        selectedfunctionzid:
+            data_type: keep
+            value: keep
+        zobjectid:
+            data_type: keep
+            value: keep
+        zobjecttype:
+            data_type: keep
+            value: keep
+        viewname:
+            data_type: keep
+            value: keep
