@@ -18,7 +18,7 @@ SELECT
 FROM ${source_table}
 WHERE
     access_method IN ('desktop', 'mobile web') AND
-    -- Add precise date filtering using CONCAT to build date based on partitions
+    -- Add precise date filtering
     day >= '${start_date}' AND
     day < '${end_date}'
 GROUP BY
@@ -29,6 +29,3 @@ ORDER BY
     date_sub(day, (dayofweek(day)-1)),
     view_count DESC
 ;
-
-
-row_number() over (partition by listner order by timestamp desc) as seqnum
