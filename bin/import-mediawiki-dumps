@@ -21,9 +21,10 @@ if not already present. The expected dump-date format is YYYYMMDD.
 Usage:
   import-mediawiki-dumps
           [--input-base PATH] [--output-base PATH]
-          [--projects-file FILE] [--dump-type TYPE]
-          [--max-tries INT] [--log-file FILE]
-          [--overwrite] [--dry-run]
+          [--projects-file FILE] [--skip-list WIKIS]
+          [--dump-type TYPE] [--max-tries INT]
+          [--log-file FILE] [--overwrite]
+          [--dry-run]
           --dump-date DATE
 
 Options:
@@ -35,6 +36,8 @@ Options:
                                     (CSV with project DB as first  column,
                                     comment-lines started with #)
                                     [default: /mnt/hdfs/wmf/refinery/current/static_data/mediawiki/grouped_wikis/grouped_wikis.csv]
+    -s WIKIS --skip-list WIKIS    The list of wiki-databases (comma-separated) to NOT
+                                  import even if they are present in the project-file.
     -t TYPE --dump-type TYPE      The dump-type to import. Should be one of: pages-meta-history,
                                     pages-meta-current, stub-meta-history, stub-meta-current,
                                     siteinfo-namespaces
@@ -142,21 +145,21 @@ class MediawikiDumpsImporter(object):
     """
     This class manages importing multiple wiki-project XML-dumps onto HDFS.
     It checks the output-base path validity, possibly deleting it in case
-    of overwrite, builds the list of projects to import from a file and
-    launches imports using MediawikiProjectDumpImporter.
+    of overwrite, builds the list of projects to import from a file filtering it
+    with a skip-list and launches imports using MediawikiProjectDumpImporter.
     When all imports are finished, a success-flag file is written in
     the output folder if every job was successful.
     """
 
-    def __init__(self, input_base, output_base,
-                 projects_file, dump_type, dump_date,
-                 max_tries, overwrite, dry_run):
+    def __init__(self, input_base, output_base, projects_file, skip_list,
+                 dump_type, dump_date, max_tries, overwrite, dry_run):
         """
         Initializes variables and validates parameters
         """
         self.input_base = input_base
         self.output_base = output_base
         self.projects_file = projects_file
+        self.skip_list = skip_list
         self.dump_type = dump_type
         self.dump_date = dump_date
         self.max_tries = max_tries
@@ -194,6 +197,7 @@ class MediawikiDumpsImporter(object):
            create it if if does not exist), and stop if a previous has
            already been successful (presence of a success-flag file)
          - Get the list of projects to import from the project-file
+           excluding projects present in skip_list
          - Loop over the projects to try to import each of them with
            MediawikiProjectDumpImporter, and save each final status
          - At then end log about failures/unavailable projects and
@@ -262,16 +266,17 @@ class MediawikiDumpsImporter(object):
         Read project-file, considering lines starting with # as comments,
         and project lines to comma-separated value with project being
         the first element of each line.
+        Only keep projects not present in skip_list.
         """
-        logger.info('Getting projects-list')
+        logger.info('Getting projects-list filtered with deny-list')
         projects = []
         with open(self.projects_file, "r") as file:
             for line in file:
                 if not line.startswith('#'):
                     project = line.strip().split(',')[0].strip()
-                    if project:
+                    if project and project not in self.skip_list:
                         projects.append(project)
-        logger.info('{} projects in list'.format(len(projects)))
+        logger.info('{} projects to process'.format(len(projects)))
         return projects
 
 
@@ -439,6 +444,7 @@ def main(args):
     input_base = args['--input-base']
     output_base = args['--output-base']
     projects_file = args['--projects-file']
+    skip_list = [i.strip() for i in args['--skip-list'].split(",")] if (args['--skip-list']) else []
     dump_type = args['--dump-type']
     dump_date = args['--dump-date']
     max_tries = int(args['--max-tries'])
@@ -456,6 +462,7 @@ def main(args):
             '    input_base:     {}\n'.format(input_base) +
             '    output_base:    {}\n'.format(output_base) +
             '    projects_file:  {}\n'.format(projects_file) +
+            '    skip_list:      {}\n'.format(skip_list) +
             '    dump_type:      {}\n'.format(dump_type) +
             '    dump_date:      {}\n'.format(dump_date) +
             '    max-tries:      {}\n'.format(max_tries) +
@@ -464,8 +471,8 @@ def main(args):
             )
 
     # Instanciate and run importer
-    importer = MediawikiDumpsImporter(input_base, output_base, projects_file, dump_type,
-                                      dump_date, max_tries, overwrite, dry_run)
+    importer = MediawikiDumpsImporter(input_base, output_base, projects_file, skip_list,
+                                      dump_type, dump_date, max_tries, overwrite, dry_run)
     importer.run()
 
 
