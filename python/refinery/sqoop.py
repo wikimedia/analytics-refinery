@@ -42,20 +42,28 @@ class SqoopConfig:
         self.password_file = password_file
         self.jdbc_string = jdbc_string
         self.num_mappers_base = num_mappers
-        self.num_mappers_weighted = max(int(num_mappers * queries[table]['mappers-weight']), 1)
         self.fetch_size = fetch_size
         self.output_format = output_format
         self.tmp_base_path = tmp_base_path
         self.table_path_template = table_path_template
         self.dbname = dbname
         self.table = table
-        self.query = queries[table].get('query')
-        self.boundary_query = queries[table]['boundary-query'] if ('boundary-query' in queries[table]) else None
-        self.split_by = queries[table]['split-by'] if ('split-by' in queries[table]) else None
-        self.map_types = queries[table]['map-types'] if ('map-types' in queries[table]) else None
+        query_info = queries[table]
+        ########################################
+        # Hack during pagelink migration (T299947)
+        # Use a special query for migrated projects
+        # see around line 700 for where the special query is defined
+        if (self.table == 'pagelinks' and self.dbname in {'testwiki', 'testcommonswiki', 'commonswiki'}):
+            query_info = validate_tables_and_get_queries(['pagelinks_normalized'], None, None)['pagelinks_normalized']
+
+        self.query = query_info.get('query')
+        self.boundary_query = query_info.get('boundary-query')
+        self.split_by = query_info.get('split-by')
+        self.map_types = query_info.get('map-types')
         # If sqoopable_dbnames is not defined for this table, it means there is no restriction
         # on dbnames for that table, meaning all dbnames are sqoopable.
-        self.is_sqoopable = (('sqoopable_dbnames' not in queries[table]) or (dbname in queries[table]['sqoopable_dbnames']))
+        self.is_sqoopable = (('sqoopable_dbnames' not in query_info) or (dbname in query_info['sqoopable_dbnames']))
+        self.num_mappers_weighted = max(int(num_mappers * query_info['mappers-weight']), 1)
         self.target_jar_dir = target_jar_dir
         self.jar_file = jar_file
         self.yarn_queue = yarn_queue
@@ -608,31 +616,6 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         'mappers-weight': 0.5,
     }
 
-    # NOTE: when updating the sanitization rule below,
-    #   please also update the cloud replica logic that does the same thing:
-    #   https://gerrit.wikimedia.org/g/operations/puppet/+/refs/heads/production/modules/profile/templates/wmcs/db/wikireplicas/maintain-views.yaml#566
-    queries['linktarget'] = {
-        'query': '''
-             select lt_id,
-                    lt_namespace,
-                    convert(lt_title using utf8mb4) lt_title
-
-               from linktarget
-              where $CONDITIONS
-                and (   exists(select 1 from templatelinks where tl_target_id = lt_id)
-                     or exists(select 1 from pagelinks where pl_target_id = lt_id)
-                    )
-        ''',
-        'map-types': '"{}"'.format(','.join([
-            'lt_id=Long',
-            'lt_namespace=Integer',
-            'lt_title=String',
-        ])),
-        'boundary-query': 'SELECT MIN(lt_id), MAX(lt_id) FROM linktarget',
-        'split-by': 'lt_id',
-        'mappers-weight': 1.0,
-    }
-
     queries['logging'] = {
         'query': '''
              select log_id,
@@ -703,11 +686,47 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
              select pl_from,
                     pl_namespace,
                     convert(pl_title using utf8mb4) pl_title,
-                    pl_from_namespace
+                    pl_from_namespace,
+                    pl_target_id
 
                from pagelinks
               where $CONDITIONS
         ''',
+        'map-types': '"{}"'.format(','.join([
+            'pl_from=Long',
+            'pl_namespace=Integer',
+            'pl_title=String',
+            'pl_from_namespace=Integer',
+            'pl_target_id=Long',
+        ])),
+        'boundary-query': 'SELECT MIN(pl_from), MAX(pl_from) FROM pagelinks',
+        'split-by': 'pl_from',
+        'mappers-weight': 1.0,
+    }
+
+    ################################################
+    # The following query is to be used temporarily during the pagelink
+    # normalization migration (T299947). When the normalization is finalized
+    # we should update the main pagelinks query.
+    # See around line 52 for where this query is instantiated
+    queries['pagelinks_normalized'] = {
+        'query': '''
+             select pl_from,
+                    CAST(NULL AS INTEGER) pl_namespace,
+                    CAST(NULL AS VARCHAR(0)) pl_title,
+                    pl_from_namespace,
+                    pl_target_id
+
+               from pagelinks
+              where $CONDITIONS
+        ''',
+        'map-types': '"{}"'.format(','.join([
+            'pl_from=Long',
+            'pl_namespace=Integer',
+            'pl_title=String',
+            'pl_from_namespace=Integer',
+            'pl_target_id=Long',
+        ])),
         'boundary-query': 'SELECT MIN(pl_from), MAX(pl_from) FROM pagelinks',
         'split-by': 'pl_from',
         'mappers-weight': 1.0,
@@ -957,7 +976,7 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
     ############################################################################
     # Tables sqooped from production replica
     #   cu_changes and watchlist are not available in labs
-    #   actor and comments are too slow due to expensive join at sanitization
+    #   actor, comment and pagelinks are too slow due to expensive join at sanitization
     ############################################################################
 
     # documented at https://www.mediawiki.org/wiki/Extension:CheckUser/cu_changes_table
@@ -1045,6 +1064,26 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         'split-by': 'comment_id',
         'mappers-weight': 1.0,
     }
+
+    queries['linktarget'] = {
+        'query': '''
+             select lt_id,
+                    lt_namespace,
+                    convert(lt_title using utf8mb4) lt_title
+
+               from linktarget
+              where $CONDITIONS
+        ''',
+        'map-types': '"{}"'.format(','.join([
+            'lt_id=Long',
+            'lt_namespace=Integer',
+            'lt_title=String',
+        ])),
+        'boundary-query': 'SELECT MIN(lt_id), MAX(lt_id) FROM linktarget',
+        'split-by': 'lt_id',
+        'mappers-weight': 1.0,
+    }
+
 
     queries['discussiontools_subscription'] = {
         'query': '''
@@ -1258,11 +1297,11 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
     }
 
     if filter_tables:
-        filter_tables_dict = {t: True for t in filter_tables}
-        if len(set(filter_tables_dict.keys()) - set(queries.keys())):
+        filter_tables_set = {t for t in filter_tables}
+        if len(filter_tables_set - set(queries.keys())):
             logger.error('Bad list of tables to export: {}'.format(filter_tables))
             sys.exit(1)
-        return {k: v for k, v in queries.items() if k in filter_tables_dict}
+        return {k: v for k, v in queries.items() if k in filter_tables_set}
     else:
         return queries
 
