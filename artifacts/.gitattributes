@@ -1,2 +1,2 @@
-*.jar filter=fat -text
-*.zip filter=fat -text
+*.jar filter=lfs -text
+*.zip filter=lfs -text
