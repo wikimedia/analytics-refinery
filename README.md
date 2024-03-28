@@ -6,8 +6,7 @@ analytics cluster.
 
 ## Setting up the refinery repository
 
-1. Install git-fat from https://github.com/jedbrown/git-fat on your
-   system.
+1. Install git-lfs on your system.  Debian includes a git-lfs package.
 
 2. Make sure the ```docopt``` and ```dateutil``` Python packages are
    available on your system.
@@ -35,16 +34,16 @@ analytics cluster.
    cd refinery
    ```
 
-5. Initialize git-fat by running
+5. Initialize git-lfs by running
 
    ```
-   git fat init
+   git lfs install
    ```
 
 6. Pull existing artifacts into the repository by running
 
    ```
-   git fat pull
+   git lfs pull
    ```
 
    (Depending on you internet connection, this step may take some time.)
