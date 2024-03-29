@@ -3,7 +3,7 @@
 --
 -- Usage:
 --     spark-sql -f generate_druid_unique_devices_per_project_family_monthly.hql \
---         -d source_table=wmf.unique_devices_per_project_family_monthly \
+--         -d source_table=wmf_readership.unique_devices_per_project_family_monthly \
 --         -d destination_table=tmp_druid_unique_devices_per_project_family_monthly_2023_01
 --         -d destination_directory=/wmf/tmp/druid/unique_devices_per_project_family_monthly_json \
 --         -d day=2023-01-01

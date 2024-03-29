@@ -2,8 +2,8 @@
 -- per-project-family to be loaded in Druid
 --
 -- Usage:
---     spark-sql -f generate_druid_unique_devices_per_project_family_daily_aggregated_monthly.hql \
---         -d source_table=wmf.unique_devices_per_project_family_daily \
+--     spark3-sql -f generate_druid_unique_devices_per_project_family_daily_aggregated_monthly.hql \
+--         -d source_table=wmf_readership.unique_devices_per_project_family_daily \
 --         -d destination_table=tmp_druid_unique_devices_per_project_family_daily_aggregated_monthly_2023_01 \
 --         -d destination_directory=/wmf/tmp/druid/unique_devices_per_project_family_daily_json \
 --         -d day=2023-01-01
@@ -29,7 +29,7 @@ LOCATION '${destination_directory}';
 
 INSERT OVERWRITE TABLE ${destination_table}
 SELECT /*+ COALESCE(1) */
-    CONCAT('${day}', 'T00:00:00Z') AS dt,
+    date_format(day, 'yyyy-MM-dd\'T\'HH:mm:ss.SSS\'Z\'') AS dt,
     project_family AS project_family,
     country AS country,
     country_code AS country_code,
