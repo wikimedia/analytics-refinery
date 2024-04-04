@@ -123,8 +123,8 @@ if [ "${MODE}" = "dry-run" ] ; then
   exit 0
 fi
 
-# Set up git fat and gerrit commit message hook
-git fat init
+# Set up git lfs and gerrit commit message hook
+git lfs install
 gitdir=$(git rev-parse --git-dir)
 if [ ! -e "${gitdir}/hooks/commit-msg" ]; then
   echo 'Installing Gerrit commit-msg hook ...'
