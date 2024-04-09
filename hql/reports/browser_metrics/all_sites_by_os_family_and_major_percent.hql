@@ -1,28 +1,26 @@
 -- Usage
--- spark3-sql -f all_sites_by_os_family_percent.hql
+-- spark3-sql -f all_sites_by_os_family_and_major_percent.hql
 --              -d source_table=wmf_traffic.browser_general
---              -d destination_directory=/srv/reportupdater/output/metrics/browser/all_sites_by_os_family_percent
---              -d start_date=2021-03-12
+--              -d destination_directory=/srv/reportupdater/output/metrics/browser
 --              -d end_date=2021-03-19
---              -d coalesce_partitions=1
 --
 
 WITH
     slice AS (
         SELECT
-            date_sub(day, (dayofweek(day)-1)) as weekday,
+            DATE_SUB(day, (DAYOFWEEK(day) - 1)) AS weekday,
             *
         FROM ${source_table}
         WHERE
             access_method IN ('desktop', 'mobile web') AND
             -- Add precise date filtering
-            day >= '${start_date}' AND
+            day >= '2015-06-07' AND
             day < '${end_date}'
     ),
     total AS (
         SELECT
             weekday,
-            SUM(view_count) as view_count_total
+            SUM(view_count) AS view_count_total
         FROM slice
         GROUP BY weekday
     )
@@ -30,14 +28,16 @@ WITH
 INSERT OVERWRITE DIRECTORY '${destination_directory}'
     USING CSV OPTIONS ('sep' '\t', 'header' 'true', 'compression' 'none')
 SELECT
-    /*+ COALESCE(${coalesce_partitions}) */
-    slice.weekday,
+    /*+ COALESCE(1) */
+    slice.weekday AS `date`,
     os_family,
+    os_major,
     SUM(view_count) / view_count_total AS percent
 FROM slice JOIN total ON slice.weekday=total.weekday
 GROUP BY
     slice.weekday,
     os_family,
+    os_major,
     view_count_total
 ORDER BY slice.weekday, percent DESC
 ;
