@@ -3,14 +3,25 @@
 --                             aggregation for.
 --     destination_dir      -- HDFS directory path where the query results file will
 --                             be saved in
+--     agg_results_path     -- Path to the resulting aggregate report TSV file
 --     start_date           -- Starting date of the computation
 --
 -- Usage:
 -- spark3-sql -f wikis_by_wmcs_edits_percent.hql                                        \
 --            -d source_table=wmf.editors_daily     \
 --            -d destination_dir=/wmf/tmp/analytics/reports/wmcs/wikis_by_wmcs_edits_percent
+--            -d agg_results_path=/wmf/data/published/datasets/periodic/reports/wmcs/wikis_by_wmcs_edits_percent.tsv    \
 --            -d start_date=2024-02-12                                \
 
+CREATE TEMPORARY VIEW agg_results_view
+USING CSV
+OPTIONS (
+    'path' '${agg_results_path}',
+    'header' 'true',
+    'delimiter' '\t',
+    'inferSchema' 'true'
+)
+;
 
 WITH slice AS (
     SELECT
@@ -24,7 +35,7 @@ WITH slice AS (
     GROUP BY
         wiki_db
 ),
-results AS (
+current_results AS (
     SELECT
         '${start_date}' AS `date`,
         'TOTAL' AS wiki_db,
@@ -38,6 +49,19 @@ results AS (
         wiki_db,
         wmcs_percent
     FROM slice
+),
+total_agg AS (
+    SELECT
+        *
+    FROM agg_results_view
+    WHERE
+        `date` != '${start_date}'
+
+    UNION ALL
+
+    SELECT
+        *
+    FROM current_results
 )
 INSERT OVERWRITE DIRECTORY '${destination_dir}'
 USING CSV
@@ -48,7 +72,7 @@ OPTIONS (
 )
 SELECT /*+ COALESCE(1) */
     *
-FROM results
+FROM total_agg
 ORDER BY
     `date` ASC,
     wiki_db ASC
