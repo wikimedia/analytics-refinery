@@ -6,7 +6,13 @@
 --
 
 INSERT OVERWRITE DIRECTORY '${destination_directory}'
-    USING CSV OPTIONS ('sep' '\t', 'header' 'true', 'compression' 'none')
+USING CSV
+OPTIONS (
+    'sep' '\t',
+    'header' 'true',
+    'compression' 'none',
+    'emptyValue' ''
+)
 SELECT
     /*+ COALESCE(1) */
     DATE_SUB(day, (DAYOFWEEK(day) - 1)) AS `date`,

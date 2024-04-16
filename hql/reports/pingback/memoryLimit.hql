@@ -92,7 +92,8 @@ USING CSV
 OPTIONS (
     'sep' '\t',
     'header' 'true',
-    'compression' 'none'
+    'compression' 'none',
+    'emptyValue' ''
 )
 SELECT /*+ COALESCE(1) */
     *
