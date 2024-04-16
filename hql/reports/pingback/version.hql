@@ -59,15 +59,7 @@ results AS (
     FROM numbered
     WHERE row_num = 1
 ),
-total_agg AS (
-    SELECT
-        *
-    FROM agg_results_view
-    WHERE
-        `date` != '${start_date}'
-
-    UNION ALL
-
+final_daily AS (
     SELECT
         '${start_date}' AS `date`,
         version,
@@ -76,7 +68,19 @@ total_agg AS (
     GROUP BY
         version
     ORDER BY count DESC
-    LIMIT 10000
+),
+total_agg AS (
+    SELECT
+        *
+    FROM final_daily
+
+    UNION ALL
+
+    SELECT
+        *
+    FROM agg_results_view
+    WHERE
+        `date` != '${start_date}'
 )
 INSERT OVERWRITE DIRECTORY '${destination_dir}'
 USING CSV
