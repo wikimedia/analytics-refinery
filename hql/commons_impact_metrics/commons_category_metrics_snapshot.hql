@@ -127,12 +127,12 @@ SELECT /*+ COALESCE(${coalesce_partitions}) */
         im.name AS category,
         im.primary_categories,
         im.media_files AS media_file_count,
-        im.media_files_used AS used_media_file_count,
-        im.leveraging_wikis AS leveraging_wiki_count,
-        im.leveraging_articles AS leveraging_page_count,
         an.tree_media_files AS media_file_count_deep,
+        im.media_files_used AS used_media_file_count,
         an.tree_media_files_used AS used_media_file_count_deep,
+        im.leveraging_wikis AS leveraging_wiki_count,
         an.tree_leveraging_wikis AS leveraging_wiki_count_deep,
+        im.leveraging_articles AS leveraging_page_count,
         an.tree_leveraging_articles AS leveraging_page_count_deep,
         an.snapshot AS MONTH
 FROM immediate_parent_metrics im
