@@ -37,7 +37,6 @@ CREATE EXTERNAL TABLE ${category_and_media_with_usage_map_table}
     `page_type`           STRING                        COMMENT 'root, subcat, file or page',
     `parent_categories`   ARRAY<BIGINT>                 COMMENT 'immediate parent categories of the category in question',
     `primary_categories`  ARRAY<BIGINT>                 COMMENT 'top/primary categories of the category in question',
-    `ancestor_categories` ARRAY<BIGINT>                 COMMENT 'all ancestor categories (including parents and primaries)',
     `usage_map`           MAP<STRING, MAP<STRING, INT>> COMMENT 'Articles using the file by wiki with their pageview counts'
 ) USING ICEBERG
 LOCATION '${category_and_media_with_usage_map_location}'
@@ -50,8 +49,7 @@ WITH category_and_media_with_titles AS (
            mp.page_title,
            cm.page_type,
            cm.parent_categories,
-           cm.primary_categories,
-           cm.ancestor_categories
+           cm.primary_categories
     FROM ${category_and_media_table} AS cm
              LEFT JOIN ${mediawiki_page_table} AS mp ON (cm.page_id = mp.page_id)
     WHERE snapshot = '${snapshot}'
@@ -147,7 +145,6 @@ WITH category_and_media_with_titles AS (
                 cmt.page_type,
                 cmt.parent_categories,
                 cmt.primary_categories,
-                cmt.ancestor_categories,
                 mwu.image_links_with_pageviews AS usage_map
          FROM category_and_media_with_titles cmt
                   LEFT JOIN media_with_per_wiki_usage_map mwu ON (cmt.page_id = mwu.il_to)
@@ -162,7 +159,6 @@ WITH category_and_media_with_titles AS (
                 page_type,
                 parent_categories,
                 primary_categories,
-                ancestor_categories,
                 NULL AS usage_map
          FROM category_and_media_with_titles
          WHERE page_type != 'file'
@@ -174,7 +170,6 @@ WITH category_and_media_with_titles AS (
                 cmt.page_type,
                 cmt.parent_categories,
                 cmt.primary_categories,
-                cmt.ancestor_categories,
                 mwu.image_links_with_pageviews AS usage_map
          FROM category_and_media_with_titles cmt
                   LEFT JOIN media_with_per_wiki_usage_map mwu ON (cmt.page_id = mwu.il_to)
