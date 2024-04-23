@@ -49,13 +49,6 @@ class SqoopConfig:
         self.dbname = dbname
         self.table = table
         query_info = queries[table]
-        ########################################
-        # Hack during pagelink migration (T299947)
-        # Use a special query for migrated projects
-        # see around line 700 for where the special query is defined
-        if (self.table == 'pagelinks' and self.dbname in {'testwiki', 'testcommonswiki', 'commonswiki'}):
-            query_info = validate_tables_and_get_queries(['pagelinks_normalized'], None, None)['pagelinks_normalized']
-
         self.query = query_info.get('query')
         self.boundary_query = query_info.get('boundary-query')
         self.split_by = query_info.get('split-by')
@@ -684,8 +677,6 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
     queries['pagelinks'] = {
         'query': '''
              select pl_from,
-                    pl_namespace,
-                    convert(pl_title using utf8mb4) pl_title,
                     pl_from_namespace,
                     pl_target_id
 
@@ -694,36 +685,6 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         ''',
         'map-types': '"{}"'.format(','.join([
             'pl_from=Long',
-            'pl_namespace=Integer',
-            'pl_title=String',
-            'pl_from_namespace=Integer',
-            'pl_target_id=Long',
-        ])),
-        'boundary-query': 'SELECT MIN(pl_from), MAX(pl_from) FROM pagelinks',
-        'split-by': 'pl_from',
-        'mappers-weight': 1.0,
-    }
-
-    ################################################
-    # The following query is to be used temporarily during the pagelink
-    # normalization migration (T299947). When the normalization is finalized
-    # we should update the main pagelinks query.
-    # See around line 52 for where this query is instantiated
-    queries['pagelinks_normalized'] = {
-        'query': '''
-             select pl_from,
-                    CAST(NULL AS INTEGER) pl_namespace,
-                    CAST(NULL AS VARCHAR(0)) pl_title,
-                    pl_from_namespace,
-                    pl_target_id
-
-               from pagelinks
-              where $CONDITIONS
-        ''',
-        'map-types': '"{}"'.format(','.join([
-            'pl_from=Long',
-            'pl_namespace=Integer',
-            'pl_title=String',
             'pl_from_namespace=Integer',
             'pl_target_id=Long',
         ])),
@@ -976,7 +937,7 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
     ############################################################################
     # Tables sqooped from production replica
     #   cu_changes and watchlist are not available in labs
-    #   actor, comment and pagelinks are too slow due to expensive join at sanitization
+    #   actor, comment and linktarget are too slow due to expensive join at sanitization
     ############################################################################
 
     # documented at https://www.mediawiki.org/wiki/Extension:CheckUser/cu_changes_table
