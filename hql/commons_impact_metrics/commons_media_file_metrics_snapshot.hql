@@ -33,7 +33,9 @@ WITH primary_and_direct_categories (
             explode(parent_categories) AS direct_category_page_id,
             primary_categories
         FROM ${category_and_media_with_usage_map_table}
-        WHERE page_type = 'file'
+        WHERE
+            page_type = 'file' AND
+            usage_map IS NOT NULL
     ) AS explode_parents
 ),
 
