@@ -69,6 +69,8 @@ total_agg AS (
         SUM(IF(event_mediawiki LIKE '1.40%', 1, 0)) AS `1.40`,
         SUM(IF(event_mediawiki LIKE '1.41%', 1, 0)) AS `1.41`,
         SUM(IF(event_mediawiki LIKE '1.42%', 1, 0)) AS `1.42`,
+        SUM(IF(event_mediawiki LIKE '1.43%', 1, 0)) AS `1.43`,
+        SUM(IF(event_mediawiki LIKE '1.44%', 1, 0)) AS `1.44`,
         SUM(IF(event_mediawiki NOT LIKE '1.28%' AND
             event_mediawiki NOT LIKE '1.29%' AND
             event_mediawiki NOT LIKE '1.30%' AND
@@ -83,7 +85,9 @@ total_agg AS (
             event_mediawiki NOT LIKE '1.39%' AND
             event_mediawiki NOT LIKE '1.40%' AND
             event_mediawiki NOT LIKE '1.41%' AND
-            event_mediawiki NOT LIKE '1.42%', 1, 0)) AS `other`
+            event_mediawiki NOT LIKE '1.42%' AND
+            event_mediawiki NOT LIKE '1.43%' AND
+            event_mediawiki NOT LIKE '1.44%', 1, 0)) AS `other`
     FROM numbered
     WHERE row_num = 1
 )
