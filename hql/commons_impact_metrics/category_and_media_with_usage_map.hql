@@ -10,7 +10,7 @@
 --     canonical_data_wikis_table                 -- Read data from here
 --     category_and_media_with_usage_map_table    -- Insert results here
 --     category_and_media_with_usage_map_location -- Location to write results to
---     snapshot                                   -- YYYY-MM to compute for
+--     snapshot                                   -- MediaWiki snapshot YYYY-MM to compute for
 --     coalesce_partitions                        -- Number of partitions to write
 --
 -- Usage:
@@ -30,13 +30,12 @@ SET spark.sql.mapKeyDedupPolicy = LAST_WIN;
 -- makes this script idempotent
 DROP TABLE IF EXISTS ${category_and_media_with_usage_map_table};
 
-CREATE EXTERNAL TABLE ${category_and_media_with_usage_map_table}
-(
+CREATE EXTERNAL TABLE ${category_and_media_with_usage_map_table} (
     `page_id`             BIGINT                        COMMENT 'commonswiki page_id of the category in question',
     `page_title`          STRING                        COMMENT 'commonswiki page_title of the category in question',
     `page_type`           STRING                        COMMENT 'root, subcat, file or page',
-    `parent_categories`   ARRAY<BIGINT>                 COMMENT 'immediate parent categories of the category in question',
-    `primary_categories`  ARRAY<BIGINT>                 COMMENT 'top/primary categories of the category in question',
+    `parent_categories`   MAP<BIGINT, STRING>           COMMENT 'immediate parent categories of the category in question, id and title',
+    `primary_categories`  MAP<BIGINT, STRING>           COMMENT 'top/primary categories of the category in question, id and title',
     `usage_map`           MAP<STRING, MAP<STRING, INT>> COMMENT 'Articles using the file by wiki with their pageview counts'
 ) USING ICEBERG
 LOCATION '${category_and_media_with_usage_map_location}'
@@ -44,7 +43,7 @@ LOCATION '${category_and_media_with_usage_map_location}'
 
 -- Get the page title for all glam media files.
 -- These are needed to join with the imagelinks table, and later to union with final output
-WITH category_and_media_with_titles AS (
+WITH category_and_media_with_direct_titles AS (
     SELECT cm.page_id,
            mp.page_title,
            cm.page_type,
@@ -54,6 +53,50 @@ WITH category_and_media_with_titles AS (
              LEFT JOIN ${mediawiki_page_table} AS mp ON (cm.page_id = mp.page_id)
     WHERE snapshot = '${snapshot}'
       AND wiki_db = 'commonswiki'),
+
+-- Get the page title for the parent categories.
+category_and_media_with_parent_titles AS (
+    SELECT
+        ex.page_id,
+        map_from_entries(collect_list(struct(ex.parent_category_page_id, cm.page_title))) AS parent_categories
+    FROM (
+        SELECT
+            page_id,
+            explode(parent_categories) AS parent_category_page_id
+        FROM category_and_media_with_direct_titles
+    ) AS ex
+    JOIN category_and_media_with_direct_titles AS cm ON (ex.parent_category_page_id = cm.page_id)
+    GROUP BY ex.page_id
+),
+
+-- Get the page title for the primary categories.
+category_and_media_with_primary_titles AS (
+    SELECT
+        ex.page_id,
+        map_from_entries(collect_list(struct(ex.primary_category_page_id, cm.page_title))) AS primary_categories
+    FROM (
+        SELECT
+            page_id,
+            explode(primary_categories) AS primary_category_page_id
+        FROM category_and_media_with_direct_titles
+    ) AS ex
+    JOIN category_and_media_with_direct_titles AS cm ON (ex.primary_category_page_id = cm.page_id)
+    GROUP BY ex.page_id
+),
+
+-- Put all together.
+category_and_media_with_titles AS (
+    SELECT
+        cm.page_id,
+        cm.page_title,
+        cm.page_type,
+        coalesce(pa.parent_categories, map()) AS parent_categories,
+        pr.primary_categories
+    FROM category_and_media_with_direct_titles AS cm
+    -- Left join, because primary categories do not have parent categories.
+    LEFT JOIN category_and_media_with_parent_titles AS pa ON (cm.page_id = pa.page_id)
+    JOIN category_and_media_with_primary_titles AS pr ON (cm.page_id = pr.page_id)
+),
 
 -- Get glam image links with il_to (id) and il_to_title (name).
 -- They are needed to augment the category graph with imagelink info (media file usage).

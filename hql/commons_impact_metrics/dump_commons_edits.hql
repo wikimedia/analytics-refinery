@@ -9,7 +9,7 @@
 --                                      commons_edits table.
 --     destination_directory   string   HDFS path of the directory where to store
 --                                      the formatted dump file.
---     snapshot                string   Month for which to format the data.
+--     year_month              string   Month for which to format the data.
 --                                      (YYYY-MM)
 --
 -- Usage:
@@ -22,7 +22,7 @@
 --         --conf spark.executor.memoryOverhead=1G \
 --         -d source_table=wmf_contributors.commons_edits \
 --         -d destination_directory=hdfs:///user/mforns/test \
---         -d snapshot=2024-02
+--         -d year_month=2024-02
 --
 
 insert overwrite directory "${destination_directory}"
@@ -38,6 +38,6 @@ select /*+ coalesce(1) */
     date_format(dt, "yyyy-MM-dd'T'HH:mm:ss")
 from ${source_table}
 where
-    dt >= to_timestamp('${snapshot}', 'yyyy-MM') and
-    dt < add_months(to_timestamp('${snapshot}', 'yyyy-MM'), 1)
+    dt >= to_timestamp('${year_month}', 'yyyy-MM') and
+    dt < add_months(to_timestamp('${year_month}', 'yyyy-MM'), 1)
 ;

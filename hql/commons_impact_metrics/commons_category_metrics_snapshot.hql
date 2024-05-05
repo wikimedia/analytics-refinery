@@ -3,61 +3,38 @@
 --
 -- Parameters:
 --     category_and_media_with_usage_map_table         -- Read data from here
---     mediawiki_page_table                            -- Read data from here
 --     commons_category_metrics_snapshot_table         -- Insert results here
---     snapshot                                        -- YYYY-MM to compute for
+--     year_month                                      -- YYYY-MM to compute for
 --     coalesce_partitions                             -- Number of partitions to write
 --
 -- Usage:
 --     spark3-sql -f commons_category_metrics_snapshot.hql \
 --                -d category_and_media_with_usage_map_table=tmp.category_and_media_with_usage_map \
---                -d mediawiki_page_table=wmf_raw.mediawiki_page \
 --                -d commons_category_metrics_snapshot_table=wmf_contributors.commons_category_metrics_snapshot \
---                -d snapshot=2024-02 \
+--                -d year_month=2024-02 \
 --                -d coalesce_partitions=4
 
 DELETE
 FROM ${commons_category_metrics_snapshot_table}
-WHERE month = '${snapshot}';
+WHERE year_month = '${year_month}';
 
-WITH category_id_title (
+-- Get all categories with names and titles of their parents and primaries.
+with categories_with_names_parents_and_primaries (
     SELECT
         page_id AS category_page_id,
-        page_title AS category_title
-    FROM ${mediawiki_page_table}
-    WHERE snapshot = '${snapshot}'
-      AND wiki_db = 'commonswiki'
-),
-
-category_primary_pairs (
-    SELECT
-        page_id AS category_page_id,
-        explode(primary_categories) AS primary_category_page_id
+        page_title AS category_title,
+        map_values(parent_categories) AS parent_category_titles,
+        map_values(primary_categories) AS primary_category_titles
     FROM ${category_and_media_with_usage_map_table}
     WHERE page_type != 'file'
 ),
 
-categories_with_primaries (
-    SELECT
-        cpp.category_page_id,
-        cit.category_title,
-        collect_set(cpp.primary_category_page_id) AS primary_category_page_ids,
-        collect_set(cit2.category_title) AS primary_category_titles
-    FROM category_primary_pairs cpp
-        INNER JOIN category_id_title cit
-            ON cpp.category_page_id = cit.category_page_id
-        INNER JOIN category_id_title cit2
-            ON cpp.primary_category_page_id = cit2.category_page_id
-    GROUP BY
-        cpp.category_page_id,
-        cit.category_title
-),
-
+-- Collect records about media file usage.
 files_with_primaries_parents_and_imagelinks (
     SELECT
         page_id AS media_file_page_id,
-        primary_categories AS primary_category_page_ids,
-        parent_categories AS parent_category_page_ids,
+        map_keys(primary_categories) AS primary_category_page_ids,
+        map_keys(parent_categories) AS parent_category_page_ids,
         usage_map,
         map_keys(usage_map) AS wikis_where_used,
         -- munge together wiki and imagelink article to allow deduplication later
@@ -77,6 +54,7 @@ files_with_primaries_parents_and_imagelinks (
     WHERE page_type = 'file'
 ),
 
+-- Explode media file data by parent categories to calculate shallow metrics.
 media_files_with_imagelinks_parent_explode (
     SELECT
         media_file_page_id,
@@ -88,6 +66,7 @@ media_files_with_imagelinks_parent_explode (
     FROM files_with_primaries_parents_and_imagelinks
 ),
 
+-- Explode media file data by primary categories to calculate deep metrics.
 media_files_with_imagelinks_primary_explode (
     SELECT
         media_file_page_id,
@@ -99,39 +78,45 @@ media_files_with_imagelinks_primary_explode (
     FROM files_with_primaries_parents_and_imagelinks
 ),
 
+-- Agregate shallow metrics.
 shallow_metrics (
     SELECT
-        cwp.category_title,
-        cwp.primary_category_titles,
+        cpp.category_title,
+        cpp.parent_category_titles,
+        cpp.primary_category_titles,
         count(fpx.parent_category_page_id) AS media_file_count,
         sum(if(fpx.used, 1, 0)) AS used_media_file_count,
         cardinality(array_distinct(flatten(collect_list(fpx.wikis_where_used)))) AS leveraging_wiki_count,
         cardinality(array_distinct(flatten(collect_list(fpx.fqn_articles_where_used)))) AS leveraging_page_count
-    FROM categories_with_primaries cwp
+    FROM categories_with_names_parents_and_primaries cpp
         LEFT JOIN media_files_with_imagelinks_parent_explode fpx
-            ON (cwp.category_page_id == fpx.parent_category_page_id)
+            ON (cpp.category_page_id == fpx.parent_category_page_id)
     GROUP BY
-        cwp.category_title,
-        cwp.primary_category_titles
+        cpp.category_title,
+        cpp.parent_category_titles,
+        cpp.primary_category_titles
 ),
 
+-- Aggregate deep metrics.
 deep_metrics (
     SELECT
-        cwp.category_title,
+        cpp.category_title,
         count(fpx.primary_category_page_id) AS media_file_count_deep,
         sum(if(fpx.used, 1, 0)) AS used_media_file_count_deep,
         cardinality(array_distinct(flatten(collect_list(fpx.wikis_where_used)))) AS leveraging_wiki_count_deep,
         cardinality(array_distinct(flatten(collect_list(fpx.fqn_articles_where_used)))) AS leveraging_page_count_deep
-    FROM categories_with_primaries cwp
+    FROM categories_with_names_parents_and_primaries cpp
         LEFT JOIN media_files_with_imagelinks_primary_explode fpx
-            ON (cwp.category_page_id == fpx.primary_category_page_id)
-    GROUP BY cwp.category_title
+            ON (cpp.category_page_id == fpx.primary_category_page_id)
+    GROUP BY cpp.category_title
 )
 
+-- Write the data in the output format.
 INSERT
 INTO ${commons_category_metrics_snapshot_table}
 SELECT /*+ COALESCE(${coalesce_partitions}) */
     sh.category_title AS category,
+    sh.parent_category_titles AS parent_categories,
     sh.primary_category_titles AS primary_categories,
     sh.media_file_count,
     dp.media_file_count_deep,
@@ -141,7 +126,7 @@ SELECT /*+ COALESCE(${coalesce_partitions}) */
     dp.leveraging_wiki_count_deep,
     sh.leveraging_page_count,
     dp.leveraging_page_count_deep,
-    '${snapshot}' AS month
+    '${year_month}' AS year_month
 FROM shallow_metrics sh
     INNER JOIN deep_metrics dp
         ON (sh.category_title == dp.category_title)

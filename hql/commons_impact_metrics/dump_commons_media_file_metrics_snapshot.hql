@@ -9,7 +9,7 @@
 --                                      commons_media_file_metrics_snapshot table.
 --     destination_directory   string   HDFS path of the directory where to store
 --                                      the formatted dump file.
---     snapshot                string   Month for which to format the data.
+--     year_month              string   Month for which to format the data.
 --                                      (YYYY-MM)
 --
 -- Usage:
@@ -22,7 +22,7 @@
 --         --conf spark.executor.memoryOverhead=1G \
 --         -d source_table=wmf_contributors.commons_media_file_metrics_snapshot \
 --         -d destination_directory=hdfs:///user/mforns/test \
---         -d snapshot=2024-02
+--         -d year_month=2024-02
 --
 
 insert overwrite directory "${destination_directory}"
@@ -36,7 +36,7 @@ select /*+ coalesce(1) */
     concat_ws('|', primary_categories),
     leveraging_wiki_count,
     leveraging_page_count,
-    month
+    year_month
 from ${source_table}
-where month = '${snapshot}'
+where year_month = '${year_month}'
 ;

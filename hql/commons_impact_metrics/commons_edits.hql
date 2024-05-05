@@ -4,49 +4,45 @@
 --
 -- Parameters:
 --     category_and_media_with_usage_map_table         -- Read data from here
---     commons_media_file_metrics_snapshot_table       -- Read data from here
 --     mediawiki_revision_table                        -- Read data from here
 --     mediawiki_actor_table                           -- Read data from here
 --     commons_edits_table                             -- Insert results here
---     snapshot                                        -- YYYY-MM to compute for
+--     year_month                                      -- YYYY-MM to compute for
 --     coalesce_partitions                             -- Number of partitions to write
 --
 -- Usage:
---     spark3-sql -f commons_edits.hql                                           \
---                -d category_and_media_with_usage_map_table=tmp.category_and_media_with_usage_map       \
---                -d commons_media_file_metrics_snapshot_table=wmf_contributors.commons_media_file_metrics_snapshot \
---                -d mediawiki_revision_table=wmf_raw.mediawiki_revision       \
---                -d mediawiki_actor_table=wmf_raw.mediawiki_private_actor       \
+--     spark3-sql -f commons_edits.hql \
+--                -d category_and_media_with_usage_map_table=tmp.category_and_media_with_usage_map \
+--                -d mediawiki_revision_table=wmf_raw.mediawiki_revision \
+--                -d mediawiki_actor_table=wmf_raw.mediawiki_private_actor \
 --                -d commons_edits_table=wmf_contributors.commons_edits \
---                -d snapshot=2024-02 \
+--                -d year_month=2024-02 \
 --                -d coalesce_partitions=4
 
 DELETE
 FROM ${commons_edits_table}
-WHERE dt >= to_timestamp('${snapshot}')
-  AND dt < to_timestamp('${snapshot}') + INTERVAL 1 MONTH;
+WHERE dt >= to_timestamp('${year_month}')
+  AND dt < to_timestamp('${year_month}') + INTERVAL 1 MONTH;
 
 WITH page_with_categories AS (
-    SELECT cam.page_id,
-           cam.page_title,
-           ms.primary_categories,
-           ms.categories
-    FROM ${category_and_media_with_usage_map_table} cam
-             LEFT JOIN ${commons_media_file_metrics_snapshot_table} AS ms
-                       ON (cam.page_title = ms.media_file AND ms.month = '${snapshot}')
-    WHERE cam.page_type = 'file'),
+    SELECT page_id,
+           page_title,
+           map_values(primary_categories) AS primary_categories,
+           map_values(parent_categories) AS categories
+    FROM ${category_and_media_with_usage_map_table}
+    WHERE page_type = 'file'),
 
      mediawiki_revision AS (
          SELECT *
          FROM ${mediawiki_revision_table}
          WHERE wiki_db = 'commonswiki'
-           AND snapshot = '${snapshot}'),
+           AND snapshot = '${year_month}'),
 
      mediawiki_actor AS (
          SELECT *
          FROM ${mediawiki_actor_table}
          WHERE wiki_db = 'commonswiki'
-           AND snapshot = '${snapshot}')
+           AND snapshot = '${year_month}')
 
 INSERT
 INTO ${commons_edits_table}
@@ -68,8 +64,8 @@ FROM (
                                                                                -- how to get that one separately
          FROM page_with_categories pwc
                   LEFT JOIN mediawiki_revision mwr ON pwc.page_id = mwr.rev_page
-         WHERE to_timestamp(mwr.rev_timestamp, 'yyyyMMddkkmmss') >= to_timestamp('${snapshot}')
-           AND to_timestamp(mwr.rev_timestamp, 'yyyyMMddkkmmss') < to_timestamp('${snapshot}') + INTERVAL 1 MONTH
+         WHERE to_timestamp(mwr.rev_timestamp, 'yyyyMMddkkmmss') >= to_timestamp('${year_month}')
+           AND to_timestamp(mwr.rev_timestamp, 'yyyyMMddkkmmss') < to_timestamp('${year_month}') + INTERVAL 1 MONTH
      ) page_with_categories_and_edit_info
          LEFT JOIN mediawiki_actor mwa ON page_with_categories_and_edit_info.edit_actor = mwa.actor_id
 ORDER BY dt ASC

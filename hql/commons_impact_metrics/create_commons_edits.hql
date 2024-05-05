@@ -5,7 +5,7 @@
 --
 -- Usage
 --     spark3-sql -f create_commons_edits.hql \
---                --database wmf_contributors
+--                --database wmf_contributors \
 --                -d location=/wmf/data/wmf_contributors/commons/edits
 --
 CREATE EXTERNAL TABLE IF NOT EXISTS `commons_edits`

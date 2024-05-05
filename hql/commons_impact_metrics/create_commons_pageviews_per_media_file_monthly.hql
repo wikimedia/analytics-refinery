@@ -1,14 +1,14 @@
--- Create table statement for the commons_pageviews_by_media_file table.
+-- Create table statement for the commons_pageviews_per_media_file_monthly table.
 --
 -- Parameters:
 --     <none>
 --
 -- Usage
---     spark3-sql -f create_commons_pageviews_by_media_file.hql \
+--     spark3-sql -f create_commons_pageviews_per_media_file_monthly.hql \
 --                --database wmf_contributors
---                -d location=/wmf/data/wmf_contributors/commons/pageviews_by_media_file
+--                -d location=/wmf/data/wmf_contributors/commons/pageviews_per_media_file_monthly
 --
-CREATE EXTERNAL TABLE IF NOT EXISTS `commons_pageviews_by_media_file`
+CREATE EXTERNAL TABLE IF NOT EXISTS `commons_pageviews_per_media_file_monthly`
 (
     `media_file`         STRING          COMMENT 'The name of the media file this row refers to. Coincides with the page title of the media file page in Commons. URL version (with underscores).',
     `categories`         ARRAY<STRING>   COMMENT 'The category names that the media file is directly associated with.',
@@ -16,8 +16,8 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `commons_pageviews_by_media_file`
     `wiki`               STRING          COMMENT 'The canonical name of the visualized wiki, i.e.: “en.wikipedia” or “fr.wiktionary”. Only wikis that feature the media file at least once will appear here.',
     `page_title`         STRING          COMMENT 'The title of the visualized (namespace=0) page. URL version (with underscores). Only (namespace=0) pages featuring the media file will appear here.',
     `pageview_count`     BIGINT          COMMENT 'Aggregated pageview count for (namespace=0) pages featuring the media file. Rows with pageview_count=0 should be omitted!',
-    `month`              STRING          COMMENT 'The month for which we aggregate the data (YYYY-MM).'
+    `year_month`         STRING          COMMENT 'The month for which we aggregate the data (YYYY-MM).'
 ) USING ICEBERG
-PARTITIONED BY (MONTH)
+PARTITIONED BY (year_month)
 LOCATION '${location}'
 ;
