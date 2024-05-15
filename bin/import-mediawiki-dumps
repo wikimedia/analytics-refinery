@@ -22,9 +22,9 @@ Usage:
   import-mediawiki-dumps
           [--input-base PATH] [--output-base PATH]
           [--projects-file FILE] [--skip-list WIKIS]
-          [--dump-type TYPE] [--max-tries INT]
-          [--log-file FILE] [--overwrite]
-          [--dry-run]
+          [--dump-type TYPE] [--success-flag FLAG]
+          [--max-tries INT]  [--log-file FILE]
+          [--overwrite] [--dry-run]
           --dump-date DATE
 
 Options:
@@ -42,6 +42,9 @@ Options:
                                     pages-meta-current, stub-meta-history, stub-meta-current,
                                     siteinfo-namespaces
                                     [default: pages-meta-history]
+    -f FLAG --success-flag FLAG   The success-flag filename to use in the date-folder to mark
+                                    the import as successful
+                                    [default: _SUCCESS]
     -m INT --max-tries INT        Maximum number of import tries per project
                                     [default: 3]
     -l FILE --log-file FILE       The file path to write logs. If none provided,
@@ -73,8 +76,6 @@ IMPORT_FAILURE = 'FAILURE'
 IMPORT_UNAVAILABLE = 'UNAVAILABLE'
 
 DUMP_INFO_FILE='dumpstatus.json'
-
-SUCCESS_FLAG = '_SUCCESS'
 
 DUMP_TYPES = [
     'pages-meta-history',
@@ -117,26 +118,28 @@ DUMPS_PARAMS = {
   },
 }
 
-
-def write_success_flag(folder, dry_run):
+# The next two functions are used by both the MediawikiDumpsImporter
+# and the MediawikiProjectDumpImporter classes, therefore keeping them
+# at top level.
+def write_success_flag(folder, success_flag, dry_run):
     """
     If dry_run is false, writes an empty file in hdfs folder
-    named as defined by the global variable SUCCESS_FLAG
+    named as defined by the success_flag variable
     """
-    success_path = os.path.join(folder, SUCCESS_FLAG)
+    success_path = os.path.join(folder, success_flag)
     logger.info('Writing success flag ' + success_path)
     if not dry_run:
         Hdfs.touchz(success_path)
 
 
-def exists_success_flag(folder):
+def exists_success_flag(folder, success_flag):
     """
     Checks if hdfs folder contains a file named as
-    as defined by the global variable SUCCESS_FLAG
+    as defined by the success_flag variable
     """
     output_content = Hdfs.ls(folder)
     for path in output_content:
-        if os.path.basename(path) == SUCCESS_FLAG:
+        if os.path.basename(path) == success_flag:
             return True
     return False
 
@@ -152,7 +155,7 @@ class MediawikiDumpsImporter(object):
     """
 
     def __init__(self, input_base, output_base, projects_file, skip_list,
-                 dump_type, dump_date, max_tries, overwrite, dry_run):
+                 dump_type, success_flag,dump_date, max_tries, overwrite, dry_run):
         """
         Initializes variables and validates parameters
         """
@@ -161,6 +164,7 @@ class MediawikiDumpsImporter(object):
         self.projects_file = projects_file
         self.skip_list = skip_list
         self.dump_type = dump_type
+        self.success_flag = success_flag
         self.dump_date = dump_date
         self.max_tries = max_tries
         self.overwrite = overwrite
@@ -204,7 +208,7 @@ class MediawikiDumpsImporter(object):
            write success-flag if all imports were successful
         """
         self._prepare_hdfs()
-        if exists_success_flag(self.output_base_full):
+        if exists_success_flag(self.output_base_full, self.success_flag):
             logger.info('Nothing to do - Success-flag already present in ' +
                         'output folder ' + self.output_base_full)
             return
@@ -218,7 +222,7 @@ class MediawikiDumpsImporter(object):
 
             project_importer = MediawikiProjectDumpImporter(
                 self.input_base, self.output_base_full, project, self.dump_type,
-                self.dump_date, self.max_tries, self.dry_run)
+                self.success_flag, self.dump_date, self.max_tries, self.dry_run)
             project_importer.run()
             logger.info('ProjectImporter finished with status {} for project {}'.format(
                 project_importer.status, project))
@@ -232,7 +236,7 @@ class MediawikiDumpsImporter(object):
                 'and failed projects [{}] '.format(','.join(failures)))
         else:
             logger.info('Writing success flag in ' + self.output_base_full)
-            write_success_flag(self.output_base_full, self.dry_run)
+            write_success_flag(self.output_base_full, self.success_flag, self.dry_run)
 
     def _prepare_hdfs(self):
         """
@@ -295,11 +299,12 @@ class MediawikiProjectDumpImporter(object):
     """
 
     def __init__(self, input_base, output_base, project,
-                 dump_type, dump_date, max_tries, dry_run):
+                 dump_type, success_flag, dump_date, max_tries, dry_run):
         self.input_base = input_base
         self.output_base = output_base
         self.project = project
         self.dump_type = dump_type
+        self.success_flag = success_flag
         self.dump_date = dump_date
         self.max_tries = max_tries
         self.dry_run = dry_run
@@ -337,7 +342,7 @@ class MediawikiProjectDumpImporter(object):
 
         # Prepare HDFS and check if import already done
         self._prepare_hdfs()
-        if exists_success_flag(self.output_path):
+        if exists_success_flag(self.output_path, self.success_flag):
             logger.info('Nothing to do - Successflag already present in ' +
                         'output folder ' + self.output_path)
             self._set_success()
@@ -350,7 +355,7 @@ class MediawikiProjectDumpImporter(object):
             if Hdfs.rsync(self.input_path, self.output_path, local_to_hdfs=True,
                           should_delete=True, dry_run=self.dry_run):
                 logger.info('Project {} succesfully imported'.format(self.project))
-                write_success_flag(self.output_path, self.dry_run)
+                write_success_flag(self.output_path, self.success_flag, self.dry_run)
                 self._set_success()
             else:
                 tries += 1
@@ -446,6 +451,7 @@ def main(args):
     projects_file = args['--projects-file']
     skip_list = [i.strip() for i in args['--skip-list'].split(",")] if (args['--skip-list']) else []
     dump_type = args['--dump-type']
+    success_flag = args['--success-flag']
     dump_date = args['--dump-date']
     max_tries = int(args['--max-tries'])
     log_file = args['--log-file']
@@ -464,6 +470,7 @@ def main(args):
             '    projects_file:  {}\n'.format(projects_file) +
             '    skip_list:      {}\n'.format(skip_list) +
             '    dump_type:      {}\n'.format(dump_type) +
+            '    success_flag:   {}\n'.format(success_flag) +
             '    dump_date:      {}\n'.format(dump_date) +
             '    max-tries:      {}\n'.format(max_tries) +
             '    overwrite:      {}\n'.format(overwrite) +
@@ -472,7 +479,7 @@ def main(args):
 
     # Instanciate and run importer
     importer = MediawikiDumpsImporter(input_base, output_base, projects_file, skip_list,
-                                      dump_type, dump_date, max_tries, overwrite, dry_run)
+                                      dump_type, success_flag, dump_date, max_tries, overwrite, dry_run)
     importer.run()
 
 
