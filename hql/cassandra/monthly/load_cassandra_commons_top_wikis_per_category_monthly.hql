@@ -60,7 +60,7 @@ top_ranked_total_pageviews_by_wiki AS (
             ROW_NUMBER() over (PARTITION BY category, category_scope ORDER BY pageview_count DESC) AS row_number
         FROM total_pageviews_by_wiki
     )
-    WHERE row_number <= 1000
+    WHERE row_number <= 100
 ),
 
 top_ranked AS (

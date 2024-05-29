@@ -46,7 +46,7 @@ WITH top_ranked_pageviews_per_wiki AS (
         FROM ${source_table}
         WHERE year_month = '${year_month}'
     )
-    WHERE row_number <= 1000
+    WHERE row_number <= 100
 ),
 
 top_ranked_pageviews_all_wikis AS (
@@ -64,7 +64,7 @@ top_ranked_pageviews_all_wikis AS (
         FROM ${source_table}
         WHERE year_month = '${year_month}'
     )
-    WHERE row_number <= 1000
+    WHERE row_number <= 100
 ),
 
 top_ranked AS (

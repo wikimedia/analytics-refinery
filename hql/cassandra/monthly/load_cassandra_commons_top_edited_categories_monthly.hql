@@ -93,7 +93,7 @@ top_ranked_shallow_edits_per_category_per_edit_type AS (
             ROW_NUMBER() over (PARTITION BY edit_type ORDER BY edit_count DESC) AS row_number
         FROM exploded_categories
     )
-    WHERE row_number <= 1000
+    WHERE row_number <= 100
 ),
 
 top_ranked_primary_edits_per_category_per_edit_type AS (
@@ -108,7 +108,7 @@ top_ranked_primary_edits_per_category_per_edit_type AS (
             ROW_NUMBER() over (PARTITION BY edit_type ORDER BY edit_count DESC) AS row_number
         FROM exploded_primary_categories
     )
-    WHERE row_number <= 1000
+    WHERE row_number <= 100
 ),
 
 top_ranked  AS (

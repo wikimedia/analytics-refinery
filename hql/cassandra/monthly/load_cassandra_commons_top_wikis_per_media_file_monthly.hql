@@ -57,7 +57,7 @@ top_ranked_pageviews_per_media_file AS (
             ROW_NUMBER() over (PARTITION BY media_file ORDER BY pageview_count DESC) AS row_number
         FROM total_pageviews_by_wiki
     )
-    WHERE row_number <= 1000
+    WHERE row_number <= 100
 ),
 
 top_ranked AS (

@@ -83,7 +83,7 @@ top_ranked_shallow_pageviews_per_category_per_wiki AS (
             ROW_NUMBER() over (PARTITION BY category, wiki ORDER BY pageview_count DESC) AS row_number
         FROM exploded_categories
     )
-    WHERE row_number <= 1000
+    WHERE row_number <= 100
 ),
 
 top_ranked_shallow_pageviews_per_category_for_all_wikis AS (
@@ -100,7 +100,7 @@ top_ranked_shallow_pageviews_per_category_for_all_wikis AS (
             ROW_NUMBER() over (PARTITION BY category ORDER BY pageview_count DESC) AS row_number
         FROM exploded_categories
     )
-    WHERE row_number <= 1000
+    WHERE row_number <= 100
 ),
 
 top_ranked_primary_pageviews_per_category_per_wiki AS (
@@ -117,7 +117,7 @@ top_ranked_primary_pageviews_per_category_per_wiki AS (
             ROW_NUMBER() over (PARTITION BY category, wiki ORDER BY pageview_count DESC) AS row_number
         FROM exploded_primary_categories
     )
-    WHERE row_number <= 1000
+    WHERE row_number <= 100
 ),
 
 top_ranked_primary_pageviews_per_category_for_all_wikis AS (
@@ -134,7 +134,7 @@ top_ranked_primary_pageviews_per_category_for_all_wikis AS (
             ROW_NUMBER() over (PARTITION BY category ORDER BY pageview_count DESC) AS row_number
         FROM exploded_primary_categories
     )
-    WHERE row_number <= 1000
+    WHERE row_number <= 100
 ),
 
 top_ranked AS (

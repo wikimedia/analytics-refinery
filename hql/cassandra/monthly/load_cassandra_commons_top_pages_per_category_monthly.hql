@@ -47,7 +47,7 @@ WITH top_ranked_per_category_per_scope_per_wiki AS (
         FROM ${source_table}
         WHERE year_month = '${year_month}'
     )
-    WHERE row_number <= 1000
+    WHERE row_number <= 100
 ),
 
 top_ranked_per_category_per_scope AS (
@@ -66,7 +66,7 @@ top_ranked_per_category_per_scope AS (
         FROM ${source_table}
         WHERE year_month = '${year_month}'
     )
-    WHERE row_number <= 1000
+    WHERE row_number <= 100
 ),
 
 top_ranked AS (
