@@ -1270,6 +1270,20 @@ app_donor_experience:
         country: keep
         country_code: keep
 
+app_patroller_experience:
+    dt: keep
+    meta:
+        dt: keep
+    is_anon: keep
+    platform: keep
+    primary_language: keep
+    action: keep
+    action_data: keep
+    active_interface: keep
+    app_install_id: keep
+    app_session_id: keep
+    wiki_id: keep
+
 mediawiki_content_translation_event:
     wiki_db: keep
     access_method: keep
