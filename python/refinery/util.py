@@ -32,8 +32,8 @@ from configparser import ConfigParser
 logger = logging.getLogger('refinery-util')
 MW_CONFIG_PATH = '/srv/mediawiki-config'
 
-CLOUD_DB_HOST = 'clouddb1021.eqiad.wmnet'
-CLOUD_DB_POSTFIX = '_p'
+REDACTED_DB_HOST = 'an-redacteddb1001.eqiad.wmnet'
+REDACTED_DB_POSTFIX = '_p'
 # explicitly set character encoding, because on cloud replicas and production instances,
 # connections still default to mysql's buggy utf8 instead of the proper utf8mb4
 JDBC_TEMPLATE_WITH_PORT = 'jdbc:mysql://{host}:{port}/{dbname}?characterEncoding=UTF-8'
@@ -201,7 +201,7 @@ def get_mediawiki_section_dbname_mapping(mw_config_path=MW_CONFIG_PATH,
     return db_mapping
 
 
-def get_dbstore_host_port(use_x1, dbname, use_cloud_host,
+def get_dbstore_host_port(use_x1, dbname, use_redacted_host,
                           db_mapping=None,
                           mw_config_path=MW_CONFIG_PATH,
                           mw_config_dblists_folder=MW_CONFIG_DBLISTS_FOLDER
@@ -241,22 +241,22 @@ def get_dbstore_host_port(use_x1, dbname, use_cloud_host,
 
     # The port and shard setup is identical on both clusters, but the DNS records are
     # returning analytics replica cluster hosts, so we just swap that and keep the port
-    if use_cloud_host:
-        host = CLOUD_DB_HOST
+    if use_redacted_host:
+        host = REDACTED_DB_HOST
 
     return (host, port)
 
 
-def get_jdbc_string(dbname, use_cloud_host, db_mapping=None):
+def get_jdbc_string(dbname, use_redacted_host, db_mapping=None):
     """
     Params
         dbname          the database name, like enwiki, etwiki, etc
-        use_cloud_host  True: use the cloud cluster, False: use production replica cluster
+        use_redacted_host  True: use the cloud cluster, False: use production replica cluster
         db_mapping      (None) if not specified, fetch this from mediawiki-config
     """
-    (host, port) = get_dbstore_host_port(False, dbname, use_cloud_host, db_mapping)
+    (host, port) = get_dbstore_host_port(False, dbname, use_redacted_host, db_mapping)
     # We access dbs on cloud hosts with db_postfix appended to the dbname
-    dbname = dbname + CLOUD_DB_POSTFIX if use_cloud_host else dbname
+    dbname = dbname + REDACTED_DB_POSTFIX if use_redacted_host else dbname
     return JDBC_TEMPLATE_WITH_PORT.format(host=host, port=port, dbname=dbname)
 
 def flatten(l):

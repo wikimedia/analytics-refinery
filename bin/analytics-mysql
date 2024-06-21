@@ -25,11 +25,11 @@ import subprocess
 from refinery.util import get_dbstore_host_port
 
 
-def main(dbname, use_cloud_host, mw_config_path, use_x1, mysql_args, print_target=False):
+def main(dbname, use_redacted_host, mw_config_path, use_x1, mysql_args, print_target=False):
     if mw_config_path:
-        host, port = get_dbstore_host_port(use_x1, dbname, use_cloud_host, mw_config_path=mw_config_path)
+        host, port = get_dbstore_host_port(use_x1, dbname, use_redacted_host, mw_config_path=mw_config_path)
     else:
-        host, port = get_dbstore_host_port(use_x1, dbname, use_cloud_host)
+        host, port = get_dbstore_host_port(use_x1, dbname, use_redacted_host)
 
     if print_target:
         print("{}:{}".format(host, port))
