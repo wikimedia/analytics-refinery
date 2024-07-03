@@ -1123,6 +1123,31 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         'mappers-weight': 1.0,
     }
 
+    queries['wikilambda_zobject_join'] = {
+        'query': '''
+             select wlzo_id,
+                    convert(wlzo_main_zid using utf8mb4) wlzo_main_zid,
+                    convert(wlzo_main_type using utf8mb4) wlzo_main_type,
+                    convert(wlzo_key using utf8mb4) wlzo_key
+                    convert(wlzo_related_zobject using utf8mb4) wlzo_related_zobject
+                    convert(wlzo_related_type using utf8mb4) wlzo_related_type
+
+               from wikilambda_zobject_join
+              where $CONDITIONS
+        ''',
+        'map-types': '"{}"'.format(','.join([
+            'wlzo_id=Long',
+            'wlzo_main_zid=String',
+            'wlzo_main_type=String',
+            'wlzo_key=String',
+            'wlzo_related_zobject=String',
+            'wlzo_related_type=String'
+        ])),
+        'boundary-query': 'SELECT MIN(wlzo_id), MAX(wlzo_id) FROM wikilambda_zobject_join',
+        'split-by': 'wlzo_id',
+        'mappers-weight': 1.0,
+    }
+
     queries['watchlist'] = {
         'query': '''
              select wl_id,
