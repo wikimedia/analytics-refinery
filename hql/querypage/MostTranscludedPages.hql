@@ -26,6 +26,8 @@
 --     -d year=2023 \
 --     -d month=10
 
+SET snapshot = CONCAT(LPAD('${year}', 4, '0'), '-', LPAD('${month}', 2, '0'));
+
 WITH output as (
     SELECT
         'MostTranscludedPages' AS `qc_type`,
@@ -33,12 +35,12 @@ WITH output as (
         lt_title AS `qc_title`,
         COUNT(1) AS `qc_value`,
         '${wiki}' as `qc_wiki`,
-        '${year}-${month}' as `qc_snapshot`
+        ${snapshot} as `qc_snapshot`
     FROM ${source_table_templatelinks}
     JOIN ${source_table_linktarget} ON ((tl_target_id=lt_id))
-    WHERE ${source_table_templatelinks}.snapshot = '${year}-${month}'
+    WHERE ${source_table_templatelinks}.snapshot = ${snapshot}
         AND ${source_table_templatelinks}.wiki_db = '${wiki}'
-        AND ${source_table_linktarget}.snapshot = '${year}-${month}'
+        AND ${source_table_linktarget}.snapshot = ${snapshot}
         AND ${source_table_linktarget}.wiki_db = '${wiki}'
     GROUP BY qc_namespace, qc_title
     ORDER BY qc_value DESC
