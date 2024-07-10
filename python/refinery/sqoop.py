@@ -1128,8 +1128,8 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
              select wlzo_id,
                     convert(wlzo_main_zid using utf8mb4) wlzo_main_zid,
                     convert(wlzo_main_type using utf8mb4) wlzo_main_type,
-                    convert(wlzo_key using utf8mb4) wlzo_key
-                    convert(wlzo_related_zobject using utf8mb4) wlzo_related_zobject
+                    convert(wlzo_key using utf8mb4) wlzo_key,
+                    convert(wlzo_related_zobject using utf8mb4) wlzo_related_zobject,
                     convert(wlzo_related_type using utf8mb4) wlzo_related_type
 
                from wikilambda_zobject_join
