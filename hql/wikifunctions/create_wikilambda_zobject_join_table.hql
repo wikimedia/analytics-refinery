@@ -7,6 +7,9 @@
 --     spark3-sql -f create_wikilambda_zobject_join_table.hql \
 --         --database wmf_raw
 --
+-- NOTE: remember to do this to get the table to see the "latest" snapshot:
+--     msck repair table wikilambda_zobject_join;
+--
 
 CREATE EXTERNAL TABLE `wikilambda_zobject_join`(
   `wlzo_id`                 bigint  COMMENT 'Unique ID for index purposes',
@@ -28,5 +31,5 @@ STORED AS INPUTFORMAT
 OUTPUTFORMAT
   'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'
 LOCATION
-  'hdfs://analytics-hadoop/wmf/data/raw/wikifunctions/tables/wikilambda_zobject_join'
+  'hdfs://analytics-hadoop/wmf/data/raw/mediawiki_private/tables/wikilambda_zobject_join'
 ;
