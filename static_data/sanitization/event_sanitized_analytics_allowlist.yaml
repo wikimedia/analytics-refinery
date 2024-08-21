@@ -828,6 +828,7 @@ mediawiki_product_metrics_wikifunctions_ui:
         is_logged_in: keep
         pageview_id: hash
         session_id: hash
+    # All custom_data properties contain validated, non-private values
     custom_data:
         haserrors:
             data_type: keep
@@ -842,5 +843,36 @@ mediawiki_product_metrics_wikifunctions_ui:
             data_type: keep
             value: keep
         zobjecttype:
+            data_type: keep
+            value: keep
+        viewname:
+            data_type: keep
+            value: keep
+
+mediawiki_product_metrics_wikifunctions_api:
+    agent:
+        client_platform_family: keep
+    meta:
+        domain: keep
+        dt: keep
+    name: keep
+    page:
+        title: keep
+        id: keep
+        revision_id: keep
+    performer:
+        edit_count_bucket: keep
+        name: hash
+        is_bot: keep
+        is_logged_in: keep
+        pageview_id: hash
+        session_id: hash
+    custom_data:
+        # Values are validated to ensure we only record non-private identifiers
+        function:
+            data_type: keep
+            value: keep
+        # All values are internally-generated numeric timings
+        total_time_ms:
             data_type: keep
             value: keep
