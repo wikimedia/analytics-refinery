@@ -405,10 +405,6 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         'boundary-query': 'SELECT MIN(content_id), MAX(content_id) FROM content',
         'split-by': 'content_id',
         'mappers-weight': 1.0,
-        # Sqooping content table for commonswiki and etwiki only for now
-        # https://phabricator.wikimedia.org/T238878
-        # Note: etwiki is needed as we build ORM jar from it
-        'sqoopable_dbnames': ['commonswiki', 'etwiki']
     }
 
     queries['content_models'] = {
