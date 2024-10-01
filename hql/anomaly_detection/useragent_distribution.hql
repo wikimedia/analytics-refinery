@@ -41,7 +41,7 @@ INSERT OVERWRITE TABLE ${destination_table} PARTITION (
     source = '${source}', year = ${year}, month = ${month}, day = ${day}
 )
 
-SELECT
+SELECT /*+ COALESCE(1) */
     ${hiveconf:dt} AS dt,
     'os_family_entropy' AS metric,
     entropy(counts) AS value
@@ -55,7 +55,7 @@ FROM (
 
 UNION ALL
 
-SELECT
+SELECT /*+ COALESCE(1) */
     ${hiveconf:dt} AS dt,
     'browser_family_entropy' AS metric,
     entropy(counts) AS value
@@ -69,7 +69,7 @@ FROM (
 
 UNION ALL
 
-SELECT
+SELECT /*+ COALESCE(1) */
     ${hiveconf:dt} AS dt,
     'device_family_entropy' AS metric,
     entropy(counts) AS value

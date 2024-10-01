@@ -32,7 +32,7 @@ INSERT OVERWRITE TABLE ${destination_table} PARTITION (
     source = '${source}', year = ${year}, month = ${month}, day = ${day}
 )
 
-SELECT
+SELECT /*+ COALESCE(1) */
     ${hiveconf:dt} AS dt,
     access_method AS metric,
     entropy(counts) AS value
