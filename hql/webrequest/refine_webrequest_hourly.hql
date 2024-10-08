@@ -49,6 +49,7 @@
 
 ADD JAR ${refinery_jar};
 CREATE TEMPORARY FUNCTION is_pageview as 'org.wikimedia.analytics.refinery.hive.IsPageviewUDF';
+CREATE TEMPORARY FUNCTION is_redirect_to_pageview as 'org.wikimedia.analytics.refinery.hive.IsRedirectToPageviewUDF';
 CREATE TEMPORARY FUNCTION geocoded_data as 'org.wikimedia.analytics.refinery.hive.GetGeoDataUDF';
 CREATE TEMPORARY FUNCTION ua_parser as 'org.wikimedia.analytics.refinery.hive.GetUAPropertiesUDF';
 CREATE TEMPORARY FUNCTION get_access_method as 'org.wikimedia.analytics.refinery.hive.GetAccessMethodUDF';
@@ -146,8 +147,9 @@ distinct_rows AS (
      SELECT
          distinct_rows_and_x_analytics_map.*,
          -- Materialize reused computed fields
-         is_pageview(uri_host, uri_path, uri_query, http_status, content_type, user_agent, x_analytics_map) as is_pageview,
-         ua_parser(user_agent) as user_agent_map
+         is_pageview(uri_host, uri_path, uri_query, http_status, content_type, user_agent, x_analytics_map) AS is_pageview,
+         is_redirect_to_pageview(uri_host, uri_path, uri_query, http_status, content_type, user_agent, x_analytics_map) AS is_redirect_to_pageview,
+         ua_parser(user_agent) AS user_agent_map
      FROM distinct_rows_and_x_analytics_map
 
 )
@@ -175,6 +177,7 @@ SELECT /*+ COALESCE(${coalesce_partitions}) */
     x_analytics,
     `range`,
     is_pageview,
+    is_redirect_to_pageview,
     '${record_version}' as record_version,
     ip as client_ip,  -- client_ip is deprecated
     geocoded_data(ip) as geocoded_data,
@@ -191,7 +194,7 @@ SELECT /*+ COALESCE(${coalesce_partitions}) */
     referer_classify(referer) as referer_class,
     normalize_host(uri_host) as normalized_host,
     CASE
-        WHEN is_pageview THEN get_pageview_info(uri_host, uri_path, uri_query)
+        WHEN is_pageview OR is_redirect_to_pageview THEN get_pageview_info(uri_host, uri_path, uri_query)
         ELSE NULL
         END as pageview_info,
     CAST(x_analytics_map['page_id'] AS BIGINT) as page_id,

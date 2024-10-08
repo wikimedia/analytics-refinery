@@ -39,7 +39,7 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `pageview_actor`(
 
     -- Addition of precomputed is_redirect_to_pageview
     `is_pageview`       boolean COMMENT 'Indicates if this record was marked as a pageview during refinement',
-    `is_redirect_to_pageview`  boolean COMMENT 'Indicates if this record was marked as a redirect to a pageview during extraction (needed for unique-devices-per-project-family)',
+    `is_redirect_to_pageview`  boolean COMMENT 'Indicates if this record was marked as a redirect to a pageview during refinement (needed for unique-devices-per-project-family)',
 
     `geocoded_data`     map<string, string>  COMMENT 'Geocoded map with continent, country_code, country, city, subdivision, postal_code, latitude, longitude, timezone keys and associated values.',
 

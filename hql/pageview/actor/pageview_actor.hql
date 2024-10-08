@@ -25,7 +25,6 @@
 --         -d coalesce_partitions=32
 
 ADD JAR ${refinery_hive_jar_path};
-CREATE TEMPORARY FUNCTION is_redirect_to_pageview as 'org.wikimedia.analytics.refinery.hive.IsRedirectToPageviewUDF';
 CREATE TEMPORARY FUNCTION get_actor_signature AS 'org.wikimedia.analytics.refinery.hive.GetActorSignatureUDF';
 
 WITH automated_actor AS (
@@ -54,7 +53,7 @@ INSERT OVERWRITE TABLE ${destination_table}
         user_agent,
         accept_language,
         is_pageview,
-        is_redirect_to_pageview(uri_host, uri_path, uri_query, http_status, content_type, user_agent, x_analytics_map) AS is_redirect_to_pageview,
+        is_redirect_to_pageview,
         geocoded_data,
         user_agent_map,
         x_analytics_map,
@@ -75,5 +74,5 @@ INSERT OVERWRITE TABLE ${destination_table}
     WHERE webrequest_source IN ('text') AND
         year=${year} AND month=${month} AND day=${day} AND hour=${hour}
         AND (is_pageview = TRUE
-          OR is_redirect_to_pageview(uri_host, uri_path, uri_query, http_status, content_type, user_agent, x_analytics_map) = TRUE)
+          OR is_redirect_to_pageview = TRUE)
 ;
