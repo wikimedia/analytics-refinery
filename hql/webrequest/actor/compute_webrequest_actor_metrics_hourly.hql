@@ -40,6 +40,10 @@ WITH hourly_actor_data as (
         http_status,
         user_agent,
         x_analytics_map["nocookies"] as nocookies,
+        is_pageview,
+        -- The following field was introduced across the pipeline in 2024-11, see: T375527.
+        -- The COALESCE statement makes the query backwards compatible.
+        COALESCE(is_redirect_to_pageview, FALSE) AS is_redirect_to_pageview,
         pageview_info['page_title'] as page_title
     FROM
         ${source_table}
@@ -48,7 +52,7 @@ WITH hourly_actor_data as (
         AND month=${month}
         AND day=${day}
         AND hour=${hour}
-        AND is_pageview = 1
+        AND (is_pageview = 1 OR is_redirect_to_pageview = 1)
         AND agent_type = "user"
         -- weblight data is a mess, there is no x-forwarded-for and all looks like it comes from the same IP
         AND user_agent not like "%weblight%"
@@ -62,6 +66,8 @@ INSERT OVERWRITE TABLE ${destination_table}
     SELECT /*+ COALESCE(${coalesce_partitions}) */
         ${version} as version,
         actor_signature as actor_signature,
+        is_pageview,
+        is_redirect_to_pageview,
         min(ts) as first_interaction_dt,
         max(ts) as last_interaction_dt,
         count(*) as pageview_count,
@@ -72,4 +78,6 @@ INSERT OVERWRITE TABLE ${destination_table}
     FROM
         hourly_actor_data
     GROUP BY
-        actor_signature;
+        actor_signature,
+        is_pageview,
+        is_redirect_to_pageview;

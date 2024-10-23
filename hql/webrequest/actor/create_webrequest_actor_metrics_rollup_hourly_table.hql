@@ -28,6 +28,8 @@
 CREATE EXTERNAL TABLE IF NOT EXISTS `webrequest_actor_metrics_rollup_hourly`(
   `version`                           string  COMMENT 'Version of the algorithm that calculates the feature rollup',
   `actor_signature`                   string  COMMENT 'Actor signature',
+  `is_pageview`                       boolean COMMENT 'TRUE if the record is a pageview, FALSE otherwise. It is NULL before 2024-11 (T375527).',
+  `is_redirect_to_pageview`           boolean COMMENT 'TRUE if the record is a redirect to a pageview, FALSE otherwise. It is NULL before 2024-11 (T375527).',
   `pageview_count`                    bigint  COMMENT 'Number of pageviews',
   `pageview_rate_per_min`             int     COMMENT 'Number of pageviews per minute',
   `nocookies`                         bigint  COMMENT 'Sum() of all nocookies values in X-Analytics for all pageviews',

@@ -24,6 +24,8 @@
 CREATE EXTERNAL TABLE IF NOT EXISTS `webrequest_actor_metrics_hourly`(
   `version`                      string  COMMENT 'Version of software that calculates these features',
   `actor_signature`              string  COMMENT 'Actor signature as a hash',
+  `is_pageview`                  boolean COMMENT 'TRUE if the record is a pageview, FALSE otherwise. It is NULL before 2024-11 (T375527).',
+  `is_redirect_to_pageview`      boolean COMMENT 'TRUE if the record is a redirect to a pageview, FALSE otherwise. It is NULL before 2024-11 (T375527).',
   `first_interaction_dt`         string  COMMENT 'UTC timestamp in ISO 8601 format (e.g. 2019-08-27T14:00:00Z) of the actor first interaction for that hour',
   `last_interaction_dt`          string  COMMENT 'UTC timestamp in ISO 8601 format (e.g. 2019-08-27T14:00:00Z) of the actor last interaction for that hour',
   `pageview_count`               bigint  COMMENT 'Number of pageviews',

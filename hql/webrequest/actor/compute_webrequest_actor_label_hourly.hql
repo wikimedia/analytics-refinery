@@ -29,6 +29,10 @@ WITH actor_aggregated AS (
     SELECT
         ${version} as version,
         actor_signature,
+        -- The following 2 fields were introduced across the pipeline in 2024-11, see: T375527.
+        -- The COALESCE statements make the query backwards compatible.
+        COALESCE(is_pageview, TRUE) AS is_pageview,
+        COALESCE(is_redirect_to_pageview, FALSE) AS is_redirect_to_pageview,
         CASE
             WHEN pageview_count < 10 then 'user - less than 10 req'
             -- For mobile apps data pageviews per device per day percentiles are: p50: 2, p90: 9 and p99: 30 on September 2019
@@ -68,6 +72,8 @@ PARTITION (year=${year}, month=${month}, day=${day}, hour = ${hour})
 SELECT /*+ COALESCE(${coalesce_partitions}) */
     version,
     actor_signature,
+    is_pageview,
+    is_redirect_to_pageview,
 
     trim(split(label_text,'-')[0])  as label,
     trim(split(label_text, '-')[1]) as label_reason
