@@ -992,6 +992,57 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         'mappers-weight': 0.5,
     }
 
+    queries['cu_log'] = {
+        'query': '''
+             select cul_id,
+                    convert(cul_timestamp using utf8mb4) cul_timestamp,
+                    coalesce(actor_user, 0) cul_user,
+                    convert(actor_name using utf8mb4) cul_user_text,
+                    cul_actor,
+                    convert(comment_text using utf8mb4) cul_reason,
+                    cul_reason_id,
+                    cul_reason_plaintext_id,
+                    convert(cul_type using utf8mb4) cul_type,
+                    cul_target_id,
+                    convert(cul_target_text using utf8mb4) cul_target_text,
+                    convert(cul_target_hex using utf8mb4) cul_target_hex,
+                    convert(cul_range_start using utf8mb4) cul_range_start,
+                    convert(cul_range_end using utf8mb4) cul_range_end
+               from cu_log
+                        inner join
+                    actor           on actor_id = cul_actor
+                        inner join
+                    comment         on comment_id = cul_reason_id
+               where $CONDITIONS
+                {ts_clause}
+        '''.format(ts_clause=make_timestamp_clause('cul_timestamp', from_timestamp, to_timestamp)),
+        'map-types': '"{}"'.format(','.join([
+            'cul_id=Integer',
+            'cul_timestamp=String',
+            'cul_user=Integer',
+            'cul_user_text=String',
+            'cul_actor=Long',
+            'cul_reason=String',
+            'cul_reason_id=Long',
+            'cul_reason_plaintext_id=Long',
+            'cul_type=String',
+            'cul_target_id=Integer',
+            'cul_target_text=String',
+            'cul_target_hex=String',
+            'cul_range_start=String',
+            'cul_range_end=String',
+        ])),
+        'boundary-query': '''
+            SELECT MIN(cul_id),
+                   MAX(cul_id)
+              FROM cu_log
+             WHERE TRUE
+                 {ts_clause}
+        '''.format(ts_clause=make_timestamp_clause('cul_timestamp', from_timestamp, to_timestamp)),
+        'split-by': 'cul_id',
+        'mappers-weight': 0.5,
+    }
+
     queries['actor'] = {
         # NOTE: we don't need actor_user, as tables key into here via actor_id just to get the
         # actor_name.  But it seems like a good idea to have it for other purposes and joins
