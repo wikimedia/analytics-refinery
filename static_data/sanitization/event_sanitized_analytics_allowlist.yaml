@@ -663,6 +663,19 @@ app_patroller_experience:
     app_session_id: keep
     wiki_id: keep
 
+ios_edit_interaction:
+    dt: keep
+    meta:
+        dt: keep
+    is_anon: keep
+    primary_language: keep
+    action: keep
+    action_data: keep
+    active_interface: keep
+    app_install_id: hash
+    app_session_id: hash
+    wiki_id: keep
+
 mediawiki_content_translation_event:
     wiki_db: keep
     access_method: keep
