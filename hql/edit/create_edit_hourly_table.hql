@@ -1,4 +1,4 @@
-e- Creates a table to store edit_hourly data.
+-- Creates a table to store edit_hourly data.
 -- See: oozie/edit/hourly/README.md
 --
 -- Usage
@@ -11,6 +11,8 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `edit_hourly`(
     `project_family`          string         COMMENT 'Project name, i.e.: "wikibooks".',
     `language`                string         COMMENT 'Project language, i.e.: Zulu.',
     `user_is_anonymous`       boolean        COMMENT 'Whether user is anonymous or not.',
+    `user_is_temporary`       boolean        COMMENT 'Whether user is temporary or not.',
+    `user_is_permanent`       boolean        COMMENT 'Whether user is permanent or not.',
     `user_is_bot`             boolean        COMMENT 'Whether user is bot or not.',
     `user_is_administrator`   boolean        COMMENT 'Whether user is administrator or not.',
     `user_groups`             array<string>  COMMENT 'User groups array.',
