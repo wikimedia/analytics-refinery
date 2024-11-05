@@ -9,6 +9,7 @@
 --     year                                -- year of partition to compute from.
 --     month                               -- month of partition to compute from.
 --     coalesce_partitions                 -- number of partitions for destination data.
+--     work_partitions                     -- number of partitions for intermediate stages
 --
 -- Usage:
 -- spark-sql \
@@ -31,10 +32,12 @@
 -- -d destination_table=aqs.local_group_default_T_top_pageviews.data \
 -- -d source_table=wmf.pageview_hourly \
 -- -d disallowed_cassandra_articles_table=wmf.disallowed_cassandra_articles \
+-- -d work_partitions=1024 \
 -- -d coalesce_partitions=6 \
 -- -d year=2022 \
 -- -d month=7
 
+SET spark.sql.shuffle.partitions = ${work_partitions};
 
 WITH unranked as (
     SELECT /*+ BROADCAST(disallowed_list) */
