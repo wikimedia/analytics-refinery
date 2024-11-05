@@ -659,8 +659,8 @@ app_patroller_experience:
     action: keep
     action_data: keep
     active_interface: keep
-    app_install_id: keep
-    app_session_id: keep
+    app_install_id: hash
+    app_session_id: hash
     wiki_id: keep
 
 mediawiki_content_translation_event:
