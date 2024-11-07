@@ -5,7 +5,8 @@
 --
 -- Usage
 --     hive -f create_mediawiki_user_history_table.hql \
---         --database wmf
+--         --database wmf \
+--         -d location=hdfs://analytics-hadoop/wmf/data/wmf/mediawiki/user_history
 --
 
 CREATE EXTERNAL TABLE `mediawiki_user_history`(
@@ -28,7 +29,9 @@ CREATE EXTERNAL TABLE `mediawiki_user_history`(
     created_by_self                 boolean         COMMENT 'Whether the user created their own account',
     created_by_system               boolean         COMMENT 'Whether the user account was created by mediawiki (eg. centralauth)',
     created_by_peer                 boolean         COMMENT 'Whether the user account was created by another user',
-    anonymous                       boolean         COMMENT 'Whether the user is not registered',
+    is_anonymous                    boolean         COMMENT 'Whether the user is anonymous',
+    is_temporary                    boolean         COMMENT 'Whether the user is temporary',
+    is_permanent                    boolean         COMMENT 'Whether the user is permanent',
     start_timestamp                 string          COMMENT 'Timestamp from where this state applies (inclusive).',
     end_timestamp                   string          COMMENT 'Timestamp to where this state applies (exclusive).',
     --start_timestamp                 timestamp       COMMENT 'Timestamp from where this state applies (inclusive).',
@@ -37,6 +40,8 @@ CREATE EXTERNAL TABLE `mediawiki_user_history`(
     caused_by_user_id               bigint          COMMENT 'ID of the user that caused this state.',
     caused_by_user_text             string          COMMENT 'Name of the user that caused this state.',
     caused_by_anonymous_user        boolean         COMMENT 'Whether the user that caused this state was anonymous',
+    caused_by_temporary_user        boolean         COMMENT 'Whether the user that caused this state was temporary',
+    caused_by_permanent_user        boolean         COMMENT 'Whether the user that caused this state was permanent',
     caused_by_block_expiration      string          COMMENT 'Block expiration value, if any.',
     inferred_from                   string          COMMENT 'If non-NULL, indicates that some of this state\'s fields have been inferred after an inconsistency in the source data.',
     source_log_id                   bigint          COMMENT 'ID of the logging table row that caused this state',
@@ -54,5 +59,5 @@ STORED AS INPUTFORMAT
 OUTPUTFORMAT
   'org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat'
 LOCATION
-  'hdfs://analytics-hadoop/wmf/data/wmf/mediawiki/user_history'
+  '${location}'
 ;

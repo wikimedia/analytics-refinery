@@ -5,7 +5,8 @@
 --
 -- Usage
 --     hive -f create_mediawiki_page_history_table.hql \
---         --database wmf
+--         --database wmf \
+--         -d location=hdfs://analytics-hadoop/wmf/data/wmf/mediawiki/page_history
 --
 
 CREATE EXTERNAL TABLE `mediawiki_page_history`(
@@ -32,6 +33,8 @@ CREATE EXTERNAL TABLE `mediawiki_page_history`(
     caused_by_user_id                     bigint              COMMENT 'ID of the user that caused this state.',
     caused_by_user_text                   string              COMMENT 'Name of the user that caused this state.',
     caused_by_anonymous_user              boolean             COMMENT 'Whether the user that caused this state was anonymous',
+    caused_by_temporary_user              boolean             COMMENT 'Whether the user that caused this state was temporary',
+    caused_by_permanent_user              boolean             COMMENT 'Whether the user that caused this state was permanent',
     inferred_from                         string              COMMENT 'If non-NULL, some fields have been inferred from an inconsistency in the source data.',
     source_log_id                         bigint              COMMENT 'ID of the logging table row that caused this state',
     source_log_comment                    string              COMMENT 'Comment of the logging table row that caused this state',
@@ -48,5 +51,5 @@ STORED AS INPUTFORMAT
 OUTPUTFORMAT
   'org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat'
 LOCATION
-  'hdfs://analytics-hadoop/wmf/data/wmf/mediawiki/page_history'
+  '${location}'
 ;

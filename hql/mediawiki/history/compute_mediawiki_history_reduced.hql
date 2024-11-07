@@ -56,7 +56,7 @@ WITH
             page_is_redirect,
             CASE
                 -- Using sequence to prevent writing NOT
-                WHEN event_user_is_anonymous THEN 'anonymous'
+                WHEN (event_user_is_anonymous OR event_user_is_temporary) THEN 'anonymous'
                 WHEN array_contains(COALESCE(event_user_is_bot_by, event_user_is_bot_by_historical), 'group') THEN 'group_bot'
                 WHEN array_contains(COALESCE(event_user_is_bot_by, event_user_is_bot_by_historical), 'name') THEN 'name_bot'
                 ELSE 'user'
@@ -159,7 +159,7 @@ WITH
             COALESCE(event_user_text, event_user_text_historical) AS user_text,
             CASE
                 -- Using sequence to prevent writing NOT
-                WHEN event_user_is_anonymous THEN 'anonymous'
+                WHEN (event_user_is_anonymous OR event_user_is_temporary) THEN 'anonymous'
                 WHEN array_contains(COALESCE(event_user_is_bot_by, event_user_is_bot_by_historical), 'group') THEN 'group_bot'
                 WHEN array_contains(COALESCE(event_user_is_bot_by, event_user_is_bot_by_historical), 'name') THEN 'name_bot'
                 ELSE 'user'
