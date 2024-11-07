@@ -1,0 +1,19 @@
+include=/srv/deployment/analytics/refinery/gobblin/common/kafka_to_hdfs_hourly.properties
+
+job.name=webrequest_frontend
+job.group=gobblin
+extract.namespace=org.wikimedia.analytics.webrequest_frontend
+
+# haproxykafka produces directly into these kafka topics.
+topic.include=webrequest_frontend_text,webrequest_frontend_upload
+
+# We want to have one mapper per kafka partition.
+# If we have less partitions than mappers, the reminder should
+# stay idle.
+# TODO: tweak based on how webrequest_frontend_text
+# and webrequest_frontend_upload will be partitioned.
+mr.job.max.mappers=48
+
+bootstrap.with.offset=latest
+
+data.publisher.final.dir=/wmf/data/raw/webrequest_frontend
