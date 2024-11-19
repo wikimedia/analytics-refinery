@@ -33,7 +33,7 @@ MODE="dry-run"
 # List of refinery-source modules that have jars that should be symlinked.
 # This list is hardcoded now.
 # TODO: it'd be nice if we could read the refinery-source pom.xml file to automate this list.
-REFINERY_SOURCE_MODULES="core hive job spark tools"
+REFINERY_SOURCE_MODULES="hive job"
 
 
 SCRIPT_NAME=$(basename "$0")
@@ -94,11 +94,6 @@ fi
 archiva_base_uri="https://archiva.wikimedia.org/repository/releases/org/wikimedia/analytics/refinery"
 
 for j in $REFINERY_SOURCE_MODULES; do
-
-    # Download and symlink the standard (non shaded) version of the jar
-    (curl -Lf -o ./artifacts/org/wikimedia/analytics/refinery/"refinery-$j-${VERSION}.jar" \
-		"${archiva_base_uri}/$j/refinery-$j/$VERSION/refinery-$j-$VERSION.jar" \
-        && ln -sfv org/wikimedia/analytics/refinery/"refinery-$j-${VERSION}.jar" ./artifacts/refinery-$j.jar) &
 
     # Download and symlink the shaded version of the jar, if it exists.
     # (If it doesn't curl will just fail)
