@@ -24,7 +24,9 @@ INSERT OVERWRITE TABLE ${destination_table}
      SELECT /*+ COALESCE(${coalesce_partitions}) */
             wiki_db,
             country_code,
-            user_is_anonymous as edits_are_anonymous,
+            user_is_anonymous as users_are_anonymous,
+            user_is_temporary as users_are_temporary,
+            user_is_permanent as users_are_permanent,
             sum(edit_count) as edit_count,
             sum(namespace_zero_edit_count) as namespace_zero_edit_count
        from ${source_table}
@@ -34,5 +36,7 @@ INSERT OVERWRITE TABLE ${destination_table}
         and action_type IN (0, 1)
       group by wiki_db,
             country_code,
-            user_is_anonymous
+            user_is_anonymous,
+            user_is_temporary,
+            user_is_permanent
 ;
