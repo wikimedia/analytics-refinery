@@ -14,6 +14,7 @@ topic.include=webrequest_frontend_text,webrequest_frontend_upload
 # and webrequest_frontend_upload will be partitioned.
 mr.job.max.mappers=48
 
-bootstrap.with.offset=latest
+# TODO (2024-11-21): rollback to `latest` after backfill
+bootstrap.with.offset=earliest
 
 data.publisher.final.dir=/wmf/data/raw/webrequest_frontend
