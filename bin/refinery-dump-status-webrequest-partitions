@@ -1,0 +1,571 @@
+#!/bin/bash
+# -*- coding: utf-8 -*-
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+set -e
+
+print_help() {
+    cat <<EOF
+$0 [ OPTIONS ] [ HOURS_TO_GO_BACK ]
+
+dumps the status of the raw webrequest partitions for the last few hours.
+
+Options:
+  --hdfs-mount MOUNT_POINT
+                  -- Assume that HDFS is mounted at MOUNT_POINT (needs
+                     to be an absolute path) instead of /mnt/hdfs .
+  --mark-day-changes
+                  -- Adds a hline between days.
+  --datasets DATASET1,DATASET2,...
+                  -- Select the datasets to output data for.
+                     The following datasets are available:
+                       mediacounts          -- mediacounts (daily)
+                       raw_webrequest       -- Raw webrequest (hourly)
+                       webrequest           -- webrequest (refined tables) (hourly)
+                       pageview             -- pageview aggregation (hourly)
+                       projectview          -- projectview aggregation (hourly)
+                       all                  -- all of the above
+
+                     By default, only "raw_webrequest" is shown.
+
+  --quiet         -- Only produce output, if there are faulty partitions
+
+  --percent-lost  -- Query hive to get percent lost of incomplete partitions.
+
+HOURS_TO_GO_BACK  -- number of hours to go back in time. (Default: 51)
+
+EOF
+}
+
+
+HOUR_OFFSET_MAX=51
+HOUR_OFFSET_MIN=3
+
+HDFS_MOUNT_DIR_ABS=/mnt/hdfs
+
+HAS_FAULTY=
+QUIET=
+QUIET_BUFFER=
+
+MARK_DAY_CHANGES=no
+PERCENT_LOST=no
+
+ALL_DATASETS=()
+
+declare -A DATASET_RECURRENCES
+declare -A DATASET_CAPTIONS
+declare -A DATASET_HLINES
+declare -A DATASET_BLANKS
+declare -A DATASET_VISIBILITIES
+
+add_dataset() {
+    local DATASET="$1"
+    local DATASET_RECURRENCE="$2"
+    local DATASET_CAPTION="$3"
+    local DATASET_HLINE="$(sed -e 's/[^|]/-/g; s/|/+/g' <<<"$DATASET_CAPTION")"
+    local DATASET_BLANK="${DATASET_HLINE//-/ }" ; DATASET_BLANK="${DATASET_BLANK//+/|}"
+
+    ALL_DATASETS=( "${ALL_DATASETS[@]}" "$DATASET" )
+
+    DATASET_RECURRENCES["$DATASET"]="$DATASET_RECURRENCE"
+    DATASET_CAPTIONS["$DATASET"]="$DATASET_CAPTION"
+    DATASET_HLINES["$DATASET"]="$DATASET_HLINE"
+    DATASET_BLANKS["$DATASET"]="$DATASET_BLANK"
+    DATASET_VISIBILITIES["$DATASET"]=no
+}
+
+add_dataset "mediacounts" "daily" "   full  | top1000 |"
+add_dataset "raw_webrequest" "hourly" "     text    |    upload   |"
+add_dataset "webrequest" "hourly" "  text  | upload |"
+add_dataset "pageview" "hourly" "  hourly  |"
+add_dataset "projectview" "hourly" "   hourly    |"
+
+DATASET_VISIBILITIES["raw_webrequest"]=yes
+
+error() {
+    echo "Error" "$@" >&2
+    exit 1
+}
+
+while [ $# -gt 0 ]
+do
+    PARAM="$1"
+    shift
+    case "$PARAM" in
+        "--help" | "-h" | "-?" )
+            print_help
+            exit 1
+            ;;
+        "--datasets" )
+            [[ $# -gt 0 ]] || error "$PARAM expects a further parameter"
+
+            # Resetting previous visibilities
+            for INNER_DATASET in "${ALL_DATASETS[@]}"
+            do
+                DATASET_VISIBILITIES["$INNER_DATASET"]=no
+            done
+
+            IFS="," read -a DATASETS_SPLIT <<<"$1"
+            for DATASET in "${DATASETS_SPLIT[@]}"
+            do
+                case "$DATASET" in
+                    "all" )
+                        for INNER_DATASET in "${ALL_DATASETS[@]}"
+                        do
+                            DATASET_VISIBILITIES["$INNER_DATASET"]=yes
+                        done
+                        ;;
+                    * )
+                        FOUND_DATASET=no
+                        for INNER_DATASET in "${ALL_DATASETS[@]}"
+                        do
+                            if [ "${DATASET//-/_}" = "$INNER_DATASET" ]
+                            then
+                                DATASET_VISIBILITIES["$INNER_DATASET"]=yes
+                                FOUND_DATASET=yes
+                            fi
+                        done
+                        if [ "$FOUND_DATASET" != "yes" ]
+                        then
+                            error "Unknown dataset '$DATASET '"
+                        fi
+                        ;;
+                esac
+            done
+            shift
+            ;;
+        "--hdfs-mount" )
+            [[ $# -gt 0 ]] || error "$PARAM expects a further parameter"
+            HDFS_MOUNT_DIR_ABS="$1"
+            shift
+            ;;
+        "--mark-day-changes" )
+            MARK_DAY_CHANGES=yes
+            ;;
+        "--quiet" )
+            QUIET=yes
+            ;;
+        "--percent-lost" )
+            PERCENT_LOST=yes
+            ;;
+        * )
+            if [ $# -eq 0 ]
+            then
+                HOUR_OFFSET_MAX="$PARAM"
+            else
+                error "Too many parameters given"
+            fi
+            ;;
+    esac
+done
+
+RAW_WEBREQUEST_DATA_DIR_ABS="$HDFS_MOUNT_DIR_ABS/wmf/data/raw/webrequest"
+WEBREQUEST_DATA_DIR_ABS="$HDFS_MOUNT_DIR_ABS/wmf/data/wmf/webrequest"
+ARCHIVE_DATA_DIR_ABS="$HDFS_MOUNT_DIR_ABS/wmf/data/archive"
+PAGEVIEW_DATA_DIR_ABS="$HDFS_MOUNT_DIR_ABS/wmf/data/wmf/pageview/hourly"
+PROJECTVIEW_DATA_DIR_ABS="$HDFS_MOUNT_DIR_ABS/wmf/data/wmf/projectview/hourly"
+
+log_no_lf() {
+    if [ -n "$QUIET" ]
+    then
+        QUIET_BUFFER="$QUIET_BUFFER$@"
+        if [ -n "$HAS_FAULTY" ]
+        then
+            echo -n "$QUIET_BUFFER"
+            QUIET_BUFFER=
+        fi
+    else
+        echo -n "$@"
+    fi
+}
+
+log_no_lf_centered() {
+    local TEXT="$1"
+    local AVAILABLE_LEN="$2"
+
+    local BLANK_HELPER="                                                       "
+    # Doubling blank helper, so we get a long enough string but stay below 80
+    # characters per line.
+    BLANK_HELPER="$BLANK_HELPER$BLANK_HELPER"
+
+    local TEXT_LEN="${#TEXT}"
+
+    log_no_lf "${BLANK_HELPER:0:$(( (AVAILABLE_LEN-TEXT_LEN) / 2 ))}"
+    log_no_lf "$TEXT"
+    log_no_lf "${BLANK_HELPER:0:$(( AVAILABLE_LEN - (AVAILABLE_LEN-TEXT_LEN) / 2 - TEXT_LEN ))}"
+}
+
+log() {
+    log_no_lf "$@
+"
+}
+
+hline() {
+    local KIND="$1"
+
+    log_no_lf "  "
+
+    # daily datasets first
+    if [ "$HAS_VISIBLE_DAILY_DATASETS" = yes ]
+    then
+        log_no_lf "++---------------++"
+        for DATASET in "${ALL_DATASETS[@]}"
+        do
+            if [ "${DATASET_VISIBILITIES["$DATASET"]}" = "yes" -a "${DATASET_RECURRENCES["$DATASET"]}" = "daily" ]
+            then
+                local DATASET_HLINE="${DATASET_HLINES["$DATASET"]}"
+                if [ "$KIND" = "first" ]
+                then
+                    DATASET_HLINE="${DATASET_HLINE//+-/--}"
+                fi
+                log_no_lf "${DATASET_HLINE}+"
+            fi
+        done
+    fi
+
+    # Now for the hourly datasets
+    if [ "$HAS_VISIBLE_HOURLY_DATASETS" = yes ]
+    then
+        log_no_lf "++------------------++"
+        for DATASET in "${ALL_DATASETS[@]}"
+        do
+            if [ "${DATASET_VISIBILITIES["$DATASET"]}" = "yes" -a "${DATASET_RECURRENCES["$DATASET"]}" = "hourly" ]
+            then
+                local DATASET_HLINE="${DATASET_HLINES["$DATASET"]}"
+                if [ "$KIND" = "first" ]
+                then
+                    DATASET_HLINE="${DATASET_HLINE//+-/--}"
+                fi
+                log_no_lf "${DATASET_HLINE}+"
+            fi
+        done
+    fi
+    log
+}
+
+first_caption_line_dataset() {
+    local DATASET="$1"
+    local DATASET_CAPTION="${DATASET_CAPTIONS["$DATASET"]}"
+    local DATASET_CAPTION_LEN="${#DATASET_CAPTION}"
+
+    local CAPTION="$DATASET"
+
+    if [ "$DATASET_CAPTION" = " $CAPTION |" ]
+    then
+        # First and second caption line would agree, hence we skip the first
+        # one, to get a more compact look of the table
+        CAPTION=""
+    fi
+    log_no_lf_centered "$CAPTION" $((DATASET_CAPTION_LEN-1))
+    log_no_lf "||"
+}
+
+first_caption_line() {
+    local DATASET
+
+    log_no_lf "  "
+
+    # daily datasets first
+    if [ "$HAS_VISIBLE_DAILY_DATASETS" = yes ]
+    then
+        log_no_lf "||               ||"
+        for DATASET in "${ALL_DATASETS[@]}"
+        do
+            if [ "${DATASET_VISIBILITIES["$DATASET"]}" = "yes" -a "${DATASET_RECURRENCES["$DATASET"]}" = "daily" ]
+            then
+                first_caption_line_dataset "$DATASET"
+            fi
+        done
+    fi
+
+    # Now for the hourly datasets
+    if [ "$HAS_VISIBLE_HOURLY_DATASETS" = yes ]
+    then
+        log_no_lf "||                  ||"
+        for DATASET in "${ALL_DATASETS[@]}"
+        do
+            if [ "${DATASET_VISIBILITIES["$DATASET"]}" = "yes" -a "${DATASET_RECURRENCES["$DATASET"]}" = "hourly" ]
+            then
+                first_caption_line_dataset "$DATASET"
+            fi
+        done
+    fi
+    log
+}
+
+second_caption_line() {
+    local DATASET
+
+    log_no_lf "  "
+
+    # daily datasets first
+    if [ "$HAS_VISIBLE_DAILY_DATASETS" = yes ]
+    then
+        log_no_lf "||      Day      ||"
+        for DATASET in "${ALL_DATASETS[@]}"
+        do
+            if [ "${DATASET_VISIBILITIES["$DATASET"]}" = "yes" -a "${DATASET_RECURRENCES["$DATASET"]}" = "daily" ]
+            then
+                log_no_lf "${DATASET_CAPTIONS["$DATASET"]}"
+                log_no_lf "|"
+            fi
+        done
+    fi
+
+    # Now for the hourly datasets
+    if [ "$HAS_VISIBLE_HOURLY_DATASETS" = yes ]
+    then
+        log_no_lf "||       Hour       ||"
+        for DATASET in "${ALL_DATASETS[@]}"
+        do
+            if [ "${DATASET_VISIBILITIES["$DATASET"]}" = "yes" -a "${DATASET_RECURRENCES["$DATASET"]}" = "hourly" ]
+            then
+                log_no_lf "${DATASET_CAPTIONS["$DATASET"]}"
+                log_no_lf "|"
+            fi
+        done
+    fi
+    log
+}
+
+determine_recurrence_visibility() {
+    HAS_VISIBLE_DAILY_DATASETS=no
+    HAS_VISIBLE_HOURLY_DATASETS=no
+    for DATASET in "${ALL_DATASETS[@]}"
+    do
+        if [ "${DATASET_VISIBILITIES["$DATASET"]}" = "yes" ]
+        then
+            if [ "${DATASET_RECURRENCES["$DATASET"]}" = "daily" ]
+            then
+                HAS_VISIBLE_DAILY_DATASETS=yes
+            elif [ "${DATASET_RECURRENCES["$DATASET"]}" = "hourly" ]
+            then
+                HAS_VISIBLE_HOURLY_DATASETS=yes
+            else
+                error "Unknown recurrence '${DATASET_RECURRENCES["$DATASET"]}' for dataset '$DATASET'"
+            fi
+        fi
+    done
+}
+
+get_percent_different() {
+
+    local DATE="$1"
+    local SOURCE="$2"
+
+    local CONDITIONS="year=${DATE:0:4} AND month=${DATE:5:2} AND day=${DATE:8:2} AND hour=${DATE:11:2} AND webrequest_source='$SOURCE'"
+    local QUERY="SELECT LPAD(ROUND(percent_lost, 1), 5, ' ') FROM wmf_raw.webrequest_sequence_stats_hourly WHERE $CONDITIONS;"
+
+    echo "$(hive -S -e "$QUERY" 2>/dev/null | tail -n 1)%"
+}
+
+dump_dataset_mediacounts() {
+    local DATE="$1"
+
+    local DATE_ISO="$(date --utc -d "$DATE" +"%Y-%m-%d")"
+    local DATE_YEAR="$(date --utc -d "$DATE" +"%Y")"
+
+    local BASE_NAME_REL
+    for BASE_NAME_REL in \
+        "mediacounts.${DATE_ISO}.v00.tsv.bz2" \
+        "mediacounts.top1000.${DATE_ISO}.v00.csv.zip" \
+
+    do
+        local STATUS="X"
+        local FILE_ABS="$ARCHIVE_DATA_DIR_ABS/mediacounts/daily/$DATE_YEAR/$BASE_NAME_REL"
+        if [ -e "$FILE_ABS" ]
+        then
+            STATUS="_"
+        fi
+        log_no_lf "    $STATUS    |"
+    done
+}
+
+dump_dataset_raw_webrequest_partition() {
+
+    local DATE_HDFS_PADDED="$1"
+    local DATE_DIRS_REL="$2"
+    local SOURCE="$3"
+    local STATUS=
+
+    if [ -e "$RAW_WEBREQUEST_DATA_DIR_ABS/webrequest_$SOURCE/$DATE_DIRS_REL/_SUCCESS" ]
+    then
+        STATUS="     M"
+    else
+        if [ "$PERCENT_LOST" = "yes" ]
+        then
+            STATUS="$(get_percent_different "$DATE_HDFS_PADDED" "$SOURCE")"
+        else
+            STATUS="     X"
+        fi
+        HAS_FAULTY=yes
+    fi
+    log_no_lf "$STATUS"
+}
+
+dump_dataset_raw_webrequest() {
+    local DATE="$1"
+
+    # We need both the slash-formated date and the partition-formatted date:
+    #  - The former is used to extract percent-loss as in hive query
+    #  - The later is use to check for success flag in files (NO PADDING)
+    local DATE_HDFS_PADDED="$(date --utc -d "$DATE" +'%Y/%m/%d/%H')"
+    local DATE_DIRS_REL="$(date --utc -d "$DATE" +'year=%Y/month=%m/day=%d/hour=%H')"
+
+    for SOURCE in text upload
+    do
+        log_no_lf " "
+        dump_dataset_raw_webrequest_partition "$DATE_HDFS_PADDED" "$DATE_DIRS_REL" "$SOURCE"
+        log_no_lf "      |"
+    done
+}
+
+dump_dataset_webrequest() {
+    local DATE="$1"
+
+    local DATE_DIRS_REL="$(date --utc -d "$DATE" +'year=%Y/month=%m/day=%d/hour=%H')"
+    DATE_DIRS_REL="${DATE_DIRS_REL//=0/=}"
+
+    for SOURCE in text upload
+    do
+        local STATUS="X"
+        SUCCESS_FILE_ABS="$WEBREQUEST_DATA_DIR_ABS/webrequest_source=$SOURCE/$DATE_DIRS_REL/_SUCCESS"
+        if [ -e "$SUCCESS_FILE_ABS" ]
+        then
+            STATUS="_"
+        fi
+        log_no_lf "    $STATUS   |"
+    done
+}
+
+dump_dataset_pageview() {
+    local DATE="$1"
+
+    local DATE_DIRS_REL="$(date --utc -d "$DATE" +'year=%Y/month=%m/day=%d/hour=%H')"
+    DATE_DIRS_REL="${DATE_DIRS_REL//=0/=}"
+
+    local STATUS="X"
+    SUCCESS_FILE_ABS="$PAGEVIEW_DATA_DIR_ABS/$DATE_DIRS_REL/_SUCCESS"
+    if [ -e "$SUCCESS_FILE_ABS" ]
+    then
+        STATUS="_"
+    fi
+    log_no_lf "     $STATUS    |"
+}
+
+dump_dataset_projectview() {
+    local DATE="$1"
+
+    local DATE_DIRS_REL="$(date --utc -d "$DATE" +'year=%Y/month=%m/day=%d/hour=%H')"
+    DATE_DIRS_REL="${DATE_DIRS_REL//=0/=}"
+
+    local STATUS="X"
+    SUCCESS_FILE_ABS="$PROJECTVIEW_DATA_DIR_ABS/$DATE_DIRS_REL/_SUCCESS"
+    if [ -e "$SUCCESS_FILE_ABS" ]
+    then
+        STATUS="_"
+    fi
+    log_no_lf "      $STATUS      |"
+}
+
+determine_recurrence_visibility
+
+hline "first"
+first_caption_line
+second_caption_line
+hline
+
+for HOURS_OFFSET in $(seq $HOUR_OFFSET_MAX -1 $HOUR_OFFSET_MIN )
+do
+    DATE="$(date --utc -d "$HOURS_OFFSET hours-ago" +'%Y-%m-%d %H')"
+
+    # -- Mark day change if requested
+    if [ "$MARK_DAY_CHANGES" = "yes" -a "${DATE: -2}" = "00" -a "$HOURS_OFFSET" != "$HOUR_OFFSET_MAX" ]
+    then
+        hline
+    fi
+
+    # Check if this hour produces output at all. If not, omit it
+    # completely. This omitting allows to not get superfluous 23 empty lines,
+    # when only daily datasets are visible.
+    if [ \( "$HAS_VISIBLE_DAILY_DATASETS" = yes -a \
+            \( "${DATE: -2}" = "00" -o "$HOURS_OFFSET" = "$HOUR_OFFSET_MAX" \) \) \
+        -o "$HAS_VISIBLE_HOURLY_DATASETS" = yes ]
+    then
+
+        log_no_lf "  "
+
+        # daily datasets first
+        if [ "$HAS_VISIBLE_DAILY_DATASETS" = yes ]
+        then
+            if [ "${DATE: -2}" = "00" -o "$HOURS_OFFSET" = "$HOUR_OFFSET_MAX" ]
+            then
+                log_no_lf "|| ${DATE:0:10}/1D ||"
+            else
+                log_no_lf "||               ||"
+            fi
+
+            for DATASET in "${ALL_DATASETS[@]}"
+            do
+                if [ "${DATASET_VISIBILITIES["$DATASET"]}" = "yes" -a "${DATASET_RECURRENCES["$DATASET"]}" = "daily" ]
+                then
+                    if [ "${DATE: -2}" = "00"  -o "$HOURS_OFFSET" = "$HOUR_OFFSET_MAX" ]
+                    then
+                        dump_dataset_$DATASET "$DATE"
+                    else
+                        log_no_lf "${DATASET_BLANKS["$DATASET"]]}"
+                    fi
+                    log_no_lf "|"
+                fi
+            done
+        fi
+
+        # Now for the hourly datasets
+        if [ "$HAS_VISIBLE_HOURLY_DATASETS" = yes ]
+        then
+            log_no_lf "|| ${DATE// /T}/1H ||"
+            for DATASET in "${ALL_DATASETS[@]}"
+            do
+                if [ "${DATASET_VISIBILITIES["$DATASET"]}" = "yes" -a "${DATASET_RECURRENCES["$DATASET"]}" = "hourly" ]
+                then
+                    dump_dataset_$DATASET "$DATE"
+                    log_no_lf "|"
+                fi
+            done
+        fi
+        log
+    fi
+done
+
+hline
+
+log "
+
+Statuses:
+
+  .  --> Dataset entry passed automated checks
+  _  --> Dataset entry is present (does not imply quality guarantees)
+  M  --> Dataset entry manually marked ok
+  X  --> Dataset entry is known to not be ok
+  N% --> Dataset entry is known to have a loss of N percent
+
+
+"
+
+if [ -n "$HAS_FAULTY" ]
+then
+    exit 1
+else
+    exit 0
+fi
