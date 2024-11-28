@@ -16,4 +16,11 @@ mr.job.max.mappers=48
 
 bootstrap.with.offset=latest
 
+# Use the kafka recrd creation time if available
+source.kafka.extract.timestampTypes = CreateTime
+
+# Extract the timestamp value from dt
+# if no kafka timestamp is found
+writer.partition.timestamp.columns=dt
+
 data.publisher.final.dir=/wmf/data/raw/webrequest_frontend
