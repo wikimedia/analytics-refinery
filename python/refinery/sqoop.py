@@ -858,7 +858,8 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
                     convert(user_touched using utf8mb4) user_touched,
                     convert(user_registration using utf8mb4) user_registration,
                     user_editcount,
-                    convert(user_password_expires using utf8mb4) user_password_expires
+                    convert(user_password_expires using utf8mb4) user_password_expires,
+                    user_is_temp
 
                from user
               where $CONDITIONS
@@ -866,6 +867,7 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         'map-types': '"{}"'.format(','.join([
             'user_id=Long',
             'user_editcount=Long',
+            'user_is_temp=Boolean',
         ])),
         'boundary-query': 'SELECT MIN(user_id), MAX(user_id) FROM user',
         'split-by': 'user_id',

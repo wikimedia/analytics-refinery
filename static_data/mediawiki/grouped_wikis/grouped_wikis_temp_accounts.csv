@@ -1,0 +1,21 @@
+# The temporary accounts feature is known to be deployed to these wikis (not kept too up to date)
+# see https://gerrit.wikimedia.org/r/plugins/gitiles/operations/mediawiki-config/+/refs/heads/master/wmf-config/InitialiseSettings.php#6931
+# (search for wmgEnableIPMasking)
+testwiki,1,0
+loginwiki,1,0
+test2wiki,1,0
+cswikiversity,1,0
+igwiki,1,0
+itwikiquote,1,0
+swwiki,1,0
+shwiki,1,0
+fawiktionary,1,0
+jawikibooks,1,0
+zh_yuewiki,1,0
+dawiki,1,0
+srwiki,1,0
+rowiki,1,0
+nowiki,1,0
+# The following wikis don't have temp accounts turned on so testing can have both kinds of data
+etwiki,1,0
+enwikivoyage,1,0

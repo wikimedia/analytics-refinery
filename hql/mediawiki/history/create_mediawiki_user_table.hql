@@ -17,7 +17,8 @@ CREATE EXTERNAL TABLE `mediawiki_user`(
   `user_touched`                string      COMMENT 'the last time a user made a change on the site, including logins, changes to pages (any namespace), watchlistings, and preference changes.  Note Note: The user_touched time resets when a user is left a talkpage message.',
   `user_registration`           string      COMMENT 'the timestamp of when the user registered. For old users, they may have a value of NULL for this field. The fixUserRegistration.php script can be used to back-populate this field.',
   `user_editcount`              bigint      COMMENT 'Count of edits and edit-like actions.  NOT* intended to be an accurate copy of COUNT(*) WHERE rev_user=user_id.  May contain NULL for old accounts if batch-update scripts haven\'t been run, as well as listing deleted edits and other myriad ways it could be out of sync. Execute the script initEditCount.php to update this table column.  Meant primarily for heuristic checks to give an impression of whether the account has been used much.',
-  `user_password_expires`       string      COMMENT 'Date when user\'s password expires\; null for no expiration date. Can also be set manually by calling User->expirePassword().'
+  `user_password_expires`       string      COMMENT 'Date when user\'s password expires\; null for no expiration date. Can also be set manually by calling User->expirePassword().',
+  `user_is_temp`                boolean     COMMENT 'Zero if any type of user other than a temporary user.'
 )
 COMMENT
   'See most up to date documentation at https://www.mediawiki.org/wiki/Manual:User_table'
