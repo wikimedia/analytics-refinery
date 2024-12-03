@@ -46,7 +46,7 @@
 WITH actor_aggregated AS (
     SELECT
         ${version} as version,
-        actor_signature,
+        actor_signature_per_project_family,
         -- The following 2 fields were introduced across the pipeline in 2024-11, see: T375527.
         -- The COALESCE statements make the query backwards compatible. Also see GROUP BY below.
         COALESCE(is_pageview, TRUE) AS is_pageview,
@@ -66,7 +66,7 @@ WITH actor_aggregated AS (
         OR (year=${interval_end_year} AND month=${interval_end_month} AND day=${interval_end_day} AND hour<=${interval_end_hour})
 
     GROUP BY
-        actor_signature,
+        actor_signature_per_project_family,
         COALESCE(is_pageview, TRUE),
         COALESCE(is_redirect_to_pageview, FALSE)
 
@@ -77,7 +77,8 @@ INSERT OVERWRITE TABLE ${destination_table}
 
     SELECT /*+ COALESCE(${coalesce_partitions}) */
         version,
-        actor_signature,
+        NULL AS actor_signature,
+        actor_signature_per_project_family
         is_pageview,
         is_redirect_to_pageview,
         pageview_count,

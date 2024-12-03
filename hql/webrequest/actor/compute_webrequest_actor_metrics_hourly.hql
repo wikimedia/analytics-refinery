@@ -36,7 +36,7 @@ WITH hourly_actor_data as (
         ts,
         ip,
         lower(uri_host) as domain,
-        get_actor_signature(ip, user_agent, accept_language, uri_host, uri_query, x_analytics_map) AS actor_signature,
+        get_actor_signature(ip, user_agent, accept_language, normalized_host.project_class, uri_query, x_analytics_map) AS actor_signature_per_project_family,
         http_status,
         user_agent,
         x_analytics_map["nocookies"] as nocookies,
@@ -65,7 +65,8 @@ INSERT OVERWRITE TABLE ${destination_table}
 
     SELECT /*+ COALESCE(${coalesce_partitions}) */
         ${version} as version,
-        actor_signature as actor_signature,
+        NULL AS actor_signature,
+        actor_signature_per_project_family,
         is_pageview,
         is_redirect_to_pageview,
         min(ts) as first_interaction_dt,
@@ -78,6 +79,6 @@ INSERT OVERWRITE TABLE ${destination_table}
     FROM
         hourly_actor_data
     GROUP BY
-        actor_signature,
+        actor_signature_per_project_family
         is_pageview,
         is_redirect_to_pageview;
