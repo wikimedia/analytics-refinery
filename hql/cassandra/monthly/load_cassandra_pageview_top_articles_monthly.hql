@@ -92,8 +92,14 @@ max_rank AS (
         rank
 )
 INSERT INTO ${destination_table}
+-- Use the REPARTITION hint instead of the COALESCE one.
+-- This forces spark to materialize the joined data with $work_partitions
+-- instead of $coalesce_partitions, forcing a repartition with $coalesce_partitions
+-- after the join. The gain is that a filter is applied just after the join,
+-- leading to a lot less data to be processed through the smaller number
+-- of partitions (and therefore no OOM!).
 SELECT
-/*+ COALESCE(${coalesce_partitions}) */
+/*+ REPARTITION(${coalesce_partitions}) */
     'analytics.wikimedia.org' as _domain,
     project as project,
     access as access,
