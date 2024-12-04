@@ -72,7 +72,7 @@ PARTITION (year=${year}, month=${month}, day=${day}, hour = ${hour})
 SELECT /*+ COALESCE(${coalesce_partitions}) */
     version,
     NULL AS actor_signature,
-    actor_signature_per_project_family
+    actor_signature_per_project_family,
     is_pageview,
     is_redirect_to_pageview,
 

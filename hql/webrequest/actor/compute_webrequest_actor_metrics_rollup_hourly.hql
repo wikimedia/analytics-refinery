@@ -78,7 +78,7 @@ INSERT OVERWRITE TABLE ${destination_table}
     SELECT /*+ COALESCE(${coalesce_partitions}) */
         version,
         NULL AS actor_signature,
-        actor_signature_per_project_family
+        actor_signature_per_project_family,
         is_pageview,
         is_redirect_to_pageview,
         pageview_count,

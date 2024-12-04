@@ -79,6 +79,6 @@ INSERT OVERWRITE TABLE ${destination_table}
     FROM
         hourly_actor_data
     GROUP BY
-        actor_signature_per_project_family
+        actor_signature_per_project_family,
         is_pageview,
         is_redirect_to_pageview;
