@@ -59,7 +59,7 @@ INSERT OVERWRITE TABLE ${destination_table}
         x_analytics_map,
         ts,
         access_method,
-        CASE WHEN (agent_type = 'user' AND automated_actor_signature IS NOT NULL) THEN 'automated' ELSE agent_type END AS agent_type,
+        CASE WHEN (agent_type = 'user' AND automated_actor_signature_per_project_family IS NOT NULL) THEN 'automated' ELSE agent_type END AS agent_type,
         referer_class,
         normalized_host,
         pageview_info,
