@@ -29,7 +29,7 @@ CREATE TEMPORARY FUNCTION get_actor_signature AS 'org.wikimedia.analytics.refine
 
 WITH automated_actor AS (
     -- Enforce distinct to prevent potential traffic-row duplication in case of bug
-    SELECT DISTINCT actor_signature as automated_actor_signature
+    SELECT DISTINCT actor_signature_per_project_family as automated_actor_signature_per_project_family
     FROM ${actor_label_table}
     WHERE year=${year} AND month=${month} AND day=${day} AND hour=${hour}
         AND label = 'automated'
@@ -70,7 +70,7 @@ INSERT OVERWRITE TABLE ${destination_table}
         referer_data
     FROM ${source_table}
         LEFT JOIN automated_actor
-            ON get_actor_signature(ip, user_agent, accept_language, uri_host, uri_query, x_analytics_map) = automated_actor_signature
+            ON get_actor_signature(ip, user_agent, accept_language, normalized_host.project_class, uri_query, x_analytics_map) = automated_actor_signature_per_project_family
     WHERE webrequest_source IN ('text') AND
         year=${year} AND month=${month} AND day=${day} AND hour=${hour}
         AND (is_pageview = TRUE

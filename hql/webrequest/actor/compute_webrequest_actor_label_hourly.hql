@@ -28,7 +28,7 @@
 WITH actor_aggregated AS (
     SELECT
         ${version} as version,
-        actor_signature,
+        actor_signature_per_project_family,
         -- The following 2 fields were introduced across the pipeline in 2024-11, see: T375527.
         -- The COALESCE statements make the query backwards compatible.
         COALESCE(is_pageview, TRUE) AS is_pageview,
@@ -71,7 +71,8 @@ PARTITION (year=${year}, month=${month}, day=${day}, hour = ${hour})
 
 SELECT /*+ COALESCE(${coalesce_partitions}) */
     version,
-    actor_signature,
+    NULL AS actor_signature,
+    actor_signature_per_project_family
     is_pageview,
     is_redirect_to_pageview,
 
