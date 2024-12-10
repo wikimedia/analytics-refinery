@@ -39,11 +39,14 @@ files_with_primaries_parents_and_imagelinks (
         map_keys(usage_map) AS wikis_where_used,
         -- munge together wiki and imagelink article to allow deduplication later
         -- <"wiki_1article_title_1","wiki_1article_title_2","...">
+        -- Use md5 digests to shorten the labels, since we only use them to count distinct;
+        -- otherwise the value is too large and overflows the BufferHolder memory limit (~2GB).
+        -- Theoretically, there could be collisions, but we assume an unlikely tiny imprecision.
         if(usage_map IS NULL,
             array(),
             flatten(transform(
                 map_entries(usage_map),
-                x -> transform(map_keys(x.value), xi -> concat(x.key, xi))
+                x -> transform(map_keys(x.value), xi -> substring(md5(concat(x.key, xi)), 0, 10))
             ))
         ) AS fqn_articles_where_used,
         (
