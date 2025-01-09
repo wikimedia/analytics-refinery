@@ -1,5 +1,6 @@
 #
-# Pulls event streams discovered via stream config with job_name:event_default.
+# Pulls event streams discovered via EventStreamConfig with
+# analytics_hadoop_ingestion.job_name == 'event_default'.
 #
 
 include=/srv/deployment/analytics/refinery/gobblin/common/kafka_to_hdfs_hourly.properties

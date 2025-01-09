@@ -1,5 +1,6 @@
 #
-# Pulls legacy eventlogging streams.
+# Pulls legacy eventlogging streams discovered via EventStreamConfig with
+# analytics_hadoop_ingestion.job_name == 'eventlogging_legacy'.
 #
 
 include=/srv/deployment/analytics/refinery/gobblin/common/kafka_to_hdfs_hourly.properties
@@ -8,10 +9,14 @@ job.name=eventlogging_legacy
 job.group=gobblin
 extract.namespace=org.wikimedia.analytics.eventlogging_legacy
 
-# TODO: Once EventLogging migration is fully complete, we can rely on EventStreamConfig
-# to discover eventlogging legacy streams just like we do in the eventlogging_legacy_test job.
-# Until then, just import all Kafka topics that start with eventlogging_
-topic.include=^eventlogging_.+
+# Fetch stream configs from EventStreamConfig API at meta.wikimedia.org.
+event_stream_config.uri=https://meta.wikimedia.org/w/api.php
+
+# Use WMF production network settings (this allows us to access meta.wikimedia.org without an http proxy).
+event_stream_config.is_wmf_production=true
+
+# Filter for streams that match these settings.
+event_stream_config.settings_filters=/consumers/analytics_hadoop_ingestion/job_name:eventlogging_legacy,/consumers/analytics_hadoop_ingestion/enabled:true
 
 writer.partition.timestamp.columns=meta.dt,dt
 
