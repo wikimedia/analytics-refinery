@@ -684,6 +684,7 @@ mediawiki_content_translation_event:
     event_type: keep
     event_subtype: keep
     event_source: keep
+    event_context: keep
     translation_type: keep
     translation_id: keep
     translation_source_language: keep
