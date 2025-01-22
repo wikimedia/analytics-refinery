@@ -36,6 +36,8 @@ INSERT OVERWRITE TABLE ${destination_table}
             country_code,
             user_fingerprint_or_name,
             user_is_anonymous,
+            user_is_temporary,
+            user_is_permanent,
             `date`,
             count(*) as edit_count,
             sum(page_is_namespace_zero) as namespace_zero_edit_count,
@@ -50,6 +52,8 @@ INSERT OVERWRITE TABLE ${destination_table}
                     cuc_type as action_type,
                     if(cuc_user = 0, md5(concat(cuc_ip, cuc_agent)), cuc_user_text) as user_fingerprint_or_name,
                     if(cuc_user = 0, TRUE, FALSE) as user_is_anonymous,
+                    coalesce(is_temporary, false) as user_is_temporary,
+                    coalesce(is_permanent, false) as user_is_permanent,
                     -- Using integers for the sum above
                     if(cuc_namespace = 0, 1, 0) as page_is_namespace_zero,
                     concat(
@@ -71,6 +75,8 @@ INSERT OVERWRITE TABLE ${destination_table}
                           coalesce(start_timestamp, '20010101000000') and
                           coalesce(end_timestamp, '99999999999999')
                     )
+                -- Filter out edits by redacted editors.
+                and (cuc_user = 0 OR is_temporary OR is_permanent)
             ) geolocated_edits
 
       GROUP BY wiki_db,
@@ -78,6 +84,8 @@ INSERT OVERWRITE TABLE ${destination_table}
             `date`,
             user_fingerprint_or_name,
             user_is_anonymous,
+            user_is_temporary,
+            user_is_permanent,
             network_origin,
             user_is_bot_by,
             action_type

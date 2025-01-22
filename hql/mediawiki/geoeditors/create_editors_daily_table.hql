@@ -11,8 +11,10 @@
 CREATE EXTERNAL TABLE `editors_daily` (
   `wiki_db`                     string      COMMENT 'The wiki database of origin',
   `country_code`                string      COMMENT 'The 2-letter ISO country code this group of actions geolocated to, including Unknown (--)',
-  `user_fingerprint_or_name`      string      COMMENT 'If an anonymous user, this is a hash of the IP + UA, otherwise it is their global username across wiki dbs',
+  `user_fingerprint_or_name`    string      COMMENT 'If an anonymous user, this is a hash of the IP + UA, otherwise it is their global username across wiki dbs',
   `user_is_anonymous`           boolean     COMMENT 'Whether or not this user actions were made anonymously',
+  `user_is_temporary`           boolean     COMMENT 'Whether or not this user is temporary',
+  `user_is_permanent`           boolean     COMMENT 'Whether or not this user is permanent',
   `date`                        string      COMMENT 'The YYYY-MM-DD date for this group of actions',
   `edit_count`                  bigint      COMMENT 'The total count of actions for this grouping',
   `namespace_zero_edit_count`   bigint      COMMENT 'The total count of actions to namespace zero for this grouping',
