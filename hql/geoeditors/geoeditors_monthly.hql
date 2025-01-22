@@ -24,11 +24,15 @@ WITH overall AS (
      SELECT wiki_db,
             country_code,
             user_is_anonymous as users_are_anonymous,
+            user_is_temporary as users_are_temporary,
+            user_is_permanent as users_are_permanent,
             activity_level,
             count(*) as distinct_editors
        FROM (select wiki_db,
                     country_code,
                     user_is_anonymous,
+                    user_is_temporary,
+                    user_is_permanent,
                     user_fingerprint_or_name,
                     case
                         when sum(edit_count) >= 100 then '100 or more'
@@ -43,24 +47,32 @@ WITH overall AS (
               group by wiki_db,
                     country_code,
                     user_is_anonymous,
+                    user_is_temporary,
+                    user_is_permanent,
                     user_fingerprint_or_name
             ) editors_with_monthly_activity
       GROUP BY wiki_db,
                country_code,
                activity_level,
-               user_is_anonymous
+               user_is_anonymous,
+               user_is_temporary,
+               user_is_permanent
 
 ), only_ns0 as (
 
      SELECT wiki_db,
             country_code,
             user_is_anonymous as users_are_anonymous,
+            user_is_temporary as users_are_temporary,
+            user_is_permanent as users_are_permanent,
             activity_level,
             count(*) as distinct_editors
 
        FROM (select wiki_db,
                     country_code,
                     user_is_anonymous,
+                    user_is_temporary,
+                    user_is_permanent,
                     user_fingerprint_or_name,
                     case
                         when sum(namespace_zero_edit_count) >= 100 then '100 or more'
@@ -77,13 +89,17 @@ WITH overall AS (
               group by wiki_db,
                     country_code,
                     user_is_anonymous,
+                    user_is_temporary,
+                    user_is_permanent,
                     user_fingerprint_or_name
             ) editors_with_monthly_activity
 
       GROUP BY wiki_db,
             country_code,
             activity_level,
-            user_is_anonymous
+            user_is_anonymous,
+            user_is_temporary,
+            user_is_permanent
 
 )
 
@@ -94,6 +110,8 @@ INSERT OVERWRITE TABLE ${destination_table}
             coalesce(overall.wiki_db, only_ns0.wiki_db),
             coalesce(overall.country_code, only_ns0.country_code),
             coalesce(overall.users_are_anonymous, only_ns0.users_are_anonymous),
+            coalesce(overall.users_are_temporary, only_ns0.users_are_temporary),
+            coalesce(overall.users_are_permanent, only_ns0.users_are_permanent),
             coalesce(overall.activity_level, only_ns0.activity_level),
             coalesce(overall.distinct_editors, 0)  AS distinct_editors,
             coalesce(only_ns0.distinct_editors, 0) AS namespace_zero_distinct_editors
@@ -101,5 +119,7 @@ INSERT OVERWRITE TABLE ${destination_table}
        FULL OUTER JOIN only_ns0 ON overall.wiki_db = only_ns0.wiki_db
                                 AND overall.country_code = only_ns0.country_code
                                 AND overall.users_are_anonymous = only_ns0.users_are_anonymous
+                                AND overall.users_are_temporary = only_ns0.users_are_temporary
+                                AND overall.users_are_permanent = only_ns0.users_are_permanent
                                 AND overall.activity_level = only_ns0.activity_level
 ;
