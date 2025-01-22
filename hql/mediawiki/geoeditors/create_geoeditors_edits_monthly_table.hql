@@ -11,7 +11,9 @@
 CREATE EXTERNAL TABLE `geoeditors_edits_monthly` (
   `wiki_db`                     string   COMMENT 'The wiki database the editors worked in',
   `country_code`                string   COMMENT 'The 2-letter ISO country code this group of edits geolocated to, including Unknown (--)',
-  `edits_are_anonymous`         boolean  COMMENT 'Whether or not this group of edits were made anonymously',
+  `users_are_anonymous`         boolean  COMMENT 'Whether or not this group of edits were made anonymously',
+  `users_are_temporary`         boolean  COMMENT 'Whether or not this group of edits were made by temporary users',
+  `users_are_permanent`         boolean  COMMENT 'Whether or not this group of edits were made by permanent users',
   `edit_count`                  bigint   COMMENT 'Number of edits',
   `namespace_zero_edit_count`   bigint   COMMENT 'Number of namespace zero edits'
 )
