@@ -11,6 +11,7 @@
 -- Usage
 --     hive -f create_mediawiki_history_table.hql \
 --         --database wmf
+--         -d location=hdfs://analytics-hadoop/wmf/data/wmf/mediawiki/history
 --
 
 CREATE EXTERNAL TABLE `mediawiki_history`(
@@ -33,6 +34,8 @@ CREATE EXTERNAL TABLE `mediawiki_history`(
   `event_user_is_created_by_system`               boolean       COMMENT 'Whether the event_user account was created by mediawiki (eg. centralauth)',
   `event_user_is_created_by_peer`                 boolean       COMMENT 'Whether the event_user account was created by another user',
   `event_user_is_anonymous`                       boolean       COMMENT 'Whether the event_user is not registered',
+  `event_user_is_temporary`                       boolean       COMMENT 'True if the event_user is temporary, false otherwise.',
+  `event_user_is_permanent`                       boolean       COMMENT 'True if the event_user is permanent, false otherwise.',
   `event_user_registration_timestamp`             string        COMMENT 'Registration timestamp of the user that caused the event (from the user table)',
   --`event_user_registration_timestamp`             timestamp     COMMENT 'Registration timestamp of the user that caused the event (from the user table)',
   `event_user_creation_timestamp`                 string        COMMENT 'Creation timestamp of the user that caused the event (from the logging table)',
@@ -71,7 +74,9 @@ CREATE EXTERNAL TABLE `mediawiki_history`(
   `user_is_created_by_self`                       boolean       COMMENT 'In user events: whether the user created their own account',
   `user_is_created_by_system`                     boolean       COMMENT 'In user events: whether the user account was created by mediawiki',
   `user_is_created_by_peer`                       boolean       COMMENT 'In user events: whether the user account was created by another user',
-  `user_is_anonymous`                             boolean       COMMENT 'In user events: whether the user is not registered',
+  `user_is_anonymous`                             boolean       COMMENT 'In user events: whether the user is anonymous',
+  `user_is_temporary`                             boolean       COMMENT 'In user events: whether the user is temporary',
+  `user_is_permanent`                             boolean       COMMENT 'In user events: whether the user is permanent',
   `user_registration_timestamp`                   string        COMMENT 'In user events: Registration timestamp of the user (from the user table)',
   --`user_registration_timestamp`                   timestamp     COMMENT 'In user events: Registration timestamp of the user (from the user table)',
   `user_creation_timestamp`                       string        COMMENT 'In user events: Creation timestamp of the user (from the logging table)',
@@ -110,5 +115,5 @@ STORED AS INPUTFORMAT
 OUTPUTFORMAT
   'org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat'
 LOCATION
-  'hdfs://analytics-hadoop/wmf/data/wmf/mediawiki/history'
+  '${location}'
 ;
