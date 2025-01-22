@@ -22,6 +22,8 @@ CREATE TABLE IF NOT EXISTS ${destination_table} (
     `wiki_db`                         string COMMENT 'The wiki database the editors worked in',
     `country_code`                    string COMMENT 'The 2-letter ISO country code this group of editors geolocated to, including Unknown (--)',
     `users_are_anonymous`             int    COMMENT 'Whether or not this group of editors edited anonymously',
+    `users_are_temporary`             int    COMMENT 'Whether or not this group of editors are temporary',
+    `users_are_permanent`             int    COMMENT 'Whether or not this group of editors are permanent',
     `activity_level`                  string COMMENT 'How many edits this group of editors performed, can be "1 to 4", "5 to 99", or "100 or more"',
     `distinct_editors`                bigint COMMENT 'Number of editors meeting this activity level',
     `namespace_zero_distinct_editors` bigint COMMENT 'Number of editors meeting this activity level with only namespace zero edits'
@@ -36,6 +38,8 @@ SELECT /*+ COALESCE(1) */
     wiki_db,
     country_code,
     CASE WHEN users_are_anonymous THEN 1 ELSE 0 END AS users_are_anonymous,
+    CASE WHEN users_are_temporary THEN 1 ELSE 0 END AS users_are_temporary,
+    CASE WHEN users_are_permanent THEN 1 ELSE 0 END AS users_are_permanent,
     activity_level,
     distinct_editors,
     namespace_zero_distinct_editors
