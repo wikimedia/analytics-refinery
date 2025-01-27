@@ -35,8 +35,10 @@
               "tls_key_exchange",
               "tls_auth",
               "tls_cipher",
+              "tls_sess",
               "requestctl",
               "is_from_public_cloud",
+              "nocookies",
               "https"
           ]
         },
@@ -68,8 +70,10 @@
               "tls_key_exchange",
               "tls_auth",
               "tls_cipher",
+              "tls_sess",
               "requestctl",
               "is_from_public_cloud",
+              "nocookies",
               "https"
           ]
         },
