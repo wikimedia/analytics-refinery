@@ -2,6 +2,7 @@
 
 mediawiki_centralnotice_campaign_change: keep_all
 mediawiki_centralnotice_campaign_create: keep_all
+mediawiki_page_change_v1: keep_all
 mediawiki_page_create: keep_all
 mediawiki_page_delete: keep_all
 mediawiki_page_links_change: keep_all
