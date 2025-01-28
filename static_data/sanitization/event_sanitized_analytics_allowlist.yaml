@@ -864,8 +864,11 @@ mediawiki_product_metrics_wikifunctions_ui:
             value: keep
 
 mediawiki_product_metrics_wikifunctions_api:
+    action: keep
     agent:
         client_platform_family: keep
+    http:
+        status_code: keep
     meta:
         domain: keep
         dt: keep
@@ -881,12 +884,7 @@ mediawiki_product_metrics_wikifunctions_api:
         is_logged_in: keep
         pageview_id: hash
         session_id: hash
-    custom_data:
-        # Values are validated to ensure we only record non-private identifiers
-        function:
-            data_type: keep
-            value: keep
-        # All values are internally-generated numeric timings
-        total_time_ms:
-            data_type: keep
-            value: keep
+    # Values are validated to ensure we only record non-private identifiers
+    function: keep
+    # All values are internally-generated numeric timings
+    total_time_ms: keep
