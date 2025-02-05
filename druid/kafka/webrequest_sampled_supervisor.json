@@ -39,7 +39,8 @@
               "requestctl",
               "is_from_public_cloud",
               "nocookies",
-              "https"
+              "https",
+              "authorization"
           ]
         },
         "dimensionsSpec": {
@@ -74,7 +75,8 @@
               "requestctl",
               "is_from_public_cloud",
               "nocookies",
-              "https"
+              "https",
+              "authorization"
           ]
         },
         "timestampSpec" : {
