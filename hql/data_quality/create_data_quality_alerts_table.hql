@@ -18,7 +18,8 @@ CREATE EXTERNAL TABLE `data_quality_alerts` (
 )
 USING iceberg TBLPROPERTIES ('format-version'='2')
 PARTITIONED BY (
-    years(`partition_ts`)
+    years(`partition_ts`),
+    `source_table`          -- source_table partitioning helps concurrent writers not step on each other
 )
 LOCATION '${location}'
 ;
