@@ -825,6 +825,8 @@ mwcli_command_execute:
     version: keep
 
 mediawiki_product_metrics_wikifunctions_ui:
+    # action only gets a handful of string values such as 'create', 'edit', 'change', 'publish', 'call', 'view'
+    action: keep
     agent:
         client_platform_family: keep
     meta:
@@ -842,26 +844,12 @@ mediawiki_product_metrics_wikifunctions_ui:
         is_logged_in: keep
         pageview_id: hash
         session_id: hash
-    # All custom_data properties contain validated, non-private values
-    custom_data:
-        haserrors:
-            data_type: keep
-            value: keep
-        implementationtype:
-            data_type: keep
-            value: keep
-        selectedfunctionzid:
-            data_type: keep
-            value: keep
-        zobjectid:
-            data_type: keep
-            value: keep
-        zobjecttype:
-            data_type: keep
-            value: keep
-        viewname:
-            data_type: keep
-            value: keep
+    # The following Wikifunctions-specific properties contain validated, non-private values
+    haserrors: keep
+    implementationtype: keep
+    selectedfunctionzid: keep
+    zobjectid: keep
+    zobjecttype: keep
 
 mediawiki_product_metrics_wikifunctions_api:
     action: keep
