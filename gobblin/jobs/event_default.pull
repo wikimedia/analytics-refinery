@@ -32,5 +32,5 @@ bootstrap.with.offset=latest
 
 data.publisher.final.dir=/wmf/data/raw/event
 
-# Temporary - issue with recentchange data
-mapreduce.map.memory.mb=4096
+# Temporary: exclude mediawiki.recentchange topics
+topic.exclude=codfw.mediawiki.recentchange,eqiad.mediawiki.recentchange
