@@ -20,7 +20,9 @@ CREATE EXTERNAL TABLE `mediawiki_project_namespace_map`(
     `namespace_canonical_name`  string  COMMENT 'the english prefix if exists, otherwise the localized prefix',
     `namespace_localized_name`  string  COMMENT 'the localized prefix',
     `namespace_case_setting`    string  COMMENT 'Case setting for this namespace, example: case-sensitive',
-    `namespace_is_content`      int     COMMENT 'Whether this namespace is a content namespace'
+    `namespace_is_content`      int     COMMENT 'Whether this namespace is a content namespace',
+    `wiki_is_closed`            boolean COMMENT 'Closed wikis(project) are optionally included in this dataset, and flagged here as such',
+    `wiki_has_cloud_replica`    boolean COMMENT 'Whether wiki exists in cloud replica'
 )
 PARTITIONED BY (
   `snapshot` string COMMENT 'Versioning information to keep multiple datasets (YYYY-MM for regular labs imports)'

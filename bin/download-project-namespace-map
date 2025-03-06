@@ -47,12 +47,12 @@ import csv
 import logging
 import os
 import sys
+import pymysql
 
 from docopt import docopt
-from traceback import format_exc
 from tempfile import mkstemp
-from subprocess import check_call
-
+from subprocess import check_call, run, PIPE
+from refinery.util import  get_mediawiki_section_dbname_mapping, get_dbstore_host_port
 
 outfile = 'project_namespace_map.csv'
 
@@ -75,15 +75,20 @@ namespace_query = ''.join([
     '&siprop=general|namespaces',
 ])
 
+analytics_option_file = '/user/analytics/mysql-analytics-research-client-pw.txt'
+cloud_option_file = '/user/analytics/mysql-analytics-labsdb-client-pw.txt'
+analytics_user = 'research'
+cloud_user = 's53272'
+
 if __name__ == '__main__':
     # parse arguments
     arguments = docopt(__doc__)
-    verbose         = arguments['--verbose']
-    outfile         = arguments['--output-file']
-    outhdfs         = arguments['--output-hdfs']
-    closed          = arguments['--include-closed']
-    snapshot        = arguments['--snapshot']
-    proxy           = arguments['--proxy']
+    verbose = arguments['--verbose']
+    outfile = arguments['--output-file']
+    outhdfs = arguments['--output-hdfs']
+    closed = arguments['--include-closed']
+    snapshot = arguments['--snapshot']
+    proxy = arguments['--proxy']
 
     # If we're outputting to hdfs, output to a temp file and copy up
     output_to_hdfs = outhdfs is not None
@@ -102,6 +107,15 @@ if __name__ == '__main__':
 
 
 def get_wikis(closed):
+    """
+    Retrieves a list of Wikimedia wikis from the sitematrix API.
+
+    Args:
+        closed (bool): Whether to include closed wikis.
+
+    Returns:
+        list[dict]: A list of wiki metadata dictionaries.
+    """
     matrix = requests.get(
         wikis_query,
         headers=headers,
@@ -130,13 +144,94 @@ def get_wikis(closed):
     ]
 
 
+def get_password(path, cache, key):
+    """
+    Retrieve and cache Databases password from HDFS.
+
+    Args:
+        path (str): HDFS path to password file.
+        cache (dict): Shared cache dict. Db_replica_id -> password
+        key (str): Cache key.
+
+    Returns:
+        str: Password.
+    """
+    if key not in cache:
+        logging.debug(f"Loading password from {path}")
+        cmd = f'hdfs dfs -cat {path}'
+        result = run(cmd, shell=True, stdout=PIPE, stderr=PIPE, universal_newlines=True)
+        if result.returncode != 0:
+            raise RuntimeError(f"Failed to read password from {path}: {result.stderr}")
+        cache[key] = result.stdout.strip()
+    return cache[key]
+
+def db_has_tables(hostname, port, user, password, db):
+    """
+    Check if the given wiki_db has tables in database replica.
+    If no tables then wiki_db doesn't exist in the replica.
+
+    Args:
+        hostname (str): DB host.
+        port (int): DB port.
+        user (str): DB user.
+        password (str): DB password.
+        db (str): Database name.
+
+    Returns:
+        bool: True if tables exist, False otherwise.
+    """
+    try:
+        with pymysql.connect(
+                host=hostname,
+                port=int(port),
+                user=user,
+                password=password,
+                db=db,
+                connect_timeout=5
+        ) as conn:
+            with conn.cursor() as cur:
+                cur.execute("SHOW TABLES")
+                return bool(cur.fetchall())
+    except Exception as e:
+        logging.warning(f"DB {db} does not exists on {hostname}: {e}")
+        return False
+
+def check_cloud(db, db_mapping, passwd_cache={}):
+    """
+    Checks whether a given database exists in both analytics and cloud replicas.
+
+    Args:
+        db (str): The database name (e.g. 'enwiki').
+        db_mapping (dict): Mapping of dbname keys to
+            mediawiki database section values
+        passwd_cache (dict): Cache for replicas passwords.
+
+    Returns:
+       bool: True if the DB exists in both analytics and cloud replicas, False otherwise.
+   """
+
+    analytics_host, analytics_port = get_dbstore_host_port(False, db, False, db_mapping)
+    cloud_host, cloud_port = get_dbstore_host_port(False, db, True, db_mapping)
+
+    analytics_passwd = get_password(analytics_option_file, passwd_cache, 'analytics')
+    cloud_passwd = get_password(cloud_option_file, passwd_cache, 'cloud')
+
+    return (
+            db_has_tables(analytics_host, analytics_port, analytics_user, analytics_passwd, db)
+            and db_has_tables(cloud_host, cloud_port, cloud_user, cloud_passwd, f"{db}_p")
+    )
+
+logging.info('Fetching wiki database to section value mappings')
+
+wikidb_mapping=get_mediawiki_section_dbname_mapping()
+
 wikis = get_wikis(closed)
 namespaceDictionary = {}
 
 logging.info('Fetching namespace info for {} wikis'.format(len(wikis)))
 
 ###
-# Writes mapping as: (hostname, dbname, ns integer, ns canonical, ns localized, content)
+# Writes mapping as: (hostname, dbname, ns integer, ns canonical, ns localized, content, is closed, has cloud replica)
 # hostname      : ja.wikipedia.org
 # language      : ja
 # sitename      : Wikipedia
@@ -148,9 +243,12 @@ logging.info('Fetching namespace info for {} wikis'.format(len(wikis)))
 # ns canonical  : the english prefix if exists, otherwise the localized prefix
 # ns localized  : the localized prefix
 # content       : whether or not this namespace is a content namespace
+# is closed     : whether or not the wiki of this dbname is close down.
+# has cloud replica : whether or not this dbname exists in cloud replica (i.e should be ingested)
 ###
 
 wiki_mappings_written = 0
+passwd_cache = {}
 
 with open(outfile, 'w', encoding='utf-8') as w:
     spamwriter = csv.writer(w)
@@ -161,6 +259,7 @@ with open(outfile, 'w', encoding='utf-8') as w:
         lang = wiki.get('lang', '')
         host = site.replace('https://', '')
         dbname = wiki.get('dbname', host)
+        is_closed = 'closed' in wiki
         try:
             r = requests.get(site + namespace_query, headers=headers, proxies=proxies)
             query = json.loads(r.text)['query']
@@ -169,6 +268,7 @@ with open(outfile, 'w', encoding='utf-8') as w:
             mw_version = general.get('generator', 'Unknown MediaWiki Version')
             case_setting = general.get('case', 'uknown case')
             ns = query['namespaces']
+            has_cloud_replica = check_cloud(dbname, wikidb_mapping)
 
             for ns_key, v in ns.items():
                 is_content = 0
@@ -188,6 +288,8 @@ with open(outfile, 'w', encoding='utf-8') as w:
                     v.get('*', ''),
                     v.get('case', 'unknown case'),
                     is_content,
+                    is_closed,
+                    has_cloud_replica,
                 ]
                 spamwriter.writerow(row)
                 wiki_mappings_written += 1
