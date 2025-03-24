@@ -20,10 +20,10 @@
 --   - If count_duplicate is > 0, there are that many duplicates.
 --   - If count_duplicate is < 0, something is broken :-)
 --
--- Note that statistics do not consider records with a missing timestamp
--- (dt='-'), because they may break sequence numbers and cause false alarms.
--- The column count_incomplete indicates how many records have an
--- undefined timestamp (dt='-'), so that subsequent jobs can alert on that.
+-- Note that statistics do not consider bad-requests records
+-- because their sequence number is 0 nad breaks the algorithm.
+-- The column count_bad_requests indicates how many records are in
+-- such a state so that subsequent jobs can alert on that.
 --
 -- Parameters:
 --     source_table      -- Fully qualified table name to compute the
@@ -82,15 +82,15 @@ WITH
         WHERE
             webrequest_source='${webrequest_source}' AND
             year=${year} AND month=${month} AND day=${day} AND hour=${hour} AND
-            dt != '-'
+            http_method != '<BADREQ>'
         GROUP BY
             hostname, server_pid, webrequest_source, year, month, day, hour
     ),
-    undefined AS (
+    bad_requests AS (
         SELECT
             hostname,
             cast(server_pid as BIGINT),
-            SUM(IF(dt='-',1,0)) AS count_incomplete
+            SUM(IF(http_method='<BADREQ>',1,0)) AS count_bad_requests
         FROM
             ${source_table}
         WHERE
@@ -108,8 +108,8 @@ PARTITION (
     hour=${hour}
 )
 SELECT /*+ COALESCE(1) */
-    undefined.hostname,
-    cast(undefined.server_pid as BIGINT),
+    bad_requests.hostname,
+    cast(bad_requests.server_pid as BIGINT),
     sequence_min,
     sequence_max,
     count_actual,
@@ -118,7 +118,7 @@ SELECT /*+ COALESCE(1) */
     count_duplicate,
     count_null_sequence,
     percent_different,
-    count_incomplete
+    count_bad_requests
 FROM statistics
-RIGHT JOIN undefined USING(hostname, server_pid)
+RIGHT JOIN bad_requests USING(hostname, server_pid)
 ;

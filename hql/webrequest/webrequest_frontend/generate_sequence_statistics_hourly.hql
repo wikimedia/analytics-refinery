@@ -40,7 +40,7 @@ with stats as (
         SUM(count_null_sequence)                                AS count_null_sequence,
         SUM(count_duplicate)                                    AS count_duplicate,
         SUM(count_different) + SUM(count_duplicate)             AS count_lost,
-        SUM(COALESCE(count_incomplete, 0))                      AS count_incomplete
+        SUM(COALESCE(count_bad_requests, 0))                    AS count_bad_requests
     FROM ${source_table}
     WHERE
         webrequest_source='${webrequest_source}'
@@ -72,5 +72,5 @@ SELECT /*+ COALESCE(1) */
     count_lost,
     ROUND(((count_duplicate / count_expected) * 100.0), 8)  AS percent_duplicate,
     ROUND(((count_lost      / count_expected) * 100.0), 8)  AS percent_lost,
-    count_incomplete
+    count_bad_requests
 FROM stats;
