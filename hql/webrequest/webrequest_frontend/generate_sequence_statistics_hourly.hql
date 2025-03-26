@@ -48,12 +48,6 @@ with stats as (
         AND month=${month}
         AND day=${day}
         AND hour=${hour}
-        -- sequence_min == 0 means VarnishKafka restarted.
-        -- Even though it skews results, don't include hosts
-        -- with reset sequence numbers in these results, as
-        -- they are a common cause of false positives in percent_loss and
-        -- percent_duplicate.
-        AND sequence_min <> 0
     GROUP BY webrequest_source, year, month, day, hour
 )
 INSERT OVERWRITE TABLE ${destination_table}
