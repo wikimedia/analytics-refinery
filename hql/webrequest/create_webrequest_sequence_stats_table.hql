@@ -18,7 +18,7 @@ CREATE TABLE `webrequest_sequence_stats`(
     `count_duplicate`     bigint  COMMENT 'Number of duplicate sequences for this hostname in this hour',
     `count_null_sequence` bigint  COMMENT 'Sanity check for number of records where sequence is NULL.',
     `percent_different`   double  COMMENT 'Difference in percent between count_expected and count_actual.',
-    `count_incomplete`    bigint  COMMENT 'Number of records missing critical fields, probably due to logging errors from the caching-traffic layer'
+    `count_bad_requests`  bigint  COMMENT 'Number of bad-requests records'
 )
 PARTITIONED BY (
     `webrequest_source`   string  COMMENT 'Source cluster',

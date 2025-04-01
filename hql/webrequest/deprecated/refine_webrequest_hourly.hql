@@ -32,19 +32,19 @@
 --         --driver-cores 1 \
 --         --conf spark.dynamicAllocation.maxExecutors=128 \
 --         --name test-refine-webrequest-hourly \
---         -f refine_webrequest_frontend_hourly.hql \
---         -d refinery_jar=hdfs:///wmf/refinery/current/artifacts/org/wikimedia/analytics/refinery/refinery-hive-0.2.49-shaded.jar \
+--         -f refine_webrequest_hourly.hql \
+--         -d refinery_jar=hdfs:///wmf/refinery/current/artifacts/org/wikimedia/analytics/refinery/refinery-hive-0.2.13-shaded.jar \
 --         -d source_table=wmf_raw.webrequest \
 --         -d destination_table=my_user.webrequest \
 --         -d webrequest_source=text \
---         -d record_version=0.0.27 \
+--         -d record_version=0.0.1 \
 --         -d coalesce_partitions=256 \
 --         -d spark_sql_shuffle_partitions=256 \
 --         -d excluded_row_ids= \
---         -d year=2024 \
---         -d month=11 \
---         -d day=07 \
---         -d hour=14
+--         -d year=2022 \
+--         -d month=12 \
+--         -d day=30 \
+--         -d hour=1
 
 
 ADD JAR ${refinery_jar};
@@ -75,7 +75,7 @@ SET spark.sql.shuffle.partitions = ${spark_sql_shuffle_partitions};
 -- Finally the not-reused fields are computed. And the data is written as parquet to the partition folder.
 --
 -- When adding new fields:
---  * fields imported from the wmf_raw.webrequest_frontend table need to be included in the two CTEs and the main SELECT
+--  * fields imported from the wmf_raw.webrequest table need to be included in the two CTEs and the main SELECT
 --  * fields computed from fields already present in the distinct_rows CTE and reused multiple times in the main select
 --    need to be added to the distinct_rows_and_reused_fields CTE, to be reused in the main SELECT
 --  * fields computed from fields already present in any CTE and used a single time in the main select need to be added
@@ -86,53 +86,52 @@ WITH excluded_rows AS (
         substr(row_id, 0, locate(',', row_id) - 1) AS excluded_hostname,
         cast(substr(row_id, locate(',', row_id) + 1, length(row_id)) AS BIGINT) AS excluded_sequence
     FROM (
-             SELECT explode(array(${excluded_row_ids})) AS row_id
-         )
+        SELECT explode(array(${excluded_row_ids})) AS row_id
+    )
 ),
 
-     distinct_rows AS (
+distinct_rows AS (
 
-         SELECT /*+ BROADCAST(excluded_rows) */ DISTINCT
-             accept,
-             accept_language,
-             backend,
-             cache_status,
-             content_type,
-             dt,
-             hostname,
-             http_method,
-             http_status,
-             ip,
-             range,
-             referer,
-             response_size,
-             sequence,
-             time_firstbyte,
-             tls,
-             uri_host,
-             uri_path,
-             uri_query,
-             user_agent,
-             webrequest_source,
-             x_analytics,
-             x_cache,
-             ch_ua,
-             ch_ua_mobile,
-             ch_ua_platform,
-             ch_ua_arch,
-             ch_ua_bitness,
-             ch_ua_full_version_list,
-             ch_ua_model,
-             ch_ua_platform_version
-         FROM
-             ${source_table}
-             LEFT ANTI JOIN excluded_rows
-         ON hostname = excluded_hostname AND sequence = excluded_sequence
-         WHERE
-             webrequest_source='${webrequest_source}' -- not a partition column in raw (json) table.
-           AND year=${year} AND month=${month} AND day=${day} AND hour=${hour}
+    SELECT /*+ BROADCAST(excluded_rows) */ DISTINCT
+        hostname,
+        sequence,
+        dt,
+        time_firstbyte,
+        ip,
+        cache_status,
+        http_status,
+        response_size,
+        http_method,
+        uri_host,
+        uri_path,
+        uri_query,
+        content_type,
+        referer,
+        x_forwarded_for,
+        user_agent,
+        accept_language,
+        x_analytics,
+        `range`,
+        x_cache,
+        accept,
+        tls,
+        ch_ua,
+        ch_ua_mobile,
+        ch_ua_platform,
+        ch_ua_arch,
+        ch_ua_bitness,
+        ch_ua_full_version_list,
+        ch_ua_model,
+        ch_ua_platform_version
+    FROM
+        ${source_table}
+    LEFT ANTI JOIN excluded_rows
+      ON hostname = excluded_hostname AND sequence = excluded_sequence
+    WHERE
+        webrequest_source='${webrequest_source}' AND
+        year=${year} AND month=${month} AND day=${day} AND hour=${hour}
 
-     ), distinct_rows_and_x_analytics_map AS (
+), distinct_rows_and_x_analytics_map AS (
 
     SELECT
         distinct_rows.*,
@@ -145,13 +144,13 @@ WITH excluded_rows AS (
 
 ), distinct_rows_and_reused_fields AS (
 
-    SELECT
-        distinct_rows_and_x_analytics_map.*,
-        -- Materialize reused computed fields
-        is_pageview(uri_host, uri_path, uri_query, http_status, content_type, user_agent, x_analytics_map) as is_pageview,
-        is_redirect_to_pageview(uri_host, uri_path, uri_query, http_status, content_type, user_agent, x_analytics_map) AS is_redirect_to_pageview,
-        ua_parser(user_agent) as user_agent_map
-    FROM distinct_rows_and_x_analytics_map
+     SELECT
+         distinct_rows_and_x_analytics_map.*,
+         -- Materialize reused computed fields
+         is_pageview(uri_host, uri_path, uri_query, http_status, content_type, user_agent, x_analytics_map) AS is_pageview,
+         is_redirect_to_pageview(uri_host, uri_path, uri_query, http_status, content_type, user_agent, x_analytics_map) AS is_redirect_to_pageview,
+         ua_parser(user_agent) AS user_agent_map
+     FROM distinct_rows_and_x_analytics_map
 
 )
 
@@ -167,14 +166,14 @@ SELECT /*+ COALESCE(${coalesce_partitions}) */
     http_status,
     response_size,
     http_method,
-    uri_host,   -- TODO: is NULL a valid uri value?. Coalesce to "" before calling UDFs.
-    uri_path,   -- TODO: is NULL a valid uri value?. Coalesce to "" before calling UDFs.
-    uri_query,  -- TODO: is NULL a valid uri value?. Coalesce to "" before calling UDFs.
+    uri_host,
+    uri_path,
+    uri_query,
     content_type,
     referer,
-    "", -- x_forwarded_for, deprecated.
-    user_agent, -- TODO: is NULL a valid ua value?. Coalesce to "" before calling UDFs.
-    lower(accept_language), -- Lowercase haproxy log entries for backward compat with varnishkafka format.
+    x_forwarded_for,
+    user_agent,
+    accept_language,
     x_analytics,
     `range`,
     is_pageview,
@@ -186,9 +185,9 @@ SELECT /*+ COALESCE(${coalesce_partitions}) */
     user_agent_map,
     x_analytics_map,
     CAST(unix_timestamp(dt, "yyyy-MM-dd'T'HH:mm:ssX") as timestamp) as ts,
-    get_access_method(coalesce(uri_host, ""), coalesce(user_agent, "")) as access_method,
+    get_access_method(uri_host, user_agent) as access_method,
     CASE
-        WHEN ((user_agent_map['device_family'] = 'Spider') OR (is_spider(coalesce(user_agent, "")))) THEN 'spider'
+        WHEN ((user_agent_map['device_family'] = 'Spider') OR (is_spider(user_agent))) THEN 'spider'
         ELSE 'user'
         END as agent_type,
     NULL as is_zero,
@@ -200,7 +199,7 @@ SELECT /*+ COALESCE(${coalesce_partitions}) */
         END as pageview_info,
     CAST(x_analytics_map['page_id'] AS BIGINT) as page_id,
     CAST(x_analytics_map['ns'] AS BIGINT) as namespace_id,
-    get_tags(coalesce(uri_host, ""), coalesce(uri_path, ""), coalesce(uri_query, ""), http_status, coalesce(content_type, ""), coalesce(user_agent, ""), x_analytics_map) as tags,
+    get_tags(uri_host, uri_path, uri_query, http_status, content_type, user_agent, x_analytics_map) as tags,
     isp_data(ip) as isp_data,
     accept,
     tls,

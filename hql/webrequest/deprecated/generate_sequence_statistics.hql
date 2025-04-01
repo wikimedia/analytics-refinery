@@ -1,10 +1,6 @@
 -- Selects stats about sequence numbers in the webrequest
--- table grouped by hostname and haproxy_pid and inserts them into a table.
+-- table grouped by hostname and inserts them into a table.
 --
--- Haproxy processes might share requests upon reloads,
--- resulting in duplicate sequence number on a given host.
--- Gropuing by hostanme and haproxy_pid should deduplicate
--- sequence numbers. See T351117 for details.
 -- These stats can be queried to infer how complete a
 -- certain host's webrequest logs are for a certain hour.
 -- If percent_different == 0.0, then most likely all is
@@ -20,10 +16,10 @@
 --   - If count_duplicate is > 0, there are that many duplicates.
 --   - If count_duplicate is < 0, something is broken :-)
 --
--- Note that statistics do not consider bad-requests records
--- because their sequence number is 0 nad breaks the algorithm.
--- The column count_bad_requests indicates how many records are in
--- such a state so that subsequent jobs can alert on that.
+-- Note that statistics do not consider records with a missing timestamp
+-- (dt='-'), because they may break sequence numbers and cause false alarms.
+-- The column count_incomplete indicates how many records have an
+-- undefined timestamp (dt='-'), so that subsequent jobs can alert on that.
 --
 -- Parameters:
 --     source_table      -- Fully qualified table name to compute the
@@ -57,18 +53,18 @@
 --         --conf spark.dynamicAllocation.maxExecutors=128 \
 --         --name test-generate-sequence-statistics \
 --         -f generate_sequence_statistics.hql \
---         -d source_table=wmf_raw.webrequest_frontend \
---         -d destination_table=user.webrequest_frontend_sequence_stats \
+--         -d source_table=wmf_raw.webrequest \
+--         -d destination_table=user.webrequest_sequence_stats \
 --         -d webrequest_source=text \
 --         -d year=2018 \
 --         -d month=5 \
 --         -d day=12 \
 --         -d hour=1
+
 WITH
     statistics AS (
         SELECT
             hostname,
-            cast(server_pid as BIGINT),
             MIN(sequence)                                                  AS sequence_min,
             MAX(sequence)                                                  AS sequence_max,
             COUNT(*)                                                       AS count_actual,
@@ -82,23 +78,24 @@ WITH
         WHERE
             webrequest_source='${webrequest_source}' AND
             year=${year} AND month=${month} AND day=${day} AND hour=${hour} AND
-            http_method != '<BADREQ>'
+            dt != '-'
         GROUP BY
-            hostname, server_pid, webrequest_source, year, month, day, hour
+            hostname, webrequest_source, year, month, day, hour
     ),
-    bad_requests AS (
+
+    undefined AS (
         SELECT
             hostname,
-            cast(server_pid as BIGINT),
-            SUM(IF(http_method='<BADREQ>',1,0)) AS count_bad_requests
+            SUM(IF(dt='-',1,0)) AS count_incomplete
         FROM
             ${source_table}
         WHERE
             webrequest_source='${webrequest_source}' AND
             year=${year} AND month=${month} AND day=${day} AND hour=${hour}
         GROUP BY
-            hostname, server_pid, webrequest_source, year, month, day, hour
+            hostname, webrequest_source, year, month, day, hour
     )
+
 INSERT OVERWRITE TABLE ${destination_table}
 PARTITION (
     webrequest_source='${webrequest_source}',
@@ -108,8 +105,7 @@ PARTITION (
     hour=${hour}
 )
 SELECT /*+ COALESCE(1) */
-    bad_requests.hostname,
-    cast(bad_requests.server_pid as BIGINT),
+    undefined.hostname,
     sequence_min,
     sequence_max,
     count_actual,
@@ -118,7 +114,7 @@ SELECT /*+ COALESCE(1) */
     count_duplicate,
     count_null_sequence,
     percent_different,
-    count_bad_requests
+    count_incomplete
 FROM statistics
-RIGHT JOIN bad_requests USING(hostname, server_pid)
+RIGHT JOIN undefined USING(hostname)
 ;

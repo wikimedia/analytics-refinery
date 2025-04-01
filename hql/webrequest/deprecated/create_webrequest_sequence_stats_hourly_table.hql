@@ -4,11 +4,11 @@
 --     database: should be wmf_raw
 --
 -- Usage
---     spark3-sql -f create_webrequest_frontend_sequence_stats_hourly_table.hql \
+--     spark3-sql -f create_webrequest_sequence_stats_hourly_table.hql \
 --       --database user1
 --
 
-CREATE TABLE `webrequest_frontend_sequence_stats_hourly`(
+CREATE TABLE `webrequest_sequence_stats_hourly`(
     `count_actual`           bigint COMMENT 'Actual number of records for this hour',
     `count_expected`         bigint COMMENT 'Expected number of records for this hour',
     `count_null_sequence`    bigint COMMENT 'Number of records where sequence is NULL for this hour',
@@ -16,7 +16,7 @@ CREATE TABLE `webrequest_frontend_sequence_stats_hourly`(
     `count_lost`             bigint COMMENT 'Number of (approximate) missing records in this hour',
     `percent_duplicate`      double COMMENT 'Percent duplicate records in this hour',
     `percent_lost`           double COMMENT 'Percent lost records in this hour',
-    `count_bad_requests`     bigint COMMENT 'Number of bad-requests records'
+    `count_incomplete`       bigint COMMENT 'Number of records missing critical fields, probably due to logging errors from the caching-traffic layer'
 )
 PARTITIONED BY (
     `webrequest_source`   string  COMMENT 'Source cluster',

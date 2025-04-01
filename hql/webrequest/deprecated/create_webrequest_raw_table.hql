@@ -12,9 +12,8 @@
 --       --database user1
 --
 
-CREATE EXTERNAL TABLE IF NOT EXISTS `webrequest` (
+CREATE EXTERNAL TABLE IF NOT EXISTS `webrequest_raw` (
     `hostname`                string  COMMENT 'Source node hostname',
-    `server_pid`              string  COMMENT 'ID of the process (currently, haproxy) that handled this request',
     `sequence`                bigint  COMMENT 'Per host sequence number',
     `dt`                      string  COMMENT 'Timestamp at cache in ISO 8601',
     `time_firstbyte`          double  COMMENT 'Time to first byte',
@@ -54,5 +53,5 @@ ROW FORMAT SERDE
     'org.apache.hive.hcatalog.data.JsonSerDe'
 STORED AS TEXTFILE
 LOCATION
-    'hdfs://analytics-hadoop/wmf/data/raw/webrequest_frontend'
+    'hdfs://analytics-hadoop/wmf/data/raw/webrequest'
 ;

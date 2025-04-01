@@ -14,7 +14,6 @@
 
 CREATE EXTERNAL TABLE IF NOT EXISTS `webrequest`(
     `hostname`                string  COMMENT 'Source node hostname',
-    `server_pid`              string  COMMENT 'ID of the process (currently, haproxy) that handled this request',
     `sequence`                bigint  COMMENT 'Per host sequence number',
     `dt`                      string  COMMENT 'Timestamp at cache in ISO 8601',
     `time_firstbyte`          double  COMMENT 'Time to first byte',
@@ -77,6 +76,6 @@ PARTITIONED BY (
     `hour`              int     COMMENT 'Unpadded hour of request'
 )
 STORED AS PARQUET
-LOCATION 'hdfs://analytics-hadoop/wmf/data/wmf/webrequest'
+LOCATION 'hdfs://analytics-hadoop/wmf/data/wmf/webrequest_deprecated'
 ;
 

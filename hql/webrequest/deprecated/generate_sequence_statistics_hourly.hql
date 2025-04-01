@@ -12,7 +12,7 @@
 --     day               -- day of partition to compute statistics for.
 --     hour              -- hour of partition to compute statistics for.
 --
--- [1] hql/webrequest/create_webrequest_frontend_sequence_stats_hourly_table.hql
+-- [1] hql/webrequest/create_webrequest_sequence_stats_hourly_table.hql
 --
 -- Usage example:
 --     spark3-sql \
@@ -24,8 +24,8 @@
 --         --conf spark.dynamicAllocation.maxExecutors=128 \
 --         --name test-generate-sequence-statistics-hourly \
 --         -f generate_sequence_statistics_hourly.hql \
---         -d source_table=wmf_raw.webrequest_frontend_sequence_stats \
---         -d destination_table=user.webrequest_frontend_sequence_stats_hourly \
+--         -d source_table=wmf_raw.webrequest_sequence_stats \
+--         -d destination_table=user.webrequest_sequence_stats_hourly \
 --         -d webrequest_source=text \
 --         -d year=2018 \
 --         -d month=5 \
@@ -40,7 +40,7 @@ with stats as (
         SUM(count_null_sequence)                                AS count_null_sequence,
         SUM(count_duplicate)                                    AS count_duplicate,
         SUM(count_different) + SUM(count_duplicate)             AS count_lost,
-        SUM(COALESCE(count_bad_requests, 0))                    AS count_bad_requests
+        SUM(COALESCE(count_incomplete, 0))                      AS count_incomplete
     FROM ${source_table}
     WHERE
         webrequest_source='${webrequest_source}'
@@ -48,6 +48,12 @@ with stats as (
         AND month=${month}
         AND day=${day}
         AND hour=${hour}
+        -- sequence_min == 0 means VarnishKafka restarted.
+        -- Even though it skews results, don't include hosts
+        -- with reset sequence numbers in these results, as
+        -- they are a common cause of false positives in percent_loss and
+        -- percent_duplicate.
+        AND sequence_min <> 0
     GROUP BY webrequest_source, year, month, day, hour
 )
 INSERT OVERWRITE TABLE ${destination_table}
@@ -66,5 +72,5 @@ SELECT /*+ COALESCE(1) */
     count_lost,
     ROUND(((count_duplicate / count_expected) * 100.0), 8)  AS percent_duplicate,
     ROUND(((count_lost      / count_expected) * 100.0), 8)  AS percent_lost,
-    count_bad_requests
+    count_incomplete
 FROM stats;

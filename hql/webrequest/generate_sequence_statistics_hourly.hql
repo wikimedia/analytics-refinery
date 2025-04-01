@@ -40,7 +40,7 @@ with stats as (
         SUM(count_null_sequence)                                AS count_null_sequence,
         SUM(count_duplicate)                                    AS count_duplicate,
         SUM(count_different) + SUM(count_duplicate)             AS count_lost,
-        SUM(COALESCE(count_incomplete, 0))                      AS count_incomplete
+        SUM(COALESCE(count_bad_requests, 0))                    AS count_bad_requests
     FROM ${source_table}
     WHERE
         webrequest_source='${webrequest_source}'
@@ -48,12 +48,6 @@ with stats as (
         AND month=${month}
         AND day=${day}
         AND hour=${hour}
-        -- sequence_min == 0 means VarnishKafka restarted.
-        -- Even though it skews results, don't include hosts
-        -- with reset sequence numbers in these results, as
-        -- they are a common cause of false positives in percent_loss and
-        -- percent_duplicate.
-        AND sequence_min <> 0
     GROUP BY webrequest_source, year, month, day, hour
 )
 INSERT OVERWRITE TABLE ${destination_table}
@@ -72,5 +66,5 @@ SELECT /*+ COALESCE(1) */
     count_lost,
     ROUND(((count_duplicate / count_expected) * 100.0), 8)  AS percent_duplicate,
     ROUND(((count_lost      / count_expected) * 100.0), 8)  AS percent_lost,
-    count_incomplete
+    count_bad_requests
 FROM stats;

@@ -94,6 +94,7 @@ distinct_rows AS (
 
     SELECT /*+ BROADCAST(excluded_rows) */ DISTINCT
         hostname,
+        server_pid,
         sequence,
         dt,
         time_firstbyte,
@@ -158,6 +159,7 @@ INSERT OVERWRITE TABLE ${destination_table}
 PARTITION(webrequest_source='${webrequest_source}', year=${year}, month=${month}, day=${day}, hour=${hour})
 SELECT /*+ COALESCE(${coalesce_partitions}) */
     hostname,
+    server_pid,
     sequence,
     dt,
     time_firstbyte,

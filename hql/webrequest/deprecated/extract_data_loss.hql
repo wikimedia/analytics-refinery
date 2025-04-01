@@ -8,7 +8,7 @@
 --     source_table               -- Fully qualified table name containing the hourly statistics to read.
 --     target                     -- HDFS Path where to write the file. If this path exists, it will get overwritten.
 --                                   In production, it should include the full HDFS url `hdfs://name_node/...`.
---     bad_requests_threshold     -- The threshold for bad-requests not to be above in %.
+--     incomplete_data_threshold  -- The threshold for incomplete data not to be above in %.
 --     data_loss_threshold        -- The threshold for data loss not to be above in %.
 --     webrequest_source          -- webrequest_source for the partition to check data loss for.
 --     year                       -- year for the partition to check data loss for.
@@ -28,7 +28,7 @@
 --         -f extract_data_loss.hql \
 --         -d source_table=wmf_raw.webrequest_sequence_stats_hourly \
 --         -d target=hdfs:///user/user1/extract_data_loss \
---         -d bad_requests_threshold=2 \
+--         -d incomplete_data_threshold=2 \
 --         -d data_loss_threshold=2 \
 --         -d webrequest_source=text \
 --         -d year=2023 \
@@ -48,10 +48,10 @@ WITH
             webrequest_source='${webrequest_source}' AND
             year=${year} AND month=${month} AND day=${day} AND hour=${hour}
     ),
-    bad_requests AS (
+    incomplete_data AS (
         SELECT
-            count_bad_requests AS count,
-            ((count_bad_requests / (count_actual + count_bad_requests)) * 100.0) AS `percent`
+            count_incomplete AS count,
+            ((count_incomplete / (count_actual + count_incomplete)) * 100.0) AS `percent`
         FROM
             ${source_table}
         WHERE
@@ -67,13 +67,13 @@ OPTIONS (
     'delimiter' '\\t'
 )
 SELECT /*+ COALESCE(1) */
-    bad_requests.count || ' bad-requests' as `bad_requests`,
-    ROUND(bad_requests.`percent`,    3) || '% bad-requests to total' as `bad_requests_proportion`,
+    incomplete_data.count || ' incomplete requests' as `requests_with_incomplete_records`,
+    ROUND(incomplete_data.`percent`, 3) || '% incomplete requests to total' as `requests_with_incomplete_records_proportion`,
     data_loss.count || ' lost requests' as lost_requests,
     ROUND(data_loss.`percent`, 3) || '% lost request to valid requests' as lost_request_proportion
 FROM
-    data_loss, bad_requests
+    data_loss, incomplete_data
 WHERE
     data_loss.`percent` > ${data_loss_threshold} OR
-    bad_requests.`percent`    > ${bad_requests_threshold}
+    incomplete_data.`percent` > ${incomplete_data_threshold}
 ;
