@@ -10,6 +10,7 @@
 
 CREATE TABLE `webrequest_sequence_stats`(
     `hostname`            string  COMMENT 'Source node hostname',
+    `server_pid`          string  COMMENT 'ID of the process (currently, haproxy) that handled this request',
     `sequence_min`        bigint  COMMENT 'Min sequence found for this hostname in this hour',
     `sequence_max`        bigint  COMMENT 'Max sequence found for this hostname in this hour',
     `count_actual`        bigint  COMMENT 'Actual number of records for this hostname in this hour',
