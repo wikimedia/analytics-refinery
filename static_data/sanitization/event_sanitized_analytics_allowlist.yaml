@@ -876,3 +876,38 @@ mediawiki_product_metrics_wikifunctions_api:
     function: keep
     # All values are internally-generated numeric timings
     total_time_ms: keep
+
+mediawiki_product_metrics_translation_mint_for_readers:
+    action: keep
+    action_subtype: keep
+    action_source: keep
+    agent:
+        client_platform_family: keep
+    mediawiki:
+        database: keep
+    meta:
+        domain: keep
+        dt: keep
+    page:
+        content_language: keep
+    performer:
+        session_id: hash
+        name: hash
+        is_bot: keep
+        is_logged_in: keep
+        edit_count_bucket: keep
+        groups: keep
+        registration_dt: keep
+        is_temp: keep
+        language: keep
+        language_variant: keep
+        pageview_id: hash
+    translation:
+        source_id: keep
+        source_title: keep
+        source_type: keep
+        source_language: keep
+        target_id: keep
+        target_title: keep
+        target_type: keep
+        target_language: keep
