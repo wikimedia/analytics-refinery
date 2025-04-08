@@ -47,6 +47,19 @@ WITH total_pageviews_per_category_per_scope_per_wiki AS (
         year_month
 ),
 
+total_pageviews_per_category_per_scope AS (
+    SELECT
+        category,
+        category_scope,
+        SUM(pageview_count) as pageview_count,
+        year_month
+    FROM total_pageviews_per_category_per_scope_per_wiki
+    GROUP BY
+        category,
+        category_scope,
+        year_month
+),
+
 top_ranked_total_pageviews_per_scope_per_wiki AS (
     SELECT *
     FROM (
@@ -74,7 +87,7 @@ top_ranked_total_pageviews_per_scope AS (
             year_month,
             RANK()       over (PARTITION BY category_scope ORDER BY pageview_count DESC) AS rank,
             ROW_NUMBER() over (PARTITION BY category_scope ORDER BY pageview_count DESC) AS row_number
-        FROM total_pageviews_per_category_per_scope_per_wiki
+        FROM total_pageviews_per_category_per_scope
     )
     WHERE row_number <= 100
 ),
