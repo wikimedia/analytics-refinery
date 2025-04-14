@@ -59,6 +59,19 @@ exploded_categories AS (
     FROM total_pageviews_per_media_file_per_wiki
 ),
 
+exploded_categories_all_wikis AS (
+    SELECT
+        media_file,
+        category,
+        SUM(pageview_count) AS pageview_count,
+        year_month
+    FROM exploded_categories
+    GROUP BY
+        media_file,
+        category,
+        year_month
+),
+
 exploded_primary_categories AS (
     SELECT
         media_file,
@@ -67,6 +80,19 @@ exploded_primary_categories AS (
         pageview_count,
         year_month
     FROM total_pageviews_per_media_file_per_wiki
+),
+
+exploded_primary_categories_all_wikis AS (
+    SELECT
+        media_file,
+        category,
+        SUM(pageview_count) AS pageview_count,
+        year_month
+    FROM exploded_primary_categories
+    GROUP BY
+        media_file,
+        category,
+        year_month
 ),
 
 top_ranked_shallow_pageviews_per_category_per_wiki AS (
@@ -98,7 +124,7 @@ top_ranked_shallow_pageviews_per_category_for_all_wikis AS (
             year_month,
             RANK()       over (PARTITION BY category ORDER BY pageview_count DESC) AS rank,
             ROW_NUMBER() over (PARTITION BY category ORDER BY pageview_count DESC) AS row_number
-        FROM exploded_categories
+        FROM exploded_categories_all_wikis
     )
     WHERE row_number <= 100
 ),
@@ -132,7 +158,7 @@ top_ranked_primary_pageviews_per_category_for_all_wikis AS (
             year_month,
             RANK()       over (PARTITION BY category ORDER BY pageview_count DESC) AS rank,
             ROW_NUMBER() over (PARTITION BY category ORDER BY pageview_count DESC) AS row_number
-        FROM exploded_primary_categories
+        FROM exploded_primary_categories_all_wikis
     )
     WHERE row_number <= 100
 ),
