@@ -444,6 +444,50 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         'mappers-weight': 1.0,
     }
 
+    queries['file'] = {
+        'query': '''
+             select file_id,
+                    convert(file_name using utf8mb4) file_name,
+                    file_latest,
+                    file_type,
+                    file_deleted
+
+               from file
+              where $CONDITIONS
+        ''',
+        'map-types': '"{}"'.format(','.join([
+            'file_id=Long',
+            'file_name=String',
+            'file_latest=Long',
+            'file_type=Integer',
+            'file_deleted=Integer',
+        ])),
+        'boundary-query': 'SELECT MIN(file_id), MAX(file_id) FROM file',
+        'split-by': 'file_id',
+        'mappers-weight': 1.0,
+    }
+
+    queries['filetypes'] = {
+        'query': '''
+             select ft_id,
+                    convert(ft_media_type using utf8mb4) ft_media_type,
+                    convert(ft_major_mime using utf8mb4) ft_major_mime,
+                    convert(ft_minor_mime using utf8mb4) ft_minor_mime
+
+               from filetypes
+              where $CONDITIONS
+        ''',
+        'map-types': '"{}"'.format(','.join([
+            'ft_id=Integer',
+            'ft_media_type=String',
+            'ft_major_mime=String',
+            'ft_minor_mime=String',
+        ])),
+        'boundary-query': 'SELECT MIN(ft_id), MAX(ft_id) FROM filetypes',
+        'split-by': 'ft_id',
+        'mappers-weight': 0.0,
+    }
+
     queries['image'] = {
         'query': '''
              select convert(img_name using utf8mb4) img_name,
