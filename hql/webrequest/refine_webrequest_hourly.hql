@@ -123,7 +123,8 @@ distinct_rows AS (
         ch_ua_bitness,
         ch_ua_full_version_list,
         ch_ua_model,
-        ch_ua_platform_version
+        ch_ua_platform_version,
+        termination_state
     FROM
         ${source_table}
     LEFT ANTI JOIN excluded_rows
@@ -217,6 +218,7 @@ SELECT /*+ COALESCE(${coalesce_partitions}) */
     ch_ua_full_version_list,
     ch_ua_model,
     ch_ua_platform_version,
-    get_referer_data(referer) as referer_data
+    get_referer_data(referer) as referer_data,
+    termination_state
 
 FROM distinct_rows_and_reused_fields ;
