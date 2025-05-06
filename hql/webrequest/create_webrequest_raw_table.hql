@@ -43,7 +43,8 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `webrequest` (
     `ch_ua_bitness`           string  COMMENT 'Value of the Sec-CH-UA-Bitness request header',
     `ch_ua_full_version_list` string  COMMENT 'Value of the Sec-CH-UA-Full-Version-List request header',
     `ch_ua_model`             string  COMMENT 'Value of the Sec-CH-UA-Model request header',
-    `ch_ua_platform_version`  string  COMMENT 'Value of the Sec-CH-UA-Platform-Version request header'
+    `ch_ua_platform_version`  string  COMMENT 'Value of the Sec-CH-UA-Platform-Version request header',
+    `termination_state`       string  COMMENT 'HAProxy session states at disconnection / anomalous session termination states. See https://wikitech.wikimedia.org/wiki/HAProxy/session_states'
 ) PARTITIONED BY (
     `webrequest_source` string  COMMENT 'Source cluster',
     `year`              int     COMMENT 'Unpadded year of request',
