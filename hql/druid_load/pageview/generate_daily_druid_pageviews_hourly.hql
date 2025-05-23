@@ -1,7 +1,7 @@
 -- Extracts one day of formatted hourly pageviews to be loaded in Druid
 --
 -- Usage:
---     spark3-sql --master yarn -f generate_daily_druid_pageviews.hql \
+--     spark3-sql --master yarn -f generate_daily_druid_pageviews_hourly.hql \
 --         -d source_table=wmf.pageview_hourly \
 --         -d wiki_map_table=canonical_data.wikis \
 --         -d namespace_map_table=wmf_raw.mediawiki_project_namespace_map \
