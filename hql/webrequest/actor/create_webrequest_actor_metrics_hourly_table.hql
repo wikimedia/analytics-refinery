@@ -33,7 +33,10 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `webrequest_actor_metrics_hourly`(
   `pageview_rate_per_min`        int     COMMENT 'Number of pageviews per minute',
   `nocookies`                    bigint  COMMENT 'Sum() of all nocookies values in X-Analytics for all pageviews',
   `user_agent_length`            int     COMMENT 'Length of user-agent field',
-  `distinct_pages_visited_count` bigint  COMMENT 'Number of distinct visited pages'
+  `distinct_pages_visited_count` bigint  COMMENT 'Number of distinct visited pages',
+  `actor_ip`                     string  COMMENT 'The ip of the actor',
+  `max_diff_ip_group_size`       int     COMMENT 'Size of the biggest group of ips targetting diff pages together with this actor',
+  `diff_ip_group_count`          int     COMMENT 'Number of groups of ips targetting diff pages together with this actor'
 )
 PARTITIONED BY (
     `year`                int    COMMENT 'Unpadded year',

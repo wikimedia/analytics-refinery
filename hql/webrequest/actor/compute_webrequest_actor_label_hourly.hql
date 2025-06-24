@@ -34,6 +34,8 @@ WITH actor_aggregated AS (
         COALESCE(is_pageview, TRUE) AS is_pageview,
         COALESCE(is_redirect_to_pageview, FALSE) AS is_redirect_to_pageview,
         CASE
+            WHEN max_diff_ip_group_size >= 3 OR diff_ip_group_count >= 3 then 'automated - ip with spider behavior'
+
             WHEN pageview_count < 10 then 'user - less than 10 req'
             -- For mobile apps data pageviews per device per day percentiles are: p50: 2, p90: 9 and p99: 30 on September 2019
             WHEN pageview_count > 800 then 'automated - more than 800 req'

@@ -57,7 +57,8 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `pageview_actor`(
     `namespace_id`      int     COMMENT 'MediaWiki namespace_id for this page title. This may not always be set, even if the page is actually a pageview.',
     `actor_signature`   string  COMMENT 'The actor signature for the record using domain, computed as a hash',
     `actor_signature_per_project_family` string  COMMENT 'The actor signature for the record using project-family, computed as a hash',
-    `referer_data`      struct<referer_class:string,referer_name:string> COMMENT 'Struct containing referer_class (indicates if a referer is internal, external, external(media sites), external(search engine) or unknown.) and referer name (name of referer when referer class is external(search engine) or external(media sites))'
+    `referer_data`      struct<referer_class:string,referer_name:string> COMMENT 'Struct containing referer_class (indicates if a referer is internal, external, external(media sites), external(search engine) or unknown.) and referer name (name of referer when referer class is external(search engine) or external(media sites))',
+    `automated_reasons` array<string>  COMMENT 'Reasons why the bot detection process tagged this row as automated'
 )
 PARTITIONED BY (
     `year`              int     COMMENT 'Unpadded year of pageviews',

@@ -43,7 +43,27 @@
 --         -d interval_start_hour=2    \
 --         -d coalesce_partitions=16
 
-WITH actor_aggregated AS (
+WITH diff_ip_groups_aggregated AS (
+    SELECT
+        actor_ip,
+        max(max_diff_ip_group_size) as max_diff_ip_group_size,
+        sum(diff_ip_group_count) as diff_ip_group_count
+    FROM (
+        SELECT DISTINCT
+            hour,
+            actor_ip,
+            max_diff_ip_group_size,
+            diff_ip_group_count
+        FROM ${source_table}
+        WHERE
+            (year=${interval_start_year} AND month=${interval_start_month} AND day=${interval_start_day} AND hour>${interval_start_hour})
+            OR (year=${interval_end_year} AND month=${interval_end_month} AND day=${interval_end_day} AND hour<=${interval_end_hour})
+            AND actor_ip IS NOT NULL
+    ) AS distinct_ips_per_hour
+    GROUP BY actor_ip
+),
+
+actor_aggregated AS (
     SELECT
         ${version} as version,
         actor_signature_per_project_family,
@@ -57,9 +77,12 @@ WITH actor_aggregated AS (
         max(user_agent_length) as user_agent_length,
         avg(distinct_pages_visited_count) as avg_distinct_pages_visited_count,
         -- Note: Any of the above feature can be used to compute rolled_up_hours, we had to pick one
-        SUM(CASE WHEN COALESCE(distinct_pages_visited_count, 0) > 0 THEN 1 ELSE 0 END) AS rolled_up_hours
+        SUM(CASE WHEN COALESCE(distinct_pages_visited_count, 0) > 0 THEN 1 ELSE 0 END) AS rolled_up_hours,
+        first(coalesce(dif.max_diff_ip_group_size, 0)) as max_diff_ip_group_size,
+        first(coalesce(dif.diff_ip_group_count, 0)) as diff_ip_group_count
 
-    FROM ${source_table}
+    FROM ${source_table} AS wam
+    LEFT JOIN diff_ip_groups_aggregated AS dif ON (wam.actor_ip = dif.actor_ip)
 
     WHERE
         (year=${interval_start_year} AND month=${interval_start_month} AND day=${interval_start_day} AND hour>${interval_start_hour})
@@ -86,6 +109,8 @@ INSERT OVERWRITE TABLE ${destination_table}
         nocookies,
         user_agent_length,
         avg_distinct_pages_visited_count,
-        rolled_up_hours
+        rolled_up_hours,
+        max_diff_ip_group_size,
+        diff_ip_group_count
 
     FROM actor_aggregated;

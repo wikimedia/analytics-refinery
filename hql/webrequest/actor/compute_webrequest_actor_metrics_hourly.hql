@@ -44,7 +44,12 @@ WITH hourly_actor_data as (
         -- The following field was introduced across the pipeline in 2024-11, see: T375527.
         -- The COALESCE statement makes the query backwards compatible.
         COALESCE(is_redirect_to_pageview, FALSE) AS is_redirect_to_pageview,
-        pageview_info['page_title'] as page_title
+        pageview_info['page_title'] as page_title,
+        x_analytics_map['page_id'] as x_analytics_page_id,
+        geocoded_data['country_code'] as country_code,
+        uri_path,
+        uri_query,
+        referer
     FROM
         ${source_table}
     WHERE webrequest_source = 'text'
@@ -57,13 +62,101 @@ WITH hourly_actor_data as (
         -- weblight data is a mess, there is no x-forwarded-for and all looks like it comes from the same IP
         AND user_agent not like "%weblight%"
         AND COALESCE(pageview_info['project'], '') != ''
+),
+
+-- Get page and ip for requests to pages that a human actor would visit before visiting a diff page.
+hourly_diff_source_data AS (
+    -- History pages can link to diff pages.
+    SELECT
+        domain,
+        COALESCE(page_title, x_analytics_page_id) AS page_key,
+        ip
+    FROM hourly_actor_data
+    WHERE
+        uri_path = '/w/index.php' AND
+        uri_query LIKE '%action=history%' AND
+        page_title != '-' AND
+        COALESCE(page_title, x_analytics_page_id) IS NOT NULL
+    UNION DISTINCT
+    -- Diff pages can link to other diff pages.
+    SELECT
+        domain,
+        REGEXP_EXTRACT(COALESCE(referer, ''), '.*title=([^&]+).*') AS page_key,
+        ip
+    FROM hourly_actor_data
+    WHERE
+        uri_path = '/w/index.php' AND
+        (uri_query LIKE '\?diff=%' OR uri_query LIKE '%&diff=%') AND
+        (referer LIKE '\?diff=%' OR referer LIKE '%&diff=%') AND
+        REGEXP_EXTRACT(COALESCE(referer, ''), '.*title=([^&]+).*') != ''
+),
+
+-- Get page, country code and ip for requests to diff pages.
+hourly_diff_data AS (
+    SELECT DISTINCT
+        domain,
+        COALESCE(page_title, x_analytics_page_id) AS page_key,
+        country_code,
+        ip
+    FROM hourly_actor_data
+    WHERE
+        uri_path = '/w/index.php' AND
+        (uri_query LIKE '\?diff=%' OR uri_query LIKE '%&diff=%') AND
+        page_title != '-' AND
+        COALESCE(page_title, x_analytics_page_id) IS NOT NULL
+),
+
+-- Get ips from actors that requested source pages and diff pages for the same page title.
+likely_human_ips AS (
+    SELECT DISTINCT src.ip
+    FROM hourly_diff_source_data AS src
+    INNER JOIN hourly_diff_data AS dif ON (
+        src.domain = dif.domain AND
+        src.page_key = dif.page_key AND
+        src.ip = dif.ip
+    )
+),
+
+-- Get requests to diff pages from ips that did not request source pages for the same page title.
+hourly_diff_data_likely_not_human AS (
+    SELECT
+        domain,
+        page_key,
+        country_code,
+        ip
+    FROM hourly_diff_data AS dif
+    LEFT ANTI JOIN likely_human_ips AS hum ON (
+        dif.ip = hum.ip
+    )
+),
+
+-- Collect diff ip group stats per ip.
+hourly_diff_ips AS (
+    SELECT
+        ip,
+        MAX(diff_ip_group_size) AS max_diff_ip_group_size,
+        COUNT(*) AS diff_ip_group_count
+    FROM (
+        SELECT
+            EXPLODE(diff_ip_group) AS ip,
+            SIZE(diff_ip_group) AS diff_ip_group_size
+        FROM (
+            SELECT COLLECT_SET(ip) as diff_ip_group
+            FROM hourly_diff_data_likely_not_human
+            GROUP BY
+                domain,
+                page_key,
+                country_code
+        )
+    )
+    GROUP BY ip
 )
 
 
 INSERT OVERWRITE TABLE ${destination_table}
     PARTITION(year=${year},month=${month},day=${day},hour=${hour})
 
-    SELECT /*+ COALESCE(${coalesce_partitions}) */
+    SELECT /*+ COALESCE(${coalesce_partitions}), BROADCAST(hdi) */
         ${version} as version,
         NULL AS actor_signature,
         actor_signature_per_project_family,
@@ -75,10 +168,16 @@ INSERT OVERWRITE TABLE ${destination_table}
         cast((count(*)/(unix_timestamp(max(ts)) - unix_timestamp( min(ts))) * 60) as int) as pageview_rate_per_min,
         sum(coalesce(nocookies, 0L)) as nocookies,
         MAX(length(user_agent)) as user_agent_length,
-        COUNT(DISTINCT page_title) as distinct_pages_visited_count
+        COUNT(DISTINCT page_title) as distinct_pages_visited_count,
+        had.ip as actor_ip,
+        FIRST(COALESCE(max_diff_ip_group_size, 0)) AS max_diff_ip_group_size,
+        FIRST(COALESCE(diff_ip_group_count, 0)) AS diff_ip_group_count
     FROM
-        hourly_actor_data
+        hourly_actor_data AS had
+    LEFT JOIN
+        hourly_diff_ips AS hdi ON (had.ip = hdi.ip)
     GROUP BY
         actor_signature_per_project_family,
         is_pageview,
-        is_redirect_to_pageview;
+        is_redirect_to_pageview,
+        had.ip;
