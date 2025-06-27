@@ -506,37 +506,6 @@ TemplateWizard:
             user_edit_count_bucket: keep
     wiki: keep
 
-TwoColConflictConflict:
-    event:
-        baseRevisionId: keep
-        conflictChars: keep
-        conflictChunks: keep
-        # TODO: should have an editCountBucket, instead we only pass editCount
-        editTime: keep
-        hasJavascript: keep
-        isAnon: keep
-        latestRevisionId: keep
-        pageNs: keep
-        pageTitle: keep
-        parentRevisionId: keep
-        startTime: keep
-        twoColConflictShown: keep
-    webhost: keep
-    wiki: keep
-
-TwoColConflictExit:
-    event:
-        action: keep
-        base_rev_id: keep
-        latest_rev_id: keep
-        page_namespace: keep
-        page_title: keep
-        selections: keep
-        session_token: keep
-        start_time_ts_ms: keep
-    webhost: keep
-    wiki: keep
-
 UniversalLanguageSelector:
     wiki: keep
     webhost: keep
