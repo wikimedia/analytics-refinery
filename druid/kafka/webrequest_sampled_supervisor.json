@@ -41,7 +41,8 @@
               "nocookies",
               "https",
               "authorization",
-              "termination_state"
+              "termination_state",
+              "accept_language"
           ]
         },
         "dimensionsSpec": {
@@ -78,7 +79,8 @@
               "nocookies",
               "https",
               "authorization",
-              "termination_state"
+              "termination_state",
+              "accept_language"
           ]
         },
         "timestampSpec" : {
