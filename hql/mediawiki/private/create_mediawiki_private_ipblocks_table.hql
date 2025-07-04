@@ -1,14 +1,14 @@
--- Creates table statement for raw mediawiki_ipblocks table.
+-- Creates table statement for raw mediawiki_private_ipblocks table.
 --
 -- Parameters:
 --     <none>
 --
 -- Usage
---     hive -f create_mediawiki_ipblocks_table.hql \
+--     hive -f create_mediawiki_private_ipblocks_table.hql \
 --         --database wmf_raw
 --
 
-CREATE EXTERNAL TABLE `mediawiki_ipblocks`(
+CREATE EXTERNAL TABLE `mediawiki_private_ipblocks`(
   `ipb_id`                  bigint  COMMENT 'Primary key, introduced for privacy.',
   `ipb_address`             string  COMMENT 'Blocked IP address in dotted-quad form or user name.',
   `ipb_user`                bigint  COMMENT 'Blocked user ID or 0 for IP blocks.',
@@ -43,5 +43,5 @@ STORED AS INPUTFORMAT
 OUTPUTFORMAT
   'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'
 LOCATION
-  'hdfs://analytics-hadoop/wmf/data/raw/mediawiki/tables/ipblocks'
+  'hdfs://analytics-hadoop/wmf/data/raw/mediawiki_private/tables/ipblocks'
 ;
