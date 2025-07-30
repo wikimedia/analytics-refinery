@@ -318,7 +318,9 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
                     convert(cl_sortkey_prefix using utf8mb4) cl_sortkey_prefix,
                     convert(cl_timestamp using utf8mb4) cl_timestamp,
                     convert(cl_collation using utf8mb4) cl_collation,
-                    convert(cl_type using utf8mb4) cl_type
+                    convert(cl_type using utf8mb4) cl_type,
+                    cl_target_id,
+                    cl_collation_id
 
                from categorylinks
               where $CONDITIONS
@@ -332,6 +334,8 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
             'cl_timestamp=String',
             'cl_collation=String',
             'cl_type=String',
+            'cl_target_id=Long',
+            'cl_collation_id=Integer',
         ])),
         'boundary-query': '''
             SELECT MIN(cl_from),
@@ -1138,6 +1142,22 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         'mappers-weight': 1.0,
     }
 
+    queries['collation'] = {
+        'query': '''
+             select collation_id,
+                    convert(collation_name using utf8mb4) collation_name
+
+               from collation
+              where $CONDITIONS
+        ''',
+        'map-types': '"{}"'.format(','.join([
+            'collation_id=Integer',
+            'collation_name=String',
+        ])),
+        'boundary-query': 'SELECT MIN(collation_id), MAX(collation_id) FROM collation',
+        'split-by': 'collation_id',
+        'mappers-weight': 0.0,
+    }
 
     queries['discussiontools_subscription'] = {
         'query': '''
