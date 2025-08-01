@@ -27,6 +27,7 @@
 ADD JAR ${refinery_hive_jar};
 CREATE TEMPORARY FUNCTION geocode as 'org.wikimedia.analytics.refinery.hive.GeocodedDataUDF';
 CREATE TEMPORARY FUNCTION network_origin as 'org.wikimedia.analytics.refinery.hive.GetNetworkOriginUDF';
+CREATE TEMPORARY FUNCTION get_hex_decoded_ip as 'org.wikimedia.analytics.refinery.hive.GetHexDecodedIpUDF';
 
 INSERT OVERWRITE TABLE ${destination_table}
        PARTITION (month='${month}')
@@ -46,11 +47,11 @@ INSERT OVERWRITE TABLE ${destination_table}
             action_type
 
        FROM (select cuc.wiki_db,
-                    geocode(cuc_ip)['country_code'] as country_code,
-                    network_origin(cuc_ip) as network_origin,
+                    geocode(get_hex_decoded_ip(cuc_ip_hex))['country_code'] as country_code,
+                    network_origin(get_hex_decoded_ip(cuc_ip_hex)) as network_origin,
                     coalesce(is_bot_by_historical, array()) as user_is_bot_by,
                     cuc_type as action_type,
-                    if(cuc_user = 0, md5(concat(cuc_ip, cuc_agent)), cuc_user_text) as user_fingerprint_or_name,
+                    if(cuc_user = 0, md5(concat(get_hex_decoded_ip(cuc_ip_hex), cuc_agent)), cuc_user_text) as user_fingerprint_or_name,
                     if(cuc_user = 0, TRUE, FALSE) as user_is_anonymous,
                     coalesce(is_temporary, false) as user_is_temporary,
                     coalesce(is_permanent, false) as user_is_permanent,

@@ -24,7 +24,7 @@ CREATE EXTERNAL TABLE `mediawiki_private_cu_changes` (
   `cuc_last_oldid`      bigint      COMMENT 'rev_id of the previous revision on this page',
   `cuc_type`            int         COMMENT 'see https://www.mediawiki.org/wiki/Manual:Recentchanges_table#rc_type',
   `cuc_timestamp`       string      COMMENT 'mediawiki-formatted timestamp of this event',
-  `cuc_ip`              string      COMMENT 'clear-text IP address of the user responsible for this event',
+  `cuc_ip_hex`          string      COMMENT 'Hexadecimal representation of the IP address of the user responsible for this event, use GetHexDecodedIpUDF to convert to regular IP address',
   `cuc_agent`           string      COMMENT 'clear-text user agent of the user responsible for this event'
 )
 COMMENT
