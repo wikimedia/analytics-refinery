@@ -999,6 +999,7 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
                     cuc_last_oldid,
                     cuc_type,
                     convert(cuc_timestamp using utf8mb4) cuc_timestamp,
+                    null cuc_ip,
                     convert(cuc_ip_hex using utf8mb4) cuc_ip_hex,
                     convert(cuc_agent using utf8mb4) cuc_agent
                from cu_changes
@@ -1024,6 +1025,7 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
             'cuc_last_oldid=Long',
             'cuc_type=Integer',
             'cuc_timestamp=String',
+            'cuc_ip=String',
             'cuc_ip_hex=String',
             'cuc_agent=String',
         ])),
