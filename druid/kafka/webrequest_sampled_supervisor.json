@@ -41,7 +41,8 @@
               "https",
               "authorization",
               "termination_state",
-              "accept_language"
+              "accept_language",
+              "wmfuniq"
           ]
         },
         "dimensionsSpec": {
@@ -78,7 +79,8 @@
               "https",
               "authorization",
               "termination_state",
-              "accept_language"
+              "accept_language",
+              "wmfuniq"
           ]
         },
         "timestampSpec" : {
