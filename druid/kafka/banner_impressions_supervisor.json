@@ -112,7 +112,7 @@
   "ioConfig": {
     "topic": "eventlogging_CentralNoticeImpression",
     "consumerProperties": {
-      "bootstrap.servers": "kafka-jumbo1007.eqiad.wmnet:9092,kafka-jumbo1008.eqiad.wmnet:9092,kafka-jumbo1009.eqiad.wmnet:9092,kafka-jumbo1010.eqiad.wmnet:9092,kafka-jumbo1011.eqiad.wmnet:9092,kafka-jumbo1012.eqiad.wmnet:9092,kafka-jumbo1013.eqiad.wmnet:9092,kafka-jumbo1014.eqiad.wmnet:9092,kafka-jumbo1015.eqiad.wmnet:9092"
+      "bootstrap.servers": "kafka-jumbo1010.eqiad.wmnet:9092,kafka-jumbo1011.eqiad.wmnet:9092,kafka-jumbo1012.eqiad.wmnet:9092,kafka-jumbo1013.eqiad.wmnet:9092,kafka-jumbo1014.eqiad.wmnet:9092,kafka-jumbo1015.eqiad.wmnet:9092,kafka-jumbo1016.eqiad.wmnet:9092,kafka-jumbo1017.eqiad.wmnet:9092,kafka-jumbo1018.eqiad.wmnet:9092"
     },
     "taskCount": 1,
     "replicas": 3,
