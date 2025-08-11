@@ -91,6 +91,7 @@ AFFECTED_TABLES = {
         'mediawiki_categorylinks': 6,
         'mediawiki_change_tag_def': 6,
         'mediawiki_change_tag': 6,
+        'mediawiki_collation': 6,
         'mediawiki_content_models': 6,
         'mediawiki_content': 6,
         'mediawiki_externallinks': 6,
