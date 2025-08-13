@@ -52,7 +52,6 @@ CREATE TEMPORARY FUNCTION is_pageview as 'org.wikimedia.analytics.refinery.hive.
 CREATE TEMPORARY FUNCTION is_redirect_to_pageview as 'org.wikimedia.analytics.refinery.hive.IsRedirectToPageviewUDF';
 CREATE TEMPORARY FUNCTION geocoded_data as 'org.wikimedia.analytics.refinery.hive.GetGeoDataUDF';
 CREATE TEMPORARY FUNCTION ua_parser as 'org.wikimedia.analytics.refinery.hive.GetUAPropertiesUDF';
-CREATE TEMPORARY FUNCTION get_access_method as 'org.wikimedia.analytics.refinery.hive.GetAccessMethodUDF';
 CREATE TEMPORARY FUNCTION is_spider as 'org.wikimedia.analytics.refinery.hive.IsSpiderUDF';
 CREATE TEMPORARY FUNCTION referer_classify AS 'org.wikimedia.analytics.refinery.hive.GetRefererTypeUDF';
 CREATE TEMPORARY FUNCTION get_pageview_info AS 'org.wikimedia.analytics.refinery.hive.GetPageviewInfoUDF';
@@ -188,7 +187,11 @@ SELECT /*+ COALESCE(${coalesce_partitions}) */
     user_agent_map,
     x_analytics_map,
     CAST(unix_timestamp(dt, "yyyy-MM-dd'T'HH:mm:ssX") as timestamp) as ts,
-    get_access_method(uri_host, user_agent) as access_method,
+    CASE
+        WHEN user_agent RLIKE 'Wikipedia(App|/5.0.)' THEN 'mobile app'
+        WHEN x_analytics_map['ismobile'] = 1 THEN 'mobile web'
+        ELSE 'desktop'
+        END as access_method,
     CASE
         WHEN ((user_agent_map['device_family'] = 'Spider') OR (is_spider(user_agent))) THEN 'spider'
         ELSE 'user'
