@@ -17,7 +17,7 @@
 # Will be used by jenkins to commit refinery-source jars after release.
 # Usage:
 #   ./bin/update-refinery-source-jars  -v <version> -u <gerrit_user> [-b <branch>  -m <mode>]
-# This will download all refinery <version> jars from archiva,
+# This will download all refinery <version> jars from gitlab,
 # symlink them in ./artifacts/, and add and commit jars to git
 #
 
@@ -91,14 +91,14 @@ if [ "${MODE}" != "push" ] && [ "${MODE}" != "review" ] && [ "${MODE}" != "dry-r
   exit 1
 fi
 
-archiva_base_uri="https://archiva.wikimedia.org/repository/releases/org/wikimedia/analytics/refinery"
+gitlab_base_uri="https://gitlab.wikimedia.org/api/v4/groups/186/-/packages/maven/org/wikimedia/analytics/refinery"
 
 for j in $REFINERY_SOURCE_MODULES; do
 
     # Download and symlink the shaded version of the jar, if it exists.
     # (If it doesn't curl will just fail)
     (curl -Lf -o ./artifacts/org/wikimedia/analytics/refinery/"refinery-$j-${VERSION}-shaded.jar" \
-    "${archiva_base_uri}/$j/refinery-$j/$VERSION/refinery-$j-$VERSION-shaded.jar" \
+    "${gitlab_base_uri}/$j/refinery-$j/$VERSION/refinery-$j-$VERSION-shaded.jar" \
         && ln -sfv org/wikimedia/analytics/refinery/"refinery-$j-${VERSION}-shaded.jar" ./artifacts/refinery-$j-shaded.jar) &
 
 done
