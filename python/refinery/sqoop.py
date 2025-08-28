@@ -313,11 +313,11 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
     queries['categorylinks'] = {
         'query': '''
              select cl_from,
-                    convert(cl_to using utf8mb4) cl_to,
+                    null cl_to,
                     convert(cl_sortkey using utf8mb4) cl_sortkey,
                     convert(cl_sortkey_prefix using utf8mb4) cl_sortkey_prefix,
                     convert(cl_timestamp using utf8mb4) cl_timestamp,
-                    convert(cl_collation using utf8mb4) cl_collation,
+                    null cl_collation,
                     convert(cl_type using utf8mb4) cl_type,
                     cl_target_id,
                     cl_collation_id
