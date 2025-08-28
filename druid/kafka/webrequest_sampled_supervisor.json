@@ -42,7 +42,8 @@
               "authorization",
               "termination_state",
               "accept_language",
-              "wmfuniq"
+              "wmfuniq",
+              "ja3n"
           ]
         },
         "dimensionsSpec": {
@@ -80,7 +81,8 @@
               "authorization",
               "termination_state",
               "accept_language",
-              "wmfuniq"
+              "wmfuniq",
+              "ja3n"
           ]
         },
         "timestampSpec" : {
