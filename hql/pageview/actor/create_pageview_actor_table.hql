@@ -58,7 +58,7 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `pageview_actor`(
     `actor_signature`   string  COMMENT 'The actor signature for the record using domain, computed as a hash',
     `actor_signature_per_project_family` string  COMMENT 'The actor signature for the record using project-family, computed as a hash',
     `referer_data`      struct<referer_class:string,referer_name:string> COMMENT 'Struct containing referer_class (indicates if a referer is internal, external, external(media sites), external(search engine) or unknown.) and referer name (name of referer when referer class is external(search engine) or external(media sites))',
-    `automated_reasons` array<string>  COMMENT 'Reasons why the bot detection process tagged this row as automated'
+    `automated_reasons` map<string, string>  COMMENT 'Reasons why the bot detection process tagged this row as automated. It might have up to 2 different reasons, one for pageview-based activity, one for redirect-based activity. Only present if agent_type=automated, otherwise NULL.'
 )
 PARTITIONED BY (
     `year`              int     COMMENT 'Unpadded year of pageviews',
