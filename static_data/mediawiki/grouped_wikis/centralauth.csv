@@ -1,0 +1,5 @@
+# centralauth only file, to process it aside from others (T389666)
+# centralauth is a centralized database and not part of any specific wiki.
+# Format is wiki,group,edit size
+# The 3rd value, at present, is an arbitrary placeholder for edit size
+centralauth,1,1000000

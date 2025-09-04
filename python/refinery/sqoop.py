@@ -1284,6 +1284,81 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         'mappers-weight': 1.0,
     }
 
+    # CentralAuth tables
+    # https://phabricator.wikimedia.org/T389666
+    # https://github.com/wikimedia/mediawiki-extensions-CentralAuth/blob/master/schema/tables.json
+    queries['globaluser'] = {
+        'query': '''
+             select gu_id,
+                    convert(gu_name using utf8mb4) gu_name,
+                    convert(gu_home_db using utf8mb4) gu_home_db,
+                    null gu_email,
+                    convert(gu_email_authenticated using utf8mb4) gu_email_authenticated,
+                    null gu_password,
+                    gu_locked,
+                    gu_hidden_level,
+                    convert(gu_registration using utf8mb4) gu_registration,
+                    null gu_password_reset_key,
+                    convert(gu_password_reset_expiration using utf8mb4) gu_password_reset_expiration,
+                    null gu_auth_token,
+                    null gu_cas_token
+               from globaluser
+              where $CONDITIONS
+        ''',
+        'map-types': '"{}"'.format(','.join([
+            'gu_id=Long',
+            'gu_name=String',
+            'gu_home_db=String',
+            'gu_email=String',
+            'gu_email_authenticated=String',
+            'gu_password=String',
+            'gu_locked=Boolean',
+            'gu_hidden_level=Integer',
+            'gu_registration=String',
+            'gu_password_reset_key=String',
+            'gu_password_reset_expiration=String',
+            'gu_auth_token=String',
+            'gu_cas_token=String',
+        ])),
+        # Data-size is ~80 rows million as of 2025.
+        'boundary-query': 'SELECT MIN(gu_id), MAX(gu_id) FROM globaluser',
+        'split-by': 'gu_id',
+        'mappers-weight': 0.5,
+        'sqoopable_dbnames': 'centralauth',
+    }
+
+    queries['localuser'] = {
+        'query': '''
+             select
+                    convert(lu_wiki using utf8mb4) lu_wiki,
+                    convert(lu_name using utf8mb4) lu_name,
+                    convert(lu_attached_timestamp using utf8mb4) lu_attached_timestamp,
+                    convert(lu_attached_method using utf8mb4) lu_attached_method,
+                    lu_attachment_method,
+                    lu_local_id,
+                    lu_global_id
+               from localuser
+              where $CONDITIONS
+        ''',
+        'map-types': '"{}"'.format(','.join([
+            'lu_wiki=String',
+            'lu_name=String',
+            'lu_attached_timestamp=String',
+            'lu_attached_method=String',
+            'lu_attachment_method=Boolean',
+            'lu_local_id=Long',
+            'lu_global_id=Long',
+        ])),
+        # Table's primary-key uses varchars (complicated to split),
+        # so split by lu_wiki name.
+        # This is not perfect in terms of data-skew,
+        # but will at least provide some splitting without overwhelming the DB.
+        # Data-size is ~300 rows million as of 2025.
+        'split-by': 'lu_wiki',
+        'mappers-weight': 0.5,
+        'sqoopable_dbnames': 'centralauth',
+    }
+
     if filter_tables:
         filter_tables_set = {t for t in filter_tables}
         if len(filter_tables_set - set(queries.keys())):
