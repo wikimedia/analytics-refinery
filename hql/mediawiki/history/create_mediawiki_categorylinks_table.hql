@@ -17,8 +17,8 @@ CREATE EXTERNAL TABLE `mediawiki_categorylinks`(
   `cl_sortkey_prefix`   string  COMMENT 'This is either the empty string if a page is using the default sortkey (aka the sortkey is unspecified). Otherwise it is the human readable version of cl_sortkey. Needed mostly so that cl_sortkey can be easily updated in certain situations without re-parsing the entire page. More recently added values are valid UTF-8 (see change 449280 on Gerrit).',
   `cl_collation`        string  COMMENT 'What collation is in use. Used so that if the collation changes, the updateCollation.php script knows what rows need to be fixed in db. (deprecated)',
   `cl_type`             string  COMMENT 'What type of page is this (file, subcat (subcategory) or page (normal page)). Used so that the different sections on a category page can be paged independently in an efficient manner.',
-  `cl_target_id`        string  COMMENT 'Foreign key to linktarget.lt_id',
-  `cl_collation_id`     string  COMMENT 'Foreign key to collation.collation_id'
+  `cl_target_id`        bigint  COMMENT 'Foreign key to linktarget.lt_id',
+  `cl_collation_id`     int     COMMENT 'Foreign key to collation.collation_id'
 )
 COMMENT
   'See most up to date documentation at https://www.mediawiki.org/wiki/Manual:Categorylinks_table'
