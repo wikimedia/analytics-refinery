@@ -1,11 +1,12 @@
--- Insert into Iceberg unique devices per-project-family monthly from Hive table
+-- Compute unique-devices per-project-family monthly into Iceberg table
 --
 -- Parameters:
---     unique_devices_source_table        -- Table containing source data
---     unique_devices_destination_table   -- Table where to write newly computed data
---     year                               -- year of the to-be-generated
---     month                              -- month of the to-be-generated
---     coalesce_partitions                -- Number of partitions to write
+--     pageview_actor_table                             -- Table containing pageview_actor data
+--     countries_table                                  -- Table containing country name by country-code
+--     unique_devices_destination_table  -- Table where to write newly computed data
+--     year                                             -- year of the to-be-generated
+--     month                                            -- month of the to-be-generated
+--     coalesce_partitions                              -- Number of partitions to write
 --
 -- Usage:
 --     spark3-sql \
@@ -18,8 +19,9 @@
 --         --conf spark.dynamicAllocation.maxExecutors=16 \
 --         --conf spark.yarn.maxAppAttempts=1 \
 --         -f unique_devices_per_project_family_monthly_iceberg.hql \
---         -d unique_devices_source_table=wmf.unique_devices_per_project_family_monthly \
---         -d unique_devices_destination_table=mforns.unique_devices_per_project_family_monthly \
+--         -d pageview_actor_table=wmf.pageview_actor \
+--         -d countries_table=canonical_data.countries \
+--         -d unique_devices_destination_table=wmf_readership.unique_devices_per_project_family_monthly \
 --         -d year=2022 \
 --         -d month=8 \
 --         -d coalesce_partitions=1
@@ -28,20 +30,99 @@
 DELETE FROM ${unique_devices_destination_table}
 WHERE day = TO_DATE(CONCAT_WS('-', LPAD(${year}, 4, '0'), LPAD(${month}, 2, '0'), '01'), 'yyyy-MM-dd');
 
--- TODO: Replace by unique-comptation function when removing old hive table
+
+WITH last_access_dates AS (
+    SELECT
+        year,
+        month,
+        normalized_host.project_class AS project_family,
+        geocoded_data['country_code'] AS country_code,
+        -- Sometimes (~1 out of 1B times) WMF-Last-Access-Global is corrupted.
+        -- and Spark can not parse it. Check for the length of the string.
+        IF(length(x_analytics_map['WMF-Last-Access-Global']) = 11,
+           unix_timestamp(x_analytics_map['WMF-Last-Access-Global'], 'dd-MMM-yyyy'),
+           NULL) AS last_access_global,
+        x_analytics_map['nocookies'] AS nocookies,
+        actor_signature_per_project_family AS actor_signature
+    FROM ${pageview_actor_table}
+    WHERE x_analytics_map IS NOT NULL
+      AND agent_type = 'user'
+      AND (is_pageview OR is_redirect_to_pageview)
+      AND year = ${year}
+      AND month = ${month}
+),
+
+-- Only keeping clients having 1 event without cookies
+-- (fresh sessions are not counted with last_access method)
+fresh_sessions_aggregated AS (
+    SELECT
+        project_family,
+        country_code,
+        COUNT(1) AS uniques_offset
+    FROM (
+        SELECT
+            actor_signature,
+            project_family,
+            country_code,
+            SUM(CASE WHEN (nocookies IS NOT NULL) THEN 1 ELSE 0 END)
+        FROM
+            last_access_dates
+        GROUP BY
+            actor_signature,
+            project_family,
+            country_code
+        -- Only keeping clients having done 1 event without cookies
+        HAVING SUM(CASE WHEN (nocookies IS NOT NULL) THEN 1 ELSE 0 END) = 1
+        ) fresh_sessions
+    GROUP BY
+        project_family,
+        country_code
+),
+
+-- Aggregate last access uniques before joining with fresh sessions.
+-- Otherwise, Spark has trouble joining the data because it's skewed.
+-- Also, calculate uniques_underestimate.
+last_access_uniques_aggregated AS (
+    SELECT
+        project_family,
+        country_code,
+        SUM(CASE
+            -- project_family set, last-access-global not set and client accept cookies --> first visit, count
+            WHEN (project_family IS NOT NULL AND last_access_global IS NULL AND nocookies is NULL) THEN 1
+            -- last-access-global set and its date is before today --> First visit today, count
+            WHEN ((last_access_global IS NOT NULL)
+                AND (last_access_global < unix_timestamp(CONCAT('${year}-', LPAD('${month}', 2, '0'), '-01'), 'yyyy-MM-dd'))) THEN 1
+            -- Other cases, don't count
+            ELSE 0
+        END) AS uniques_underestimate
+    FROM
+        last_access_dates
+    GROUP BY
+        project_family,
+        country_code
+)
+
 INSERT INTO ${unique_devices_destination_table}
 
+-- Join last_access_uniques_aggregated with fresh_sessions_aggregated
+-- to calculate uniques_estimate = uniques_underestimate + uniques_offset.
 SELECT /*+ COALESCE(${coalesce_partitions}) */
-    project_family,
-    country,
-    country_code,
-    uniques_underestimate,
-    uniques_offset,
-    uniques_estimate,
+    COALESCE(last_access_uniques.project_family, fresh_sessions.project_family) AS project_family,
+    COALESCE(countries.name, '(missing country name)') AS country,
+    last_access_uniques.country_code AS country_code,
+    last_access_uniques.uniques_underestimate AS uniques_underestimate,
+    COALESCE(fresh_sessions.uniques_offset, 0) AS uniques_offset,
+    last_access_uniques.uniques_underestimate + COALESCE(fresh_sessions.uniques_offset, 0) AS uniques_estimate,
     TO_DATE(CONCAT_WS('-', LPAD(${year}, 4, '0'), LPAD(${month}, 2, '0'), '01'), 'yyyy-MM-dd') AS day
 FROM
-    ${unique_devices_source_table}
-WHERE year = ${year}
-    AND month = ${month}
+    last_access_uniques_aggregated AS last_access_uniques
+    LEFT JOIN ${countries_table} AS countries
+        ON countries.iso_code = last_access_uniques.country_code
+    -- Outer join to keep every row from both table
+    FULL OUTER JOIN fresh_sessions_aggregated AS fresh_sessions
+        -- No need to add country here as country_code matches
+        ON last_access_uniques.project_family = fresh_sessions.project_family
+          AND last_access_uniques.country_code = fresh_sessions.country_code
 ORDER BY day, project_family, country_code
 ;
+

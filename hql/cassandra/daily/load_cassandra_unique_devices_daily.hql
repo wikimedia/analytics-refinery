@@ -27,8 +27,8 @@
 -- --name spark_3_unique_devices \
 --     -f load_cassandra_unique_devices_daily.hql \
 --     -d destination_table=aqs.local_group_default_T_unique_devices.data \
---     -d source_table_per_domain=wmf.unique_devices_per_domain_daily \
---     -d source_table_per_project_family=wmf.unique_devices_per_project_family_daily \
+--     -d source_table_per_domain=wmf_readership.unique_devices_per_domain_daily \
+--     -d source_table_per_project_family=wmf_readership.unique_devices_per_project_family_daily \
 --     -d coalesce_partitions=6 \
 --     -d year=2022 \
 --     -d month=07 \
@@ -36,14 +36,11 @@
 
 WITH unique_devices_per_domain AS (
     SELECT
-        CONCAT(
-            regexp_extract(domain, '^((?!www)([a-z0-9-_]+)\\.)(m\\.)?\\w+\\.org$$'),
-            regexp_extract(domain, '([a-z0-9-_]+)\\.org$$')
-            ) AS project,
-        CASE WHEN domain RLIKE '(^(m)\\.)|\\.m\\.'
+        domain AS project,
+        CASE WHEN access_method IN ('mobile web', 'mobile app')
             THEN 'mobile-site'
             ELSE 'desktop-site'
-            END AS access_site,
+        END AS access_site,
         CONCAT(LPAD(year, 4, '0'), LPAD(month, 2, '0'), LPAD(day, 2, '0')) AS dt,
         SUM(uniques_estimate) AS devices,
         SUM(uniques_offset) AS offset,
@@ -51,15 +48,10 @@ WITH unique_devices_per_domain AS (
     FROM
         ${source_table_per_domain}
     WHERE
-        year = ${year}
-        AND month = ${month}
-        AND day = ${day}
+        day = TO_DATE(CONCAT_WS('-', LPAD(${year}, 4, '0'), LPAD(${month}, 2, '0'), LPAD(${day}, 2, '0')), 'yyyy-MM-dd')
     GROUP BY
-        CONCAT(
-            regexp_extract(domain, '^((?!www)([a-z0-9-_]+)\\.)(m\\.)?\\w+\\.org$$'),
-            regexp_extract(domain, '([a-z0-9-_]+)\\.org$$')
-            ),
-        CASE WHEN domain RLIKE '(^(m)\\.)|\\.m\\.'
+        domain,
+        CASE WHEN access_method IN ('mobile web', 'mobile app')
             THEN 'mobile-site'
             ELSE 'desktop-site'
             END,
@@ -89,9 +81,7 @@ WITH unique_devices_per_domain AS (
     FROM
         ${source_table_per_project_family}
     WHERE
-        year = ${year}
-        AND month = ${month}
-        AND day = ${day}
+        day = TO_DATE(CONCAT_WS('-', LPAD(${year}, 4, '0'), LPAD(${month}, 2, '0'), LPAD(${day}, 2, '0')), 'yyyy-MM-dd')
         AND !array_contains(array('mediawiki', 'wikidata', 'wikimediafoundation', 'wikimedia'), project_family)
     GROUP BY
         CONCAT('all-', project_family, '-projects'),

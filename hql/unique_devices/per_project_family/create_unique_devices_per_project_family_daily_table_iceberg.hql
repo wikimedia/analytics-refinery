@@ -8,6 +8,7 @@
 
 CREATE EXTERNAL TABLE IF NOT EXISTS `unique_devices_per_project_family_daily`(
     `project_family`         string  COMMENT 'The lower cased project-family (wikipedia for instance)',
+    `access_method`          string  COMMENT 'The access-method the device is using (mobile-web, mobile-app or desktop)',
     `country`                string  COMMENT 'Country name of the accessing agents (computed using maxmind GeoIP database)',
     `country_code`           string  COMMENT '2 letter country code',
     `uniques_underestimate`  int     COMMENT 'Under estimation of unique devices seen based on last-access-global cookie, and the nocookies header',

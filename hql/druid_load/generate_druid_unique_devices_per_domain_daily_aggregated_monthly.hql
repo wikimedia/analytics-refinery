@@ -15,6 +15,7 @@ DROP TABLE IF EXISTS ${destination_table};
 CREATE TABLE IF NOT EXISTS ${destination_table} (
     `dt`                     string,
     `domain`                 string,
+    `access_method`          string,
     `country`                string,
     `country_code`           string,
     `uniques_underestimate`  bigint,
@@ -45,6 +46,7 @@ INSERT OVERWRITE TABLE ${destination_table}
 SELECT /*+ COALESCE(1) */
     date_format(day, 'yyyy-MM-dd\'T\'HH:mm:ss.SSS\'Z\'') AS dt,
     domain AS domain,
+    access_method AS access_method,
     country AS country,
     country_code AS country_code,
     uniques_underestimate AS uniques_underestimate,

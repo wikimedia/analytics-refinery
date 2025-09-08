@@ -23,15 +23,15 @@ INSERT OVERWRITE DIRECTORY "${destination_directory}"
     -- Coalesce to 1 to generate just 1 output file.
     SELECT /*+ COALESCE(1) */
         domain,
+        access_method,
         SUM(uniques_underestimate) AS uniques_underestimate,
         SUM(uniques_offset) AS uniques_offset,
         SUM(uniques_estimate) AS uniques_estimate
     FROM ${source_table}
-    WHERE year=${year}
-        AND month=${month}
-        AND day=${day}
+    WHERE day = TO_DATE(CONCAT_WS('-', LPAD(${year}, 4, '0'), LPAD(${month}, 2, '0'), LPAD(${day}, 2, '0')), 'yyyy-MM-dd');
     GROUP BY
-        domain
+        domain,
+        access_method
     HAVING
         SUM(uniques_estimate) >= 1000
     ORDER BY

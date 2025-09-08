@@ -1,4 +1,8 @@
--- Backfills the daily per-domain unique devices from the original hive table
+-- Backfills the daily per-domain unique devices from the original hive table.
+--
+-- The new Iceberg table being different with a new access_method column, the backfill
+-- changes the original data by parsing the domains to extract the ones having a `.m`
+-- subdomain.
 --
 -- NOTE: The destination table is expected to be empty. No deletion is made
 --       prior to loading the data, and if the destionation table already contains
@@ -26,14 +30,35 @@
 INSERT INTO ${unique_devices_iceberg_table}
 
 SELECT
-    domain,
+    CONCAT(
+        regexp_extract(domain, '^((?!(www\\.|m\\.))([a-z0-9-_]+\\.))(m\\.)?\\w+\\.org\\.?$$'),
+        regexp_extract(domain, '([a-z0-9-_]+)\\.org\\.?$$'),
+        '.org'
+    ) AS domain,
+    CASE
+        WHEN domain RLIKE '(^(m)\\.)|\\.m\\.' THEN 'mobile web'
+        ELSE 'desktop'
+    END AS access_method,
     country,
     country_code,
-    uniques_underestimate,
-    uniques_offset,
-    uniques_estimate,
+    SUM(uniques_underestimate),
+    SUM(uniques_offset),
+    SUM(uniques_estimate),
     TO_DATE(CONCAT_WS('-', LPAD(year, 4, '0'), LPAD(month, 2, '0'), LPAD(day, 2, '0')), 'yyyy-MM-dd') AS day
 FROM ${unique_devices_hive_table}
+GROUP BY
+    CONCAT(
+        regexp_extract(domain, '^((?!(www\\.|m\\.))([a-z0-9-_]+\\.))(m\\.)?\\w+\\.org\\.?$$'),
+        regexp_extract(domain, '([a-z0-9-_]+)\\.org\\.?$$'),
+        '.org'
+    ),
+    CASE
+        WHEN domain RLIKE '(^(m)\\.)|\\.m\\.' THEN 'mobile web'
+        ELSE 'desktop'
+    END,
+    country,
+    country_code,
+    TO_DATE(CONCAT_WS('-', LPAD(year, 4, '0'), LPAD(month, 2, '0'), LPAD(day, 2, '0')), 'yyyy-MM-dd')
 DISTRIBUTE BY year(day)
-SORT BY day, domain, country_code
+SORT BY day, domain, access_method, country_code
 ;

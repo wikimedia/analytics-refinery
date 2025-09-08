@@ -9,7 +9,7 @@
 --
 -- Usage:
 --     spark-sql -f unique_devices_per_project_family_daily_to_archive.hql \
---         -d source_table=wmf.unique_devices_per_project_family_daily \
+--         -d source_table=wmf_readership.unique_devices_per_project_family_daily \
 --         -d destination_directory=/wmf/tmp/analytics/unique_devices/per_project_family \
 --         -d year=2022 \
 --         -d month=9 \
@@ -26,9 +26,7 @@ INSERT OVERWRITE DIRECTORY "${destination_directory}"
         SUM(uniques_offset) AS uniques_offset,
         SUM(uniques_estimate) AS uniques_estimate
     FROM ${source_table}
-    WHERE year=${year}
-        AND month=${month}
-        AND day=${day}
+    WHERE day = TO_DATE(CONCAT_WS('-', LPAD(${year}, 4, '0'), LPAD(${month}, 2, '0'), LPAD(${day}, 2, '0')), 'yyyy-MM-dd')
         AND project_family != 'wikimedia'
     GROUP BY
         project_family

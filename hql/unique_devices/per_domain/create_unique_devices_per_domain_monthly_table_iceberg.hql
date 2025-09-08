@@ -8,6 +8,7 @@
 
 CREATE EXTERNAL TABLE IF NOT EXISTS `unique_devices_per_domain_monthly`(
     `domain`                 string  COMMENT 'The lower cased domain defining a project (en.wikipedia.org for instance)',
+    `access_method`          string  COMMENT 'The access-method the device is using (mobile-web, mobile-app or desktop)',
     `country`                string  COMMENT 'Country name of the accessing agents (computed using maxmind GeoIP database)',
     `country_code`           string  COMMENT '2 letter country code',
     `uniques_underestimate`  int     COMMENT 'Under estimation of unique devices seen based on last access cookie, and the nocookies header',
