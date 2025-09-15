@@ -24,7 +24,7 @@ INSERT OVERWRITE DIRECTORY "${destination_directory}"
         SUM(uniques_offset) AS uniques_offset,
         SUM(uniques_estimate) AS uniques_estimate
     FROM ${source_table}
-    WHERE day = TO_DATE(CONCAT_WS('-', LPAD(${year}, 4, '0'), LPAD(${month}, 2, '0'), '01'), 'yyyy-MM-dd');
+    WHERE day = TO_DATE(CONCAT_WS('-', LPAD(${year}, 4, '0'), LPAD(${month}, 2, '0'), '01'), 'yyyy-MM-dd')
         AND project_family != 'wikimedia'
     GROUP BY
         project_family

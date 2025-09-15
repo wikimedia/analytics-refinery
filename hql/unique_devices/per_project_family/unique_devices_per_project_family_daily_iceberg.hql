@@ -127,5 +127,5 @@ FROM
         -- No need to add country here as country_code matches
         ON last_access_uniques.project_family = fresh_sessions.project_family
           AND last_access_uniques.country_code = fresh_sessions.country_code
-ORDER BY day, project_family, access_method, country_code
+ORDER BY day, project_family, country_code
 ;

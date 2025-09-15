@@ -39,7 +39,7 @@ WITH unique_devices_per_domain AS (
             THEN 'mobile-site'
             ELSE 'desktop-site'
         END AS access_site,
-        CONCAT(LPAD(year, 4, '0'), LPAD(month, 2, '0'), '01') AS dt,
+        CONCAT(LPAD(${year}, 4, '0'), LPAD(${month}, 2, '0'), '01') AS dt,
         SUM(uniques_estimate) AS devices,
         SUM(uniques_offset) AS offset,
         SUM(uniques_underestimate) AS underestimate
@@ -53,7 +53,7 @@ WITH unique_devices_per_domain AS (
             THEN 'mobile-site'
             ELSE 'desktop-site'
         END,
-        CONCAT(LPAD(year, 4, '0'), LPAD(month, 2, '0'), '01')
+        CONCAT(LPAD(${year}, 4, '0'), LPAD(${month}, 2, '0'), '01')
     HAVING SUM(uniques_estimate) > 1000
 ), unique_devices_per_domain_all_sites AS (
     SELECT
@@ -72,7 +72,7 @@ WITH unique_devices_per_domain AS (
     SELECT
         CONCAT('all-', project_family, '-projects') AS project,
         'all-sites' AS access_site,
-        CONCAT(LPAD(year, 4, '0'), LPAD(month, 2, '0'), '01') AS dt,
+        CONCAT(LPAD(${year}, 4, '0'), LPAD(${month}, 2, '0'), '01') AS dt,
         SUM(uniques_estimate) AS devices,
         SUM(uniques_offset) AS offset,
         SUM(uniques_underestimate) AS underestimate
@@ -83,7 +83,7 @@ WITH unique_devices_per_domain AS (
         AND !array_contains(array('mediawiki', 'wikidata', 'wikimediafoundation', 'wikimedia'), project_family)
     GROUP BY
         CONCAT('all-', project_family, '-projects'),
-        CONCAT(LPAD(year, 4, '0'), LPAD(month, 2, '0'), '01')
+        CONCAT(LPAD(${year}, 4, '0'), LPAD(${month}, 2, '0'), '01')
     HAVING SUM(uniques_estimate) > 1000
 ), unique_devices AS (
     SELECT * FROM unique_devices_per_domain
