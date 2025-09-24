@@ -114,9 +114,9 @@ SELECT /*+ COALESCE(${coalesce_partitions}) */
     COALESCE(last_access_uniques.project_family, fresh_sessions.project_family) AS project_family,
     COALESCE(countries.name, '(missing country name)') AS country,
     last_access_uniques.country_code AS country_code,
-    last_access_uniques.uniques_underestimate AS uniques_underestimate,
+    COALESCE(last_access_uniques.uniques_underestimate, 0) AS uniques_underestimate,
     COALESCE(fresh_sessions.uniques_offset, 0) AS uniques_offset,
-    last_access_uniques.uniques_underestimate + COALESCE(fresh_sessions.uniques_offset, 0) AS uniques_estimate,
+    COALESCE(last_access_uniques.uniques_underestimate, 0) + COALESCE(fresh_sessions.uniques_offset, 0) AS uniques_estimate,
     TO_DATE(CONCAT_WS('-', LPAD(${year}, 4, '0'), LPAD(${month}, 2, '0'), LPAD(${day}, 2, '0')), 'yyyy-MM-dd') AS day
 FROM
     last_access_uniques_aggregated AS last_access_uniques
@@ -127,5 +127,6 @@ FROM
         -- No need to add country here as country_code matches
         ON last_access_uniques.project_family = fresh_sessions.project_family
           AND last_access_uniques.country_code = fresh_sessions.country_code
+WHERE COALESCE(last_access_uniques.uniques_underestimate, 0) + COALESCE(fresh_sessions.uniques_offset, 0) > 0
 ORDER BY day, project_family, country_code
 ;
