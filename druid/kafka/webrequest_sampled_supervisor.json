@@ -42,7 +42,9 @@
               "authorization",
               "termination_state",
               "accept_language",
-              "wmfuniq",
+              "wmfuniq_days",
+              "wmfuniq_weeks",
+              "wmfuniq_freq",
               "ja3n"
           ]
         },
@@ -81,7 +83,9 @@
               "authorization",
               "termination_state",
               "accept_language",
-              "wmfuniq",
+              "wmfuniq_days",
+              "wmfuniq_weeks",
+              "wmfuniq_freq",
               "ja3n"
           ]
         },
