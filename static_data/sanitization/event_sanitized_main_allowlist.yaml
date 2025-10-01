@@ -18,3 +18,5 @@ mediawiki_revision_tags_change: keep_all
 mediawiki_revision_visibility_change: keep_all
 mediawiki_user_blocks_change: keep_all
 mediawiki_image_suggestions_feedback: keep_all
+mediawiki_page_revert_risk_prediction_change_v1: keep_all
+mediawiki_page_outlink_topic_prediction_change_v1: keep_all
