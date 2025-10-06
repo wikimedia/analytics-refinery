@@ -1287,7 +1287,7 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
     # CentralAuth tables
     # https://phabricator.wikimedia.org/T389666
     # https://github.com/wikimedia/mediawiki-extensions-CentralAuth/blob/master/schema/tables.json
-    queries['globaluser'] = {
+    queries['centralauth_globaluser'] = {
         'query': '''
              select gu_id,
                     convert(gu_name using utf8mb4) gu_name,
@@ -1327,7 +1327,7 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         'sqoopable_dbnames': 'centralauth',
     }
 
-    queries['localuser'] = {
+    queries['centralauth_localuser'] = {
         'query': '''
              select
                     convert(lu_wiki using utf8mb4) lu_wiki,

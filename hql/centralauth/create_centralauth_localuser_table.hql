@@ -30,5 +30,5 @@ STORED AS INPUTFORMAT
 OUTPUTFORMAT
   'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'
 LOCATION
-  'hdfs://analytics-hadoop/user/otto/wmf/data/raw/mediawiki/tables/localuser'
+  'hdfs://analytics-hadoop/wmf/data/raw/mediawiki_private/tables/centralauth_localuser'
 ;
