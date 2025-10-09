@@ -3,6 +3,7 @@
 -- Parameters:
 --     pageview_actor_table                    -- Table containing pageview_actor data
 --     countries_table                         -- Table containing country name by country-code
+--     canonical_wikis_table                    -- Table containing canonical info on wikis
 --     unique_devices_destination_table        -- Table where to write newly computed data
 --     year                                    -- year of the to-be-generated
 --     month                                   -- month of the to-be-generated
@@ -22,6 +23,7 @@
 --         -f unique_devices_per_domain_daily_iceberg.hql \
 --         -d pageview_actor_table=wmf.pageview_actor \
 --         -d countries_table=canonical_data.countries \
+--         -d canonical_wikis_table=canonical_data.wikis \
 --         -d unique_devices_destination_table=wmf_readership.unique_devices_per_domain_daily \
 --         -d year=2022 \
 --         -d month=8 \
@@ -39,7 +41,7 @@ WITH last_access_dates AS (
         year,
         month,
         day,
-        CONCAT(pageview_info['project'], '.org') AS domain,
+        COALESCE(canonical.domain_name, CONCAT(pageview_info['project'], '.org')) AS domain,
         access_method,
         geocoded_data['country_code'] AS country_code,
         -- Sometimes (~1 out of 1B times) WMF-Last-Access is corrupted.
@@ -50,6 +52,8 @@ WITH last_access_dates AS (
         x_analytics_map['nocookies'] AS nocookies,
         actor_signature
     FROM ${pageview_actor_table}
+        LEFT JOIN ${canonical_wikis_table} canonical
+            ON pageview_info['project'] = canonical.pageview_code
     WHERE x_analytics_map IS NOT NULL
       AND agent_type = 'user'
       AND is_pageview = TRUE
