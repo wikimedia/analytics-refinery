@@ -31,6 +31,7 @@ CREATE EXTERNAL TABLE `mediawiki_page_history`(
     --end_timestamp                         timestamp           COMMENT 'Timestamp to where this state applies (exclusive).',
     caused_by_event_type                  string              COMMENT 'Event that caused this state (create, move, delete or restore).',
     caused_by_user_id                     bigint              COMMENT 'ID of the user that caused this state.',
+    caused_by_user_central_id             bigint              COMMENT 'Global (central) ID of the user that caused this state.',
     caused_by_user_text                   string              COMMENT 'Name of the user that caused this state.',
     caused_by_anonymous_user              boolean             COMMENT 'Whether the user that caused this state was anonymous',
     caused_by_temporary_user              boolean             COMMENT 'Whether the user that caused this state was temporary',

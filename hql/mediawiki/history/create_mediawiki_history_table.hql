@@ -22,6 +22,7 @@ CREATE EXTERNAL TABLE `mediawiki_history`(
   --`event_timestamp`                               timestamp     COMMENT 'When this event ocurred',
   `event_comment`                                 string        COMMENT 'Comment related to this event, sourced from log_comment, rev_comment, etc.',
   `event_user_id`                                 bigint        COMMENT 'Id of the user that caused the event',
+  `event_user_central_id`                         bigint        COMMENT 'Global (central) Id of the user that caused the event',
   `event_user_text_historical`                    string        COMMENT 'Historical text of the user that caused the event',
   `event_user_text`                               string        COMMENT 'Current text of the user that caused the event',
   `event_user_blocks_historical`                  array<string> COMMENT 'Historical blocks of the user that caused the event',
@@ -63,6 +64,7 @@ CREATE EXTERNAL TABLE `mediawiki_history`(
   `page_seconds_since_previous_revision`          bigint        COMMENT 'In revision/page events: seconds elapsed since the previous revision made on the current page_id (only available in revision-create events so far)',
 
   `user_id`                                       bigint        COMMENT 'In user events: id of the user',
+  `user_central_id`                               bigint        COMMENT 'In user events: id of the user',
   `user_text_historical`                          string        COMMENT 'In user events: historical user text',
   `user_text`                                     string        COMMENT 'In user events: current user text',
   `user_blocks_historical`                        array<string> COMMENT 'In user events: historical user blocks',

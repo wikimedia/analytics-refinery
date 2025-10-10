@@ -84,7 +84,10 @@ WITH
             IF (event_timestamp_day IS NULL, 'monthly_digest', 'daily_digest') AS event_type,
             COALESCE(event_timestamp_day, event_timestamp_month) AS event_timestamp,
             NULL AS user_text,
+            NULL AS user_id,
+            NULL AS user_central_id,
             COALESCE(user_type, 'all') AS user_type,
+            NULL AS page_id,
             NULL AS page_title,
             NULL AS page_namespace,
             COALESCE(page_type, 'all') AS page_type,
@@ -118,7 +121,10 @@ WITH
             IF (event_timestamp_day IS NULL, 'monthly_digest', 'daily_digest') AS event_type,
             COALESCE(event_timestamp_day, event_timestamp_month) AS event_timestamp,
             NULL AS user_text,
+            NULL AS user_id,
+            NULL AS user_central_id,
             COALESCE(user_type, 'all') AS user_type,
+            NULL AS page_id,
             NULL AS page_title,
             NULL AS page_namespace,
             COALESCE(page_type, 'all') AS page_type,
@@ -157,6 +163,8 @@ WITH
               ELSE event_timestamp
             END AS event_timestamp,
             COALESCE(event_user_text, event_user_text_historical) AS user_text,
+            event_user_id AS user_id,
+            event_user_central_id AS user_central_id,
             CASE
                 -- Using sequence to prevent writing NOT
                 WHEN (event_user_is_anonymous OR event_user_is_temporary) THEN 'anonymous'
@@ -164,6 +172,7 @@ WITH
                 WHEN array_contains(COALESCE(event_user_is_bot_by, event_user_is_bot_by_historical), 'name') THEN 'name_bot'
                 ELSE 'user'
             END AS user_type,
+            page_id,
             CONCAT(COALESCE(nm.namespace_prefix, ''), COALESCE(page_title, page_title_historical)) AS page_title,
             page_namespace,
             CASE
