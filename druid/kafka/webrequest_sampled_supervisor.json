@@ -45,7 +45,8 @@
               "wmfuniq_days",
               "wmfuniq_weeks",
               "wmfuniq_freq",
-              "ja3n"
+              "ja3n",
+              "ja4h"
           ]
         },
         "dimensionsSpec": {
@@ -86,7 +87,8 @@
               "wmfuniq_days",
               "wmfuniq_weeks",
               "wmfuniq_freq",
-              "ja3n"
+              "ja3n",
+              "ja4h"
           ]
         },
         "timestampSpec" : {
