@@ -34,6 +34,7 @@ WITH
         WHERE TRUE
             AND snapshot = '${snapshot}'
     ),
+
     namespace_map AS (
         SELECT DISTINCT
             dbname AS wiki_db,
@@ -43,6 +44,7 @@ WITH
         WHERE TRUE
             AND snapshot = '${snapshot}'
     ),
+
     digest_base AS (
         SELECT
             pm.hostname AS project,
@@ -84,17 +86,17 @@ WITH
             IF (event_timestamp_day IS NULL, 'monthly_digest', 'daily_digest') AS event_type,
             COALESCE(event_timestamp_day, event_timestamp_month) AS event_timestamp,
             NULL AS user_text,
-            NULL AS user_id,
-            NULL AS user_central_id,
             COALESCE(user_type, 'all') AS user_type,
-            NULL AS page_id,
             NULL AS page_title,
             NULL AS page_namespace,
             COALESCE(page_type, 'all') AS page_type,
             ARRAY() AS other_tags,
             SUM(revision_text_bytes_diff) AS text_bytes_diff,
             SUM(ABS(revision_text_bytes_diff)) AS text_bytes_diff_abs,
-            COUNT(1) as revisions
+            COUNT(1) as revisions,
+            CAST(NULL AS BIGINT) AS user_id,
+            CAST(NULL AS BIGINT) AS user_central_id,
+            CAST(NULL AS BIGINT) AS page_id
         FROM digest_base
         GROUP BY
             project,
@@ -114,6 +116,7 @@ WITH
             (project, event_timestamp_month, user_text)
         )
     ),
+
     page_digests AS (
         SELECT
             project,
@@ -121,17 +124,17 @@ WITH
             IF (event_timestamp_day IS NULL, 'monthly_digest', 'daily_digest') AS event_type,
             COALESCE(event_timestamp_day, event_timestamp_month) AS event_timestamp,
             NULL AS user_text,
-            NULL AS user_id,
-            NULL AS user_central_id,
             COALESCE(user_type, 'all') AS user_type,
-            NULL AS page_id,
             NULL AS page_title,
             NULL AS page_namespace,
             COALESCE(page_type, 'all') AS page_type,
             ARRAY() AS other_tags,
             SUM(revision_text_bytes_diff) AS text_bytes_diff,
             SUM(ABS(revision_text_bytes_diff)) AS text_bytes_diff_abs,
-            COUNT(1) as revisions
+            COUNT(1) as revisions,
+            CAST(NULL AS BIGINT) AS user_id,
+            CAST(NULL AS BIGINT) AS user_central_id,
+            CAST(NULL AS BIGINT) AS page_id
         FROM digest_base
         WHERE NOT page_is_redirect
         GROUP BY
@@ -163,8 +166,6 @@ WITH
               ELSE event_timestamp
             END AS event_timestamp,
             COALESCE(event_user_text, event_user_text_historical) AS user_text,
-            event_user_id AS user_id,
-            event_user_central_id AS user_central_id,
             CASE
                 -- Using sequence to prevent writing NOT
                 WHEN (event_user_is_anonymous OR event_user_is_temporary) THEN 'anonymous'
@@ -172,7 +173,6 @@ WITH
                 WHEN array_contains(COALESCE(event_user_is_bot_by, event_user_is_bot_by_historical), 'name') THEN 'name_bot'
                 ELSE 'user'
             END AS user_type,
-            page_id,
             CONCAT(COALESCE(nm.namespace_prefix, ''), COALESCE(page_title, page_title_historical)) AS page_title,
             page_namespace,
             CASE
@@ -186,7 +186,19 @@ WITH
             ), '\\|') AS other_tags,
             revision_text_bytes_diff AS text_bytes_diff,
             ABS(revision_text_bytes_diff) AS text_bytes_diff_abs,
-            IF (event_entity = 'revision', 1, 0) AS revisions
+            IF (event_entity = 'revision', 1, 0) AS revisions,
+            CASE
+                WHEN ISNAN(event_user_id) THEN NULL
+                ELSE CAST(event_user_id AS BIGINT)
+            END AS user_id,
+            CASE
+                WHEN ISNAN(event_user_central_id) THEN NULL
+                ELSE CAST(event_user_central_id AS BIGINT)
+            END AS user_central_id,
+            CASE
+                WHEN ISNAN(page_id) THEN NULL
+                ELSE CAST(page_id AS BIGINT)
+            END AS page_id
         FROM ${mw_denormalized_history_table} mw
             INNER JOIN project_map pm
                 ON (mw.wiki_db = pm.wiki_db)
@@ -206,10 +218,20 @@ WITH
 INSERT OVERWRITE TABLE ${destination_table} partition (snapshot='${snapshot}')
 SELECT /*+ COALESCE(${coalesce_partitions}) */ data.*
 FROM (
-    SELECT * FROM core_data
-      UNION ALL
-    SELECT * FROM user_digests
-      UNION ALL
-    SELECT * FROM page_digests
+    SELECT
+      *
+    FROM core_data
+
+    UNION ALL
+
+    SELECT
+      *
+    FROM user_digests
+
+    UNION ALL
+
+    SELECT
+      *
+    FROM page_digests
 ) data
 ;
