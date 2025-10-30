@@ -46,7 +46,8 @@
               "wmfuniq_weeks",
               "wmfuniq_freq",
               "ja3n",
-              "ja4h"
+              "ja4h",
+              "x_is_browser"
           ]
         },
         "dimensionsSpec": {
@@ -88,7 +89,8 @@
               "wmfuniq_weeks",
               "wmfuniq_freq",
               "ja3n",
-              "ja4h"
+              "ja4h",
+              "x_is_browser"
           ]
         },
         "timestampSpec" : {
