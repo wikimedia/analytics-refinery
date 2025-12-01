@@ -47,7 +47,7 @@ WITH ja3n_ua_reqs AS (
     SELECT
         x_analytics_map["ja3n"] AS ja3n,
         user_agent,
-        ANY_VALUE(user_agent_map) AS user_agent_map,
+        FIRST(user_agent_map) AS user_agent_map,
         COUNT(*) AS request_count
     FROM ${webrequest_table}
     WHERE
