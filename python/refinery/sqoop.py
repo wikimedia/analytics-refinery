@@ -273,6 +273,7 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
             'ar_user=Long',
             'ar_user_text=String',
             'ar_text_id=Long',
+            'ar_sha1=String',
         ])),
         'boundary-query': '''
             SELECT MIN(ar_id),
@@ -833,6 +834,7 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
             'rev_text_id=Long',
             'rev_content_model=String',
             'rev_content_format=String',
+            'rev_sha1=String',
         ])),
         'boundary-query': '''
             SELECT MIN(rev_id),
