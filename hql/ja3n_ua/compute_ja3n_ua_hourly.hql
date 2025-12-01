@@ -35,9 +35,9 @@
 --         -d webrequest_table=wmf.webrequest \
 --         -d destination_table=mforns.ja3n_ua_hourly \
 --         -d year=2025 \
---         -d month=11 \
---         -d day=27 \
---         -d hour=10 \
+--         -d month=12 \
+--         -d day=1 \
+--         -d hour=0 \
 --         -d num_output_files=1
 --
 
@@ -47,6 +47,7 @@ WITH ja3n_ua_reqs AS (
     SELECT
         x_analytics_map["ja3n"] AS ja3n,
         user_agent,
+        ANY_VALUE(user_agent_map) AS user_agent_map,
         COUNT(*) AS request_count
     FROM ${webrequest_table}
     WHERE
@@ -98,6 +99,7 @@ INSERT OVERWRITE TABLE ${destination_table} PARTITION (
 SELECT /*+ COALESCE(${num_output_files}) */
     ja3n,
     user_agent,
+    user_agent_map,
     request_count,
     ja3n_rank / ja3n_neff AS ja3n_norm_rank,
     ua_rank / ua_neff AS ua_norm_rank
