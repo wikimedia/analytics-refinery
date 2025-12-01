@@ -1,5 +1,5 @@
 --
--- Creates a Hive ja3n_ua_hourly table.
+-- Creates an Iceberg ja3n_ua_hourly table.
 --
 -- This table uses Hill numbers of order 2, or Neff (for short):
 -- 1 / SUM(Pi^2) where Pi is the probability P of a category i in a population.
@@ -34,14 +34,10 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `${table_name}` (
     `user_agent_map`  MAP<STRING, STRING>  COMMENT  "Parsed User-Agent map.",
     `request_count`   BIGINT               COMMENT  "Request count for this ja3n+user_agent pair. It can be aggregated across ja3n, user_agent and dt.",
     `ja3n_norm_rank`  FLOAT                COMMENT  "Normalized rank of this ja3n, given its user_agent (see table description above).",
-    `ua_norm_rank`    FLOAT                COMMENT  "Normalized rank of this user_agent, given its ja3n (see table description above)."
+    `ua_norm_rank`    FLOAT                COMMENT  "Normalized rank of this user_agent, given its ja3n (see table description above).",
+    `dt`              TIMESTAMP            COMMENT  "Datetime (hourly resolution) in which the aggregated requests happened."
 )
-PARTITIONED BY (
-    `year`            INT                  COMMENT  "Year of the aggregated requests.",
-    `month`           INT                  COMMENT  "Month of the aggregated requests (unpadded).",
-    `day`             INT                  COMMENT  "Day of the aggregated requests (unpadded).",
-    `hour`            INT                  COMMENT  "Hour of the aggregated requests (unpadded)."
-)
-STORED AS PARQUET
+USING ICEBERG
+PARTITIONED BY (DAYS(dt))
 LOCATION "${location}"
 ;

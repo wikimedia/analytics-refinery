@@ -42,6 +42,23 @@
 --
 
 
+-- Define dt value for this partition.
+SET partition_dt = TIMESTAMP(
+    CONCAT(
+        ${year}, "-",
+        LPAD(${month}, 2, '0'), "-",
+        LPAD(${day}, 2, '0'), "T",
+        LPAD(${hour}, 2, '0'),
+        ":00:00.000Z"
+    )
+);
+
+-- Delete existing data for the partition.
+DELETE
+    FROM ${destination_table}
+    WHERE dt = ${partition_dt}
+;
+
 -- Aggregate base data from webrequest: ja3n, user_agent and request_count.
 WITH ja3n_ua_reqs AS (
     SELECT
@@ -90,18 +107,14 @@ ja3n_ua_reqs_ext_neff AS (
 )
 
 -- Write data to destination table.
-INSERT OVERWRITE TABLE ${destination_table} PARTITION (
-    year = ${year},
-    month = ${month},
-    day = ${day},
-    hour = ${hour}
-)
+INSERT INTO ${destination_table}
 SELECT /*+ COALESCE(${num_output_files}) */
     ja3n,
     user_agent,
     user_agent_map,
     request_count,
     ja3n_rank / ja3n_neff AS ja3n_norm_rank,
-    ua_rank / ua_neff AS ua_norm_rank
+    ua_rank / ua_neff AS ua_norm_rank,
+    ${partition_dt} AS dt
 FROM ja3n_ua_reqs_ext_neff
 ;
