@@ -1,9 +1,9 @@
--- Loads aggregated pageview per editor daily from source table to destination table.
+-- Loads aggregated pageview per editor monthly from source table to destination table.
 --
 -- The source table (pageview_per_editor_per_page_daily) contains daily per editor per page
 -- pageview counts. This script aggregates across all pages to get total pageviews per user per day.
 --
--- https://phabricator.wikimedia.org/T410289 
+-- https://phabricator.wikimedia.org/T410289
 --
 -- Load timing:
 --   Loading a day of data should take less than 2 minutes.
@@ -19,25 +19,26 @@
 --          Fully qualified table name to write data to.
 --          Schema: user_central_id, granularity, view_count, dt
 --
---      day
---          Day to load data for.
---          In yyyy-MM-dd format (e.g. 2025-10-25)
+--      year_month
+--          Month to load data for.
+--          In yyyy-MM format (e.g. 2025-10)
 --
 -- Usage:
---     spark3-sql -f pageviews_per_editor.hql \
+--     spark3-sql -f load_pageviews_per_editor_monthly.hql \
 --         -d pageview_per_editor_per_page_daily_table='wmf_readership.pageview_per_editor_per_page_daily' \
 --         -d destination_table='wmf_readership.pageviews_per_editor' \
---         -d day=2025-10-25
+--         -d year_month=2025-10
 
 INSERT INTO ${destination_table}
 SELECT
     user_central_id,
-    'daily' AS granularity,
+    'monthly' AS granularity,
     SUM(view_count) AS view_count,
-    CAST(TO_DATE('${day}', 'yyyy-MM-dd') AS TIMESTAMP) AS dt
+    CAST(TO_DATE('${year_month}-01', 'yyyy-MM-dd') AS TIMESTAMP) AS dt
 FROM ${pageview_per_editor_per_page_daily_table}
 WHERE
-    day = TO_DATE('${day}', 'yyyy-MM-dd')
+    day >= TO_DATE('${year_month}-01', 'yyyy-MM-dd')
+     AND day < ADD_MONTHS(TO_DATE('${year_month}-01', 'yyyy-MM-dd'), 1)
 GROUP BY
     user_central_id
 ORDER BY
