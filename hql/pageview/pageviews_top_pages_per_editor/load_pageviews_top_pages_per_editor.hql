@@ -31,6 +31,18 @@
 --         -d year_month=2025-10 \
 --         -d top_k=10
 
+SET current_dt = CAST(
+    TO_DATE('${year_month}-01', 'yyyy-MM-dd') AS TIMESTAMP
+);
+
+-- Delete any existing data so that backfills are idempotent
+DELETE
+FROM ${destination_table}
+WHERE
+    dt = ${current_dt}
+    AND granularity = 'monthly'
+;
+
 INSERT INTO ${destination_table}
 SELECT
     user_central_id,
@@ -40,7 +52,7 @@ SELECT
     rank,
     CAST(${top_k} AS INT) AS top_k,
     view_count,
-    CAST(TO_DATE('${year_month}-01', 'yyyy-MM-dd') AS TIMESTAMP) AS dt
+    ${current_dt} AS dt
 FROM (
     WITH monthly_pageviews_per_editor_per_page AS (
         SELECT
@@ -76,3 +88,4 @@ WHERE rn <= ${top_k}
 ORDER BY
     user_central_id,
     rank
+;

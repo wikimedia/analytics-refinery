@@ -29,12 +29,25 @@
 --         -d destination_table='wmf_readership.pageviews_per_editor' \
 --         -d year_month=2025-10
 
+
+SET current_dt = CAST(
+    TO_DATE('${year_month}-01', 'yyyy-MM-dd') AS TIMESTAMP
+);
+
+-- Delete any existing data so that backfills are idempotent
+DELETE
+FROM ${destination_table}
+WHERE
+    dt = ${current_dt}
+    AND granularity = 'monthly'
+;
+
 INSERT INTO ${destination_table}
 SELECT
     user_central_id,
     'monthly' AS granularity,
     SUM(view_count) AS view_count,
-    CAST(TO_DATE('${year_month}-01', 'yyyy-MM-dd') AS TIMESTAMP) AS dt
+    ${current_dt} AS dt
 FROM ${pageview_per_editor_per_page_daily_table}
 WHERE
     day >= TO_DATE('${year_month}-01', 'yyyy-MM-dd')
@@ -43,3 +56,4 @@ GROUP BY
     user_central_id
 ORDER BY
     user_central_id
+;

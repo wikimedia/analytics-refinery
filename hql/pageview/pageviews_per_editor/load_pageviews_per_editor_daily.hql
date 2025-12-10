@@ -29,12 +29,25 @@
 --         -d destination_table='wmf_readership.pageviews_per_editor' \
 --         -d day=2025-10-25
 
+
+SET current_dt = CAST(
+    TO_DATE('${day}', 'yyyy-MM-dd') AS TIMESTAMP
+);
+
+-- Delete any existing data so that backfills are idempotent
+DELETE
+FROM ${destination_table}
+WHERE
+    dt = ${current_dt}
+    AND granularity = 'daily'
+;
+
 INSERT INTO ${destination_table}
 SELECT
     user_central_id,
     'daily' AS granularity,
     SUM(view_count) AS view_count,
-    CAST(TO_DATE('${day}', 'yyyy-MM-dd') AS TIMESTAMP) AS dt
+    ${current_dt} AS dt
 FROM ${pageview_per_editor_per_page_daily_table}
 WHERE
     day = TO_DATE('${day}', 'yyyy-MM-dd')
@@ -42,3 +55,4 @@ GROUP BY
     user_central_id
 ORDER BY
     user_central_id
+;
