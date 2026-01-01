@@ -72,6 +72,7 @@ total_agg AS (
         SUM(IF(event_php LIKE '8.2%', 1, 0)) AS `8.2`,
         SUM(IF(event_php LIKE '8.3%', 1, 0)) AS `8.3`,
         SUM(IF(event_php LIKE '8.4%', 1, 0)) AS `8.4`,
+        SUM(IF(event_php LIKE '8.5%', 1, 0)) AS `8.5`,
         SUM(IF(event_php NOT LIKE '5.5%' AND
         event_php NOT LIKE '5.6%' AND
         event_php NOT LIKE '7.0%' AND
@@ -83,7 +84,8 @@ total_agg AS (
         event_php NOT LIKE '8.1%' AND
         event_php NOT LIKE '8.2%' AND
         event_php NOT LIKE '8.3%' AND
-        event_php NOT LIKE '8.4%', 1, 0)) AS `other`
+        event_php NOT LIKE '8.4%' AND
+        event_php NOT LIKE '8.5%', 1, 0)) AS `other`
     FROM numbered
     WHERE
         row_num = 1 AND
