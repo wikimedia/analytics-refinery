@@ -47,7 +47,8 @@
               "wmfuniq_freq",
               "ja3n",
               "ja4h",
-              "x_is_browser"
+              "x_is_browser",
+              "res_proxy"
           ]
         },
         "dimensionsSpec": {
@@ -90,7 +91,8 @@
               "wmfuniq_freq",
               "ja3n",
               "ja4h",
-              "x_is_browser"
+              "x_is_browser",
+              "res_proxy"
           ]
         },
         "timestampSpec" : {
