@@ -1,4 +1,4 @@
--- Outputs most linked templates list to a directory.
+-- Outputs most linked categories list to a directory.
 -- Parameters:
 --     destination_directory      -- where to write query output.
 --     source_table_categorylinks -- Fully qualified hive table to cooresponding to mediawiki's categorylinks table.
@@ -18,8 +18,8 @@
 -- --conf spark.dynamicAllocation.maxExecutors=16 \
 -- --conf spark.yarn.maxAppAttempts=1 \
 -- --conf spark.executor.memoryOverhead=2G \
---     -f MostTranscludedPages.hql \
---     -d destination_directory=/tmp/test-MostTranscludedPages \
+--     -f MostCategories.hql \
+--     -d destination_directory=/tmp/test-MostCategories \
 --     -d source_table_categorylinks=wmf_raw.mediawiki_categorylinks  \
 --     -d source_table_page=wmf_raw.mediawiki_page  \
 --     -d wiki=rowiki \
