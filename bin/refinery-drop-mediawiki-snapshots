@@ -24,7 +24,7 @@ See AFFECTED_TABLES dict for a comprehensive list.
 As this data sets are historical (they span from the beginning of time
 to latest import), the dimension used to determine which partitions need
 to be removed is not time, it's "snapshot". The number of snapshot kept is
-6 for all tables except it is 2 for mediawiki_wikitext_history (huge dataset).
+6 for all tables.
 
 Note: Ad-hoc snapshots not following the default naming convention
 snapshot=YYYY-MM[-DD], like private snapshots, are not considered neither
@@ -134,8 +134,6 @@ AFFECTED_TABLES = {
         'mediawiki_user_history': 6,
         'mediawiki_history_reduced': 6,
         'edit_hourly': 6,
-        'mediawiki_wikitext_history': 2,
-        'mediawiki_wikitext_current': 6,
         'wikidata_entity': 6,
         'wikidata_item_page_link': 6,
     },
@@ -183,8 +181,6 @@ WIKI_DB_TABLES = [
     'wikibase_wbt_term_in_lang',
     'wikibase_wbt_text_in_lang',
     'wikibase_wbt_type',
-    'mediawiki_wikitext_history',
-    'mediawiki_wikitext_current',
 ]
 
 
