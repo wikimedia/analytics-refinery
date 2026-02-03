@@ -65,8 +65,8 @@ CREATE TABLE IF NOT EXISTS ${destination_table} (
 
     -- Fields to be used as metricsas HiveToDruid
     -- uses the same names for Hive fields and druid metrics
-    aggregated_response_size  double,
-    aggregated_time_firstbyte bigint,
+    aggregated_response_size  bigint,
+    aggregated_time_firstbyte double,
     hits                      bigint
 )
 USING PARQUET
