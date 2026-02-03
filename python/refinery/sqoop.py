@@ -1007,12 +1007,14 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
                     convert(cuc_timestamp using utf8mb4) cuc_timestamp,
                     null cuc_ip,
                     convert(cuc_ip_hex using utf8mb4) cuc_ip_hex,
-                    convert(cuc_agent using utf8mb4) cuc_agent
+                    convert((coalesce(cuua_text, '')) using utf8mb4) cuc_agent
                from cu_changes
                         inner join
                     actor           on actor_id = cuc_actor
                         inner join
                     comment         on comment_id = cuc_comment_id
+                        left join
+                    cu_useragent    on cuua_id = cuc_agent_id
               where $CONDITIONS
                 {ts_clause}
         '''.format(ts_clause=make_timestamp_clause('cuc_timestamp', from_timestamp, to_timestamp)),
