@@ -1,7 +1,7 @@
 -- Extracts one day of formatted minutely banner activity to be loaded in Druid
 --
 -- Usage:
---     spark-sql -f generate_daily_druid_banner_activity.hql \
+--     spark3-sql -f generate_daily_druid_banner_activity.hql \
 --         -d source_table=wmf.webrequest \
 --         -d destination_table=tmp_banner_activity_2023_01_01 \
 --         -d destination_directory=/wmf/tmp/druid/daily_banner_activity \
@@ -21,6 +21,9 @@ CREATE TABLE IF NOT EXISTS ${destination_table} (
     `bucket`                         string,
     `anonymous`                      boolean,
     `status_code`                    string,
+    `first_campaign`                 string,
+    `first_campaign_status_code`     string,
+    `is_campaign_fallback`           boolean,
     `country`                        string,
     `country_matches_geocode`        boolean,
     `region`                         string,
@@ -38,7 +41,8 @@ WITH filtered_data AS (
     SELECT
         CONCAT(SUBSTRING(dt, 0, 17), '00Z') AS dt,
         concat('http://bla.org/woo/', uri_query) AS url,
-        geocoded_data
+        geocoded_data,
+        from_json(reflect('java.net.URLDecoder', 'decode', parse_url(concat('http://bla.org/woo/', uri_query), 'QUERY', 'campaignStatuses'), 'utf-8'), 'array<struct<statusCode:string, campaign:string, bannersCount:int>>')[0] AS first_campaign_status
     FROM
         ${source_table}
     WHERE
@@ -65,6 +69,9 @@ SELECT /*+ COALESCE(${coalesce_partitions}) */
     parse_url(url, 'QUERY', 'bucket') AS bucket,
     parse_url(url, 'QUERY', 'anonymous') = 'true' AS anonymous,
     parse_url(url, 'QUERY', 'statusCode') AS status_code,
+    first_campaign_status.campaign AS first_campaign,
+    first_campaign_status.statusCode AS first_campaign_status_code,
+    (first_campaign_status.campaign <> reflect('java.net.URLDecoder', 'decode', parse_url(url, 'QUERY', 'campaign'))) AS is_campaign_fallback,
     parse_url(url, 'QUERY', 'country') AS country,
     geocoded_data['country_code'] = parse_url(url, 'QUERY', 'country') AS country_matches_geocode,
     geocoded_data['subdivision'] AS region,
@@ -88,6 +95,9 @@ GROUP BY
     bucket,
     anonymous,
     status_code,
+    first_campaign,
+    first_campaign_status_code,
+    is_campaign_fallback,
     country,
     country_matches_geocode,
     region,
