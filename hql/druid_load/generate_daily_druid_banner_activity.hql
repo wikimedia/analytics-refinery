@@ -81,16 +81,16 @@ WHERE
     AND cast(parse_url(url, 'QUERY', 'recordImpressionSampleRate') AS float) != 'Infinity'
 GROUP BY
     dt,
-    parse_url(url, 'QUERY', 'campaign'),
-    parse_url(url, 'QUERY', 'banner'),
-    parse_url(url, 'QUERY', 'project'),
-    parse_url(url, 'QUERY', 'uselang'),
-    parse_url(url, 'QUERY', 'bucket'),
-    parse_url(url, 'QUERY', 'anonymous') = 'true',
-    parse_url(url, 'QUERY', 'statusCode'),
-    parse_url(url, 'QUERY', 'country'),
-    geocoded_data['country_code'] = parse_url(url, 'QUERY', 'country'),
-    geocoded_data['subdivision'],
-    parse_url(url, 'QUERY', 'device'),
-    cast(parse_url(url, 'QUERY', 'recordImpressionSampleRate') AS float)
+    campaign,
+    banner,
+    project,
+    uselang,
+    bucket,
+    anonymous,
+    status_code,
+    country,
+    country_matches_geocode,
+    region,
+    device,
+    sample_rate
 ;
