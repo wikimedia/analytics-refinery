@@ -539,12 +539,19 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
     queries['imagelinks'] = {
         'query': '''
              select il_from,
-                    convert(il_to using utf8mb4) il_to,
-                    il_from_namespace
+                    null il_to,
+                    il_from_namespace,
+                    il_target_id
 
                from imagelinks
               where $CONDITIONS
         ''',
+        'map-types': '"{}"'.format(','.join([
+            'il_from=Long',
+            'il_to=String',
+            'il_from_namespace=Integer',
+            'il_target_id=Long',
+        ])),
         'boundary-query': 'SELECT MIN(il_from), MAX(il_from) FROM imagelinks',
         'split-by': 'il_from',
         'mappers-weight': 0.25,

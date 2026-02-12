@@ -5,7 +5,8 @@
 -- Parameters:
 --     category_and_media_table                   -- Read data from here
 --     mediawiki_page_table                       -- Read data from here
---     mediawiki_imagelinks_table                 -- Read data from here
+--     mediawiki_imagelinks_table                 -- Read data from here (il_to dropped; use il_target_id -> linktarget.lt_id for title)
+--     mediawiki_private_linktarget_table         -- Read data from here (lt_id, lt_title; imagelinks.il_target_id = lt_id)
 --     pageview_hourly_table                      -- Read data from here
 --     canonical_data_wikis_table                 -- Read data from here
 --     category_and_media_with_usage_map_table    -- Insert results here
@@ -18,6 +19,7 @@
 --                -d category_and_media_table=tmp.category_and_media \
 --                -d mediawiki_page_table=wmf_raw.mediawiki_page \
 --                -d mediawiki_imagelinks_table=wmf_raw.mediawiki_imagelinks \
+--                -d mediawiki_private_linktarget_table=wmf_raw.mediawiki_private_linktarget \
 --                -d pageview_hourly_table=wmf.pageview_hourly \
 --                -d canonical_data_wikis_table=canonical_data.wikis \
 --                -d category_and_media_with_usage_map_table=tmp.category_and_media_with_usage_map \
@@ -100,18 +102,29 @@ category_and_media_with_titles AS (
 
 -- Get glam image links with il_to (id) and il_to_title (name).
 -- They are needed to augment the category graph with imagelink info (media file usage).
--- NOTE: look for the hint that Amir gave us about the global imagelink table in commons?
-     glam_image_links AS (
+-- il_to is dropped from imagelinks; join via il_target_id -> linktarget.lt_id to get lt_title, then match Commons file title.
+     imagelinks_with_title AS (
          SELECT il.il_from,
-                il.wiki_db     AS il_from_wiki_db,
-                cmt.page_id    AS il_to,
-                cmt.page_title AS il_to_title
-         FROM category_and_media_with_titles cmt
-                  LEFT JOIN ${mediawiki_imagelinks_table} il ON (cmt.page_title = il.il_to)
+                il.wiki_db,
+                lt.lt_title
+         FROM ${mediawiki_imagelinks_table} il
+                  INNER JOIN ${mediawiki_private_linktarget_table} lt
+                      ON il.il_target_id = lt.lt_id
+                      AND lt.snapshot = il.snapshot
+                      AND lt.wiki_db = il.wiki_db
          WHERE il.snapshot = '${snapshot}'
            AND il.il_from_namespace = 0
            AND il.wiki_db NOT IN ('commonswiki', 'wikidatawiki')
-           AND cmt.page_type = 'file'),
+           AND lt.snapshot = '${snapshot}'
+     ),
+     glam_image_links AS (
+         SELECT ilt.il_from,
+                ilt.wiki_db     AS il_from_wiki_db,
+                cmt.page_id     AS il_to,
+                cmt.page_title  AS il_to_title
+         FROM category_and_media_with_titles cmt
+                  LEFT JOIN imagelinks_with_title ilt ON (cmt.page_title = ilt.lt_title)
+         WHERE cmt.page_type = 'file'),
 
 -- Improve glam image links with il_from_title.
 -- We need a second pass to add the il_from_title to the image links.

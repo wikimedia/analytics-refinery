@@ -10,8 +10,9 @@
 
 CREATE EXTERNAL TABLE `mediawiki_imagelinks`(
   `il_from`             bigint      COMMENT 'The page_id of the page the link is on',
-  `pl_title`            string      COMMENT 'The title of the file being linked to',
-  `il_from_namespace`   int         COMMENT 'page_namespace of the page containing the link'
+  `il_to`               string      COMMENT 'The title of the file being linked to (Its value is null because it is deprecated since Feb, 2026. See https://phabricator.wikimedia.org/T416481)',
+  `il_from_namespace`   int         COMMENT 'page_namespace of the page containing the link',
+  `il_target_id`        bigint      COMMENT 'Foreign key to linktarget.lt_id'
 )
 COMMENT
   'See most up to date documentation at https://www.mediawiki.org/wiki/Manual:Imagelinks_table'
