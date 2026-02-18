@@ -41,7 +41,13 @@ WITH filtered_data AS (
         CONCAT(SUBSTRING(dt, 0, 17), '00Z') AS dt,
         concat('http://bla.org/woo/', uri_query) AS url,
         geocoded_data,
-        from_json(reflect('java.net.URLDecoder', 'decode', parse_url(concat('http://bla.org/woo/', uri_query), 'QUERY', 'campaignStatuses'), 'utf-8'), 'array<struct<statusCode:string, campaign:string, bannersCount:int>>')[0] AS first_campaign_status
+        from_json(
+            reflect('java.net.URLDecoder', 'decode',
+                COALESCE(
+                    parse_url(concat('http://bla.org/woo/', uri_query), 'QUERY', 'campaignStatuses'),
+                ''),
+            'utf-8'),
+        'array<struct<statusCode:string, campaign:string, bannersCount:int>>')[0] AS first_campaign_status
     FROM
         ${source_table}
     WHERE
@@ -69,7 +75,7 @@ SELECT /*+ COALESCE(${coalesce_partitions}) */
     parse_url(url, 'QUERY', 'statusCode') AS status_code,
     first_campaign_status.campaign AS first_campaign,
     first_campaign_status.statusCode AS first_campaign_status_code,
-    (first_campaign_status.campaign <> reflect('java.net.URLDecoder', 'decode', parse_url(url, 'QUERY', 'campaign'))) AS is_campaign_fallback,
+    (first_campaign_status.campaign <> reflect('java.net.URLDecoder', 'decode', COALESCE(parse_url(url, 'QUERY', 'campaign'), ''), 'utf-8')) AS is_campaign_fallback,
     parse_url(url, 'QUERY', 'country') AS country,
     geocoded_data['country_code'] = parse_url(url, 'QUERY', 'country') AS country_matches_geocode,
     geocoded_data['subdivision'] AS region,
