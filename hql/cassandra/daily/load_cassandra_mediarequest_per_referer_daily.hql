@@ -42,7 +42,13 @@ SELECT
     'daily' as granularity,
     CONCAT(LPAD(year, 4, '0'), LPAD(month, 2, '0'), LPAD(day, 2, '0'), "00") as `timestamp`,
     '13814000-1dd2-11b2-8080-808080808080' as _tid,
-    SUM(request_count) as requests
+    SUM(request_count) as requests,
+    IF(GROUPING(media_classification) = 1 OR FIRST(media_classification) IN ('video','audio'),
+        SUM(IF(media_classification IN ('video','audio') AND transcoding LIKE 'image_%', request_count, 0)),
+        NULL) as poster_requests,
+    IF(GROUPING(media_classification) = 1 OR FIRST(media_classification) IN ('video','audio'),
+        SUM(IF(media_classification IN ('video','audio') AND (transcoding NOT LIKE 'image_%' OR transcoding IS NULL), request_count, 0)),
+        NULL) as play_requests
 FROM
     ${source_table}
 WHERE

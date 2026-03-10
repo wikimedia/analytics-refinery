@@ -32,56 +32,58 @@
 --      -d month=07 \
 --      -d day=01
 
-WITH per_referer AS (
+WITH base AS (
     SELECT
-        'analytics.wikimedia.org' as _domain,
-        IF(referer = 'external (search engine)', 'search-engine', referer) as referer,
-        regexp_replace(base_name, '\t', '') as file_path,
-        'daily' as granularity,
-        CONCAT(LPAD(year, 4, '0'), LPAD(month, 2, '0'), LPAD(day, 2, '0'), '00') as `timestamp`,
-            '13814000-1dd2-11b2-8080-808080808080' as _tid,
-        SUM( IF (COALESCE(agent_type, 'all-agents') = 'spider', request_count, 0)) as spider,
-        SUM( IF (COALESCE(agent_type, 'all-agents') = 'user', request_count, 0)) as `user`
-    FROM
-        ${source_table}
+        IF(referer = 'external (search engine)', 'search-engine', referer) AS referer_key,
+        regexp_replace(base_name, '\t', '') AS file_path,
+        COALESCE(agent_type, 'all-agents') AS agent,
+        media_classification IN ('video','audio') AS is_av,
+        IF(media_classification IN ('video','audio') AND transcoding LIKE 'image_%', TRUE, FALSE) AS is_poster,
+        IF(media_classification IN ('video','audio') AND (transcoding NOT LIKE 'image_%' OR transcoding IS NULL), TRUE, FALSE) AS is_play,
+        request_count
+    FROM ${source_table}
     WHERE
         year = ${year}
         AND month = ${month}
         AND day = ${day}
-    GROUP BY
-        referer,
-        regexp_replace(base_name, '\t', ''),
-        year,
-        month,
-        day
-), all_referers AS (
+),
+agg AS (
     SELECT
-        'analytics.wikimedia.org' as _domain,
-        'all-referers' as referer,
-        regexp_replace(base_name, '\t', '') as file_path,
-        'daily' as granularity,
-        CONCAT(LPAD(year, 4, '0'), LPAD(month, 2, '0'), LPAD(day, 2, '0'), '00') as `timestamp`,
-        '13814000-1dd2-11b2-8080-808080808080' as _tid,
-        SUM( IF (COALESCE(agent_type, 'all-agents') = 'spider', request_count, 0)) as spider,
-        SUM( IF (COALESCE(agent_type, 'all-agents') = 'user', request_count, 0)) as `user`
-    FROM
-         ${source_table}
-    WHERE
-        year = ${year}
-        AND month = ${month}
-        AND day = ${day}
+        -- Only the rollup grouping set should get the 'all-referers' label.
+        -- If the source referer is NULL, the per-referer rows should keep it as NULL.
+        CASE
+            WHEN GROUPING(referer_key) = 1 THEN 'all-referers'
+            ELSE referer_key
+        END AS referer,
+        file_path,
+        SUM(IF(agent = 'spider', request_count, 0)) AS spider,
+        SUM(IF(agent = 'user', request_count, 0)) AS `user`,
+        IF(MAX(is_av), SUM(IF(is_poster AND agent = 'spider', request_count, 0)), NULL) AS poster_spider,
+        IF(MAX(is_av), SUM(IF(is_poster AND agent = 'user', request_count, 0)), NULL) AS poster_user,
+        IF(MAX(is_av), SUM(IF(is_play AND agent = 'spider', request_count, 0)), NULL) AS plays_spider,
+        IF(MAX(is_av), SUM(IF(is_play AND agent = 'user', request_count, 0)), NULL) AS plays_user
+    FROM base
     GROUP BY
-        regexp_replace(base_name, '\t', ''),
-        year,
-        month,
-        day
+        referer_key,
+        file_path
+    GROUPING SETS (
+        (referer_key, file_path),
+        (file_path)
+    )
 )
 INSERT INTO ${destination_table}
 SELECT
  /*+ COALESCE(${coalesce_partitions}) */
-* FROM
-(
-    SELECT * FROM per_referer
-    UNION ALL
-    SELECT * FROM all_referers
-)
+    'analytics.wikimedia.org' AS _domain,
+    referer,
+    file_path,
+    'daily' AS granularity,
+    CONCAT(LPAD(${year}, 4, '0'), LPAD(${month}, 2, '0'), LPAD(${day}, 2, '0'), '00') AS `timestamp`,
+    '13814000-1dd2-11b2-8080-808080808080' AS _tid,
+    spider,
+    `user`,
+    poster_spider,
+    poster_user,
+    plays_spider,
+    plays_user
+FROM agg

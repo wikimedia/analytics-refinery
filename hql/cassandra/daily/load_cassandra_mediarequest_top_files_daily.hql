@@ -40,8 +40,11 @@ WITH ranked AS (
         month,
         day,
         requests,
+        video_play_requests,
         rank() OVER (PARTITION BY referer, media_classification, year, month, day ORDER BY requests DESC) as rank,
-        row_number() OVER (PARTITION BY referer, media_classification, year, month, day ORDER BY requests DESC) as rn
+        row_number() OVER (PARTITION BY referer, media_classification, year, month, day ORDER BY requests DESC) as rn,
+        rank() OVER (PARTITION BY referer, media_classification, year, month, day ORDER BY video_play_requests DESC) as video_play_rank,
+        row_number() OVER (PARTITION BY referer, media_classification, year, month, day ORDER BY video_play_requests DESC) as video_play_rn
     FROM (
         SELECT
             COALESCE(IF(referer = 'external (search engine)', 'search-engine', referer), 'all-referers') referer,
@@ -50,7 +53,8 @@ WITH ranked AS (
             LPAD(year, 4, '0') as year,
             LPAD(month, 2, '0') as month,
             LPAD(day, 2, '0') as day,
-            SUM(request_count) as requests
+            SUM(request_count) as requests,
+            SUM(CASE WHEN media_classification = 'video' AND (transcoding NOT LIKE 'image_%' OR transcoding IS NULL) THEN request_count ELSE 0 END) AS video_play_requests
         FROM ${source_table}
         WHERE
             year = ${year}
@@ -98,13 +102,18 @@ max_rank AS (
     FROM ranked
     WHERE
         rn = 1001
-    GROUP BY
-        referer,
-        media_classification,
-        year,
-        month,
-        day,
-        rank
+),
+max_video_play_rank AS (
+    SELECT
+        referer as max_video_play_rank_referer,
+        media_classification as max_video_play_rank_media_classification,
+        year as max_video_play_rank_year,
+        month as max_video_play_rank_month,
+        day as max_video_play_rank_day,
+        video_play_rank as max_video_play_rank
+    FROM ranked
+    WHERE
+        video_play_rn = 1001
 )
 INSERT INTO ${destination_table}
 SELECT
@@ -118,10 +127,22 @@ SELECT
     '13814000-1dd2-11b2-8080-808080808080' as _tid,
     CONCAT('[',
         CONCAT_WS(',', collect_list(
-            CONCAT('{"file_path":"', file_path,
-                '","requests":', CAST(requests AS STRING),
-                ',"rank":', CAST(rank AS STRING), '}'))
-        ),']') as filesJSON
+            IF(rank < COALESCE(max_rank, 1001),
+                CONCAT('{"file_path":"', file_path,
+                    '","requests":', CAST(requests AS STRING),
+                    ',"rank":', CAST(rank AS STRING), '}'),
+                NULL))
+        ),']') as filesJSON,
+    IF(media_classification = 'video',
+        CONCAT('[',
+            CONCAT_WS(',', collect_list(
+                IF(video_play_rank < COALESCE(max_video_play_rank, 1001),
+                    CONCAT('{"file_path":"', file_path,
+                        '","play_requests":', CAST(video_play_requests AS STRING),
+                        ',"play_rank":', CAST(video_play_rank AS STRING), '}'),
+                    NULL))
+            ),']'),
+        NULL) as video_filesJSON
 FROM ranked
 LEFT JOIN max_rank ON (
     referer = max_rank_referer
@@ -130,7 +151,15 @@ LEFT JOIN max_rank ON (
     AND month = max_rank_month
     AND day = max_rank_day
 )
+LEFT JOIN max_video_play_rank ON (
+    referer = max_video_play_rank_referer
+    AND media_classification = max_video_play_rank_media_classification
+    AND year = max_video_play_rank_year
+    AND month = max_video_play_rank_month
+    AND day = max_video_play_rank_day
+)
 WHERE rank < COALESCE(max_rank, 1001)
+   OR (media_classification = 'video' AND video_play_rank < COALESCE(max_video_play_rank, 1001))
 GROUP BY
     referer,
     media_classification,
