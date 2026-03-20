@@ -1366,7 +1366,15 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         # but will at least provide some splitting without overwhelming the DB.
         # Data-size is ~300 rows million as of 2025.
         'split-by': 'lu_wiki',
-        'mappers-weight': 0.5,
+        # During T411116 we discovered that the split over varchars has a bug:
+        # https://issues.apache.org/jira/browse/SQOOP-3262
+        # Unfortunately no other field is suitable to split, therefore we are stuck
+        # with lu_wiki.
+        # A possibile solution found was to change the number of mappers and processors
+        # in the puppet config file to 32 for both, or the mapper-weight here.
+        # Given 64 mappers and 10 processor with the new value of 0.25 we assign 1
+        # mapper to each processor obtaining the same result.
+        'mappers-weight': 0.25,
         'sqoopable_dbnames': 'centralauth',
     }
 
