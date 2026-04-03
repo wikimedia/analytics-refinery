@@ -3,6 +3,7 @@
 --     destination_directory      -- where to write query output.
 --     source_table_categorylinks -- Fully qualified hive table to cooresponding to mediawiki's categorylinks table.
 --     source_table_page          -- Fully qualified hive table to cooresponding to mediawiki's page table
+--     namespace_map_table        -- Fully qualified hive table for mediawiki_project_namespace_map
 --     wiki                       -- wiki to run the computation on
 --     year                       -- year of partition to compute from.
 --     month                      -- month of partition to compute from.
@@ -22,6 +23,7 @@
 --     -d destination_directory=/tmp/test-MostCategories \
 --     -d source_table_categorylinks=wmf_raw.mediawiki_categorylinks  \
 --     -d source_table_page=wmf_raw.mediawiki_page  \
+--     -d namespace_map_table=wmf_raw.mediawiki_project_namespace_map \
 --     -d wiki=rowiki \
 --     -d year=2023 \
 --     -d month=10
@@ -31,18 +33,23 @@ SET snapshot = CONCAT(LPAD('${year}', 4, '0'), '-', LPAD('${month}', 2, '0'));
 WITH output as (
     SELECT
         'Mostcategories' AS `qc_type`,
-        page_namespace AS `qc_namespace`,
-        page_title AS `qc_title`,
+        p.page_namespace AS `qc_namespace`,
+        p.page_title AS `qc_title`,
         COUNT(1) AS `qc_value`,
         '${wiki}' as `qc_wiki`,
         ${snapshot} as `qc_snapshot`
-    FROM ${source_table_categorylinks}
-    LEFT JOIN ${source_table_page} ON ((cl_from=page_id))
-    WHERE ${source_table_categorylinks}.snapshot = ${snapshot}
-        AND ${source_table_categorylinks}.wiki_db = '${wiki}'
-        AND ${source_table_page}.snapshot = ${snapshot}
-        AND ${source_table_page}.wiki_db = '${wiki}'
-        AND ${source_table_page}.page_namespace = 0
+    FROM ${source_table_categorylinks} cls
+    LEFT JOIN ${source_table_page} p ON ((cls.cl_from=p.page_id))
+    JOIN ${namespace_map_table} nsm ON (
+        p.wiki_db = nsm.dbname
+        AND p.page_namespace = nsm.namespace
+        AND nsm.snapshot = ${snapshot}
+    )
+    WHERE cls.snapshot = ${snapshot}
+        AND cls.wiki_db = '${wiki}'
+        AND p.snapshot = ${snapshot}
+        AND p.wiki_db = '${wiki}'
+        AND nsm.namespace_is_content = 1
     GROUP BY qc_namespace, qc_title
     HAVING qc_value > 1
     ORDER BY qc_value DESC
