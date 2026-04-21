@@ -51,7 +51,7 @@ WITH
     bad_requests AS (
         SELECT
             count_bad_requests AS count,
-            ((count_bad_requests / (count_actual + count_bad_requests)) * 100.0) AS `percent`
+            ((count_bad_requests / count_actual) * 100.0) AS `percent`
         FROM
             ${source_table}
         WHERE

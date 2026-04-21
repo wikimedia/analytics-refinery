@@ -78,8 +78,7 @@ WITH
             ${source_table}
         WHERE
             webrequest_source='${webrequest_source}' AND
-            year=${year} AND month=${month} AND day=${day} AND hour=${hour} AND
-            http_method != '<BADREQ>'
+            year=${year} AND month=${month} AND day=${day} AND hour=${hour}
         GROUP BY
             hostname, server_pid, webrequest_source, year, month, day, hour
     ),
