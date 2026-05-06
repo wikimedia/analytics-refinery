@@ -58,7 +58,9 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `webrequest_sampled` (
     `wmfuniq_freq`            string  COMMENT '',
     `wmfuniq_weeks`           string  COMMENT '',
     `x_cache`                 string  COMMENT 'Cache path of request',
-    `x_is_browser`            string  COMMENT ''
+    `x_is_browser`            string  COMMENT '',
+    `x_wmf_ratelimit_class`   string  COMMENT '',
+    `x_trusted_request`       string  COMMENT ''
 ) PARTITIONED BY (
     `year`              int     COMMENT 'Unpadded year of request',
     `month`             int     COMMENT 'Unpadded month of request',
