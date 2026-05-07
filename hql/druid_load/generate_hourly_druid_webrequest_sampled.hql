@@ -62,7 +62,8 @@ CREATE TABLE IF NOT EXISTS ${destination_table} (
     wmfuniq_weeks             string,
     x_cache                   string,
     x_is_browser              string,
-
+    x_wmf_ratelimit_class     string,
+    x_trusted_request         string,
     -- Fields to be used as metricsas HiveToDruid
     -- uses the same names for Hive fields and druid metrics
     aggregated_response_size  bigint,
@@ -121,6 +122,8 @@ WITH prepared_data AS (
         wmfuniq_weeks,
         x_cache,
         x_is_browser,
+        x_wmf_ratelimit_class,
+        x_trusted_request,
         -- Special fields
         response_size AS aggregated_response_size,
         time_firstbyte AS aggregated_time_firstbyte,
