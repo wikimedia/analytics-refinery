@@ -48,7 +48,9 @@
               "ja3n",
               "ja4h",
               "x_is_browser",
-              "res_proxy"
+              "res_proxy",
+              "x_wmf_ratelimit_class",
+              "x_trusted_request"
           ]
         },
         "dimensionsSpec": {
@@ -92,7 +94,9 @@
               "ja3n",
               "ja4h",
               "x_is_browser",
-              "res_proxy"
+              "res_proxy",
+              "x_wmf_ratelimit_class",
+              "x_trusted_request"
           ]
         },
         "timestampSpec" : {
