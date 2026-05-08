@@ -1,12 +1,13 @@
--- Create table statement for unique devices per domain monthly table.
+-- Create table statement for unique devices per domain table.
+-- It can be used to create tables for any granularity.
 --
 -- Usage
---     spark-sql -f create_unique_devices_per_domain_monthly_table_iceberg.hql \
+--     spark3-sql -f create_unique_devices_per_domain_table.hql \
 --         --database wmf_readership \
---         -d location=/wmf/data/wmf_readership/unique_devices/per_domain/monthly
+--         -d table_name=unique_devices_per_domain_daily \
+--         -d location=/wmf/data/wmf_readership/unique_devices/per_domain/daily
 
-
-CREATE EXTERNAL TABLE IF NOT EXISTS `unique_devices_per_domain_monthly`(
+CREATE EXTERNAL TABLE IF NOT EXISTS `${table_name}`(
     `domain`                 string  COMMENT 'The lower cased domain defining a project (en.wikipedia.org for instance)',
     `access_method`          string  COMMENT 'The access-method the device is using (mobile-web, mobile-app or desktop)',
     `country`                string  COMMENT 'Country name of the accessing agents (computed using maxmind GeoIP database)',
@@ -14,10 +15,10 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `unique_devices_per_domain_monthly`(
     `uniques_underestimate`  int     COMMENT 'Under estimation of unique devices seen based on last access cookie, and the nocookies header',
     `uniques_offset`         int     COMMENT 'Unique devices offset computed as 1-action sessions without cookies',
     `uniques_estimate`       int     COMMENT 'Estimate of unique devices seen as uniques_underestimate plus offset',
-    `day`                    date    COMMENT 'The date for which the unique-devices metrics are computed - only first day of months'
+    `day`                    date    COMMENT 'The start date for which the unique-devices metrics are computed'
 )
 USING ICEBERG
--- The data is small enough to partition it by year (less than 20Mb / year)
+-- The data is small enough to partition it by year (less than 200Mb / year)
 PARTITIONED BY (years(day))
 LOCATION '${location}'
 ;
