@@ -16,7 +16,7 @@ CREATE EXTERNAL TABLE `mediawiki_private_watchlist`(
   `wl_notificationtimestamp`  string      COMMENT 'This is the timestamp of the first change to the page made by another user after the last visit by the watching user, the timestamp is cleared when the user visits the page. When the timestamp is updated, notification email may be sent (read more on wiki page).'
 )
 COMMENT
-  'NOTE: This table contains production-data. It should be used for public consumption without sanitization. See most up to date documentation at https://www.mediawiki.org/wiki/Manual:Watchlist_table'
+  'NOTE: This table contains production-data. It should not be used for public consumption without sanitization. See most up to date documentation at https://www.mediawiki.org/wiki/Manual:Watchlist_table'
 PARTITIONED BY (
   `snapshot` string COMMENT 'Versioning information to keep multiple datasets (YYYY-MM for regular labs imports)',
   `wiki_db` string COMMENT 'The wiki_db project')

@@ -1,14 +1,14 @@
--- Creates table statement for raw mediawiki_content table.
+-- Creates table statement for raw mediawiki_private_content table.
 --
 -- Parameters:
 --     <none>
 --
 -- Usage
---     hive -f create_mediawiki_content_table.hql \
+--     hive -f create_mediawiki_private_content_table.hql \
 --         --database wmf_raw
 --
 
-CREATE EXTERNAL TABLE `mediawiki_content`(
+CREATE EXTERNAL TABLE `mediawiki_private_content`(
   `content_id`       bigint      COMMENT 'ID of the content object',
   `content_size`     int         COMMENT 'Nominal size of the content object (not necessarily of the serialized blob)',
   `content_sha1`     string      COMMENT 'Nominal hash of the content object (not necessarily of the serialized blob)',
@@ -16,7 +16,7 @@ CREATE EXTERNAL TABLE `mediawiki_content`(
   `content_address`  string      COMMENT 'URL-like address of the content blob. Currently the structure is: tt:<id> where <id> is a number referencing the text.old_id column.'
 )
 COMMENT
-  'See most up to date documentation at https://www.mediawiki.org/wiki/Manual:Content_table'
+  'NOTE: This table contains production-data. It should not be used for public consumption without sanitization. See most up to date documentation at https://www.mediawiki.org/wiki/Manual:Content_table'
 PARTITIONED BY (
   `snapshot` string COMMENT 'Versioning information to keep multiple datasets (YYYY-MM for regular labs imports)',
   `wiki_db` string COMMENT 'The wiki_db project')
@@ -27,5 +27,5 @@ STORED AS INPUTFORMAT
 OUTPUTFORMAT
   'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'
 LOCATION
-  'hdfs://analytics-hadoop/wmf/data/raw/mediawiki/tables/content'
+  'hdfs://analytics-hadoop/wmf/data/raw/mediawiki_private/tables/content'
 ;

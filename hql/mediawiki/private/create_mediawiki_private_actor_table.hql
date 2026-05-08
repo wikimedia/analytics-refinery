@@ -14,7 +14,7 @@ CREATE EXTERNAL TABLE `mediawiki_private_actor`(
   `actor_name`      string      COMMENT 'actor_name is the text of the username or the IP address of the actor.'
 )
 COMMENT
-  'NOTE: This table contains production-data. It should be used for public consumption without sanitization. See most up to date documentation at https://www.mediawiki.org/wiki/Manual:Actor_table'
+  'NOTE: This table contains production-data. It should not be used for public consumption without sanitization. See most up to date documentation at https://www.mediawiki.org/wiki/Manual:Actor_table'
 PARTITIONED BY (
   `snapshot` string COMMENT 'Versioning information to keep multiple datasets (YYYY-MM for regular labs imports)',
   `wiki_db` string COMMENT 'The wiki_db project')

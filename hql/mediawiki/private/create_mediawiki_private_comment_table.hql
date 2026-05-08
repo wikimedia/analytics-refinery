@@ -13,7 +13,7 @@ CREATE EXTERNAL TABLE `mediawiki_private_comment`(
   `comment_text`      string      COMMENT 'Text comment summarizing the change, e.g. an editor\'s edit summary. This text is shown in the history and contributions. It is also used for recent changes, related changes, watchlists, and, in the case of page creation, for the list of new pages. It is rendered in a sanitized subset of wiki markup by Linker::formatComment(). Size limits are enforced at the application level, and should take care to crop UTF-8 strings appropriately.'
 )
 COMMENT
-  'NOTE: This table contains production-data. It should be used for public consumption without sanitization. See most up to date documentation at https://www.mediawiki.org/wiki/Manual:Comment_table'
+  'NOTE: This table contains production-data. It should not be used for public consumption without sanitization. See most up to date documentation at https://www.mediawiki.org/wiki/Manual:Comment_table'
 PARTITIONED BY (
   `snapshot` string COMMENT 'Versioning information to keep multiple datasets (YYYY-MM for regular labs imports)',
   `wiki_db` string COMMENT 'The wiki_db project')
