@@ -16,6 +16,7 @@
 
 CREATE EXTERNAL TABLE `mediawiki_history`(
   `wiki_db`                                       string        COMMENT 'enwiki, dewiki, eswiktionary, etc.',
+  `event_log_id`                                  bigint        COMMENT 'In page/user events: id of the logging table row that caused this event. NULL for revision events.',
   `event_entity`                                  string        COMMENT 'revision, user or page',
   `event_type`                                    string        COMMENT 'create, move, delete, etc.  Detailed explanation in the docs under #Event_types',
   `event_timestamp`                               string        COMMENT 'When this event ocurred',
