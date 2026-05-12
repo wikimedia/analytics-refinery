@@ -37,6 +37,7 @@ CREATE EXTERNAL TABLE `mediawiki_history`(
   `event_user_is_anonymous`                       boolean       COMMENT 'Whether the event_user is not registered',
   `event_user_is_temporary`                       boolean       COMMENT 'True if the event_user is temporary, false otherwise.',
   `event_user_is_permanent`                       boolean       COMMENT 'True if the event_user is permanent, false otherwise.',
+  `event_user_is_cross_wiki`                      boolean       COMMENT 'True if the event_user is an interwiki-imported editor (usertext contains ">", is anonymous, and not temporary). NULL for user/page events.',
   `event_user_registration_timestamp`             string        COMMENT 'Registration timestamp of the user that caused the event (from the user table)',
   --`event_user_registration_timestamp`             timestamp     COMMENT 'Registration timestamp of the user that caused the event (from the user table)',
   `event_user_creation_timestamp`                 string        COMMENT 'Creation timestamp of the user that caused the event (from the logging table)',
