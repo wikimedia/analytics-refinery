@@ -59,6 +59,7 @@ CREATE TEMPORARY FUNCTION normalize_host AS 'org.wikimedia.analytics.refinery.hi
 CREATE TEMPORARY FUNCTION get_tags AS 'org.wikimedia.analytics.refinery.hive.GetWebrequestTagsUDF';
 CREATE TEMPORARY FUNCTION isp_data as 'org.wikimedia.analytics.refinery.hive.GetISPDataUDF';
 CREATE TEMPORARY FUNCTION get_referer_data as 'org.wikimedia.analytics.refinery.hive.GetRefererDataUDF';
+CREATE TEMPORARY FUNCTION sanitize_x_analytics_wprov as 'org.wikimedia.analytics.refinery.hive.SanitizeXAnalyticsWprovUDF';
 
 -- We set spark.sql.mapKeyDedupPolicy to LAST_WIN to prevent duplicate map keys
 -- in str_to_map() calls to break the query. See: https://phabricator.wikimedia.org/T351909
@@ -136,10 +137,10 @@ distinct_rows AS (
 
     SELECT
         distinct_rows.*,
-        -- parse x_analytics string into a map
+        -- parse x_analytics string into a map (strip junk appended to wprov before str_to_map; T425787)
         CASE COALESCE(x_analytics, '-')
             WHEN '-' THEN NULL
-            ELSE str_to_map(x_analytics, '\;', '=')
+            ELSE str_to_map(sanitize_x_analytics_wprov(x_analytics), '\;', '=')
             END as x_analytics_map
     FROM distinct_rows
 
