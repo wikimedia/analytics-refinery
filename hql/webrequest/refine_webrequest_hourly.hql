@@ -60,6 +60,7 @@ CREATE TEMPORARY FUNCTION get_tags AS 'org.wikimedia.analytics.refinery.hive.Get
 CREATE TEMPORARY FUNCTION isp_data as 'org.wikimedia.analytics.refinery.hive.GetISPDataUDF';
 CREATE TEMPORARY FUNCTION get_referer_data as 'org.wikimedia.analytics.refinery.hive.GetRefererDataUDF';
 CREATE TEMPORARY FUNCTION sanitize_x_analytics_wprov as 'org.wikimedia.analytics.refinery.hive.SanitizeXAnalyticsWprovUDF';
+CREATE TEMPORARY FUNCTION get_network_origin as 'org.wikimedia.analytics.refinery.hive.GetNetworkOriginUDF';
 
 -- We set spark.sql.mapKeyDedupPolicy to LAST_WIN to prevent duplicate map keys
 -- in str_to_map() calls to break the query. See: https://phabricator.wikimedia.org/T351909
@@ -181,6 +182,15 @@ SELECT /*+ COALESCE(${coalesce_partitions}) */
     `range`,
     is_pageview,
     is_redirect_to_pageview,
+    (
+        uri_path LIKE '/w/api.php%'
+        OR uri_path LIKE '/w/rest.php%'
+        OR uri_path RLIKE '^/api/rest_v[0-9]+'
+        OR uri_host = 'api.wikimedia.org'
+        OR (uri_host = 'query.wikidata.org' AND uri_path LIKE '/bigdata/namespace/wdq/sparql%')
+        OR (uri_host = 'commons-query.wikimedia.org' AND uri_path LIKE '/sparql%')
+        OR (uri_host = 'stream.wikimedia.org' AND uri_path LIKE '/v2/stream%')
+    ) AS is_api_request,
     '${record_version}' as record_version,
     ip as client_ip,  -- client_ip is deprecated
     geocoded_data(ip) as geocoded_data,
@@ -208,6 +218,7 @@ SELECT /*+ COALESCE(${coalesce_partitions}) */
     CAST(x_analytics_map['ns'] AS BIGINT) as namespace_id,
     get_tags(uri_host, uri_path, uri_query, http_status, content_type, user_agent, x_analytics_map) as tags,
     isp_data(ip) as isp_data,
+    get_network_origin(ip) as ip_provenance,
     accept,
     tls,
     CASE COALESCE(tls, '-')
