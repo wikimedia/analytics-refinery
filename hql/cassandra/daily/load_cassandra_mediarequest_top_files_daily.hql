@@ -26,7 +26,7 @@
     -- -f load_cassandra_mediarequest_top_files_daily.hql \
     -- -d destination_table=aqs.local_group_default_T_mediarequest_top_files.data \
     -- -d source_table=wmf.mediarequest \
-    -- -d coalesce_partitions=6 \
+    -- -d coalesce_partitions=12 \
     -- -d year=2022 \
     -- -d month=07  \
     -- -d day=01
@@ -91,6 +91,12 @@ WITH ranked AS (
         )
     ) raw
 ),
+top_ranked AS (
+    SELECT *
+    FROM ranked
+    WHERE rn <= 1001
+       OR (media_classification = 'video' AND video_play_rn <= 1001)
+),
 max_rank AS (
     SELECT
         referer as max_rank_referer,
@@ -99,7 +105,7 @@ max_rank AS (
         month as max_rank_month,
         day as max_rank_day,
         rank as max_rank
-    FROM ranked
+    FROM top_ranked
     WHERE
         rn = 1001
 ),
@@ -111,58 +117,90 @@ max_video_play_rank AS (
         month as max_video_play_rank_month,
         day as max_video_play_rank_day,
         video_play_rank as max_video_play_rank
-    FROM ranked
+    FROM top_ranked
     WHERE
         video_play_rn = 1001
-)
-INSERT INTO ${destination_table}
-SELECT
-/*+ COALESCE(${coalesce_partitions}) */
-    'analytics.wikimedia.org' as _domain,
-    referer,
-    media_classification as media_type,
-    year,
-    month,
-    day,
-    '13814000-1dd2-11b2-8080-808080808080' as _tid,
-    CONCAT('[',
-        CONCAT_WS(',', collect_list(
-            IF(rank < COALESCE(max_rank, 1001),
-                CONCAT('{"file_path":"', file_path,
-                    '","requests":', CAST(requests AS STRING),
-                    ',"rank":', CAST(rank AS STRING), '}'),
-                NULL))
-        ),']') as filesJSON,
-    IF(media_classification = 'video',
+),
+files_json AS (
+    SELECT
+        referer,
+        media_classification,
+        year,
+        month,
+        day,
         CONCAT('[',
-            CONCAT_WS(',', collect_list(
+            CONCAT_WS(',', SORT_ARRAY(COLLECT_SET(
+                IF(rank < COALESCE(max_rank, 1001),
+                    CONCAT('{"file_path":"', file_path,
+                        '","requests":', CAST(requests AS STRING),
+                        ',"rank":', CAST(rank AS STRING), '}'),
+                    NULL))
+            )),']') as filesJSON
+    FROM top_ranked
+    LEFT JOIN max_rank ON (
+        referer = max_rank_referer
+        AND media_classification = max_rank_media_classification
+        AND year = max_rank_year
+        AND month = max_rank_month
+        AND day = max_rank_day
+    )
+    WHERE rank < COALESCE(max_rank, 1001)
+    GROUP BY
+        referer,
+        media_classification,
+        year,
+        month,
+        day
+),
+video_json AS (
+    SELECT
+        referer,
+        media_classification,
+        year,
+        month,
+        day,
+        CONCAT('[',
+            CONCAT_WS(',', SORT_ARRAY(COLLECT_SET(
                 IF(video_play_rank < COALESCE(max_video_play_rank, 1001),
                     CONCAT('{"file_path":"', file_path,
                         '","play_requests":', CAST(video_play_requests AS STRING),
                         ',"play_rank":', CAST(video_play_rank AS STRING), '}'),
                     NULL))
-            ),']'),
-        NULL) as video_filesJSON
-FROM ranked
-LEFT JOIN max_rank ON (
-    referer = max_rank_referer
-    AND media_classification = max_rank_media_classification
-    AND year = max_rank_year
-    AND month = max_rank_month
-    AND day = max_rank_day
+            )),']') as video_filesJSON
+    FROM top_ranked
+    LEFT JOIN max_video_play_rank ON (
+        referer = max_video_play_rank_referer
+        AND media_classification = max_video_play_rank_media_classification
+        AND year = max_video_play_rank_year
+        AND month = max_video_play_rank_month
+        AND day = max_video_play_rank_day
+    )
+    WHERE media_classification = 'video'
+      AND video_play_rank < COALESCE(max_video_play_rank, 1001)
+    GROUP BY
+        referer,
+        media_classification,
+        year,
+        month,
+        day
 )
-LEFT JOIN max_video_play_rank ON (
-    referer = max_video_play_rank_referer
-    AND media_classification = max_video_play_rank_media_classification
-    AND year = max_video_play_rank_year
-    AND month = max_video_play_rank_month
-    AND day = max_video_play_rank_day
+INSERT INTO ${destination_table}
+SELECT
+/*+ COALESCE(${coalesce_partitions}) */
+    'analytics.wikimedia.org' as _domain,
+    f.referer,
+    f.media_classification as media_type,
+    f.year,
+    f.month,
+    f.day,
+    '13814000-1dd2-11b2-8080-808080808080' as _tid,
+    f.filesJSON,
+    v.video_filesJSON
+FROM files_json f
+LEFT JOIN video_json v ON (
+    f.referer = v.referer
+    AND f.media_classification = v.media_classification
+    AND f.year = v.year
+    AND f.month = v.month
+    AND f.day = v.day
 )
-WHERE rank < COALESCE(max_rank, 1001)
-   OR (media_classification = 'video' AND video_play_rank < COALESCE(max_video_play_rank, 1001))
-GROUP BY
-    referer,
-    media_classification,
-    year,
-    month,
-    day
