@@ -1378,6 +1378,53 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         'sqoopable_dbnames': 'centralauth',
     }
 
+    queries['filerevision'] = {
+        'query': '''
+             select fr_id,
+                    fr_file,
+                    fr_size,
+                    fr_width,
+                    fr_height,
+                    -- As of 2026-05 the natural breakpoint about 3.2K chars for fr_metadata
+                    case when octet_length(fr_metadata) > 3200
+                         then '{{"too_big": 1}}'
+                         else convert(fr_metadata using utf8mb4)
+                    end as fr_metadata,
+                    -- Original metadata byte length, irrespective of fr_metadata transform
+                    octet_length(fr_metadata) as fr_metadata_byte_len,
+                    fr_bits,
+                    fr_description_id,
+                    fr_actor,
+                    convert(fr_timestamp using utf8mb4) fr_timestamp,
+                    convert(fr_sha1 using utf8mb4) fr_sha1,
+                    convert(fr_archive_name using utf8mb4) fr_archive_name,
+                    fr_deleted
+
+               from filerevision
+              where $CONDITIONS
+                {ts_clause}
+        '''.format(ts_clause=make_timestamp_clause('fr_timestamp', from_timestamp, to_timestamp)),
+        'map-types': '"{}"'.format(','.join([
+            'fr_id=Long',
+            'fr_file=Long',
+            'fr_size=Long',
+            'fr_width=Integer',
+            'fr_height=Integer',
+            'fr_metadata=String',
+            'fr_metadata_byte_len=Long',
+            'fr_bits=Integer',
+            'fr_description_id=Long',
+            'fr_actor=Long',
+            'fr_timestamp=String',
+            'fr_sha1=String',
+            'fr_archive_name=String',
+            'fr_deleted=Integer',
+        ])),
+        'boundary-query': 'SELECT MIN(fr_id), MAX(fr_id) FROM filerevision',
+        'split-by': 'fr_id',
+        'mappers-weight': 0.5,
+    }
+
     if filter_tables:
         filter_tables_set = {t for t in filter_tables}
         if len(filter_tables_set - set(queries.keys())):
