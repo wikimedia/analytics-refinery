@@ -1425,6 +1425,34 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         'mappers-weight': 0.5,
     }
 
+    queries['globalimagelinks'] = {
+        'query': '''
+             select convert(gil_wiki using utf8mb4) gil_wiki,
+                    gil_page,
+                    convert(gil_to using utf8mb4) gil_to,
+                    gil_page_namespace_id,
+                    convert(gil_page_namespace using utf8mb4) gil_page_namespace,
+                    convert(gil_page_title using utf8mb4) gil_page_title
+
+               from globalimagelinks
+              where $CONDITIONS
+        ''',
+        'map-types': '"{}"'.format(','.join([
+            'gil_wiki=String',
+            'gil_page=Long',
+            'gil_to=String',
+            'gil_page_namespace_id=Integer',
+            'gil_page_namespace=String',
+            'gil_page_title=String',
+        ])),
+        # globalimagelinks does not split well. gil_page is heavily skewed and is not a leading column of any index, so
+        # range-splitting on it only spawns many full-scan filtering sub-queries (by each mapper) for no real gain. We
+        # therefore keep a single mapper.
+        'mappers-weight': 0.0,
+        'split-by': 'gil_page',  # not used for a single mapper
+        'sqoopable_dbnames': 'commonswiki',
+    }
+
     if filter_tables:
         filter_tables_set = {t for t in filter_tables}
         if len(filter_tables_set - set(queries.keys())):
