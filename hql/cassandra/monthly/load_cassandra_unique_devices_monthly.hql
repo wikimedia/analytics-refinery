@@ -34,7 +34,7 @@
 
 WITH unique_devices_per_domain AS (
     SELECT
-        regexp_replace(domain, '\\.org$$', '') AS project,
+        regexp_replace(domain, '^www\\.|\\.org$$', '') AS project,
         CASE WHEN access_method IN ('mobile web', 'mobile app')
             THEN 'mobile-site'
             ELSE 'desktop-site'
@@ -48,7 +48,7 @@ WITH unique_devices_per_domain AS (
     WHERE
         day = TO_DATE(CONCAT_WS('-', LPAD(${year}, 4, '0'), LPAD(${month}, 2, '0'), '01'), 'yyyy-MM-dd')
     GROUP BY
-        regexp_replace(domain, '\\.org$$', ''),
+        regexp_replace(domain, '^www\\.|\\.org$$', ''),
         CASE WHEN access_method IN ('mobile web', 'mobile app')
             THEN 'mobile-site'
             ELSE 'desktop-site'
