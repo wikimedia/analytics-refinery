@@ -49,12 +49,12 @@
 
 CREATE EXTERNAL TABLE IF NOT EXISTS `mediawiki_history_incremental_v1` (
     `source`                                                           string        COMMENT 'Row provenance: events (daily delta) or snapshot (monthly merge).',
-
     `wiki_id`                                                          string        COMMENT 'Wiki identifier, e.g. enwiki, dewiki, eswiktionary.',
 
     `event_entity`                                                     string        COMMENT 'Entity type: revision, user, or page.',
     `event_type`                                                       string        COMMENT 'Event sub-type: create, edit, move, delete, etc.',
     `event_timestamp`                                                  timestamp     COMMENT 'When this event occurred.',
+
     `event_user_id`                                                    bigint        COMMENT 'Local MediaWiki user ID of the actor; NULL for anonymous users.',
     `event_user_central_id`                                            bigint        COMMENT 'Global CentralAuth user ID of the actor; NULL for anonymous users.',
     `event_user_text_historical`                                       string        COMMENT 'Username or IP at the time of the event.',
