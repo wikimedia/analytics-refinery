@@ -64,7 +64,7 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `mediawiki_history_incremental_v1` (
     `event_user_is_permanent`                                          boolean       COMMENT 'True if the actor was a permanent registered account.',
     `event_user_registration_timestamp`                                timestamp     COMMENT 'When the actor account was registered; NULL for anonymous users.',
     `event_user_revision_count`                                        bigint        COMMENT 'Edit count of the actor at event time.',
-    `event_user_groups_historical`                                     array<string> COMMENT 'Groups held by the actor at event time (before the change for altergroups events). NULL for revision and page events.',
+    `event_user_groups_historical`                                     array<string> COMMENT 'Groups held by the actor at event time (after the change for altergroups events).',
     `event_user_is_cross_wiki`                                         boolean       COMMENT 'True if the actor is a CentralAuth user editing while logged out (username format IP>GlobalUsername). NULL (not FALSE) when the actor username is absent from the event (e.g. system-created user accounts where performer text is not populated).',
 
     -- user_* columns describe the user being acted upon (the entity) for user events
