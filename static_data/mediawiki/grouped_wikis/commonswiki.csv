@@ -1,0 +1,4 @@
+# commonswiki only file, to process it aside from others (T427532)
+# Format is wiki,group,edit size
+# The 3rd value, at present, is an arbitrary placeholder for edit size
+commonswiki,1,1000000
