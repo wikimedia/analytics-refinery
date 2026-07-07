@@ -64,6 +64,8 @@ CREATE TABLE IF NOT EXISTS ${destination_table} (
     x_is_browser              string,
     x_wmf_ratelimit_class     string,
     x_trusted_request         string,
+    top_historical_webrequest string,
+    datacenter                string,
     -- Fields to be used as metricsas HiveToDruid
     -- uses the same names for Hive fields and druid metrics
     aggregated_response_size  bigint,
@@ -124,6 +126,8 @@ WITH prepared_data AS (
         x_is_browser,
         x_wmf_ratelimit_class,
         x_trusted_request,
+        top_historical_webrequest,
+        datacenter
         -- Special fields
         response_size AS aggregated_response_size,
         time_firstbyte AS aggregated_time_firstbyte,

@@ -50,7 +50,9 @@
               "x_is_browser",
               "res_proxy",
               "x_wmf_ratelimit_class",
-              "x_trusted_request"
+              "x_trusted_request",
+              "top_historical_webrequest",
+              "datacenter"
           ]
         },
         "dimensionsSpec": {
@@ -96,7 +98,9 @@
               "x_is_browser",
               "res_proxy",
               "x_wmf_ratelimit_class",
-              "x_trusted_request"
+              "x_trusted_request",
+              "top_historical_webrequest",
+              "datacenter"
           ]
         },
         "timestampSpec" : {
