@@ -13,8 +13,8 @@ CREATE EXTERNAL TABLE `mediawiki_filerevision`(
   `fr_id`               bigint  COMMENT 'Primary key, autoincrement. EXAMPLE: 1476994',
   `fr_file`             bigint  COMMENT 'Foreign key to file.file_id. EXAMPLE: 941821',
   `fr_size`             bigint  COMMENT 'File size in bytes. EXAMPLE: 81399',
-  `fr_width`            int     COMMENT 'Image width, in pixels. EXAMPLE: 270',
-  `fr_height`           int     COMMENT 'Image height, in pixels. EXAMPLE: 369',
+  `fr_width`            bigint  COMMENT 'Image width, in pixels. EXAMPLE: 270',
+  `fr_height`           bigint  COMMENT 'Image height, in pixels. EXAMPLE: 369',
   -- As of 2026-05 the natural breakpoint is about 3.2K chars for fr_metadata
   -- so for the big ones we do a synthetic replacement instead to avoid
   -- starving resources in the data lake or downstream.
