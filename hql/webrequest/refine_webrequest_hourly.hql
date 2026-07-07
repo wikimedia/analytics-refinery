@@ -125,7 +125,8 @@ distinct_rows AS (
         ch_ua_full_version_list,
         ch_ua_model,
         ch_ua_platform_version,
-        termination_state
+        termination_state,
+        x_provenance
     FROM
         ${source_table}
     LEFT ANTI JOIN excluded_rows
@@ -234,6 +235,11 @@ SELECT /*+ COALESCE(${coalesce_partitions}) */
     ch_ua_model,
     ch_ua_platform_version,
     get_referer_data(referer) as referer_data,
-    termination_state
+    termination_state,
+    x_provenance,
+    CASE COALESCE(x_provenance, '-')
+        WHEN '-' THEN NULL
+        ELSE str_to_map(x_provenance, '\;', '=')
+    END as x_provenance_map
 
 FROM distinct_rows_and_reused_fields ;

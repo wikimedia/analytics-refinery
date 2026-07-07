@@ -70,7 +70,9 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `webrequest`(
     `ch_ua_model`             string  COMMENT 'Value of the Sec-CH-UA-Model request header',
     `ch_ua_platform_version`  string  COMMENT 'Value of the Sec-CH-UA-Platform-Version request header',
     `referer_data`            struct<referer_class:string,referer_name:string> COMMENT 'Struct containing referer_class (indicates if a referer is internal, external, external(media sites), external(search engine) or unknown.) and referer name (name of referer when referer class is external(search engine) or external(media sites))',
-    `termination_state`       string  COMMENT 'HAProxy session states at disconnection / anomalous session termination states. See https://wikitech.wikimedia.org/wiki/HAProxy/session_states'
+    `termination_state`       string  COMMENT 'HAProxy session states at disconnection / anomalous session termination states. See https://wikitech.wikimedia.org/wiki/HAProxy/session_states',
+    `x_provenance`            string  COMMENT 'Request provenance information as computed by the edge servers',
+    `x_provenance_map`        map<string, string>  COMMENT 'Map view of the x_provenance field'
 )
 PARTITIONED BY (
     `webrequest_source` string  COMMENT 'Source cluster',
