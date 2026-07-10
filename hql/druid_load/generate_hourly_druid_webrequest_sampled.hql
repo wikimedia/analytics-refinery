@@ -127,7 +127,7 @@ WITH prepared_data AS (
         x_wmf_ratelimit_class,
         x_trusted_request,
         top_historical_webrequest,
-        datacenter
+        datacenter,
         -- Special fields
         response_size AS aggregated_response_size,
         time_firstbyte AS aggregated_time_firstbyte,
