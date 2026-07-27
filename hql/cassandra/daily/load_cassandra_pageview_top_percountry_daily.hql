@@ -1,6 +1,7 @@
 -- Load pageview top-per-country daily to Cassandra
 
 -- Parameters:
+--     refinery_hive_jar_path              -- HDFS path to the refinery-hive jar
 --     destination_table                   -- Cassandra table to write query output.
 --     source_table                        -- Fully qualified hive table to compute from.
 --     country_deny_list_table             -- Fully qualified table name containing the countries that should be
@@ -30,8 +31,9 @@
 -- --executor-cores 2 \
 -- --driver-memory 4G \
 -- -f load_cassandra_pageview_top_percountry_daily.hql \
+-- -d refinery_hive_jar_path=hdfs:///wmf/refinery/current/artifacts/refinery-hive-shaded.jar \
 -- -d destination_table=aqs.local_group_default_T_top_percountry.data \
--- -d source_table=wmf.pageview_actor \
+-- -d source_table=wmf_traffic.webrequest_v2 \
 -- -d country_deny_list_table=canonical_data.countries \
 -- -d disallowed_cassandra_articles_table=wmf.disallowed_cassandra_articles \
 -- -d coalesce_partitions=6 \
@@ -39,34 +41,45 @@
 -- -d month=07 \
 -- -d day=01
 
+ADD JAR ${refinery_hive_jar_path};
+CREATE TEMPORARY FUNCTION get_actor_signature AS 'org.wikimedia.analytics.refinery.hive.GetActorSignatureUDF';
 
 WITH base_data AS (
     SELECT /*+ BROADCAST(disallowed_articles_list), BROADCAST(country_deny_list) */
-        geocoded_data['country_code'] AS country_code,
+        geo.country_code AS country_code,
         REGEXP_REPLACE(access_method, ' ', '-') AS access,
-        pageview_info['project'] AS project,
-        REFLECT('org.json.simple.JSONObject', 'escape', REGEXP_REPLACE(pageview_info['page_title'], '\t', '')) AS page_title,
-        LPAD(year, 4, '0') as year,
-        LPAD(month, 2, '0') as month,
-        LPAD(day, 2, '0') as day,
-        actor_signature
+        target.wiki AS project,
+        REFLECT('org.json.simple.JSONObject', 'escape', REGEXP_REPLACE(target.page_title, '\t', '')) AS page_title,
+        LPAD(year(dt), 4, '0') as year,
+        LPAD(month(dt), 2, '0') as month,
+        LPAD(day(dt), 2, '0') as day,
+        get_actor_signature(
+            client.ip,
+            client.user_agent,
+            request.accept_language,
+            target.second_level_domain,
+            target.uri_query,
+            -- Rebuild x_analytics_map subset for backwards compatibility.
+            CASE
+                WHEN client.app_install_id IS NULL
+                THEN cast(map() AS MAP<STRING, STRING>)
+                ELSE map('wmfuuid', client.app_install_id)
+            END
+        ) AS actor_signature
     FROM ${source_table} source
     LEFT ANTI JOIN ${disallowed_cassandra_articles_table} disallowed_articles_list
-        ON pageview_info['project'] = disallowed_articles_list.project
-            AND lower(pageview_info['page_title']) = lower(disallowed_articles_list.article)
+        ON target.wiki = disallowed_articles_list.project
+            AND lower(target.page_title) = lower(disallowed_articles_list.article)
     LEFT ANTI JOIN ${country_deny_list_table} country_deny_list
-        ON country_deny_list.iso_code = source.geocoded_data['country_code']
+        ON country_deny_list.iso_code = source.geo.country_code
             AND country_deny_list.is_protected IS TRUE
     WHERE
-        year = ${year}
-        AND month = ${month}
-        AND day = ${day}
-        AND agent_type = 'user'
-        AND pageview_info IS NOT NULL
-        AND geocoded_data IS NOT NULL
-        AND is_pageview
-        AND pageview_info['page_title'] != '-'
-        AND geocoded_data['country_code'] != '--'
+        dt >= make_timestamp(${year}, ${month}, ${day}, 0, 0, 0)
+        AND dt < make_timestamp(${year}, ${month}, ${day}, 0, 0, 0) + INTERVAL '1' DAY
+        AND agent_type = 'human'
+        AND request_type = 'pageview'
+        AND target.page_title != '-'
+        AND geo.country_code != '--'
 ),
 raw AS (
     SELECT

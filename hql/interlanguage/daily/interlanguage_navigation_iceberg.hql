@@ -11,7 +11,7 @@
 --      refinery_hive_jar_path
 --                        -- The hdfs path to the refinery-hive jar to use for UDFS
 --      coalesce_partitions
-                          -- Number of partitions to write at the end of the query
+--                        -- Number of partitions to write at the end of the query
 --      destination_table -- Fully qualified table name to fill in
 --                           aggregated values.
 --      year              -- year of partition to aggregate
@@ -22,7 +22,7 @@
 --     spark3-sql -f interlanguage_navigation.hql                                           \
 --         -d refinery_hive_jar_path=hdfs://analytics-hadoop/wmf/refinery/current/artifacts/refinery-hive.jar    \
 --         -d coalesce_partitions=1                                                         \
---         -d source_table=wmf.pageview_actor                                               \
+--         -d source_table=wmf_traffic.webrequest_v2                                        \
 --         -d destination_table=wmf_traffic.interlanguage_navigation                        \
 --         -d year=2017                                                                     \
 --         -d month=10                                                                      \
@@ -39,27 +39,28 @@ WHERE day = TO_DATE(CONCAT_WS('-', LPAD(${year}, 4, '0'), LPAD(${month}, 2, '0')
 
 INSERT OVERWRITE TABLE ${destination_table}
     SELECT /*+ COALESCE(${coalesce_partitions}) */
-        normalized_host.project_family,
-        normalized_host.project AS current_project,
-        normalize_host(parse_url(referer, 'HOST')).project as previous_project,
+        target.second_level_domain AS project_family,
+        target.subdomain AS current_project,
+        normalize_host(parse_url(request.referer, 'HOST')).project as previous_project,
         COUNT(*) AS navigation_count,
         TO_DATE(CONCAT_WS('-', LPAD(${year}, 4, '0'), LPAD(${month}, 2, '0'), LPAD(${day}, 2, '0')), 'yyyy-MM-dd') AS day
 
     FROM ${source_table}
 
-    WHERE year=${year} AND month=${month} AND day=${day}
-        AND is_pageview
-        AND agent_type = 'user'
+    WHERE dt >= make_timestamp(${year}, ${month}, ${day}, 0, 0, 0)
+        AND dt < make_timestamp(${year}, ${month}, ${day}, 0, 0, 0) + INTERVAL '1' DAY
+        AND request_type = 'pageview'
+        AND agent_type = 'human'
         -- The project is the same as the referer project
-        AND normalized_host.project_family = normalize_host(parse_url(referer, 'HOST')).project_family
+        AND target.second_level_domain = normalize_host(parse_url(request.referer, 'HOST')).project_family
         -- The referer host has no .m, or other qualifiers
-        AND size(normalize_host(parse_url(referer, 'HOST')).qualifiers) = 0
+        AND size(normalize_host(parse_url(request.referer, 'HOST')).qualifiers) = 0
         -- The referer path was something with a /wiki/ beginning, like a normal article path
-        AND parse_url(referer,'PATH') LIKE '/wiki/%'
-        AND normalized_host.project <> normalize_host(parse_url(referer, 'HOST')).project
+        AND parse_url(request.referer,'PATH') LIKE '/wiki/%'
+        AND target.subdomain <> normalize_host(parse_url(request.referer, 'HOST')).project
 
-    GROUP BY normalized_host.project_family,
-        normalized_host.project,
-        normalize_host(parse_url(referer, 'HOST')).project
+    GROUP BY target.second_level_domain,
+        target.subdomain,
+        normalize_host(parse_url(request.referer, 'HOST')).project
     ORDER BY project_family, current_project, previous_project
 ;

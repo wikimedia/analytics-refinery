@@ -3,7 +3,7 @@
 -- Usage:
 -- spark3-sql -f compute_referer_daily.hql                                                    \
 --            -d min_num_daily_referrals=500                                                  \
---            -d source_table=wmf.pageview_actor                                              \
+--            -d source_table=wmf_traffic.webrequest_v2                                       \
 --            -d referer_daily_destination_table=wmf_traffic.referrer_daily                   \
 --            -d countries_table=canonical_data.countries                                     \
 --            -d coalesce_partitions=1                                                        \
@@ -19,21 +19,20 @@ WHERE day = TO_DATE(CONCAT_WS('-', LPAD(${year}, 4, '0'), LPAD(${month}, 2, '0')
 -- Compute data for the period
 WITH se_pageviews AS (SELECT /*+ BROADCAST(countries) */
                              -- NOTE: geocoded_data['country'] can change unpredictably, use our canonical name instead
-                             countries.name                   AS country,
-                             normalized_host.project          AS lang,
-                             user_agent_map['browser_family'] AS browser_family,
-                             user_agent_map['os_family']      AS os_family,
-                             referer_data.referer_name        AS search_engine
+                             countries.name         AS country,
+                             target.subdomain       AS lang,
+                             client.browser_family  AS browser_family,
+                             client.os_family       AS os_family,
+                             request.referer_name   AS search_engine
                       FROM ${source_table}
                       LEFT OUTER JOIN ${countries_table} countries
-                        ON countries.iso_code = geocoded_data['country_code']
-                      WHERE year = ${year}
-                        AND month = ${month}
-                        AND day = ${day}
-                        AND is_pageview
-                        AND agent_type = 'user'
-                        AND referer_data.referer_class = 'external (search engine)'
-                        AND normalized_host.project_class = 'wikipedia'
+                        ON countries.iso_code = geo.country_code
+                      WHERE dt >= make_timestamp(${year}, ${month}, ${day}, 0, 0, 0)
+                        AND dt < make_timestamp(${year}, ${month}, ${day}, 0, 0, 0) + INTERVAL '1' DAY
+                        AND request_type = 'pageview'
+                        AND agent_type = 'human'
+                        AND request.referer_type = 'external (search engine)'
+                        AND target.second_level_domain = 'wikipedia'
                         AND NOT COALESCE(countries.is_protected, FALSE)),
      pageview_counts AS (SELECT country,
                                 lang,

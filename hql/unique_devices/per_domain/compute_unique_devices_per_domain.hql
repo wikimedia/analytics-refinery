@@ -2,7 +2,8 @@
 --   and write results to an Iceberg table
 --
 -- Parameters:
---      pageview_actor_table         -- Table containing pageview_actor data
+--      refinery_hive_jar_path       -- HDFS path to the refinery-hive jar
+--      webrequest_v2_table          -- Table containing webrequest_v2 data
 --      canonical_countries_table    -- Table containing country name by country-code
 --      canonical_wikis_table        -- Table containing canonical info on wikis
 --      destination_table            -- Table where to write newly computed data
@@ -26,7 +27,8 @@
 --      --conf spark.executor.memoryOverhead=2G \
 --      --conf spark.yarn.maxAppAttempts=1 \
 --      -f compute_unique_devices_per_domain.hql \
---      -d pageview_actor_table=wmf.pageview_actor \
+--      -d refinery_hive_jar_path=hdfs:///wmf/refinery/current/artifacts/refinery-hive-shaded.jar \
+--      -d webrequest_v2_table=wmf_traffic.webrequest_v2 \
 --      -d canonical_countries_table=canonical_data.countries \
 --      -d canonical_wikis_table=canonical_data.wikis \
 --      -d destination_table=wmf_readership.unique_devices_per_domain_weekly \
@@ -38,6 +40,9 @@
 --      -d end_day=20 \
 --      -d coalesce_partitions=1
 
+ADD JAR ${refinery_hive_jar_path};
+CREATE TEMPORARY FUNCTION get_actor_signature AS 'org.wikimedia.analytics.refinery.hive.GetActorSignatureUDF';
+
 -- Delete existing data for the period to prevent duplication of data in case of recomputation
 DELETE FROM ${destination_table}
 WHERE day = make_date(${start_year}, ${start_month}, ${start_day})
@@ -45,36 +50,32 @@ WHERE day = make_date(${start_year}, ${start_month}, ${start_day})
 
 WITH last_access_dates AS (
     SELECT
-        coalesce(cw.domain_name, concat(pageview_info['project'], '.org')) AS domain,
+        coalesce(cw.domain_name, concat(target.wiki, '.org')) AS domain,
         access_method,
-        geocoded_data['country_code'] AS country_code,
-        -- Sometimes (~1 out of 1B times) WMF-Last-Access is corrupted.
-        -- and Spark can not parse it. Check for the length of the string.
-        IF(
-            length(x_analytics_map['WMF-Last-Access']) = 11,
-            unix_timestamp(x_analytics_map['WMF-Last-Access'], 'dd-MMM-yyyy'),
-            NULL
-        ) AS last_access,
-        x_analytics_map['nocookies'] AS nocookies,
-        actor_signature
-    FROM ${pageview_actor_table}
+        geo.country_code AS country_code,
+        unix_timestamp(client.last_access_per_domain) AS last_access,
+        request.has_cookies AS has_cookies,
+        get_actor_signature(
+            client.ip,
+            client.user_agent,
+            request.accept_language,
+            target.uri_host,
+            target.uri_query,
+            -- Rebuild x_analytics_map subset for backwards compatibility.
+            CASE
+                WHEN client.app_install_id IS NULL
+                THEN cast(map() AS MAP<STRING, STRING>)
+                ELSE map('wmfuuid', client.app_install_id)
+            END
+        ) AS actor_signature
+    FROM ${webrequest_v2_table}
         LEFT JOIN ${canonical_wikis_table} AS cw
-            ON pageview_info['project'] = cw.pageview_code
+            ON target.wiki = cw.pageview_code
     WHERE
-        x_analytics_map IS NOT NULL AND
-        agent_type = 'user' AND
-        is_pageview = TRUE AND (
-        -- Use this bizarre expression to get the desired time interval
-        -- while ensuring that Hive triggers partition pruning.
-        -- Once we migrate pageview_actor to Iceberg, we can replace this.
-            year > ${start_year} OR
-            year = ${start_year} AND month > ${start_month} OR
-            year = ${start_year} AND month = ${start_month} AND day >= ${start_day}
-        ) AND (
-            year < ${end_year} OR
-            year = ${end_year} AND month < ${end_month} OR
-            year = ${end_year} AND month = ${end_month} AND day < ${end_day}
-        )
+        agent_type = 'human' AND
+        request_type = 'pageview' AND
+        dt >= make_timestamp(${start_year}, ${start_month}, ${start_day}, 0, 0, 0) AND
+        dt < make_timestamp(${end_year}, ${end_month}, ${end_day}, 0, 0, 0)
 ),
 
 -- Only keeping clients having 1 event without cookies
@@ -91,7 +92,7 @@ fresh_sessions_aggregated AS (
             domain,
             access_method,
             country_code,
-            sum(CASE WHEN (nocookies IS NOT NULL) THEN 1 ELSE 0 END)
+            sum(CASE WHEN has_cookies THEN 0 ELSE 1 END) as no_cookies_count
         FROM
             last_access_dates
         GROUP BY
@@ -100,7 +101,7 @@ fresh_sessions_aggregated AS (
             domain,
             country_code
         -- Only keeping clients having done 1 event without cookies
-        HAVING sum(CASE WHEN (nocookies IS NOT NULL) THEN 1 ELSE 0 END) = 1
+        HAVING no_cookies_count = 1
     ) AS fresh_sessions
     GROUP BY
         domain,
@@ -119,7 +120,7 @@ last_access_uniques_aggregated AS (
         sum(
             CASE
                 -- domain set, last-access not set and client accept cookies --> first visit, count
-                WHEN domain IS NOT NULL AND last_access IS NULL AND nocookies is NULL THEN 1
+                WHEN domain IS NOT NULL AND last_access IS NULL AND has_cookies THEN 1
                 -- last-access set and its date is before today --> First visit today, count
                 WHEN (
                     last_access IS NOT NULL AND
