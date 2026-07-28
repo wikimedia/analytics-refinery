@@ -19,12 +19,13 @@ WITH aggregated_query as (SELECT response_size,
                                  parse_media_file_url(uri_path) parsed_url,
                                  classify_referer(referer)      classified_referer
                           FROM ${source_table}
-                          WHERE webrequest_source = 'upload'
+                          WHERE TRUE
+                            -- Read both text an upload partitions
                             AND year = ${year}
                             AND month = ${month}
                             AND day = ${day}
                             AND hour = ${hour}
-                            AND uri_host = 'upload.wikimedia.org'
+                            AND uri_host IN ('upload.wikimedia.org', 'thumb.wikimedia.org')
                             AND (http_status = 200 -- No 304 per RFC discussion
                                   OR (http_status = 206
                                   AND SUBSTR(`range`, 1, 8) = 'bytes=0-'
