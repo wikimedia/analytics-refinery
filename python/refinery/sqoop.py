@@ -995,6 +995,15 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
     #   actor, comment and linktarget are too slow due to expensive join at sanitization
     ############################################################################
 
+    # CheckUser has been undeployed from closed wikis where no checks were ever made,
+    # and ALL of its tables -- including cu_log, which is empty on those wikis -- are
+    # being dropped there (T420062, T425074).  Only sqoop CheckUser tables where the
+    # extension is still enabled. Used for both cu_changes and cu_log below.
+    checkuser_sqoopable_dbs = (
+        get_dbnames_from_mw_config(['all.dblist'])
+        - get_dbnames_from_mw_config(['checkuser-disabled.dblist'])
+    )
+
     # documented at https://www.mediawiki.org/wiki/Extension:CheckUser/cu_changes_table
     queries['cu_changes'] = {
         'query': '''
@@ -1053,6 +1062,7 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         '''.format(ts_clause=make_timestamp_clause('cuc_timestamp', from_timestamp, to_timestamp)),
         'split-by': 'cuc_id',
         'mappers-weight': 0.5,
+        'sqoopable_dbnames': checkuser_sqoopable_dbs,
     }
 
     queries['cu_log'] = {
@@ -1104,6 +1114,7 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         '''.format(ts_clause=make_timestamp_clause('cul_timestamp', from_timestamp, to_timestamp)),
         'split-by': 'cul_id',
         'mappers-weight': 0.5,
+        'sqoopable_dbnames': checkuser_sqoopable_dbs,
     }
 
     queries['actor'] = {
@@ -1170,6 +1181,15 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         'mappers-weight': 0.0,
     }
 
+    # DiscussionTools has been undeployed from wikis that were closed before the
+    # permalink feature was deployed, and the discussiontools_subscription table
+    # dropped there (T420052, T426341).  Exclude all closed wikis.
+    # This scoping is per-table: core tables are still sqooped from closed wikis.
+    not_closed_dbs = (
+        get_dbnames_from_mw_config(['all.dblist'])
+        - get_dbnames_from_mw_config(['closed.dblist'])
+    )
+
     queries['discussiontools_subscription'] = {
         'query': '''
              select sub_id,
@@ -1199,6 +1219,7 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         'boundary-query': 'SELECT MIN(sub_id), MAX(sub_id) FROM discussiontools_subscription',
         'split-by': 'sub_id',
         'mappers-weight': 1.0,
+        'sqoopable_dbnames': not_closed_dbs,
     }
 
     queries['wikilambda_zobject_labels'] = {
