@@ -1,0 +1,31 @@
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!--
+  T424358: the DataHub / OpenLineage Spark lineage agent (acryl-spark-lineage,
+  enabled via spark_datahub_lineage_enabled) ships its own shaded logback and
+  logs every task start and end at DEBUG, bloating the driver log.
+
+  Delivered to the driver and referenced by basename via the launch option
+  -Dlogback.configurationFile=file:datahub_quiet_logback.xml
+
+  Example use in an Airflow SparkSubmitOperator (skein / client mode):
+
+    SparkSubmitOperator(
+        ...
+        conf={
+            "spark.driver.extraJavaOptions":
+                "-Dlogback.configurationFile=file:datahub_quiet_logback.xml",
+        },
+        skein_container_files=
+            "hdfs://analytics-hadoop/wmf/refinery/current/spark/common/datahub_quiet_logback.xml",
+        spark_datahub_lineage_enabled=True,
+    )
+
+  skein_container_files delivers the file to the driver (skein container),
+  where it is then referenced by basename in the launch option above.
+-->
+<configuration>
+  <logger name="io.openlineage" level="WARN"/>
+  <logger name="datahub.spark" level="WARN"/>
+  <logger name="io.datahubproject" level="WARN"/>
+  <root level="INFO"/>
+</configuration>
