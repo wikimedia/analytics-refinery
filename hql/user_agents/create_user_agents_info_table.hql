@@ -25,9 +25,16 @@ CREATE EXTERNAL TABLE IF NOT EXISTS ${table_name} (
                                                 os_minor:int,
                                                 wmf_app_version:string
                                             >                  COMMENT 'Parsed User-Agent fields',
-    `contact_info`                          map<string,string> COMMENT 'Extracted contact information keyed by type (email, url, mw_user, placeholder_email, placeholder_url)',
+    `contact_info`                          map<string,string> COMMENT 'Extracted contact information keyed by type (email, url, mw_user, placeholder_email, placeholder_url, cloudflare_operator_url)',
     `ua_policy_compliance_level`            string             COMMENT 'Compliance with WMF User-Agent policy: compliant, partially_compliant, non_compliant, non_compliant_placeholder, or browser_like',
-    `bot_category`                          string             COMMENT 'Bot taxonomy category for identified bots; generic_bot for bot-like agents without a category; NULL for non-bot like agents',
+    `cloudflare_radar`                      struct<
+                                                bot_category:string,
+                                                bot_name:string,
+                                                bot_kind:string,
+                                                bot_operator:string,
+                                                bot_operator_url:string,
+                                                bot_description:string
+                                            >                  COMMENT 'Bot metadata from Cloudflare Radar bot directory; NULL if there is no pattern match',
     `identified_agent`                      string             COMMENT 'Internally identified agent type, e.g. wikipedia_app, instant_commons, mw_foreign_repo',
     `request_count`                         bigint             COMMENT 'Total number of requests from this User-Agent at the source during the hour',
     `cached_requests_proportion`            double             COMMENT 'Proportion of requests served from cache (cache- hit or int)',
