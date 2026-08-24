@@ -66,6 +66,7 @@ CREATE TABLE IF NOT EXISTS ${destination_table} (
     x_trusted_request         string,
     top_historical_webrequest string,
     datacenter                string,
+    is_thumb_generated        string,
     -- Fields to be used as metricsas HiveToDruid
     -- uses the same names for Hive fields and druid metrics
     aggregated_response_size  bigint,
