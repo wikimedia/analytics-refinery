@@ -9,7 +9,7 @@
 --         -d location = /wmf/data/wmf/mediawiki/database/ingestion_wikis
 --
 -- The first data used to populate this table was taken from
--- /wmf/refinery/current/static_data/mediawiki/grouped_wikis/grouped_wikis.csv
+-- /wmf/refinery/current/static_data/mediawiki/grouped_wikis/grouped_wikis.csv (now deleted)
 
 
 CREATE TABLE `ingestion_wikis` (

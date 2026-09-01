@@ -30,6 +30,7 @@ FROM
     WHERE
       wiki_is_closed = false
       AND wiki_has_cloud_replica = true
+      AND dbname NOT LIKE '%test%'
       AND snapshot = '${snapshot}'
   ) AS pjs
   FULL OUTER JOIN ${ingestion_wikis_table} AS curr_sqplist
