@@ -129,6 +129,7 @@ WITH prepared_data AS (
         x_trusted_request,
         top_historical_webrequest,
         datacenter,
+        is_thumb_generated,
         -- Special fields
         response_size AS aggregated_response_size,
         time_firstbyte AS aggregated_time_firstbyte,

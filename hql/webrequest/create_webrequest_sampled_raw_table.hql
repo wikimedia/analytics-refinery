@@ -62,7 +62,8 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `webrequest_sampled` (
     `x_wmf_ratelimit_class`      string  COMMENT '',
     `x_trusted_request`          string  COMMENT '',
     `top_historical_webrequest`  string  COMMENT '',
-    `datacenter`                 string  COMMENT ''
+    `datacenter`                 string  COMMENT '',
+    `is_thumb_generated`         string  COMMENT '',
 ) PARTITIONED BY (
     `year`              int     COMMENT 'Unpadded year of request',
     `month`             int     COMMENT 'Unpadded month of request',
