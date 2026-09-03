@@ -210,8 +210,8 @@ def check_cloud(db, db_mapping, passwd_cache={}):
        bool: True if the DB exists in both analytics and cloud replicas, False otherwise.
    """
 
-    analytics_host, analytics_port = get_dbstore_host_port(False, db, False, db_mapping)
-    cloud_host, cloud_port = get_dbstore_host_port(False, db, True, db_mapping)
+    analytics_host, analytics_port = get_dbstore_host_port(db, False, db_mapping=db_mapping)
+    cloud_host, cloud_port = get_dbstore_host_port(db, True, db_mapping=db_mapping)
 
     analytics_passwd = get_password(analytics_option_file, passwd_cache, 'analytics')
     cloud_passwd = get_password(cloud_option_file, passwd_cache, 'cloud')

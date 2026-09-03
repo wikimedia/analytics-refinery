@@ -148,6 +148,29 @@ from refinery.util import get_mediawiki_section_dbname_mapping, get_jdbc_string
 logger = logging.getLogger()
 
 
+# DB mappings link a wiki database to its default shard
+# Some wikis have additional tables on other shards
+# This override allows us to specify that
+DB_MAPPING_SHARD_OVERRIDES = {
+    'commonswiki': {
+        # commonswiki links tables have been moved to x4
+        # https://phabricator.wikimedia.org/T398709
+        # https://phabricator.wikimedia.org/T431476
+        'linktarget':       'x4',
+        'externallinks':    'x4',
+        'pagelinks':        'x4',
+        'templatelinks':    'x4',
+        'categorylinks':    'x4',
+        'collation':        'x4',
+        'imagelinks':       'x4',
+        'globalimagelinks': 'x4',
+        'iwlinks':          'x4',
+        'existencelinks':   'x4',
+        'langlinks':        'x4',
+    },
+}
+
+
 if __name__ == '__main__':
     # parse arguments
     arguments = docopt(__doc__)
@@ -241,10 +264,12 @@ if __name__ == '__main__':
 
         logger.info('Generating ORM jar at {}'.format(jar_path))
 
-        jdbc_string = get_jdbc_string(sample_wiki, clouddb, db_mapping)
         for table in queries.keys():
+            shard = DB_MAPPING_SHARD_OVERRIDES.get(sample_wiki, {}).get(table)
+            table_jdbc_string = get_jdbc_string(sample_wiki, clouddb, override_shard=shard, db_mapping=db_mapping)
+
             sqoop_commands.append(
-                SqoopConfig(yarn_job_name_prefix, user, password_file, jdbc_string, 1,
+                SqoopConfig(yarn_job_name_prefix, user, password_file, table_jdbc_string, 1,
                             None, None, None, None, sample_wiki, table, queries,
                             target_jar_directory, None, yarn_queue, driver_class, 1,
                             False))
@@ -294,9 +319,17 @@ if __name__ == '__main__':
             num_mappers_adjusted = 1
 
         for wiki_db in wikiList:
-            jdbc_string = get_jdbc_string(wiki_db, clouddb, db_mapping)
+            # The default jdbc string to use for this wiki_db.
             for table in queries.keys():
-                config = SqoopConfig(yarn_job_name_prefix, user, password_file, jdbc_string,
+
+                # Apply shard overrides to look for the table on the correct shard
+                # NOTE: this is a hacky workaround the fact that some tables
+                # don't exist on the core wiki's cluster. It would be better if
+                # we could look this up via mediawiki-config dblist like we usually do.
+                shard = DB_MAPPING_SHARD_OVERRIDES.get(wiki_db, {}).get(table)
+                table_jdbc_string = get_jdbc_string(wiki_db, clouddb, override_shard=shard, db_mapping=db_mapping)
+
+                config = SqoopConfig(yarn_job_name_prefix, user, password_file, table_jdbc_string,
                                      num_mappers_adjusted, fetch_size, output_format,
                                      hdfs_tmp_path, table_path_template, wiki_db, table,
                                      queries, None, jar_file, yarn_queue, driver_class, 1,

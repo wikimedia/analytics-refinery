@@ -177,14 +177,14 @@ def get_dbnames_from_mw_config(filenames,
 
 def get_mediawiki_section_dbname_mapping(mw_config_path=MW_CONFIG_PATH,
                                          mw_config_dblists_folder=MW_CONFIG_DBLISTS_FOLDER,
-                                         use_x1=False):
+                                         override_shard=None):
     """
     This function returns a dictionnary with dbname keys and mediawiki database section
     values. Database sections split the databases into multiple subsections (s1 to s11
     when writing these lines), allowing for more easily shard them among multiple servers.
     """
     db_mapping = {}
-    if use_x1:
+    if override_shard is not None:
         dblist_section_filename_s = [ 'all.dblist' ]
     else:
         dblist_section_paths = glob.glob(os.path.join(mw_config_path, mw_config_dblists_folder, 's[0-9]*.dblist'))
@@ -201,7 +201,8 @@ def get_mediawiki_section_dbname_mapping(mw_config_path=MW_CONFIG_PATH,
     return db_mapping
 
 
-def get_dbstore_host_port(use_x1, dbname, use_redacted_host,
+def get_dbstore_host_port(dbname, use_redacted_host,
+                          override_shard=None,
                           db_mapping=None,
                           mw_config_path=MW_CONFIG_PATH,
                           mw_config_dblists_folder=MW_CONFIG_DBLISTS_FOLDER
@@ -212,7 +213,7 @@ def get_dbstore_host_port(use_x1, dbname, use_redacted_host,
     given database.
     """
     if not db_mapping:
-        db_mapping = get_mediawiki_section_dbname_mapping(mw_config_path, mw_config_dblists_folder, use_x1)
+        db_mapping = get_mediawiki_section_dbname_mapping(mw_config_path, mw_config_dblists_folder, override_shard)
     if not db_mapping:
         raise RuntimeError("No database mapping found at {}. Have you configured correctly the mediawiki-config path?"
                            .format(mw_config_path))
@@ -224,19 +225,19 @@ def get_dbstore_host_port(use_x1, dbname, use_redacted_host,
         # solution would be to parse db-production.php in mediawiki-config, but it
         # would add more complexity than what's necessary.
         shard = 's7'
-    elif use_x1:
-        shard = 'x1'
+    elif override_shard:
+        shard = override_shard
     else:
         try:
             shard = db_mapping[dbname]
         except KeyError:
             message = (
                 "The database {} is not listed among the dblist files of the supported sections." +
-                " Perhaps try --use-x1 if your database is on the x1 cluster (eg. centralauth)"
+                " Perhaps try --use-shard=x1 or --use-shard=x4 to override the default db mapping"
             ).format(dbname)
             raise RuntimeError(message)
 
-    answers = dns.resolver.query('_' + shard + '-analytics._tcp.eqiad.wmnet', 'SRV')
+    answers = dns.resolver.resolve('_' + shard + '-analytics._tcp.eqiad.wmnet', 'SRV')
     host, port = str(answers[0].target).strip('.'), str(answers[0].port)
 
     # The port and shard setup is identical on both clusters, but the DNS records are
@@ -247,14 +248,15 @@ def get_dbstore_host_port(use_x1, dbname, use_redacted_host,
     return (host, port)
 
 
-def get_jdbc_string(dbname, use_redacted_host, db_mapping=None):
+def get_jdbc_string(dbname, use_redacted_host, override_shard=None, db_mapping=None):
     """
     Params
         dbname          the database name, like enwiki, etwiki, etc
         use_redacted_host  True: use the cloud cluster, False: use production replica cluster
+        override_shard  (None) (string) instead of getting the shard from the mapping, use this value
         db_mapping      (None) if not specified, fetch this from mediawiki-config
     """
-    (host, port) = get_dbstore_host_port(False, dbname, use_redacted_host, db_mapping)
+    (host, port) = get_dbstore_host_port(dbname, use_redacted_host, override_shard, db_mapping)
     # We access dbs on cloud hosts with db_postfix appended to the dbname
     dbname = dbname + REDACTED_DB_POSTFIX if use_redacted_host else dbname
     return JDBC_TEMPLATE_WITH_PORT.format(host=host, port=port, dbname=dbname)
