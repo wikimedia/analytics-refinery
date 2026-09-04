@@ -126,6 +126,15 @@ all_edits AS (
         AND revision.editor.user_central_id IS NOT NULL
 ),
 
+-- Drop duplicate events before counting or ranking. The same event can be
+-- delivered more than once. A redelivered event is identical across all
+-- columns, so DISTINCT collapses it.
+deduped_edits AS (
+    SELECT DISTINCT
+        *
+    FROM all_edits
+),
+
 -- Get the max (revision_id + event_timestamp) for each user_central_id, page_id combination
 -- This will be used to lookup latest values of the mutable fields in the event data.
 -- MAX(CONCAT(revision_id, event_timestamp)) is used to ensure uniqueness, especially
@@ -137,7 +146,7 @@ latest_edit_join_key AS (
         wiki_id,
         page_id,
         MAX(CONCAT(revision_id, event_timestamp)) as latest_rev_id_event_time
-    FROM all_edits
+    FROM deduped_edits
     GROUP BY
         `day`,
         user_central_id,
@@ -163,7 +172,7 @@ latest_edit_values AS (
         ae.pageview_project,
         ae.page_namespace_id,
         ae.page_title
-    FROM all_edits ae
+    FROM deduped_edits ae
     INNER JOIN latest_edit_join_key lejk
         ON ae.`day` = lejk.`day`
         AND ae.user_central_id = lejk.user_central_id
@@ -181,7 +190,7 @@ edit_counts AS (
         wiki_id,
         page_id,
         count(*) as edit_count
-    FROM all_edits
+    FROM deduped_edits
     GROUP BY
         `day`,
         user_central_id,

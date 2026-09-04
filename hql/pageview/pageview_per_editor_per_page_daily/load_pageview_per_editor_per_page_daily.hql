@@ -126,23 +126,52 @@ latest_edit_day_per_page AS (
 ),
 
 -- Lookup the mutable user fields from the latest edit day record for each user/page combination.
+-- We keep exactly one row per (user_central_id, wiki_id, page_id)
+-- via ROW_NUMBER. See: https://phabricator.wikimedia.org/T405039
+-- We use row_number because if we use distinct we can still multiple rows per
+-- (user_central_id, wiki_id, page_id) if the mutable fields are not the same across all rows.
 latest_user_data AS (
     SELECT
-        e.user_central_id,
-        e.wiki_id,
-        e.page_id,
-        e.user_id,
-        e.user_name,
-        e.user_is_bot,
-        e.user_is_system,
-        e.wiki,
-        e.pageview_project
-    FROM ${edit_per_editor_per_page_daily_table} e
-    INNER JOIN latest_edit_day_per_page le
-        ON e.user_central_id = le.user_central_id
-        AND e.wiki_id = le.wiki_id
-        AND e.page_id = le.page_id
-        AND e.day = le.latest_edit_day
+        user_central_id,
+        wiki_id,
+        page_id,
+        user_id,
+        user_name,
+        user_is_bot,
+        user_is_system,
+        wiki,
+        pageview_project
+    FROM (
+        SELECT
+            e.user_central_id,
+            e.wiki_id,
+            e.page_id,
+            e.user_id,
+            e.user_name,
+            e.user_is_bot,
+            e.user_is_system,
+            e.wiki,
+            e.pageview_project,
+            ROW_NUMBER() OVER (
+                PARTITION BY e.user_central_id, e.wiki_id, e.page_id
+                -- Deterministic tiebreak: order by every mutable field that could
+                -- differ between rows so re-runs always pick the same row.
+                ORDER BY
+                    e.user_id,
+                    e.user_name,
+                    e.user_is_bot,
+                    e.user_is_system,
+                    e.wiki,
+                    e.pageview_project
+            ) AS rn
+        FROM ${edit_per_editor_per_page_daily_table} e
+        INNER JOIN latest_edit_day_per_page le
+            ON e.user_central_id = le.user_central_id
+            AND e.wiki_id = le.wiki_id
+            AND e.page_id = le.page_id
+            AND e.day = le.latest_edit_day
+    )
+    WHERE rn = 1
 )
 
 -- Insert daily pageview_per_editor_per_page_daily table
