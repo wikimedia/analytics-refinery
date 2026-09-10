@@ -111,7 +111,15 @@
         }
       }
     },
-    "transformSpec": {},
+    "transformSpec": {
+      "transforms": [
+        {
+          "type": "expression",
+          "name": "is_api",
+          "expression": "webrequest_source == 'text' && uri_host != 'thumb.wikimedia.org' && (like(uri_path, '/w/api.php%') || like(uri_path, '/w/rest.php%') || like(uri_path, '/api/%') || uri_host == 'api.wikimedia.org' || (uri_host == 'query.wikidata.org' && like(uri_path, '/bigdata/namespace/wdq/sparql%')) || (uri_host == 'commons-query.wikimedia.org' && like(uri_path, '/sparql%')) || (uri_host == 'stream.wikimedia.org' && like(uri_path, '/v2/stream%')))"
+        }
+      ]
+    },
     "metricsSpec": [
       {
         "name": "hits",
