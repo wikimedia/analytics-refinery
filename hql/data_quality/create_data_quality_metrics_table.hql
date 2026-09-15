@@ -3,7 +3,7 @@
 -- Usage:
 --     sudo -u analytics spark3-sql -f create_data_quality_metrics_table.hql \
 --     --database wmf_data_ops \
---     -d location=/wmf/data/data_quality/metrics/
+--     -d location=hdfs://analytics-hadoop/wmf/data/data_quality/metrics/
 --
 CREATE EXTERNAL TABLE `data_quality_metrics` (
     dataset_date        BIGINT                  COMMENT 'AWS Deequ metric repo: key insertion time.',

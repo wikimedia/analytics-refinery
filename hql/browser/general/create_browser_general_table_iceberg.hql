@@ -16,7 +16,7 @@
 -- Usage
 --     spark3-sql -f create_browser_general_table_iceberg.hql \
 --          --database wmf_traffic \
---          -d location=/wmf/data/wmf_traffic/browser/general
+--          -d location=hdfs://analytics-hadoop/wmf/data/wmf_traffic/browser/general
 --
 
 CREATE EXTERNAL TABLE IF NOT EXISTS `browser_general`(

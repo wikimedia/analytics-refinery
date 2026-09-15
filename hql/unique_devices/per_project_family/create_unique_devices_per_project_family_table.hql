@@ -5,7 +5,7 @@
 --     spark3-sql -f create_unique_devices_per_project_family_table.hql \
 --         --database wmf_readership \
 --         -d table_name=unique_devices_per_project_family_daily \
---         -d location=/wmf/data/wmf_readership/unique_devices/per_project_family/daily
+--         -d location=hdfs://analytics-hadoop/wmf/data/wmf_readership/unique_devices/per_project_family/daily
 
 CREATE EXTERNAL TABLE IF NOT EXISTS `${table_name}`(
     `project_family`         string  COMMENT 'The lower cased project-family (wikipedia for instance)',

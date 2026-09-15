@@ -18,7 +18,7 @@
 --     spark3-sql
 --       -f create_session_length_table_iceberg.sql \
 --       --database wmf_traffic \
---       -d location=/wmf/data/wmf_traffic/session_length
+--       -d location=hdfs://analytics-hadoop/wmf/data/wmf_traffic/session_length
 --
 
 CREATE EXTERNAL TABLE IF NOT EXISTS `session_length` (

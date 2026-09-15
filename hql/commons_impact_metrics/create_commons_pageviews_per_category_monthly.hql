@@ -6,7 +6,7 @@
 -- Usage
 --     spark3-sql -f create_commons_pageviews_per_category_monthly.hql \
 --                --database wmf_contributors
---                -d location=/wmf/data/wmf_contributors/commons/pageviews_per_category_monthly
+--                -d location=hdfs://analytics-hadoop/wmf/data/wmf_contributors/commons/pageviews_per_category_monthly
 --
 CREATE EXTERNAL TABLE IF NOT EXISTS `commons_pageviews_per_category_monthly`
 (

@@ -10,7 +10,7 @@
 -- Usage:
 --     spark3-sql -f create_user_agent_compliance_classified_hourly_table.hql \
 --         -d table_name=wmf_traffic.user_agent_compliance_classified_hourly \
---         -d base_directory=/wmf/data/wmf_traffic/user_agent_compliance_classified_hourly
+--         -d base_directory=hdfs://analytics-hadoop/wmf/data/wmf_traffic/user_agent_compliance_classified_hourly
 --
 
 CREATE EXTERNAL TABLE IF NOT EXISTS ${table_name} (

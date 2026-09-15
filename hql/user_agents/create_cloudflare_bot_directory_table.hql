@@ -10,7 +10,7 @@
 -- Usage:
 --     spark3-sql -f create_cloudflare_bot_directory_table.hql \
 --         -d table_name=wmf_traffic.cloudflare_bot_directory \
---         -d base_directory=/wmf/data/wmf_traffic/cloudflare_bot_directory
+--         -d base_directory=hdfs://analytics-hadoop/wmf/data/wmf_traffic/cloudflare_bot_directory
 --
 -- 
 CREATE TABLE IF NOT EXISTS ${table_name} (

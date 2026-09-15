@@ -6,7 +6,7 @@
 -- Usage
 --     spark3-sql -f create_referrer_daily_table.hql    \
 --     --database wmf_traffic                           \
---     -d location=/wmf/data/wmf_traffic/referrer/daily
+--     -d location=hdfs://analytics-hadoop/wmf/data/wmf_traffic/referrer/daily
 --
 
 CREATE EXTERNAL TABLE IF NOT EXISTS `referrer_daily`(

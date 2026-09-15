@@ -3,7 +3,7 @@
 -- Usage:
 --     sudo -u analytics spark3-sql -f create_data_quality_alerts_table.hql \
 --     --database wmf_data_ops \
---     -d location=/wmf/data/data_quality/alerts/
+--     -d location=hdfs://analytics-hadoop/wmf/data/data_quality/alerts/
 --
 CREATE EXTERNAL TABLE `data_quality_alerts` (
     source_table        STRING                  COMMENT 'The table metrics are computed on.',

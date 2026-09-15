@@ -44,7 +44,7 @@
 -- Usage
 --     spark3-sql -f create_mediawiki_history_incremental_v1_table_iceberg.hql \
 --         --database wmf_mediawiki                                            \
---         -d location=/wmf/data/wmf_mediawiki/mediawiki_history_incremental_v1
+--         -d location=hdfs://analytics-hadoop/wmf/data/wmf_mediawiki/mediawiki_history_incremental_v1
 --
 
 CREATE EXTERNAL TABLE IF NOT EXISTS `mediawiki_history_incremental_v1` (

@@ -23,7 +23,7 @@
 --                -d pageview_hourly_table=wmf.pageview_hourly \
 --                -d canonical_data_wikis_table=canonical_data.wikis \
 --                -d category_and_media_with_usage_map_table=tmp.category_and_media_with_usage_map \
---                -d category_and_media_with_usage_map_location=/wmf/tmp/analytics/commons_impact_metrics \
+--                -d category_and_media_with_usage_map_location=hdfs://analytics-hadoop/wmf/tmp/analytics/commons_impact_metrics \
 --                -d snapshot=2024-02 \
 --                -d coalesce_partitions=4
 

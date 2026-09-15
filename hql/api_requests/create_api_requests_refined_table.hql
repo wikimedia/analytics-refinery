@@ -8,7 +8,7 @@
 -- Usage:
 --     spark3-sql -f create_api_requests_refined_table.hql \
 --         -d table_name=wmf_traffic.api_requests_refined \
---         -d base_directory=/wmf/data/wmf_traffic/api_requests_refined
+--         -d base_directory=hdfs://analytics-hadoop/wmf/data/wmf_traffic/api_requests_refined
 --
 
 CREATE EXTERNAL TABLE IF NOT EXISTS ${table_name} (

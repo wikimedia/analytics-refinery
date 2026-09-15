@@ -5,7 +5,7 @@
 --     spark3-sql -f create_unique_devices_per_domain_table.hql \
 --         --database wmf_readership \
 --         -d table_name=unique_devices_per_domain_daily \
---         -d location=/wmf/data/wmf_readership/unique_devices/per_domain/daily
+--         -d location=hdfs://analytics-hadoop/wmf/data/wmf_readership/unique_devices/per_domain/daily
 
 CREATE EXTERNAL TABLE IF NOT EXISTS `${table_name}`(
     `domain`                 string  COMMENT 'The lower cased domain defining a project (en.wikipedia.org for instance)',

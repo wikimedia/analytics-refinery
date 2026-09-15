@@ -6,7 +6,7 @@
 -- Usage
 --     spark3-sql -f create_commons_category_metrics_snapshot.hql \
 --                --database wmf_contributors \
---                -d location=/wmf/data/wmf_contributors/commons/category_metrics_snapshot
+--                -d location=hdfs://analytics-hadoop/wmf/data/wmf_contributors/commons/category_metrics_snapshot
 --
 
 CREATE EXTERNAL TABLE IF NOT EXISTS `commons_category_metrics_snapshot`

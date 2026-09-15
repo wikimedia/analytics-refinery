@@ -24,7 +24,7 @@
 --     spark3-sql -f create_ja3n_ua_hourly.hql \
 --         --database wmf_traffic \
 --         -d table_name=ja3n_ua_hourly \
---         -d location=/wmf/data/wmf_traffic/ja3n_ua/hourly
+--         -d location=hdfs://analytics-hadoop/wmf/data/wmf_traffic/ja3n_ua/hourly
 --
 
 

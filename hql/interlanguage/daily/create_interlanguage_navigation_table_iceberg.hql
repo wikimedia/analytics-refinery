@@ -6,7 +6,7 @@
 -- Usage
 --     spark3-sql -f create_interlanguage_navigation_table_iceberg.hql    \
 --     --database wmf_traffic                           \
---     -d location=/wmf/data/wmf/interlanguage/navigation/daily
+--     -d location=hdfs://analytics-hadoop/wmf/data/wmf/interlanguage/navigation/daily
 --
 
 CREATE EXTERNAL TABLE IF NOT EXISTS `interlanguage_navigation` (
