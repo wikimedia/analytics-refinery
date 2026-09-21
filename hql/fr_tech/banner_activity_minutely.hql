@@ -1,4 +1,4 @@
--- Extracts one day of formatted minutely banner activity to be loaded to fr tech's minio and druid
+-- Extracts one hour of formatted minutely banner activity to be loaded to fr tech's minio and druid
 --
 -- Usage:
 --     spark3-sql -f banner_activity_minutely.hql \
@@ -8,7 +8,8 @@
 --         -d coalesce_partitions=1 \
 --         -d year=2023 \
 --         -d month=1 \
---         -d day=1
+--         -d day=1 \
+--         -d hour=0
 
 
 
@@ -43,10 +44,6 @@ OPTIONS ('compression'='gzip')
 LOCATION '${destination_directory}';
 
 
-SET hive.exec.dynamic.partition = true;
-SET hive.exec.dynamic.partition.mode = nonstrict;
-
-
 WITH filtered_data AS (
     SELECT
         CONCAT(SUBSTRING(dt, 0, 17), '00Z') AS dt,
@@ -58,17 +55,14 @@ WITH filtered_data AS (
                     parse_url(concat('http://bla.org/woo/', uri_query), 'QUERY', 'campaignStatuses'),
                 ''),
             'utf-8'),
-        'array<struct<statusCode:string, campaign:string, bannersCount:int>>')[0] AS first_campaign_status,
-        year,
-        month,
-        day,
-        hour
+        'array<struct<statusCode:string, campaign:string, bannersCount:int>>')[0] AS first_campaign_status
     FROM
         ${source_table}
     WHERE
         year = ${year}
         AND month = ${month}
         AND day = ${day}
+        AND hour = ${hour}
         AND webrequest_source = 'text'
         -- drop requests with no timestamps
         AND dt != '-'
@@ -80,9 +74,9 @@ WITH filtered_data AS (
 
 
 INSERT OVERWRITE TABLE ${destination_table}
-PARTITION(year=${year},month=${month},day=${day}, hour)
+PARTITION(year=${year}, month=${month}, day=${day}, hour=${hour})
 
-SELECT
+SELECT /*+ REPARTITION(${coalesce_partitions}) */
     dt,
     parse_url(url, 'QUERY', 'campaign') AS campaign,
     parse_url(url, 'QUERY', 'banner') AS banner,
@@ -100,14 +94,11 @@ SELECT
     parse_url(url, 'QUERY', 'device') AS device,
     cast(parse_url(url, 'QUERY', 'recordImpressionSampleRate') AS float) AS sample_rate,
     COUNT(*) AS request_count,
-    cast(COUNT(*) / cast(parse_url(url, 'QUERY', 'recordImpressionSampleRate') AS float) AS bigint) AS normalized_request_count,
-    hour
+    cast(COUNT(*) / cast(parse_url(url, 'QUERY', 'recordImpressionSampleRate') AS float) AS bigint) AS normalized_request_count
 FROM
     filtered_data
 WHERE
     parse_url(url, 'QUERY', 'debug') = 'false'
-    -- sample_rate can be infinity, leading to Druid indexation failing.
-    -- We remove those rows from the data
     AND cast(parse_url(url, 'QUERY', 'recordImpressionSampleRate') AS float) != 'Infinity'
 GROUP BY
     dt,
@@ -125,8 +116,5 @@ GROUP BY
     country_matches_geocode,
     region,
     device,
-    sample_rate,
-    hour
-
-DISTRIBUTE BY hour
+    sample_rate
 ;
