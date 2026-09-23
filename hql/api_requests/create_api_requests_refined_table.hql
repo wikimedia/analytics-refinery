@@ -52,7 +52,7 @@ CREATE EXTERNAL TABLE IF NOT EXISTS ${table_name} (
     `hour`                     timestamp                                                                                       COMMENT 'The hour during which the request was received'
 )
 USING ICEBERG
-PARTITIONED BY (hours(`hour`))
+PARTITIONED BY (hours(`ts`))
 TBLPROPERTIES (
     'format-version' = '2',
     'write.delete.mode' = 'copy-on-write',
