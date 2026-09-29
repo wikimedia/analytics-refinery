@@ -46,7 +46,8 @@ WITH output as (
         AND lt.wiki_db = '${wiki}'
         AND lt.snapshot = ${snapshot}
     )
-    LEFT JOIN ${source_table_page} p ON (
+    -- Category page doesn't exist
+    LEFT ANTI JOIN ${source_table_page} p ON (
         p.page_title = lt.lt_title
         AND p.page_namespace = 14  -- NS_CATEGORY
         AND p.wiki_db = '${wiki}'
@@ -54,7 +55,6 @@ WITH output as (
     )
     WHERE cl.wiki_db = '${wiki}'
         AND cl.snapshot = ${snapshot}
-        AND p.page_title IS NULL  -- Category page doesn't exist
     GROUP BY lt.lt_title
     ORDER BY qc_value DESC
     LIMIT 5000

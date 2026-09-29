@@ -37,7 +37,8 @@ WITH output as (
         '${wiki}' as `qc_wiki`,
         ${snapshot} as `qc_snapshot`
     FROM ${source_table_page} p
-    LEFT JOIN ${source_table_categorylinks} cl ON (
+    -- No categorylinks entries
+    LEFT ANTI JOIN ${source_table_categorylinks} cl ON (
         cl.cl_from = p.page_id
         AND cl.wiki_db = '${wiki}'
         AND cl.snapshot = ${snapshot}
@@ -46,7 +47,6 @@ WITH output as (
         AND p.wiki_db = '${wiki}'
         AND p.page_namespace = 6  -- NS_FILE
         AND p.page_is_redirect = 0
-        AND cl.cl_from IS NULL  -- No categorylinks entries
     ORDER BY qc_title ASC
     LIMIT 5000
 )

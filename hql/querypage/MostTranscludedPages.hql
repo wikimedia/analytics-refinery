@@ -37,11 +37,13 @@ WITH output as (
         '${wiki}' as `qc_wiki`,
         ${snapshot} as `qc_snapshot`
     FROM ${source_table_templatelinks}
-    JOIN ${source_table_linktarget} ON ((tl_target_id=lt_id))
-    WHERE ${source_table_templatelinks}.snapshot = ${snapshot}
-        AND ${source_table_templatelinks}.wiki_db = '${wiki}'
+    JOIN ${source_table_linktarget} ON (
+        tl_target_id = lt_id
         AND ${source_table_linktarget}.snapshot = ${snapshot}
         AND ${source_table_linktarget}.wiki_db = '${wiki}'
+    )
+    WHERE ${source_table_templatelinks}.snapshot = ${snapshot}
+        AND ${source_table_templatelinks}.wiki_db = '${wiki}'
     GROUP BY qc_namespace, qc_title
     ORDER BY qc_value DESC
     LIMIT 5000

@@ -47,12 +47,14 @@ WITH output as (
         AND lt.wiki_db = '${wiki}'
         AND lt.snapshot = ${snapshot}
     )
-    LEFT JOIN ${source_table_templatelinks} tl ON (
+    -- No templatelinks entries
+    LEFT ANTI JOIN ${source_table_templatelinks} tl ON (
         tl.tl_target_id = lt.lt_id
         AND tl.wiki_db = '${wiki}'
         AND tl.snapshot = ${snapshot}
     )
-    LEFT JOIN ${source_table_page_props} pp ON (
+    -- No expectunusedtemplate property
+    LEFT ANTI JOIN ${source_table_page_props} pp ON (
         p.page_id = pp.pp_page
         AND pp.pp_propname = 'expectunusedtemplate'
         AND pp.wiki_db = '${wiki}'
@@ -62,8 +64,6 @@ WITH output as (
         AND p.wiki_db = '${wiki}'
         AND p.page_namespace = 10  -- NS_TEMPLATE
         AND p.page_is_redirect = 0
-        AND tl.tl_from IS NULL  -- No templatelinks entries
-        AND pp.pp_page IS NULL  -- No expectunusedtemplate property
     ORDER BY qc_title ASC
     LIMIT 5000
 )
