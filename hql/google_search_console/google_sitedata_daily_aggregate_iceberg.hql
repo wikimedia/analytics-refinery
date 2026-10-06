@@ -13,15 +13,16 @@
 --     -f google_sitedata_daily_aggregate_iceberg.hql \
 --     -d source_table=wmf_raw.google_search_console_site_impression \
 --     -d destination_table=wmf_readership.google_sitedata_daily_aggregate \
---     -d coalesce_partitions=1 \
 --     -d day=2025-08-27
+
+SET `spark.sql.iceberg.distribution-mode`=none;
 
 DELETE FROM ${destination_table}
     WHERE `date` = '${day}';
 
 INSERT INTO ${destination_table}
 
-SELECT /*+ COALESCE(${coalesce_partitions}) */
+SELECT
     data_date,
     site_url,
     country,

@@ -6,9 +6,8 @@
 --         -d location=hdfs://analytics-hadoop/wmf/data/wmf_readership/google_sitedata_daily_aggregate
 --
 
-use wmf_readership ;
 CREATE EXTERNAL TABLE IF NOT EXISTS `google_sitedata_daily_aggregate` (
-    `data_date`    date    COMMENT 'Day on which the data in this row was generated (Pacific Time); the table is partitioned by its year.',
+    `data_date`    date    COMMENT 'Day on which the data in this row was generated (Pacific Time); the table is partitioned by its day.',
     `site_url`     string  COMMENT 'URL of the property. Domain properties are sc-domain:property-name; URL-prefix properties are the full URL.',
     `country`      string  COMMENT 'Country of the query, ISO-3166-1-Alpha-3 code.',
     `search_type`  string  COMMENT 'Search surface: web, image, video, news, discover or googleNews.',
@@ -18,9 +17,10 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `google_sitedata_daily_aggregate` (
     `date`         string  COMMENT 'Day of the aggregation (YYYY-MM-DD), matching data_date.'
 )
 USING ICEBERG
-PARTITIONED BY (years(data_date))
+PARTITIONED BY (days(data_date))
 TBLPROPERTIES (
-    'write.parquet.compression-codec' = 'zstd'
+    'write.parquet.compression-codec' = 'snappy',
+    'write.distribution-mode' = 'none'
 )
 LOCATION 'hdfs://analytics-hadoop/wmf/data/wmf_readership/google_sitedata_daily_aggregate'
 ;
