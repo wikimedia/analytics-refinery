@@ -40,6 +40,7 @@ WITH base AS (
     FROM ${source_table} wr
     INNER JOIN ${ua_classification_table} ua
            ON wr.user_agent = ua.user_agent
+          AND ua.hour = MAKE_TIMESTAMP(${year}, ${month}, ${day}, wr.hour, 0, 0)
           AND CAST(ua.hour AS DATE) = MAKE_DATE(${year}, ${month}, ${day})
           AND ua.compliance_level IN ('non_compliant', 'non_compliant_placeholder')
     WHERE wr.year  = ${year}
@@ -91,7 +92,7 @@ ranked AS (
     FROM aggregated
 )
 INSERT INTO ${destination_table}
-SELECT /*+ COALESCE(1) */
+SELECT /*+ REPARTITION(1) */
     webrequest_source,
     compliance_status,
     ip_provenance,
