@@ -38,6 +38,7 @@ SELECT /*+ COALESCE(${coalesce_partitions}) */
     'create' AS event_type,
     DATE(revision_dt) AS event_timestamp,
     user_central_id,
+    mrw.wiki_id,
     CASE
         WHEN (nm.namespace_is_content = 1) THEN 'content'
         ELSE 'non_content'
@@ -53,6 +54,7 @@ FROM ${mediawiki_revision_history_table} as mrw
 GROUP BY
     DATE(revision_dt),
     user_central_id,
+    mrw.wiki_id,
     CASE
         WHEN (nm.namespace_is_content = 1) THEN 'content'
         ELSE 'non_content'
