@@ -86,6 +86,8 @@ logger.addHandler(handler_err)
 # key: database, value: table
 AFFECTED_TABLES = {
     'wmf_raw': {
+        'centralauth_globaluser': 6,
+        'centralauth_localuser': 6,
         'mediawiki_archive': 6,
         'mediawiki_category': 6,
         'mediawiki_categorylinks': 6,
@@ -94,7 +96,9 @@ AFFECTED_TABLES = {
         'mediawiki_collation': 6,
         'mediawiki_content_models': 6,
         'mediawiki_externallinks': 6,
-        'mediawiki_externallinks_old': 6,  # Should be removed completely by 2023-12-01
+        'mediawiki_file': 6,
+        'mediawiki_filerevision': 6,
+        'mediawiki_filetypes': 6,
         'mediawiki_image': 6,
         'mediawiki_imagelinks': 6,
         'mediawiki_ipblocks_restrictions': 6,
@@ -144,13 +148,19 @@ AFFECTED_TABLES = {
 
 # Tables partitioned by wiki_db in addition to by snapshot
 WIKI_DB_TABLES = [
+    'centralauth_globaluser',
+    'centralauth_localuser',
     'mediawiki_archive',
     'mediawiki_category',
     'mediawiki_categorylinks',
     'mediawiki_change_tag_def',
     'mediawiki_change_tag',
+    'mediawiki_collation',
     'mediawiki_content_models',
     'mediawiki_externallinks',
+    'mediawiki_file',
+    'mediawiki_filerevision',
+    'mediawiki_filetypes',
     'mediawiki_image',
     'mediawiki_imagelinks',
     'mediawiki_ipblocks_restrictions',
