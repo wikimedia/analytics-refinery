@@ -1,10 +1,7 @@
--- Merge git interaction events from a JSON staging directory into an Iceberg table,
---
--- The table is maintained by Refine according to json event schema.
+-- Merge git interaction from a JSON staging directory into an Iceberg table,
 --
 -- staging_dir: full HDFS path to the per-run JSON staging directory.
 -- target_table: fully-qualified Iceberg table to merge into (e.g. wmf_dev_metrics.git_interaction).
--- coalesce: number of output files written per partition by the MERGE source.
 --
 -- De-duplication key: (provider, repo, interaction_id, interaction_type, ref)
 
@@ -40,7 +37,7 @@ CREATE OR REPLACE TEMPORARY VIEW raw (
 
 MERGE INTO ${target_table} AS target
 USING (
-  SELECT /*+ COALESCE(${coalesce}) */
+  SELECT
       transform(commits, c -> named_struct(
         'author_email',    c.author_email,
         'author_name',     c.author_name,

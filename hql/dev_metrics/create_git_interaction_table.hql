@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS wmf_dev_metrics.git_interaction (
     >>
         COMMENT 'The commit entities this interaction references. Optional: absent (null in the Data Lake) when the interaction references no commits. In v1 this holds exactly one commit, but the model allows an interaction to reference several (e.g. a push). When present it has at least one entry.',
     `dt` timestamp
-        COMMENT 'ISO-8601 timestamp, in UTC, of when the interaction occurred (event time), not when it was collected. For interaction_type=commit this is the commit\'s committed_dt (the git committer timestamp), so the same value is emitted whether a record comes from the initial backfill or from incremental collection.',
+        COMMENT 'ISO-8601 timestamp, in UTC, of when the interaction occurred, not when it was collected. For interaction_type=commit this is the commit\'s committed_dt (the git committer timestamp), so the same value is emitted whether a record comes from the initial backfill or from incremental collection.',
     `interaction_id` string
         COMMENT 'Stable identifier of the interaction within (provider, repo); the third part of the de-duplication key. For interaction_type=commit this is the commit sha (see commits[].sha). For interaction types that reference several or no commits (e.g. push, merge, review), set it from a provider-native id or a deterministic hash of the interaction\'s defining fields, so re-emitted records collide rather than duplicate.',
     `interaction_type` string
@@ -39,6 +39,12 @@ CREATE TABLE IF NOT EXISTS wmf_dev_metrics.git_interaction (
 )
 USING ICEBERG
 PARTITIONED BY (months(`dt`))
+TBLPROPERTIES (
+    -- Goal of the table maintenance rewrite_data_files compaction, and upper
+    -- bound for writes. Write tasks are sized by
+    -- spark.sql.iceberg.advisory-partition-size in the import DAG.
+    'write.target-file-size-bytes' = '268435456'
+)
 LOCATION 'hdfs://analytics-hadoop/wmf/data/wmf_dev_metrics/git_interaction'
 ;
 
@@ -48,12 +54,3 @@ LOCATION 'hdfs://analytics-hadoop/wmf/data/wmf_dev_metrics/git_interaction'
 -- ORDERED BY is an ALTER, not expressible in CREATE TABLE.
 -- Idempotent: only alters table metadata, no data rewrite.
 ALTER TABLE wmf_dev_metrics.git_interaction WRITE ORDERED BY repo, ref, dt;
-
--- Disable vectorized Parquet reads. Iceberg 1.6.1's vectorized Arrow reader
--- corrupts off-heap memory on the nested `commits array<struct<...>>` column,
--- aborting executors (exit 134: double free / unaligned tcache, inside
--- ColumnarBatchReader -> arrow NettyAllocationManager). The row-based reader
--- avoids the Arrow off-heap path. Revisit once on a Spark/Iceberg version
--- where vectorized reads of nested array<struct> are stable.
-ALTER TABLE wmf_dev_metrics.git_interaction
-    SET TBLPROPERTIES ('read.parquet.vectorization.enabled' = 'false');
