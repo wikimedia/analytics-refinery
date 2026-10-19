@@ -42,7 +42,6 @@ CREATE TABLE IF NOT EXISTS ${destination_table} (
     `user_id`           BIGINT  COMMENT 'Local wiki user ID. Inclued for convience, you should use user_central_id.',
     `user_name`         STRING  COMMENT 'User name on this day. Included for conveneince; user_central_id is canonical. The value here should match the value at the time this user last edited this page.',
     `user_is_bot`       BOOLEAN COMMENT 'True if this user is considered to be a bot on this day. This is originally determined via the MediaWiki $user->isBot() method, which considers both user_groups and user permissions. The value here should match the value at the time this user last edited this page',
-    `user_is_system`    BOOLEAN COMMENT 'True if the user is a MediaWiki system user. These are users that cannot authenticate. These are usually listed in ReservedUsernames. The value here should match the value at the time this user last edited this page',
     `wiki_id`           STRING  COMMENT 'The wiki ID.',
     `wiki`              STRING  COMMENT 'The canonical wiki domain name, e.g. en.wikipedia.org, commons.wikimedia.org, etc.',
     `pageview_project`  STRING  COMMENT 'DEPRECATED: The TLD-less project name of the wiki, e.g. en.wikipedia, commons.wikimedia, etc. This field is included purely for easier use with pageviews_hourly.',

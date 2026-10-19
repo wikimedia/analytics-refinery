@@ -74,7 +74,6 @@ all_edits AS (
         revision.editor.user_id as user_id,
         revision.editor.user_text as user_name,
         revision.editor.is_bot as user_is_bot,
-        revision.editor.is_system as user_is_system,
         wiki_id,
         -- Map from wiki_id to wiki and pageview_project via canonical_data.wikis table.
         -- When a new wiki is created, there is a chance that canonical_data.wikis
@@ -167,7 +166,6 @@ latest_edit_values AS (
         ae.user_id,
         ae.user_name,
         ae.user_is_bot,
-        ae.user_is_system,
         ae.wiki,
         ae.pageview_project,
         ae.page_namespace_id,
@@ -207,7 +205,6 @@ SELECT
     lev.user_id,
     lev.user_name,
     lev.user_is_bot,
-    lev.user_is_system,
     lev.wiki_id,
     lev.wiki,
     lev.pageview_project,

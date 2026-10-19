@@ -138,7 +138,6 @@ latest_user_data AS (
         user_id,
         user_name,
         user_is_bot,
-        user_is_system,
         wiki,
         pageview_project
     FROM (
@@ -149,7 +148,6 @@ latest_user_data AS (
             e.user_id,
             e.user_name,
             e.user_is_bot,
-            e.user_is_system,
             e.wiki,
             e.pageview_project,
             ROW_NUMBER() OVER (
@@ -160,7 +158,6 @@ latest_user_data AS (
                     e.user_id,
                     e.user_name,
                     e.user_is_bot,
-                    e.user_is_system,
                     e.wiki,
                     e.pageview_project
             ) AS rn
@@ -182,7 +179,6 @@ SELECT
     lud.user_id,
     lud.user_name,
     lud.user_is_bot,
-    lud.user_is_system,
     lud.wiki_id,
     lud.wiki,
     lud.pageview_project,

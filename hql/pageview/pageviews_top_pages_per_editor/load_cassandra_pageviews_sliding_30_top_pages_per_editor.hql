@@ -21,7 +21,7 @@
 -- Parameters:
 --     source_table
 --          Fully qualified pageview_per_editor_per_page_daily table.
---          Schema: day, user_central_id, user_id, user_name, user_is_bot, user_is_system,
+--          Schema: day, user_central_id, user_id, user_name, user_is_bot,
 --                  wiki_id, wiki, pageview_project, page_id, view_count
 --     destination_table
 --         Fully qualified Cassandra table to write data to (aqs catalog).

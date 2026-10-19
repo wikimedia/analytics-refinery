@@ -82,8 +82,6 @@ all_edits AS (
         -- User is bot if array contains 'group' or 'name'
         array_contains(event_user_is_bot_by_historical, 'group')
             OR array_contains(event_user_is_bot_by_historical, 'name') as user_is_bot,
-        -- System users are those created by the system
-        event_user_is_created_by_system as user_is_system,
         -- wiki_db directly maps to wiki_id (e.g., 'enwiki', 'dewiki')
         wiki_db as wiki_id,
         -- Map wiki and pageview_project via canonical_data.wikis
@@ -153,7 +151,6 @@ latest_edit_values AS (
         ae.user_id,
         ae.user_name,
         ae.user_is_bot,
-        ae.user_is_system,
         ae.wiki,
         ae.pageview_project,
         ae.page_namespace_id,
@@ -194,7 +191,6 @@ SELECT
     lev.user_id,
     lev.user_name,
     lev.user_is_bot,
-    lev.user_is_system,
     lev.wiki_id,
     lev.wiki,
     lev.pageview_project,
