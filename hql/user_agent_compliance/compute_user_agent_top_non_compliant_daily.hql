@@ -4,7 +4,7 @@
 --
 -- Parameters:
 --     source_table              Fully qualified webrequest source table.
---     ua_classification_table   Fully qualified UA classification table.
+--     user_agents_info_table    Fully qualified User-Agents info table.
 --     destination_table         Fully qualified destination table.
 --     year                      Year of the partition to process.
 --     month                     Month of the partition to process.
@@ -14,7 +14,7 @@
 -- Usage:
 --     spark3-sql -f compute_user_agent_top_non_compliant_daily.hql \
 --         -d source_table=wmf.webrequest \
---         -d ua_classification_table=wmf_traffic.user_agent_compliance_classified_hourly \
+--         -d user_agents_info_table=wmf_traffic.user_agents_info \
 --         -d destination_table=wmf_traffic.user_agent_top_non_compliant_daily \
 --         -d year=2026 \
 --         -d month=2 \
@@ -28,21 +28,23 @@ WHERE day = MAKE_DATE(${year}, ${month}, ${day})
 WITH base AS (
     SELECT
         wr.webrequest_source,
-        ua.compliance_level AS compliance_status,
+        ua.ua_policy_compliance_level AS compliance_status,
         wr.ip_provenance,
-        ua.is_instant_commons_agent,
-        ua.is_foreign_api_agent,
-        ua.is_wikipedia_app_agent,
+        CAST(ua.identified_agent = 'instant_commons' AS BOOLEAN) AS is_instant_commons_agent,
+        CAST(ua.identified_agent = 'mw_foreign_repo' AS BOOLEAN) AS is_foreign_api_agent,
+        CAST(ua.identified_agent = 'wikipedia_app' AS BOOLEAN) AS is_wikipedia_app_agent,
         wr.is_api_request,
         CAST(wr.http_status AS INT) AS http_status,
         wr.user_agent,
         MAKE_DATE(${year}, ${month}, ${day}) AS day
     FROM ${source_table} wr
-    INNER JOIN ${ua_classification_table} ua
+    INNER JOIN ${user_agents_info_table} ua
            ON wr.user_agent = ua.user_agent
           AND ua.hour = MAKE_TIMESTAMP(${year}, ${month}, ${day}, wr.hour, 0, 0)
           AND CAST(ua.hour AS DATE) = MAKE_DATE(${year}, ${month}, ${day})
-          AND ua.compliance_level IN ('non_compliant', 'non_compliant_placeholder')
+          -- the table has one row per User-Agent per source; filter to avoid duplicate counts
+          AND ua.source = 'webrequest'
+          AND ua.ua_policy_compliance_level IN ('non_compliant', 'non_compliant_placeholder')
     WHERE wr.year  = ${year}
       AND wr.month = ${month}
       AND wr.day   = ${day}

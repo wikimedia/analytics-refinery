@@ -4,7 +4,7 @@
 --
 -- Parameters:
 --     source_table              Fully qualified webrequest source table.
---     ua_classification_table   Fully qualified UA classification table.
+--     user_agents_info_table    Fully qualified User-Agents info table.
 --     destination_table         Fully qualified destination table.
 --     year                      Year of the partition to process.
 --     month                     Month of the partition to process.
@@ -14,7 +14,7 @@
 -- Usage:
 --     spark3-sql -f compute_user_agent_compliance_hourly.hql \
 --         -d source_table=wmf.webrequest \
---         -d ua_classification_table=wmf_traffic.user_agent_compliance_classified_hourly \
+--         -d user_agents_info_table=wmf_traffic.user_agents_info \
 --         -d destination_table=wmf_traffic.user_agent_compliance_hourly \
 --         -d year=2026
 --         -d month=2
@@ -39,19 +39,21 @@ WITH requests AS (
         wr.is_api_request,
         wr.uri_path RLIKE '^/w/index\\.php' AS is_endpoint_index_php,
         wr.uri_path LIKE '/w/load.php%' AS is_endpoint_load_php,
-        ua.is_instant_commons_agent,
-        ua.is_foreign_api_agent,
-        ua.is_wikipedia_app_agent,
+        CAST(ua.identified_agent = 'instant_commons' AS BOOLEAN) AS is_instant_commons_agent,
+        CAST(ua.identified_agent = 'mw_foreign_repo' AS BOOLEAN) AS is_foreign_api_agent,
+        CAST(ua.identified_agent = 'wikipedia_app' AS BOOLEAN) AS is_wikipedia_app_agent,
         wr.ip_provenance,
-        COALESCE(ua.compliance_level, 'not_applicable') AS compliance_status,
-        ua.contact_method,
+        COALESCE(ua.ua_policy_compliance_level, 'not_applicable') AS compliance_status,
+        SORT_ARRAY(MAP_KEYS(ua.contact_info)) AS contact_method,
         wr.user_agent,
         wr.response_size,
         wr.time_firstbyte
     FROM ${source_table} wr
-    LEFT JOIN ${ua_classification_table} ua
+    LEFT JOIN ${user_agents_info_table} ua
            ON wr.user_agent = ua.user_agent
           AND ua.hour = MAKE_TIMESTAMP(${year}, ${month}, ${day}, ${hour}, 0, 0)
+          -- the table has one row per User-Agent per source; filter to avoid duplicate counts
+          AND ua.source = 'webrequest'
     WHERE wr.year  = ${year}
       AND wr.month = ${month}
       AND wr.day   = ${day}
