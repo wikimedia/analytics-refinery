@@ -48,3 +48,12 @@ LOCATION 'hdfs://analytics-hadoop/wmf/data/wmf_dev_metrics/git_interaction'
 -- ORDERED BY is an ALTER, not expressible in CREATE TABLE.
 -- Idempotent: only alters table metadata, no data rewrite.
 ALTER TABLE wmf_dev_metrics.git_interaction WRITE ORDERED BY repo, ref, dt;
+
+-- Disable vectorized Parquet reads. Iceberg 1.6.1's vectorized Arrow reader
+-- corrupts off-heap memory on the nested `commits array<struct<...>>` column,
+-- aborting executors (exit 134: double free / unaligned tcache, inside
+-- ColumnarBatchReader -> arrow NettyAllocationManager). The row-based reader
+-- avoids the Arrow off-heap path. Revisit once on a Spark/Iceberg version
+-- where vectorized reads of nested array<struct> are stable.
+ALTER TABLE wmf_dev_metrics.git_interaction
+    SET TBLPROPERTIES ('read.parquet.vectorization.enabled' = 'false');

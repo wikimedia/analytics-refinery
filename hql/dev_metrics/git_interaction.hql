@@ -24,16 +24,19 @@ CREATE OR REPLACE TEMPORARY VIEW raw (
   USING json
   OPTIONS (path '${staging_dir}');
 
--- Derive the dt range actually present in this batch, as foldable constants.
--- Used below to statically prune the target scan to the covering months(dt)
--- partitions. Bounds come from the source itself, so they always cover every
--- source.dt: pruning can never drop a month that holds a real match.
--- (An inline subquery would not push down to the Iceberg copy-on-write scan.)
-DECLARE OR REPLACE VARIABLE dt_lower TIMESTAMP;
-DECLARE OR REPLACE VARIABLE dt_upper TIMESTAMP;
-SET VARIABLE (dt_lower, dt_upper) = (
-  SELECT min(CAST(dt AS timestamp)), max(CAST(dt AS timestamp)) FROM raw
-);
+-- Partition-pruning bounds (SPARK 4+ ONLY, currently disabled).
+-- Derive the dt range actually present in this batch into session variables,
+-- then reference them as foldable constants in the MERGE ON clause below to
+-- statically prune the target scan to the covering months(dt) partitions.
+-- Bounds come from the source itself, so they always cover every source.dt:
+-- pruning can never drop a month that holds a real match. (An inline subquery
+-- would not push down to the Iceberg copy-on-write scan.)
+--
+-- DECLARE OR REPLACE VARIABLE dt_lower TIMESTAMP;
+-- DECLARE OR REPLACE VARIABLE dt_upper TIMESTAMP;
+-- SET VARIABLE (dt_lower, dt_upper) = (
+--   SELECT min(CAST(dt AS timestamp)), max(CAST(dt AS timestamp)) FROM raw
+-- );
 
 MERGE INTO ${target_table} AS target
 USING (
@@ -64,8 +67,9 @@ AND target.interaction_id   = source.interaction_id
 AND target.interaction_type = source.interaction_type
 AND target.ref              <=> source.ref
 AND target.dt               = source.dt
--- Static, foldable bounds: prune the target scan to the covering months(dt).
-AND target.dt               >= dt_lower
-AND target.dt               <= dt_upper
+-- Static, foldable bounds (SPARK 4+): prune the target scan to the covering
+-- months(dt). Enable together with the DECLARE/SET VARIABLE block above.
+-- AND target.dt               >= dt_lower
+-- AND target.dt               <= dt_upper
 WHEN MATCHED THEN UPDATE SET *
 WHEN NOT MATCHED THEN INSERT *;
