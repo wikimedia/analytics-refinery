@@ -23,7 +23,7 @@ import re
 
 from subprocess import check_call, DEVNULL
 from refinery.hdfs import Hdfs
-from refinery.util import is_yarn_application_running, get_dbnames_from_mw_config
+from refinery.util import is_yarn_application_running, get_dbnames_from_mw_config, get_wikidata_client_dbs
 
 logger = logging.getLogger()
 
@@ -963,9 +963,7 @@ def validate_tables_and_get_queries(filter_tables, from_timestamp, to_timestamp)
         'mappers-weight': 0.125,
     }
 
-    wbc_entity_usage_sqoopable_dbs = get_dbnames_from_mw_config(['wikidataclient.dblist'])
-    # Manually removed table (empty in prod, not replicated in labs)
-    wbc_entity_usage_sqoopable_dbs.discard('sewikimedia')
+    wbc_entity_usage_sqoopable_dbs = get_wikidata_client_dbs()
 
     queries['wbc_entity_usage'] = {
         'query': '''

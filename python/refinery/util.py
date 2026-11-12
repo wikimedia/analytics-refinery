@@ -175,6 +175,13 @@ def get_dbnames_from_mw_config(filenames,
     return dbnames
 
 
+def get_wikidata_client_dbs():
+    wbc_entity_usage_sqoopable_dbs = get_dbnames_from_mw_config(['wikidataclient.dblist'])
+    # Manually removed table (empty in prod, not replicated in labs)
+    wbc_entity_usage_sqoopable_dbs.discard('sewikimedia')
+    return wbc_entity_usage_sqoopable_dbs
+
+
 def get_mediawiki_section_dbname_mapping(mw_config_path=MW_CONFIG_PATH,
                                          mw_config_dblists_folder=MW_CONFIG_DBLISTS_FOLDER,
                                          override_shard=None):

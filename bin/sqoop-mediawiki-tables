@@ -143,7 +143,7 @@ from refinery.sqoop import (
     check_hdfs_path_or_exit, check_already_running_or_exit,
     SqoopConfig, sqoop_wiki, validate_tables_and_get_queries,
 )
-from refinery.util import get_mediawiki_section_dbname_mapping, get_jdbc_string
+from refinery.util import get_mediawiki_section_dbname_mapping, get_jdbc_string, get_wikidata_client_dbs
 
 logger = logging.getLogger()
 
@@ -151,7 +151,7 @@ logger = logging.getLogger()
 # DB mappings link a wiki database to its default shard
 # Some wikis have additional tables on other shards
 # This override allows us to specify that
-DB_MAPPING_SHARD_OVERRIDES = {
+STATIC_SHARD_OVERRIDES = {
     'commonswiki': {
         # commonswiki links tables have been moved to x4
         # https://phabricator.wikimedia.org/T398709
@@ -169,6 +169,17 @@ DB_MAPPING_SHARD_OVERRIDES = {
         'langlinks':        'x4',
     },
 }
+
+
+def get_db_mapping_shard_overrides():
+    """
+    Customize STATIC_SHARD_OVERRIDES here, and leave a note like:
+      - wbc_entity_usage is on x1 for all wikidata client wikis, see https://phabricator.wikimedia.org/T431477
+    """
+    overrides = {db: dict(tables) for db, tables in STATIC_SHARD_OVERRIDES.items()}
+    for db in get_wikidata_client_dbs():
+        overrides.setdefault(db, {})['wbc_entity_usage'] = 'x1'
+    return overrides
 
 
 if __name__ == '__main__':
@@ -209,6 +220,7 @@ if __name__ == '__main__':
     log_file                            = arguments.get('--log-file')
 
     db_mapping                          = get_mediawiki_section_dbname_mapping()
+    db_mapping_shard_overrides          = get_db_mapping_shard_overrides()
 
     level = logging.DEBUG if verbose else logging.INFO
     configure_logging(logger, level, log_file=log_file)
@@ -265,7 +277,7 @@ if __name__ == '__main__':
         logger.info('Generating ORM jar at {}'.format(jar_path))
 
         for table in queries.keys():
-            shard = DB_MAPPING_SHARD_OVERRIDES.get(sample_wiki, {}).get(table)
+            shard = db_mapping_shard_overrides.get(sample_wiki, {}).get(table)
             table_jdbc_string = get_jdbc_string(sample_wiki, clouddb, override_shard=shard, db_mapping=db_mapping)
 
             sqoop_commands.append(
@@ -326,7 +338,7 @@ if __name__ == '__main__':
                 # NOTE: this is a hacky workaround the fact that some tables
                 # don't exist on the core wiki's cluster. It would be better if
                 # we could look this up via mediawiki-config dblist like we usually do.
-                shard = DB_MAPPING_SHARD_OVERRIDES.get(wiki_db, {}).get(table)
+                shard = db_mapping_shard_overrides.get(wiki_db, {}).get(table)
                 table_jdbc_string = get_jdbc_string(wiki_db, clouddb, override_shard=shard, db_mapping=db_mapping)
 
                 config = SqoopConfig(yarn_job_name_prefix, user, password_file, table_jdbc_string,
