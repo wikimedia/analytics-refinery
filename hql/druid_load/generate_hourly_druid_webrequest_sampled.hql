@@ -67,6 +67,7 @@ CREATE TABLE IF NOT EXISTS ${destination_table} (
     top_historical_webrequest string,
     datacenter                string,
     is_thumb_generated        string,
+    x_kapow_estimate          bigint,
     -- Fields to be used as metricsas HiveToDruid
     -- uses the same names for Hive fields and druid metrics
     aggregated_response_size  bigint,
@@ -130,6 +131,7 @@ WITH prepared_data AS (
         top_historical_webrequest,
         datacenter,
         is_thumb_generated,
+        x_kapow_estimate,
         -- Special fields
         response_size AS aggregated_response_size,
         time_firstbyte AS aggregated_time_firstbyte,
