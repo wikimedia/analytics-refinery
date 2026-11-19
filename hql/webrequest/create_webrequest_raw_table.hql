@@ -45,8 +45,7 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `webrequest` (
     `ch_ua_model`             string  COMMENT 'Value of the Sec-CH-UA-Model request header',
     `ch_ua_platform_version`  string  COMMENT 'Value of the Sec-CH-UA-Platform-Version request header',
     `termination_state`       string  COMMENT 'HAProxy session states at disconnection / anomalous session termination states. See https://wikitech.wikimedia.org/wiki/HAProxy/session_states',
-    `x_provenance`            string  COMMENT 'Request provenance information as computed by the edge servers',
-    `x_kapow_estimate`        bigint  COMMENT 'Kapow estimated score computed on edge server'
+    `x_provenance`            string  COMMENT 'Request provenance information as computed by the edge servers'
 ) PARTITIONED BY (
     `webrequest_source` string  COMMENT 'Source cluster',
     `year`              int     COMMENT 'Unpadded year of request',

@@ -53,8 +53,7 @@
               "x_trusted_request",
               "top_historical_webrequest",
               "datacenter",
-              "is_thumb_generated",
-              "x_kapow_estimate"
+	      "is_thumb_generated"
           ]
         },
         "dimensionsSpec": {
@@ -104,8 +103,6 @@
               "top_historical_webrequest",
               "datacenter",
               "is_thumb_generated",
-              "x_kapow_estimate",
-              // Field defined as transform
               "is_api"
           ]
         },
