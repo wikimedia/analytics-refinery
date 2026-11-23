@@ -126,7 +126,8 @@ distinct_rows AS (
         ch_ua_model,
         ch_ua_platform_version,
         termination_state,
-        x_provenance
+        x_provenance,
+        x_kapow_estimate
     FROM
         ${source_table}
     LEFT ANTI JOIN excluded_rows
@@ -240,6 +241,7 @@ SELECT /*+ COALESCE(${coalesce_partitions}) */
     CASE COALESCE(x_provenance, '-')
         WHEN '-' THEN NULL
         ELSE str_to_map(x_provenance, '\;', '=')
-    END as x_provenance_map
+    END as x_provenance_map,
+    x_kapow_estimate
 
 FROM distinct_rows_and_reused_fields ;

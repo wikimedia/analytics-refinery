@@ -64,6 +64,7 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `webrequest_sampled` (
     `top_historical_webrequest`  string  COMMENT '',
     `datacenter`                 string  COMMENT '',
     `is_thumb_generated`         string  COMMENT '',
+    `x_kapow_estimate`           string  COMMENT 'Kapow estimated score computed on edge server'
 ) PARTITIONED BY (
     `year`              int     COMMENT 'Unpadded year of request',
     `month`             int     COMMENT 'Unpadded month of request',
